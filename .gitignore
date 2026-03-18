@@ -34,3 +34,6 @@ npm-debug.log*
 
 # Supabase
 supabase/.temp/
+
+# Original legacy code
+original-code/
