@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { ChatRoom } from '@/components/chat/ChatRoom';
+import { FeedContainer } from '@/components/feed/FeedContainer';
+import { AdSidebar } from '@/components/ads/AdSidebar';
+import { AdAnchor } from '@/components/ads/AdAnchor';
 import Link from 'next/link';
 import type { Database } from '@arena/supabase-client';
 
@@ -114,16 +116,29 @@ export function CommunityPageClient({
         </div>
       </div>
 
-      {/* Chat room */}
-      <div className="flex-1 overflow-hidden rounded-none border-t border-gray-200 bg-white">
-        <ChatRoom
-          communityId={community.id}
-          communityName={community.name}
-          isMember={isMember}
-          isMuted={isMuted}
-          canModerate={canModerate}
-        />
+      {/* 3-column layout: [Ad left] | [Feed] | [Ad right] */}
+      <div className="flex flex-1 overflow-hidden border-t border-gray-200">
+        {/* Left ad sidebar - xl+ only */}
+        <AdSidebar position="left" />
+
+        {/* Central feed area */}
+        <div className="flex-1 overflow-hidden bg-white">
+          <FeedContainer
+            communityId={community.id}
+            communityName={community.name}
+            communitySlug={community.slug}
+            isMember={isMember}
+            isMuted={isMuted}
+            canModerate={canModerate}
+          />
+        </div>
+
+        {/* Right ad sidebar - xl+ only (below online members in FeedContainer) */}
+        <AdSidebar position="right" />
       </div>
+
+      {/* Mobile sticky ad banner */}
+      <AdAnchor />
     </div>
   );
 }

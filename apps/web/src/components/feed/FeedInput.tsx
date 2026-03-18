@@ -2,10 +2,10 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { CHAT_MAX_MESSAGE_LENGTH } from '@arena/shared';
-import { FeedImagePicker } from '@/components/feed/FeedImagePicker';
+import { FeedImagePicker } from './FeedImagePicker';
 import { useImageUpload } from '@/hooks/useImageUpload';
 
-interface ChatInputProps {
+interface FeedInputProps {
   onSend: (content: string, imageUrls?: string[]) => Promise<void>;
   disabled: boolean;
   placeholder?: string;
@@ -13,7 +13,7 @@ interface ChatInputProps {
   userId: string | null;
 }
 
-export function ChatInput({ onSend, disabled, placeholder, communityId, userId }: ChatInputProps) {
+export function FeedInput({ onSend, disabled, placeholder, communityId, userId }: FeedInputProps) {
   const [content, setContent] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { images, uploading, addImages, removeImage, clearImages, uploadAll } = useImageUpload();
@@ -22,7 +22,6 @@ export function ChatInput({ onSend, disabled, placeholder, communityId, userId }
     const trimmed = content.trim();
     if ((!trimmed && images.length === 0) || disabled || uploading) return;
 
-    // Upload images first if any
     let imageUrls: string[] = [];
     if (images.length > 0 && userId) {
       imageUrls = await uploadAll(communityId, userId);
@@ -48,7 +47,6 @@ export function ChatInput({ onSend, disabled, placeholder, communityId, userId }
     if (value.length <= CHAT_MAX_MESSAGE_LENGTH) {
       setContent(value);
     }
-    // Auto-resize textarea
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
@@ -57,7 +55,6 @@ export function ChatInput({ onSend, disabled, placeholder, communityId, userId }
 
   return (
     <div className="border-t border-gray-200 bg-white p-3">
-      {/* Image previews */}
       {images.length > 0 && (
         <div className="mb-2">
           <FeedImagePicker
@@ -70,7 +67,6 @@ export function ChatInput({ onSend, disabled, placeholder, communityId, userId }
       )}
 
       <div className="flex items-end gap-2">
-        {/* Image button */}
         {images.length === 0 && (
           <FeedImagePicker
             images={[]}

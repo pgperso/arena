@@ -1,0 +1,147 @@
+'use client';
+
+import { useState, useRef } from 'react';
+import { formatTime } from '@arena/shared';
+import type { FeedPodcast } from '@arena/shared';
+import { FeedLikeButton } from './FeedLikeButton';
+import Link from 'next/link';
+
+interface FeedPodcastCardProps {
+  podcast: FeedPodcast;
+  communitySlug: string;
+  userId: string | null;
+}
+
+function formatDuration(seconds: number | null): string {
+  if (!seconds) return '';
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+export function FeedPodcastCard({ podcast, communitySlug, userId }: FeedPodcastCardProps) {
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  function togglePlay() {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (playing) {
+      audio.pause();
+    } else {
+      audio.play();
+    }
+    setPlaying(!playing);
+  }
+
+  function handleTimeUpdate() {
+    const audio = audioRef.current;
+    if (!audio || !audio.duration) return;
+    setProgress((audio.currentTime / audio.duration) * 100);
+  }
+
+  function handleSeek(e: React.MouseEvent<HTMLDivElement>) {
+    const audio = audioRef.current;
+    if (!audio || !audio.duration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+    audio.currentTime = ratio * audio.duration;
+  }
+
+  function handleEnded() {
+    setPlaying(false);
+    setProgress(0);
+  }
+
+  return (
+    <div className="px-4 py-3">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-orange-50 to-amber-50 p-4">
+        <audio
+          ref={audioRef}
+          src={podcast.audioUrl}
+          onTimeUpdate={handleTimeUpdate}
+          onEnded={handleEnded}
+          preload="none"
+        />
+
+        <div className="flex gap-3">
+          {/* Cover / Play button */}
+          <button
+            onClick={togglePlay}
+            className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-orange-200"
+          >
+            {podcast.coverImageUrl ? (
+              <img
+                src={podcast.coverImageUrl}
+                alt={podcast.title}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <svg className="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+              </svg>
+            )}
+            {/* Play/Pause overlay */}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition hover:bg-black/30">
+              {playing ? (
+                <svg className="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                </svg>
+              ) : (
+                <svg className="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              )}
+            </div>
+          </button>
+
+          {/* Info */}
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-center gap-2">
+              <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                Podcast
+              </span>
+              <span className="text-xs text-gray-400">{formatTime(podcast.createdAt)}</span>
+              {podcast.durationSeconds && (
+                <span className="text-xs text-gray-400">
+                  {formatDuration(podcast.durationSeconds)}
+                </span>
+              )}
+            </div>
+            <Link
+              href={`/communities/${communitySlug}/podcasts/${podcast.id}`}
+              className="text-sm font-semibold text-gray-900 hover:text-orange-700 line-clamp-1"
+            >
+              {podcast.title}
+            </Link>
+            {podcast.description && (
+              <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">{podcast.description}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div
+          className="mt-3 h-1.5 cursor-pointer rounded-full bg-orange-200"
+          onClick={handleSeek}
+        >
+          <div
+            className="h-full rounded-full bg-orange-500 transition-all"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Like button */}
+      <div className="mt-1 flex items-center gap-1 pl-1">
+        <FeedLikeButton
+          targetType="podcast"
+          targetId={podcast.id}
+          initialLikeCount={podcast.likeCount}
+          userId={userId}
+        />
+      </div>
+    </div>
+  );
+}

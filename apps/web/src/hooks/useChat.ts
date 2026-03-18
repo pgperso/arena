@@ -13,14 +13,26 @@ export interface ChatMessageWithMember extends ChatMessageRow {
   members: Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null;
 }
 
+interface SendOptions {
+  content?: string;
+  imageUrls?: string[];
+  parentId?: number;
+  repostOfId?: number;
+  quoteOfId?: number;
+}
+
 interface UseChatReturn {
   messages: ChatMessageWithMember[];
   loading: boolean;
   sending: boolean;
   hasMore: boolean;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, imageUrls?: string[]) => Promise<void>;
+  sendReply: (parentId: number, content: string, imageUrls?: string[]) => Promise<void>;
+  sendRepost: (repostOfId: number) => Promise<void>;
+  sendQuote: (quoteOfId: number, content: string, imageUrls?: string[]) => Promise<void>;
   loadMore: () => Promise<void>;
   deleteMessage: (messageId: number) => Promise<void>;
+  getMessageById: (id: number) => ChatMessageWithMember | undefined;
 }
 
 export function useChat(communityId: number, userId: string | null): UseChatReturn {
@@ -67,7 +79,6 @@ export function useChat(communityId: number, userId: string | null): UseChatRetu
         },
         async (payload: RealtimePostgresInsertPayload<ChatMessageRow>) => {
           const newMsg = payload.new;
-          // Fetch the member info for the new message
           let member: Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null = null;
           if (newMsg.member_id) {
             const { data } = await supabase
@@ -108,18 +119,56 @@ export function useChat(communityId: number, userId: string | null): UseChatRetu
     };
   }, [communityId]);
 
-  const sendMessage = useCallback(
-    async (content: string) => {
-      if (!userId || !content.trim()) return;
+  const send = useCallback(
+    async (options: SendOptions) => {
+      if (!userId) return;
+      const hasContent = options.content && options.content.trim();
+      const hasImages = options.imageUrls && options.imageUrls.length > 0;
+      const isRepost = !!options.repostOfId;
+
+      if (!hasContent && !hasImages && !isRepost) return;
+
       setSending(true);
       await supabaseRef.current.from('chat_messages').insert({
         community_id: communityId,
         member_id: userId,
-        content: content.trim(),
+        content: hasContent ? options.content!.trim() : null,
+        image_urls: options.imageUrls ?? [],
+        parent_id: options.parentId ?? null,
+        repost_of_id: options.repostOfId ?? null,
+        quote_of_id: options.quoteOfId ?? null,
       });
       setSending(false);
     },
     [communityId, userId],
+  );
+
+  const sendMessage = useCallback(
+    async (content: string, imageUrls?: string[]) => {
+      await send({ content, imageUrls });
+    },
+    [send],
+  );
+
+  const sendReply = useCallback(
+    async (parentId: number, content: string, imageUrls?: string[]) => {
+      await send({ content, imageUrls, parentId });
+    },
+    [send],
+  );
+
+  const sendRepost = useCallback(
+    async (repostOfId: number) => {
+      await send({ repostOfId });
+    },
+    [send],
+  );
+
+  const sendQuote = useCallback(
+    async (quoteOfId: number, content: string, imageUrls?: string[]) => {
+      await send({ content, imageUrls, quoteOfId });
+    },
+    [send],
   );
 
   const loadMore = useCallback(async () => {
@@ -155,5 +204,22 @@ export function useChat(communityId: number, userId: string | null): UseChatRetu
     [userId],
   );
 
-  return { messages, loading, sending, hasMore, sendMessage, loadMore, deleteMessage };
+  const getMessageById = useCallback(
+    (id: number) => messages.find((m) => m.id === id),
+    [messages],
+  );
+
+  return {
+    messages,
+    loading,
+    sending,
+    hasMore,
+    sendMessage,
+    sendReply,
+    sendRepost,
+    sendQuote,
+    loadMore,
+    deleteMessage,
+    getMessageById,
+  };
 }

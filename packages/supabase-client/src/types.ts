@@ -138,7 +138,14 @@ export type Database = {
           id: number;
           community_id: number;
           member_id: string | null;
-          content: string;
+          content: string | null;
+          parent_id: number | null;
+          repost_of_id: number | null;
+          quote_of_id: number | null;
+          image_urls: string[];
+          like_count: number;
+          reply_count: number;
+          repost_count: number;
           is_removed: boolean;
           removed_at: string | null;
           removed_by: string | null;
@@ -148,7 +155,14 @@ export type Database = {
           id?: number;
           community_id: number;
           member_id?: string | null;
-          content: string;
+          content?: string | null;
+          parent_id?: number | null;
+          repost_of_id?: number | null;
+          quote_of_id?: number | null;
+          image_urls?: string[];
+          like_count?: number;
+          reply_count?: number;
+          repost_count?: number;
           is_removed?: boolean;
           removed_at?: string | null;
           removed_by?: string | null;
@@ -158,7 +172,14 @@ export type Database = {
           id?: number;
           community_id?: number;
           member_id?: string | null;
-          content?: string;
+          content?: string | null;
+          parent_id?: number | null;
+          repost_of_id?: number | null;
+          quote_of_id?: number | null;
+          image_urls?: string[];
+          like_count?: number;
+          reply_count?: number;
+          repost_count?: number;
           is_removed?: boolean;
           removed_at?: string | null;
           removed_by?: string | null;
@@ -182,6 +203,181 @@ export type Database = {
           {
             foreignKeyName: 'chat_messages_removed_by_fkey';
             columns: ['removed_by'];
+            isOneToOne: false;
+            referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'chat_messages_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'chat_messages';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'chat_messages_repost_of_id_fkey';
+            columns: ['repost_of_id'];
+            isOneToOne: false;
+            referencedRelation: 'chat_messages';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'chat_messages_quote_of_id_fkey';
+            columns: ['quote_of_id'];
+            isOneToOne: false;
+            referencedRelation: 'chat_messages';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      message_likes: {
+        Row: {
+          id: number;
+          message_id: number;
+          member_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          message_id: number;
+          member_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          message_id?: number;
+          member_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'message_likes_message_id_fkey';
+            columns: ['message_id'];
+            isOneToOne: false;
+            referencedRelation: 'chat_messages';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'message_likes_member_id_fkey';
+            columns: ['member_id'];
+            isOneToOne: false;
+            referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      articles: {
+        Row: {
+          id: number;
+          community_id: number;
+          author_id: string;
+          title: string;
+          slug: string;
+          excerpt: string | null;
+          body: string;
+          cover_image_url: string | null;
+          is_published: boolean;
+          published_at: string | null;
+          like_count: number;
+          view_count: number;
+          is_removed: boolean;
+          removed_at: string | null;
+          removed_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          community_id: number;
+          author_id: string;
+          title: string;
+          slug: string;
+          body: string;
+          excerpt?: string | null;
+          cover_image_url?: string | null;
+          is_published?: boolean;
+          published_at?: string | null;
+          like_count?: number;
+          view_count?: number;
+          is_removed?: boolean;
+          removed_at?: string | null;
+          removed_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          community_id?: number;
+          author_id?: string;
+          title?: string;
+          slug?: string;
+          body?: string;
+          excerpt?: string | null;
+          cover_image_url?: string | null;
+          is_published?: boolean;
+          published_at?: string | null;
+          like_count?: number;
+          view_count?: number;
+          is_removed?: boolean;
+          removed_at?: string | null;
+          removed_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'articles_community_id_fkey';
+            columns: ['community_id'];
+            isOneToOne: false;
+            referencedRelation: 'communities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'articles_author_id_fkey';
+            columns: ['author_id'];
+            isOneToOne: false;
+            referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'articles_removed_by_fkey';
+            columns: ['removed_by'];
+            isOneToOne: false;
+            referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      article_likes: {
+        Row: {
+          id: number;
+          article_id: number;
+          member_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          article_id: number;
+          member_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          article_id?: number;
+          member_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'article_likes_article_id_fkey';
+            columns: ['article_id'];
+            isOneToOne: false;
+            referencedRelation: 'articles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'article_likes_member_id_fkey';
+            columns: ['member_id'];
             isOneToOne: false;
             referencedRelation: 'members';
             referencedColumns: ['id'];
@@ -236,6 +432,9 @@ export type Database = {
           audio_url: string;
           duration_seconds: number | null;
           published_by: string | null;
+          cover_image_url: string | null;
+          is_published: boolean;
+          like_count: number;
           created_at: string;
           updated_at: string;
         };
@@ -247,6 +446,9 @@ export type Database = {
           description?: string | null;
           duration_seconds?: number | null;
           published_by?: string | null;
+          cover_image_url?: string | null;
+          is_published?: boolean;
+          like_count?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -258,6 +460,9 @@ export type Database = {
           description?: string | null;
           duration_seconds?: number | null;
           published_by?: string | null;
+          cover_image_url?: string | null;
+          is_published?: boolean;
+          like_count?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -272,6 +477,42 @@ export type Database = {
           {
             foreignKeyName: 'podcasts_published_by_fkey';
             columns: ['published_by'];
+            isOneToOne: false;
+            referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      podcast_likes: {
+        Row: {
+          id: number;
+          podcast_id: number;
+          member_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          podcast_id: number;
+          member_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          podcast_id?: number;
+          member_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'podcast_likes_podcast_id_fkey';
+            columns: ['podcast_id'];
+            isOneToOne: false;
+            referencedRelation: 'podcasts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'podcast_likes_member_id_fkey';
+            columns: ['member_id'];
             isOneToOne: false;
             referencedRelation: 'members';
             referencedColumns: ['id'];

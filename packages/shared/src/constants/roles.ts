@@ -10,6 +10,7 @@ export const PERMISSIONS = {
   MEMBER_MANAGE: 'member:manage',
   MEMBER_RESTRICT: 'member:restrict',
   COMMUNITY_MANAGE: 'community:manage',
+  ARTICLE_PUBLISH: 'article:publish',
 } as const;
 
 export const ROLE_DISPLAY_NAMES: Record<string, string> = {

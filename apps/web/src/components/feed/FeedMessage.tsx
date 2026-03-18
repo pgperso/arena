@@ -1,29 +1,27 @@
 'use client';
 
 import { formatTime } from '@arena/shared';
-import { FeedActions } from '@/components/feed/FeedActions';
-import { FeedImageGallery } from '@/components/feed/FeedImageGallery';
-import { FeedRichContent } from '@/components/feed/FeedRichContent';
-import { FeedReplyContext } from '@/components/feed/FeedReplyContext';
-import { FeedRepostBadge } from '@/components/feed/FeedRepostBadge';
-import { FeedQuotedMessage } from '@/components/feed/FeedQuotedMessage';
-import type { ChatMessageWithMember } from '@/hooks/useChat';
+import type { FeedMessage as FeedMessageType } from '@arena/shared';
+import { FeedActions } from './FeedActions';
+import { FeedImageGallery } from './FeedImageGallery';
+import { FeedRichContent } from './FeedRichContent';
+import { FeedReplyContext } from './FeedReplyContext';
+import { FeedRepostBadge } from './FeedRepostBadge';
+import { FeedQuotedMessage } from './FeedQuotedMessage';
 
-interface ChatMessageProps {
-  message: ChatMessageWithMember;
+interface FeedMessageProps {
+  message: FeedMessageType;
   isOwn: boolean;
   canModerate: boolean;
   userId: string | null;
   onDelete: (messageId: number) => void;
-  onReply: (message: ChatMessageWithMember) => void;
+  onReply: (message: FeedMessageType) => void;
   onRepost: (messageId: number) => void;
-  onQuote: (message: ChatMessageWithMember) => void;
-  parentMessage?: ChatMessageWithMember | null;
-  repostedMessage?: ChatMessageWithMember | null;
-  quotedMessage?: ChatMessageWithMember | null;
+  onQuote: (message: FeedMessageType) => void;
+  getMessageById: (id: number) => FeedMessageType | undefined;
 }
 
-export function ChatMessage({
+export function FeedMessage({
   message,
   isOwn,
   canModerate,
@@ -32,15 +30,13 @@ export function ChatMessage({
   onReply,
   onRepost,
   onQuote,
-  parentMessage,
-  repostedMessage,
-  quotedMessage,
-}: ChatMessageProps) {
-  const username = message.members?.username ?? 'Utilisateur supprimé';
+  getMessageById,
+}: FeedMessageProps) {
+  const username = message.member?.username ?? 'Utilisateur supprimé';
   const initial = username[0]?.toUpperCase() ?? '?';
-  const time = formatTime(message.created_at);
+  const time = formatTime(message.createdAt);
 
-  if (message.is_removed) {
+  if (message.isRemoved) {
     return (
       <div className="px-4 py-2">
         <p className="text-sm italic text-gray-400">[Message supprimé]</p>
@@ -49,30 +45,35 @@ export function ChatMessage({
   }
 
   // Pure repost (no content, just sharing someone else's message)
-  if (message.repost_of_id && !message.content && repostedMessage) {
+  const repostedMessage = message.repostOfId ? getMessageById(message.repostOfId) : undefined;
+  if (message.repostOfId && !message.content && repostedMessage) {
     return (
       <div className="py-1">
         <FeedRepostBadge username={username} />
-        <ChatMessage
+        <FeedMessage
           message={repostedMessage}
-          isOwn={repostedMessage.member_id === userId}
+          isOwn={repostedMessage.memberId === userId}
           canModerate={canModerate}
           userId={userId}
           onDelete={onDelete}
           onReply={onReply}
           onRepost={onRepost}
           onQuote={onQuote}
+          getMessageById={getMessageById}
         />
       </div>
     );
   }
 
+  const parentMessage = message.parentId ? getMessageById(message.parentId) : undefined;
+  const quotedMessage = message.quoteOfId ? getMessageById(message.quoteOfId) : undefined;
+
   return (
     <div className="group flex gap-3 px-4 py-2 hover:bg-gray-50">
       {/* Avatar */}
-      {message.members?.avatar_url ? (
+      {message.member?.avatarUrl ? (
         <img
-          src={message.members.avatar_url}
+          src={message.member.avatarUrl}
           alt={username}
           className="mt-0.5 h-8 w-8 flex-shrink-0 rounded-full object-cover"
         />
@@ -85,9 +86,9 @@ export function ChatMessage({
       {/* Content */}
       <div className="min-w-0 flex-1">
         {/* Reply context */}
-        {message.parent_id && parentMessage && (
+        {message.parentId && parentMessage && (
           <FeedReplyContext
-            parentUsername={parentMessage.members?.username ?? 'Utilisateur supprimé'}
+            parentUsername={parentMessage.member?.username ?? 'Utilisateur supprimé'}
           />
         )}
 
@@ -107,18 +108,18 @@ export function ChatMessage({
           )}
         </div>
         {message.content && <FeedRichContent content={message.content} />}
-        {message.image_urls && message.image_urls.length > 0 && (
-          <FeedImageGallery imageUrls={message.image_urls} />
+        {message.imageUrls.length > 0 && (
+          <FeedImageGallery imageUrls={message.imageUrls} />
         )}
 
         {/* Quoted message */}
-        {message.quote_of_id && quotedMessage && (
+        {message.quoteOfId && quotedMessage && (
           <FeedQuotedMessage
             message={{
               content: quotedMessage.content,
-              username: quotedMessage.members?.username ?? 'Utilisateur supprimé',
-              avatarUrl: quotedMessage.members?.avatar_url ?? null,
-              createdAt: quotedMessage.created_at,
+              username: quotedMessage.member?.username ?? 'Utilisateur supprimé',
+              avatarUrl: quotedMessage.member?.avatarUrl ?? null,
+              createdAt: quotedMessage.createdAt,
             }}
           />
         )}
@@ -126,9 +127,9 @@ export function ChatMessage({
         {/* Actions bar */}
         <FeedActions
           messageId={message.id}
-          likeCount={message.like_count}
-          replyCount={message.reply_count}
-          repostCount={message.repost_count}
+          likeCount={message.likeCount}
+          replyCount={message.replyCount}
+          repostCount={message.repostCount}
           userId={userId}
           onReply={() => onReply(message)}
           onRepost={() => onRepost(message.id)}

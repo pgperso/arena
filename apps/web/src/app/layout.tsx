@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import Script from 'next/script';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { ADSENSE_CLIENT_ID } from '@arena/shared';
 import './globals.css';
 
 const inter = Inter({
@@ -25,11 +27,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
+      <head>
+        <Script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className={`${inter.variable} antialiased`}>
-        <div className="flex min-h-screen flex-col">
+        <div className="flex h-screen flex-col overflow-hidden">
           <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <main className="flex-1 overflow-hidden">{children}</main>
         </div>
       </body>
     </html>

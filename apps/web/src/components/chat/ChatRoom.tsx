@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useChat } from '@/hooks/useChat';
+import type { ChatMessageWithMember } from '@/hooks/useChat';
 import { usePresence } from '@/hooks/usePresence';
 import { useAuth } from '@/hooks/useAuth';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { OnlineMembers } from './OnlineMembers';
+import { FeedReplyBar } from '@/components/feed/FeedReplyBar';
 import Link from 'next/link';
 
 interface ChatRoomProps {
@@ -25,15 +27,28 @@ export function ChatRoom({
   canModerate,
 }: ChatRoomProps) {
   const { user, username } = useAuth();
-  const { messages, loading, sending, hasMore, sendMessage, loadMore, deleteMessage } = useChat(
-    communityId,
-    user?.id ?? null,
-  );
+  const {
+    messages,
+    loading,
+    sending,
+    hasMore,
+    sendMessage,
+    sendReply,
+    sendRepost,
+    sendQuote,
+    loadMore,
+    deleteMessage,
+    getMessageById,
+  } = useChat(communityId, user?.id ?? null);
   const { onlineMembers } = usePresence(communityId, user?.id ?? null, username);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const [showMembers, setShowMembers] = useState(false);
+
+  // Reply/quote state
+  const [replyTarget, setReplyTarget] = useState<ChatMessageWithMember | null>(null);
+  const [quoteTarget, setQuoteTarget] = useState<ChatMessageWithMember | null>(null);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -57,7 +72,6 @@ export function ChatRoom({
     if (el.scrollTop < 50) {
       const prevHeight = el.scrollHeight;
       loadMore().then(() => {
-        // Preserve scroll position after loading older messages
         requestAnimationFrame(() => {
           if (el) {
             el.scrollTop = el.scrollHeight - prevHeight;
@@ -71,8 +85,42 @@ export function ChatRoom({
     if (!user) return 'Connectez-vous pour participer au chat';
     if (!isMember) return 'Rejoignez la communauté pour participer';
     if (isMuted) return 'Vous êtes en sourdine dans cette communauté';
+    if (replyTarget) return `Répondre à @${replyTarget.members?.username ?? 'utilisateur'}...`;
+    if (quoteTarget) return `Citer @${quoteTarget.members?.username ?? 'utilisateur'}...`;
     return 'Écrire un message... (Enter pour envoyer)';
   }
+
+  const handleSend = useCallback(
+    async (content: string, imageUrls?: string[]) => {
+      if (replyTarget) {
+        await sendReply(replyTarget.id, content, imageUrls);
+        setReplyTarget(null);
+      } else if (quoteTarget) {
+        await sendQuote(quoteTarget.id, content, imageUrls);
+        setQuoteTarget(null);
+      } else {
+        await sendMessage(content, imageUrls);
+      }
+    },
+    [replyTarget, quoteTarget, sendReply, sendQuote, sendMessage],
+  );
+
+  const handleReply = useCallback((message: ChatMessageWithMember) => {
+    setQuoteTarget(null);
+    setReplyTarget(message);
+  }, []);
+
+  const handleRepost = useCallback(
+    async (messageId: number) => {
+      await sendRepost(messageId);
+    },
+    [sendRepost],
+  );
+
+  const handleQuote = useCallback((message: ChatMessageWithMember) => {
+    setReplyTarget(null);
+    setQuoteTarget(message);
+  }, []);
 
   const inputDisabled = !user || !isMember || isMuted || sending;
 
@@ -139,7 +187,14 @@ export function ChatRoom({
                       message={msg}
                       isOwn={msg.member_id === user?.id}
                       canModerate={canModerate}
+                      userId={user?.id ?? null}
                       onDelete={deleteMessage}
+                      onReply={handleReply}
+                      onRepost={handleRepost}
+                      onQuote={handleQuote}
+                      parentMessage={msg.parent_id ? getMessageById(msg.parent_id) : null}
+                      repostedMessage={msg.repost_of_id ? getMessageById(msg.repost_of_id) : null}
+                      quotedMessage={msg.quote_of_id ? getMessageById(msg.quote_of_id) : null}
                     />
                   ))}
                 </div>
@@ -149,12 +204,28 @@ export function ChatRoom({
           )}
         </div>
 
+        {/* Reply/Quote bar */}
+        {replyTarget && (
+          <FeedReplyBar
+            replyToUsername={replyTarget.members?.username ?? 'utilisateur'}
+            onCancel={() => setReplyTarget(null)}
+          />
+        )}
+        {quoteTarget && (
+          <FeedReplyBar
+            replyToUsername={quoteTarget.members?.username ?? 'utilisateur'}
+            onCancel={() => setQuoteTarget(null)}
+          />
+        )}
+
         {/* Input area */}
         {user ? (
           <ChatInput
-            onSend={sendMessage}
+            onSend={handleSend}
             disabled={inputDisabled}
             placeholder={getInputPlaceholder()}
+            communityId={communityId}
+            userId={user?.id ?? null}
           />
         ) : (
           <div className="border-t border-gray-200 bg-gray-50 px-4 py-3 text-center">

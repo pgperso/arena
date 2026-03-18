@@ -16,3 +16,14 @@ export type {
 } from './chat';
 
 export type { Podcast } from './podcast';
+
+export type { Article } from './article';
+
+export type {
+  FeedItem,
+  FeedItemType,
+  FeedMessage,
+  FeedArticle,
+  FeedPodcast,
+  FeedMember,
+} from './feed';
