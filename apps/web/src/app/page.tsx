@@ -20,7 +20,7 @@ export default async function HomePage() {
   const communities = (data ?? []) as CommunityRow[];
 
   return (
-    <div className="flex min-h-[calc(100dvh-4rem)] flex-col">
+    <div className="flex min-h-[calc(100dvh_-_4rem)] flex-col">
       {/* Centered group: hero + tribunes */}
       <div className="flex flex-1 items-center justify-center px-4">
         <div className="w-full max-w-7xl">
@@ -45,7 +45,6 @@ export default async function HomePage() {
                   slug={community.slug}
                   description={community.description}
                   memberCount={community.member_count}
-                  primaryColor={community.primary_color}
                   logoUrl={community.logo_url}
                 />
               ))}
