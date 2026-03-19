@@ -1,6 +1,6 @@
 {
-  "name": "Arena - Communautés sportives",
-  "short_name": "Arena",
+  "name": "La tribune des fans - Communautés sportives",
+  "short_name": "La tribune des fans",
   "description": "Chat en direct, articles et podcasts avec votre communauté sportive",
   "start_url": "/",
   "display": "standalone",

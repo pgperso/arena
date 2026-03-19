@@ -13,24 +13,24 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://arena.fr'),
+  metadataBase: new URL('https://fanstribune.com'),
   title: {
-    default: 'Arena - Communautés sportives en direct',
-    template: '%s | Arena',
+    default: 'La tribune des fans - Communautés sportives en direct',
+    template: '%s | La tribune des fans',
   },
   description:
     'Rejoignez la communauté de votre équipe sportive préférée. Chat en direct, podcasts et plus encore.',
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
-    siteName: 'Arena',
-    title: 'Arena - Communautés sportives en direct',
+    siteName: 'La tribune des fans',
+    title: 'La tribune des fans - Communautés sportives en direct',
     description:
       'Rejoignez la communauté de votre équipe sportive préférée. Chat en direct, podcasts et plus encore.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Arena - Communautés sportives en direct',
+    title: 'La tribune des fans - Communautés sportives en direct',
     description:
       'Rejoignez la communauté de votre équipe sportive préférée. Chat en direct, podcasts et plus encore.',
   },
@@ -43,8 +43,8 @@ export const metadata: Metadata = {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  name: 'Arena',
-  url: 'https://arena.fr',
+  name: 'La tribune des fans',
+  url: 'https://fanstribune.com',
   description:
     'Plateforme de communautés sportives en direct : chat, articles et podcasts.',
 };

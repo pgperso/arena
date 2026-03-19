@@ -63,9 +63,9 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-blue text-sm font-bold text-white">
-            A
+            LT
           </div>
-          <span className="text-xl font-bold text-gray-900">Arena</span>
+          <span className="text-xl font-bold text-gray-900">La tribune des fans</span>
         </Link>
 
         {/* Desktop nav */}

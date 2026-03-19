@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
     title,
     description: excerpt,
     openGraph: {
-      title: `${title} | Arena`,
+      title: `${title} | La tribune des fans`,
       description: excerpt ?? title,
       type: 'article',
     },

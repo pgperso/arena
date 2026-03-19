@@ -15,4 +15,4 @@ export const IMAGE_THUMB_DIMENSION = 400;
 // Ad constants
 export const FEED_AD_INTERVAL = 5;
 export const ARTICLE_AD_WORD_THRESHOLD = 300;
-export const ADSENSE_CLIENT_ID = 'ca-pub-XXXXXXXXXXXXXXXX';
+export const ADSENSE_CLIENT_ID = 'ca-pub-6197042745925907';

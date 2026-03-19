@@ -27,8 +27,8 @@ export async function generateMetadata({ params }: CommunityPageProps) {
     title: name,
     description,
     openGraph: {
-      title: `${name} | Arena`,
-      description: description ?? `Rejoignez la communauté ${name} sur Arena`,
+      title: `${name} | La tribune des fans`,
+      description: description ?? `Rejoignez la communauté ${name} sur La tribune des fans`,
       type: 'website',
     },
   };

@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: PodcastPageProps) {
     title,
     description,
     openGraph: {
-      title: `${title} | Arena`,
+      title: `${title} | La tribune des fans`,
       description: description ?? title,
       type: 'music.song',
       audio: (podcast as { audio_url: string }).audio_url,

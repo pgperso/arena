@@ -4,4 +4,4 @@ Disallow: /api/
 Disallow: /vestiaire/
 Disallow: /admin/
 
-Sitemap: https://arena.fr/sitemap.xml
+Sitemap: https://fanstribune.com/sitemap.xml

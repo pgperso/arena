@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
 import { RESTRICTION_DISPLAY_NAMES } from '@arena/shared';
 import {
@@ -51,26 +51,24 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
     return () => document.removeEventListener('keydown', handleKey);
   }, [onClose]);
 
-  const loadRestrictions = useCallback(async () => {
-    setLoading(true);
-    const { data } = await fetchRestrictions(supabase, communityId);
-
-    if (data) {
-      setRestrictions(
-        (data as (Restriction & { members: { username: string } | null })[]).map((r) => ({
-          ...r,
-          member_username: r.members?.username ?? 'Inconnu',
-        })),
-      );
-    }
-    setLoading(false);
-  }, [supabase, communityId]);
-
   useEffect(() => {
-    if (activeTab === 'active') {
-      loadRestrictions();
-    }
-  }, [activeTab, loadRestrictions]);
+    if (activeTab !== 'active') return;
+    let cancelled = false;
+    setLoading(true);
+    fetchRestrictions(supabase, communityId).then(({ data }) => {
+      if (cancelled) return;
+      if (data) {
+        setRestrictions(
+          (data as (Restriction & { members: { username: string } | null })[]).map((r) => ({
+            ...r,
+            member_username: r.members?.username ?? 'Inconnu',
+          })),
+        );
+      }
+      setLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [activeTab, supabase, communityId]);
 
   async function handleSubmit() {
     if (!targetUsername.trim()) {

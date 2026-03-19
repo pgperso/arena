@@ -6,9 +6,9 @@ export function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 md:flex-row">
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-md bg-brand-blue text-xs font-bold text-white">
-            A
+            LT
           </div>
-          <span className="text-sm font-semibold text-gray-700">Arena</span>
+          <span className="text-sm font-semibold text-gray-700">La tribune des fans</span>
         </div>
 
         <nav className="flex gap-6">
@@ -21,7 +21,7 @@ export function Footer() {
         </nav>
 
         <p className="text-xs text-gray-400">
-          &copy; {new Date().getFullYear()} Arena. Tous droits réservés.
+          &copy; {new Date().getFullYear()} La tribune des fans. Tous droits réservés.
         </p>
       </div>
     </footer>

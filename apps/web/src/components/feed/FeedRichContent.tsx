@@ -64,7 +64,7 @@ function parseContent(text: string): React.ReactNode[] {
 
 function formatText(text: string, baseKey: number): React.ReactNode[] {
   const nodes: React.ReactNode[] = [];
-  let processed = text;
+  const processed = text;
   let key = baseKey;
 
   // Replace bold (**text**)
