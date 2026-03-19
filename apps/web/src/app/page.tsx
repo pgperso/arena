@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
 import { CommunityCard } from '@/components/community/CommunityCard';
-import { AdBanner } from '@/components/ads/AdBanner';
 import type { Database } from '@arena/supabase-client';
 
 export const revalidate = 60;
@@ -55,11 +54,6 @@ export default async function HomePage() {
             </p>
           )}
         </div>
-      </div>
-
-      {/* Ad at the bottom */}
-      <div className="mx-auto w-full max-w-7xl px-4 py-2">
-        <AdBanner slotId="home-footer" />
       </div>
     </div>
   );
