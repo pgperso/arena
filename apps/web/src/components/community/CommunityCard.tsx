@@ -24,11 +24,9 @@ export function CommunityCard({
       className="group relative rounded-xl border border-gray-200 p-6 transition hover:border-gray-300 hover:shadow-md"
     >
       {isMember && (
-        <div className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-white">
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-          </svg>
-        </div>
+        <span className="absolute right-3 top-3 rounded-full bg-brand-blue/10 px-2.5 py-0.5 text-xs font-semibold text-brand-blue">
+          Membre
+        </span>
       )}
       <div className="mb-4 flex items-center gap-3">
         {logoUrl ? (
