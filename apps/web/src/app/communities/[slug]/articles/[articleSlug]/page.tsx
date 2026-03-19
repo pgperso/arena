@@ -63,7 +63,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   // Load article with author
   const { data: articleData } = await supabase
     .from('articles')
-    .select('*, members:members!articles_author_id_fkey(id, username, avatar_url)')
+    .select('id, title, body, excerpt, cover_image_url, like_count, view_count, published_at, created_at, members:members!articles_author_id_fkey(id, username, avatar_url)')
     .eq('community_id', community.id)
     .eq('slug', articleSlug)
     .eq('is_published', true)

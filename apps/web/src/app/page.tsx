@@ -25,10 +25,10 @@ export default async function HomePage() {
     <div className="flex h-full flex-col overflow-y-auto">
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-4 py-12">
         {/* Hero */}
-        <div className="mb-12 text-center">
+        <div className="mb-6 text-center">
           <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">
             Vos tribunes,{' '}
-            <span className="text-red-600">vos opinions.</span>
+            <span className="text-red-600">votre opinion.</span>
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-gray-500">
             Rejoignez le chat de votre équipe préférée. Discutez en temps réel avec

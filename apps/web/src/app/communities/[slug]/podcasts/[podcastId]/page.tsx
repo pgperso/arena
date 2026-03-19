@@ -57,10 +57,10 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
   const community = communityData as { id: number; slug: string } | null;
   if (!community) notFound();
 
-  // Load podcast
+  // Load podcast with publisher info
   const { data: podcastData } = await supabase
     .from('podcasts')
-    .select('id, community_id, published_by, title, description, audio_url, cover_image_url, duration_seconds, like_count, is_published, is_removed, created_at')
+    .select('id, community_id, published_by, title, description, audio_url, cover_image_url, duration_seconds, like_count, is_published, is_removed, created_at, members:members!podcasts_published_by_fkey(username, avatar_url)')
     .eq('id', id)
     .eq('community_id', community.id)
     .eq('is_published', true)
@@ -78,18 +78,10 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
     like_count: number;
     created_at: string;
     published_by: string | null;
+    members: { username: string; avatar_url: string | null } | null;
   };
 
-  // Get publisher info
-  let publisher: { username: string; avatar_url: string | null } | null = null;
-  if (podcast.published_by) {
-    const { data: memberData } = await supabase
-      .from('members')
-      .select('username, avatar_url')
-      .eq('id', podcast.published_by)
-      .single();
-    publisher = memberData as { username: string; avatar_url: string | null } | null;
-  }
+  const publisher = podcast.members;
 
   // Get current user
   const {
