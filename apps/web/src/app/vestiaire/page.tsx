@@ -59,6 +59,43 @@ export default async function VestiairePage() {
     if (role) roleMap.set(r.community_id, role.code);
   });
 
+  // Fetch admin stats for communities where user is admin/mod
+  const adminCommunityIds = Array.from(roleMap.keys());
+  let adminStats: Record<number, { articles: number; drafts: number; podcasts: number }> = {};
+
+  if (adminCommunityIds.length > 0) {
+    const [articlesRes, draftsRes, podcastsRes] = await Promise.all([
+      supabase
+        .from('articles')
+        .select('community_id', { count: 'exact', head: false })
+        .in('community_id', adminCommunityIds)
+        .eq('is_published', true)
+        .eq('is_removed', false),
+      supabase
+        .from('articles')
+        .select('community_id', { count: 'exact', head: false })
+        .in('community_id', adminCommunityIds)
+        .eq('is_published', false)
+        .eq('is_removed', false),
+      supabase
+        .from('podcasts')
+        .select('community_id', { count: 'exact', head: false })
+        .in('community_id', adminCommunityIds)
+        .eq('is_published', true)
+        .or('is_removed.eq.false,is_removed.is.null'),
+    ]);
+
+    // Count per community
+    const stats: Record<number, { articles: number; drafts: number; podcasts: number }> = {};
+    for (const id of adminCommunityIds) {
+      stats[id] = { articles: 0, drafts: 0, podcasts: 0 };
+    }
+    (articlesRes.data ?? []).forEach((r) => { if (stats[r.community_id]) stats[r.community_id].articles++; });
+    (draftsRes.data ?? []).forEach((r) => { if (stats[r.community_id]) stats[r.community_id].drafts++; });
+    (podcastsRes.data ?? []).forEach((r) => { if (stats[r.community_id]) stats[r.community_id].podcasts++; });
+    adminStats = stats;
+  }
+
   return (
     <div className="flex h-full flex-col overflow-y-auto">
       <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
@@ -66,6 +103,7 @@ export default async function VestiairePage() {
           member={member}
           communities={communities}
           roleMap={Object.fromEntries(roleMap)}
+          adminStats={adminStats}
           userEmail={user.email ?? ''}
         />
       </div>

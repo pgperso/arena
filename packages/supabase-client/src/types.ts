@@ -435,6 +435,9 @@ export type Database = {
           cover_image_url: string | null;
           is_published: boolean;
           like_count: number;
+          is_removed: boolean | null;
+          removed_at: string | null;
+          removed_by: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -449,6 +452,9 @@ export type Database = {
           cover_image_url?: string | null;
           is_published?: boolean;
           like_count?: number;
+          is_removed?: boolean | null;
+          removed_at?: string | null;
+          removed_by?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -463,6 +469,9 @@ export type Database = {
           cover_image_url?: string | null;
           is_published?: boolean;
           like_count?: number;
+          is_removed?: boolean | null;
+          removed_at?: string | null;
+          removed_by?: string | null;
           created_at?: string;
           updated_at?: string;
         };

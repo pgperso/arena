@@ -18,10 +18,17 @@ interface MemberProfile {
   created_at: string;
 }
 
+interface AdminStats {
+  articles: number;
+  drafts: number;
+  podcasts: number;
+}
+
 interface VestiaireClientProps {
   member: MemberProfile | null;
   communities: CommunityRow[];
   roleMap: Record<number, string>;
+  adminStats: Record<number, AdminStats>;
   userEmail: string;
 }
 
@@ -29,6 +36,7 @@ export function VestiaireClient({
   member,
   communities,
   roleMap,
+  adminStats,
   userEmail,
 }: VestiaireClientProps) {
   const router = useRouter();
@@ -211,6 +219,61 @@ export function VestiaireClient({
           </div>
         )}
       </div>
+
+      {/* Admin section */}
+      {Object.keys(adminStats).length > 0 && (
+        <div>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">
+            Administration
+          </h2>
+          <div className="space-y-3">
+            {communities
+              .filter((c) => adminStats[c.id])
+              .map((community) => {
+                const stats = adminStats[community.id];
+                const role = roleMap[community.id];
+                return (
+                  <div
+                    key={`admin-${community.id}`}
+                    className="rounded-xl border border-gray-200 bg-white p-4"
+                  >
+                    <div className="mb-3 flex items-center gap-2">
+                      <Avatar
+                        url={community.logo_url}
+                        name={community.name}
+                        size="sm"
+                        color={community.primary_color}
+                      />
+                      <h3 className="text-sm font-semibold text-gray-900">{community.name}</h3>
+                      <span className="rounded-full bg-brand-blue/10 px-2 py-0.5 text-xs font-medium text-brand-blue">
+                        {role === 'admin' ? 'Admin' : 'Mod'}
+                      </span>
+                    </div>
+                    <div className="mb-3 flex gap-4 text-xs text-gray-500">
+                      <span>{stats.articles} article{stats.articles !== 1 ? 's' : ''} publié{stats.articles !== 1 ? 's' : ''}</span>
+                      <span>{stats.drafts} brouillon{stats.drafts !== 1 ? 's' : ''}</span>
+                      <span>{stats.podcasts} podcast{stats.podcasts !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/communities/${community.slug}`}
+                        className="rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100"
+                      >
+                        Gérer les articles
+                      </Link>
+                      <Link
+                        href={`/communities/${community.slug}`}
+                        className="rounded-lg bg-orange-50 px-3 py-1.5 text-xs font-medium text-orange-700 transition hover:bg-orange-100"
+                      >
+                        Gérer les podcasts
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

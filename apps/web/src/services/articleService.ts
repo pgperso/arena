@@ -27,6 +27,7 @@ export async function createArticle(
     excerpt: string | null;
     body: string;
     coverImageUrl: string | null;
+    isPublished?: boolean;
   },
 ) {
   const validated = articleSchema.parse({
@@ -45,7 +46,71 @@ export async function createArticle(
     excerpt: validated.excerpt ?? null,
     body: validated.body,
     cover_image_url: validated.coverImageUrl ?? null,
-    is_published: true,
-    published_at: new Date().toISOString(),
+    is_published: data.isPublished ?? true,
+    published_at: data.isPublished !== false ? new Date().toISOString() : null,
   });
+}
+
+export async function updateArticle(
+  supabase: SupabaseClient<Database>,
+  articleId: number,
+  data: {
+    title: string;
+    slug: string;
+    excerpt: string | null;
+    body: string;
+    coverImageUrl: string | null;
+    isPublished?: boolean;
+  },
+) {
+  const validated = articleSchema.parse({
+    title: data.title,
+    body: data.body,
+    slug: data.slug,
+    excerpt: data.excerpt,
+    coverImageUrl: data.coverImageUrl,
+  });
+
+  const update: Record<string, unknown> = {
+    title: validated.title,
+    slug: validated.slug,
+    excerpt: validated.excerpt ?? null,
+    body: validated.body,
+    cover_image_url: validated.coverImageUrl ?? null,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (data.isPublished !== undefined) {
+    update.is_published = data.isPublished;
+    if (data.isPublished) {
+      update.published_at = new Date().toISOString();
+    }
+  }
+
+  return supabase.from('articles').update(update).eq('id', articleId);
+}
+
+export async function fetchArticle(
+  supabase: SupabaseClient<Database>,
+  articleId: number,
+) {
+  return supabase
+    .from('articles')
+    .select('*')
+    .eq('id', articleId)
+    .single();
+}
+
+export async function fetchArticlesByAuthor(
+  supabase: SupabaseClient<Database>,
+  authorId: string,
+  communityId: number,
+) {
+  return supabase
+    .from('articles')
+    .select('id, title, slug, excerpt, cover_image_url, is_published, published_at, created_at, updated_at, like_count, view_count, is_removed')
+    .eq('author_id', authorId)
+    .eq('community_id', communityId)
+    .eq('is_removed', false)
+    .order('created_at', { ascending: false });
 }

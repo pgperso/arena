@@ -98,14 +98,21 @@ export function useLike(
   targetId: number,
   initialLikeCount: number,
   userId: string | null,
+  batchIsLiked?: boolean,
 ): UseLikeReturn {
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(batchIsLiked ?? false);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [loading, setLoading] = useState(false);
   const supabaseRef = useRef(createClient());
 
-  // Check if user has liked this item
+  // Sync from batch context when it updates
   useEffect(() => {
+    if (batchIsLiked !== undefined) setIsLiked(batchIsLiked);
+  }, [batchIsLiked]);
+
+  // Fallback: individual check only if batch is not available
+  useEffect(() => {
+    if (batchIsLiked !== undefined) return;
     if (!userId) return;
     let cancelled = false;
 
@@ -114,7 +121,7 @@ export function useLike(
     });
 
     return () => { cancelled = true; };
-  }, [userId, targetId, targetType]);
+  }, [userId, targetId, targetType, batchIsLiked]);
 
   // Sync like count from parent prop
   useEffect(() => {

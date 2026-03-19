@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { memo, useState, useEffect } from 'react';
 import Image from 'next/image';
 
 interface FeedImageGalleryProps {
   imageUrls: string[];
 }
 
-export function FeedImageGallery({ imageUrls }: FeedImageGalleryProps) {
+export const FeedImageGallery = memo(function FeedImageGallery({ imageUrls }: FeedImageGalleryProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const count = imageUrls.length;
 
@@ -110,7 +110,7 @@ export function FeedImageGallery({ imageUrls }: FeedImageGalleryProps) {
       )}
     </>
   );
-}
+});
 
 function LightboxKeyHandler({
   isOpen,

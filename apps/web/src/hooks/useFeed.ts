@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useReducer, useCallback, useRef, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { FEED_INITIAL_LIMIT, FEED_LOAD_MORE_LIMIT, messageSchema } from '@arena/shared';
 import type {
@@ -20,6 +20,8 @@ type ChatMessageRow = Database['public']['Tables']['chat_messages']['Row'];
 type ArticleRow = Database['public']['Tables']['articles']['Row'];
 type PodcastRow = Database['public']['Tables']['podcasts']['Row'];
 type MemberRow = Database['public']['Tables']['members']['Row'];
+
+const MAX_FEED_ITEMS = 500;
 
 // --- Row to FeedItem converters ---
 
@@ -94,7 +96,7 @@ function podcastToFeedItem(row: PodcastRow): FeedPodcast {
     durationSeconds: row.duration_seconds,
     likeCount: row.like_count,
     createdAt: row.created_at,
-    publisher: null, // Podcasts don't have a member join currently
+    publisher: null,
   };
 }
 
@@ -105,6 +107,137 @@ function sortByTimestamp(items: FeedItem[]): FeedItem[] {
     (a, b) => new Date(a.feedTimestamp).getTime() - new Date(b.feedTimestamp).getTime(),
   );
 }
+
+// --- Reducer ---
+
+interface FeedState {
+  messages: FeedMessage[];
+  articles: FeedArticle[];
+  podcasts: FeedPodcast[];
+  loading: boolean;
+  sending: boolean;
+  hasMoreMessages: boolean;
+}
+
+type FeedAction =
+  | { type: 'INITIAL_LOAD'; messages: FeedMessage[]; articles: FeedArticle[]; podcasts: FeedPodcast[]; hasMore: boolean }
+  | { type: 'ADD_MESSAGE'; message: FeedMessage }
+  | { type: 'UPDATE_MESSAGE'; updated: ChatMessageRow }
+  | { type: 'PREPEND_MESSAGES'; messages: FeedMessage[]; hasMore: boolean }
+  | { type: 'ADD_ARTICLE'; article: FeedArticle }
+  | { type: 'UPDATE_ARTICLE'; updated: ArticleRow }
+  | { type: 'ADD_PODCAST'; podcast: FeedPodcast }
+  | { type: 'UPDATE_PODCAST'; updated: PodcastRow }
+  | { type: 'SET_SENDING'; sending: boolean };
+
+function evict<T>(arr: T[]): T[] {
+  if (arr.length > MAX_FEED_ITEMS) return arr.slice(arr.length - MAX_FEED_ITEMS);
+  return arr;
+}
+
+function feedReducer(state: FeedState, action: FeedAction): FeedState {
+  switch (action.type) {
+    case 'INITIAL_LOAD':
+      return {
+        ...state,
+        messages: action.messages,
+        articles: action.articles,
+        podcasts: action.podcasts,
+        loading: false,
+        hasMoreMessages: action.hasMore,
+      };
+
+    case 'ADD_MESSAGE':
+      return { ...state, messages: evict([...state.messages, action.message]) };
+
+    case 'UPDATE_MESSAGE': {
+      const u = action.updated;
+      return {
+        ...state,
+        messages: state.messages.map((msg) =>
+          msg.id !== u.id
+            ? msg
+            : {
+                ...msg,
+                content: u.content,
+                imageUrls: u.image_urls ?? [],
+                likeCount: u.like_count,
+                replyCount: u.reply_count,
+                repostCount: u.repost_count,
+                isRemoved: u.is_removed ?? false,
+                removedAt: u.removed_at,
+                removedBy: u.removed_by,
+              },
+        ),
+      };
+    }
+
+    case 'PREPEND_MESSAGES':
+      return {
+        ...state,
+        messages: [...action.messages, ...state.messages],
+        hasMoreMessages: action.hasMore,
+      };
+
+    case 'ADD_ARTICLE':
+      return { ...state, articles: evict([...state.articles, action.article]) };
+
+    case 'UPDATE_ARTICLE': {
+      const u = action.updated;
+      return {
+        ...state,
+        articles: state.articles.map((art) =>
+          art.id !== u.id
+            ? art
+            : {
+                ...art,
+                title: u.title,
+                excerpt: u.excerpt,
+                coverImageUrl: u.cover_image_url,
+                likeCount: u.like_count,
+                viewCount: u.view_count,
+              },
+        ),
+      };
+    }
+
+    case 'ADD_PODCAST':
+      return { ...state, podcasts: evict([...state.podcasts, action.podcast]) };
+
+    case 'UPDATE_PODCAST': {
+      const u = action.updated;
+      return {
+        ...state,
+        podcasts: state.podcasts.map((pod) =>
+          pod.id !== u.id
+            ? pod
+            : {
+                ...pod,
+                title: u.title,
+                description: u.description,
+                coverImageUrl: u.cover_image_url,
+                likeCount: u.like_count,
+              },
+        ),
+      };
+    }
+
+    case 'SET_SENDING':
+      return { ...state, sending: action.sending };
+
+    default:
+      return state;
+  }
+}
+
+const initialState: FeedState = {
+  messages: [],
+  articles: [],
+  podcasts: [],
+  loading: true,
+  sending: false,
+  hasMoreMessages: true,
+};
 
 // --- Send options ---
 
@@ -134,27 +267,21 @@ export interface UseFeedReturn {
 }
 
 export function useFeed(communityId: number, userId: string | null): UseFeedReturn {
-  const [rawMessages, setRawMessages] = useState<FeedMessage[]>([]);
-  const [rawArticles, setRawArticles] = useState<FeedArticle[]>([]);
-  const [rawPodcasts, setRawPodcasts] = useState<FeedPodcast[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
-  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [state, dispatch] = useReducer(feedReducer, initialState);
   const supabaseRef = useRef(createClient());
 
   // Merged and sorted feed
   const items = useMemo(
-    () => sortByTimestamp([...rawMessages, ...rawArticles, ...rawPodcasts]),
-    [rawMessages, rawArticles, rawPodcasts],
+    () => sortByTimestamp([...state.messages, ...state.articles, ...state.podcasts]),
+    [state.messages, state.articles, state.podcasts],
   );
 
-  // --- Initial load ---
+  // --- Initial load (single dispatch instead of 3 setStates) ---
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadFeed() {
-      setLoading(true);
       const supabase = supabaseRef.current;
 
       const [messagesRes, articlesRes, podcastsRes] = await Promise.all([
@@ -177,37 +304,36 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           .select('*')
           .eq('community_id', communityId)
           .eq('is_published', true)
+          .or('is_removed.eq.false,is_removed.is.null')
           .order('created_at', { ascending: false })
           .limit(FEED_INITIAL_LIMIT),
       ]);
 
       if (cancelled) return;
 
-      if (messagesRes.data) {
-        const msgs = messagesRes.data
-          .reverse()
-          .map((row) => messageToFeedItem(row as unknown as ChatMessageWithJoin));
-        setRawMessages(msgs);
-        setHasMoreMessages(messagesRes.data.length === FEED_INITIAL_LIMIT);
-      }
+      const messages = (messagesRes.data ?? [])
+        .reverse()
+        .map((row) => messageToFeedItem(row as unknown as ChatMessageWithJoin));
 
-      if (articlesRes.data) {
-        setRawArticles(
-          articlesRes.data.map((row) => articleToFeedItem(row as unknown as ArticleWithJoin)),
-        );
-      }
+      const articles = (articlesRes.data ?? []).map((row) =>
+        articleToFeedItem(row as unknown as ArticleWithJoin),
+      );
 
-      if (podcastsRes.data) {
-        setRawPodcasts(podcastsRes.data.map((row) => podcastToFeedItem(row as PodcastRow)));
-      }
+      const podcasts = (podcastsRes.data ?? []).map((row) =>
+        podcastToFeedItem(row as PodcastRow),
+      );
 
-      setLoading(false);
+      dispatch({
+        type: 'INITIAL_LOAD',
+        messages,
+        articles,
+        podcasts,
+        hasMore: (messagesRes.data ?? []).length === FEED_INITIAL_LIMIT,
+      });
     }
 
     loadFeed();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [communityId]);
 
   // --- Realtime subscriptions ---
@@ -239,8 +365,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
             member = data as Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null;
           }
           if (cancelled) return;
-          const feedMsg = messageToFeedItem({ ...newMsg, members: member });
-          setRawMessages((prev) => [...prev, feedMsg]);
+          dispatch({ type: 'ADD_MESSAGE', message: messageToFeedItem({ ...newMsg, members: member }) });
         },
       )
       .on(
@@ -253,23 +378,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
         },
         (payload: RealtimePostgresUpdatePayload<ChatMessageRow>) => {
           if (cancelled) return;
-          const updated = payload.new;
-          setRawMessages((prev) =>
-            prev.map((msg) => {
-              if (msg.id !== updated.id) return msg;
-              return {
-                ...msg,
-                content: updated.content,
-                imageUrls: updated.image_urls ?? [],
-                likeCount: updated.like_count,
-                replyCount: updated.reply_count,
-                repostCount: updated.repost_count,
-                isRemoved: updated.is_removed ?? false,
-                removedAt: updated.removed_at,
-                removedBy: updated.removed_by,
-              };
-            }),
-          );
+          dispatch({ type: 'UPDATE_MESSAGE', updated: payload.new });
         },
       )
       .subscribe();
@@ -298,8 +407,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
             member = data as Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null;
           }
           if (cancelled) return;
-          const feedArt = articleToFeedItem({ ...newArt, members: member } as ArticleWithJoin);
-          setRawArticles((prev) => [...prev, feedArt]);
+          dispatch({ type: 'ADD_ARTICLE', article: articleToFeedItem({ ...newArt, members: member } as ArticleWithJoin) });
         },
       )
       .on(
@@ -312,20 +420,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
         },
         (payload: RealtimePostgresUpdatePayload<ArticleRow>) => {
           if (cancelled) return;
-          const updated = payload.new;
-          setRawArticles((prev) =>
-            prev.map((art) => {
-              if (art.id !== updated.id) return art;
-              return {
-                ...art,
-                title: updated.title,
-                excerpt: updated.excerpt,
-                coverImageUrl: updated.cover_image_url,
-                likeCount: updated.like_count,
-                viewCount: updated.view_count,
-              };
-            }),
-          );
+          dispatch({ type: 'UPDATE_ARTICLE', updated: payload.new });
         },
       )
       .subscribe();
@@ -345,8 +440,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           if (cancelled) return;
           const newPod = payload.new;
           if (!newPod.is_published) return;
-          const feedPod = podcastToFeedItem(newPod);
-          setRawPodcasts((prev) => [...prev, feedPod]);
+          dispatch({ type: 'ADD_PODCAST', podcast: podcastToFeedItem(newPod) });
         },
       )
       .on(
@@ -359,19 +453,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
         },
         (payload: RealtimePostgresUpdatePayload<PodcastRow>) => {
           if (cancelled) return;
-          const updated = payload.new;
-          setRawPodcasts((prev) =>
-            prev.map((pod) => {
-              if (pod.id !== updated.id) return pod;
-              return {
-                ...pod,
-                title: updated.title,
-                description: updated.description,
-                coverImageUrl: updated.cover_image_url,
-                likeCount: updated.like_count,
-              };
-            }),
-          );
+          dispatch({ type: 'UPDATE_PODCAST', updated: payload.new });
         },
       )
       .subscribe();
@@ -395,7 +477,6 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
 
       if (!hasContent && !hasImages && !isRepost) return;
 
-      // Validate message content with Zod schema
       if (hasContent || hasImages) {
         const result = messageSchema.safeParse({
           content: hasContent ? options.content!.trim() : '',
@@ -404,7 +485,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
         if (!result.success) return;
       }
 
-      setSending(true);
+      dispatch({ type: 'SET_SENDING', sending: true });
       await supabaseRef.current.from('chat_messages').insert({
         community_id: communityId,
         member_id: userId,
@@ -414,15 +495,13 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
         repost_of_id: options.repostOfId ?? null,
         quote_of_id: options.quoteOfId ?? null,
       });
-      setSending(false);
+      dispatch({ type: 'SET_SENDING', sending: false });
     },
     [communityId, userId],
   );
 
   const sendMessage = useCallback(
-    async (content: string, imageUrls?: string[]) => {
-      await send({ content, imageUrls });
-    },
+    async (content: string, imageUrls?: string[]) => { await send({ content, imageUrls }); },
     [send],
   );
 
@@ -434,9 +513,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
   );
 
   const sendRepost = useCallback(
-    async (repostOfId: number) => {
-      await send({ repostOfId });
-    },
+    async (repostOfId: number) => { await send({ repostOfId }); },
     [send],
   );
 
@@ -447,12 +524,12 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
     [send],
   );
 
-  // --- Load more (messages only for now) ---
+  // --- Load more (messages only) ---
 
   const loadMore = useCallback(async () => {
-    if (!hasMoreMessages || rawMessages.length === 0) return;
+    if (!state.hasMoreMessages || state.messages.length === 0) return;
 
-    const oldestMsg = rawMessages[0];
+    const oldestMsg = state.messages[0];
     const { data } = await supabaseRef.current
       .from('chat_messages')
       .select('*, members:members!chat_messages_member_id_fkey(id, username, avatar_url)')
@@ -465,10 +542,13 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
       const olderMsgs = data
         .reverse()
         .map((row) => messageToFeedItem(row as unknown as ChatMessageWithJoin));
-      setRawMessages((prev) => [...olderMsgs, ...prev]);
-      setHasMoreMessages(data.length === FEED_LOAD_MORE_LIMIT);
+      dispatch({
+        type: 'PREPEND_MESSAGES',
+        messages: olderMsgs,
+        hasMore: data.length === FEED_LOAD_MORE_LIMIT,
+      });
     }
-  }, [communityId, hasMoreMessages, rawMessages]);
+  }, [communityId, state.hasMoreMessages, state.messages]);
 
   // --- Delete ---
 
@@ -492,16 +572,16 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
   // --- Lookup ---
 
   const getMessageById = useCallback(
-    (id: number) => rawMessages.find((m) => m.id === id),
-    [rawMessages],
+    (id: number) => state.messages.find((m) => m.id === id),
+    [state.messages],
   );
 
   return {
     items,
-    messages: rawMessages,
-    loading,
-    sending,
-    hasMore: hasMoreMessages,
+    messages: state.messages,
+    loading: state.loading,
+    sending: state.sending,
+    hasMore: state.hasMoreMessages,
     sendMessage,
     sendReply,
     sendRepost,

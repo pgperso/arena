@@ -1,7 +1,8 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { useLike } from '@/hooks/useLike';
+import { useBatchLikeStatus } from '@/hooks/useBatchLikeStatus';
 
 interface FeedLikeButtonProps {
   targetType: 'message' | 'article' | 'podcast';
@@ -16,12 +17,22 @@ export const FeedLikeButton = memo(function FeedLikeButton({
   initialLikeCount,
   userId,
 }: FeedLikeButtonProps) {
-  const { isLiked, likeCount, toggleLike, loading } = useLike(
+  const batchCtx = useBatchLikeStatus();
+  const batchIsLiked = batchCtx?.isLiked(targetType, targetId);
+
+  const { isLiked, likeCount, toggleLike: rawToggle, loading } = useLike(
     targetType,
     targetId,
     initialLikeCount,
     userId,
+    batchIsLiked,
   );
+
+  const toggleLike = useCallback(async () => {
+    await rawToggle();
+    // Sync back to batch context for consistency
+    batchCtx?.setLiked(targetType, targetId, !isLiked);
+  }, [rawToggle, batchCtx, targetType, targetId, isLiked]);
 
   return (
     <button

@@ -7,14 +7,24 @@ import LinkExtension from '@tiptap/extension-link';
 import ImageExtension from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import { useSupabase } from '@/hooks/useSupabase';
-import { useImageUpload } from '@/hooks/useImageUpload';
-import { createArticle } from '@/services/articleService';
+import { createArticle, updateArticle } from '@/services/articleService';
 import { slugify } from '@/lib/slugify';
+
+interface ExistingArticle {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  body: string;
+  cover_image_url: string | null;
+  is_published: boolean;
+}
 
 interface ArticleEditorProps {
   communityId: number;
   communitySlug: string;
   userId: string;
+  existingArticle?: ExistingArticle;
   onPublished: (slug: string) => void;
   onCancel: () => void;
 }
@@ -23,14 +33,16 @@ export function ArticleEditor({
   communityId,
   communitySlug,
   userId,
+  existingArticle,
   onPublished,
   onCancel,
 }: ArticleEditorProps) {
-  const [title, setTitle] = useState('');
-  const [excerpt, setExcerpt] = useState('');
-  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const isEditMode = !!existingArticle;
+  const [title, setTitle] = useState(existingArticle?.title ?? '');
+  const [excerpt, setExcerpt] = useState(existingArticle?.excerpt ?? '');
+  const [coverPreview, setCoverPreview] = useState<string | null>(existingArticle?.cover_image_url ?? null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [publishing, setPublishing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = useSupabase();
 
@@ -48,6 +60,7 @@ export function ArticleEditor({
       ImageExtension,
       Placeholder.configure({ placeholder: 'Écrivez votre article ici...' }),
     ],
+    content: existingArticle?.body ?? '',
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none min-h-[300px] px-4 py-3 focus:outline-none',
@@ -59,14 +72,12 @@ export function ArticleEditor({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate MIME type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
       setError('Type de fichier non supporté. Utilisez JPG, PNG, WebP ou GIF.');
       return;
     }
 
-    // Validate file size (5 MB max)
     if (file.size > 5 * 1024 * 1024) {
       setError("L'image ne doit pas dépasser 5 Mo.");
       return;
@@ -76,64 +87,83 @@ export function ArticleEditor({
     setCoverPreview(URL.createObjectURL(file));
   }
 
-  const handlePublish = useCallback(async () => {
+  const uploadCover = useCallback(async (): Promise<string | null> => {
+    if (!coverFile) return coverPreview; // Keep existing URL or null
+
+    const safeExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    const rawExt = (coverFile.name.split('.').pop() ?? '').toLowerCase();
+    const ext = safeExtensions.includes(rawExt) ? rawExt : 'webp';
+    const path = `article-covers/${communityId}/${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from('article-covers')
+      .upload(path, coverFile, { contentType: coverFile.type });
+
+    if (uploadError) return coverPreview;
+    const { data: urlData } = supabase.storage.from('article-covers').getPublicUrl(path);
+    return urlData.publicUrl;
+  }, [coverFile, coverPreview, communityId, supabase]);
+
+  const handleSave = useCallback(async (publish: boolean) => {
     if (!title.trim()) {
       setError('Le titre est requis');
       return;
     }
-    if (!editor?.getHTML() || editor.isEmpty) {
+    if (publish && (!editor?.getHTML() || editor.isEmpty)) {
       setError("Le contenu de l'article est requis");
       return;
     }
 
-    setPublishing(true);
+    setSaving(true);
     setError(null);
 
-    let coverImageUrl: string | null = null;
+    const coverImageUrl = await uploadCover();
+    const slug = slugify(title) || `article-${Date.now()}`;
+    const body = editor?.getHTML() ?? '';
 
-    // Upload cover image if present
-    if (coverFile) {
-      const safeExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-      const rawExt = (coverFile.name.split('.').pop() ?? '').toLowerCase();
-      const ext = safeExtensions.includes(rawExt) ? rawExt : 'webp';
-      const path = `article-covers/${communityId}/${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from('article-covers')
-        .upload(path, coverFile, { contentType: coverFile.type });
+    if (isEditMode) {
+      const { error: updateError } = await updateArticle(supabase, existingArticle.id, {
+        title: title.trim(),
+        slug,
+        excerpt: excerpt.trim() || null,
+        body,
+        coverImageUrl,
+        isPublished: publish,
+      });
 
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage.from('article-covers').getPublicUrl(path);
-        coverImageUrl = urlData.publicUrl;
+      if (updateError) {
+        setError(updateError.message);
+        setSaving(false);
+        return;
+      }
+    } else {
+      const { error: insertError } = await createArticle(supabase, {
+        communityId,
+        authorId: userId,
+        title: title.trim(),
+        slug,
+        excerpt: excerpt.trim() || null,
+        body,
+        coverImageUrl,
+        isPublished: publish,
+      });
+
+      if (insertError) {
+        setError(insertError.message);
+        setSaving(false);
+        return;
       }
     }
 
-    const slug = slugify(title) || `article-${Date.now()}`;
-    const body = editor!.getHTML();
-
-    const { error: insertError } = await createArticle(supabase, {
-      communityId,
-      authorId: userId,
-      title: title.trim(),
-      slug,
-      excerpt: excerpt.trim() || null,
-      body,
-      coverImageUrl,
-    });
-
-    if (insertError) {
-      setError(insertError.message);
-      setPublishing(false);
-      return;
-    }
-
-    setPublishing(false);
+    setSaving(false);
     onPublished(slug);
-  }, [title, excerpt, editor, coverFile, communityId, userId, supabase, onPublished]);
+  }, [title, excerpt, editor, uploadCover, communityId, userId, supabase, onPublished, isEditMode, existingArticle]);
 
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">Nouvel article</h2>
+        <h2 className="text-lg font-semibold text-gray-900">
+          {isEditMode ? "Modifier l'article" : 'Nouvel article'}
+        </h2>
         <div className="flex gap-2">
           <button
             onClick={onCancel}
@@ -142,11 +172,18 @@ export function ArticleEditor({
             Annuler
           </button>
           <button
-            onClick={handlePublish}
-            disabled={publishing}
+            onClick={() => handleSave(false)}
+            disabled={saving}
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
+          >
+            {saving ? 'Enregistrement...' : 'Brouillon'}
+          </button>
+          <button
+            onClick={() => handleSave(true)}
+            disabled={saving}
             className="rounded-lg bg-brand-blue px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
           >
-            {publishing ? 'Publication...' : 'Publier'}
+            {saving ? 'Publication...' : isEditMode ? 'Mettre à jour' : 'Publier'}
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { memo, useMemo } from 'react';
 import { isSafeUrl } from '@/lib/url';
 
 interface FeedRichContentProps {
@@ -89,17 +90,20 @@ function formatText(text: string, baseKey: number): React.ReactNode[] {
   return nodes;
 }
 
-export function FeedRichContent({ content }: FeedRichContentProps) {
-  const lines = content.split('\n');
+export const FeedRichContent = memo(function FeedRichContent({ content }: FeedRichContentProps) {
+  const parsed = useMemo(() => {
+    const lines = content.split('\n');
+    return lines.map((line, i) => (
+      <span key={i}>
+        {i > 0 && <br />}
+        {parseContent(line)}
+      </span>
+    ));
+  }, [content]);
 
   return (
     <div className="break-words text-sm text-gray-700">
-      {lines.map((line, i) => (
-        <span key={i}>
-          {i > 0 && <br />}
-          {parseContent(line)}
-        </span>
-      ))}
+      {parsed}
     </div>
   );
-}
+});

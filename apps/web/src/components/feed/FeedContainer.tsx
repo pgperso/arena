@@ -1,17 +1,21 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useFeed } from '@/hooks/useFeed';
 import type { FeedMessage as FeedMessageType } from '@arena/shared';
 import { usePresence } from '@/hooks/usePresence';
 import { useAuth } from '@/hooks/useAuth';
+import { BatchLikeProvider } from '@/hooks/useBatchLikeStatus';
 import { FeedItem } from './FeedItem';
 import { FeedInput } from './FeedInput';
 import { FeedSkeleton } from './FeedSkeleton';
 import { FeedReplyBar } from './FeedReplyBar';
 import { OnlineMembers } from '@/components/chat/OnlineMembers';
 import { ArticleEditor } from '@/components/article/ArticleEditor';
+import { ArticleList } from '@/components/article/ArticleList';
+import { PodcastEditor } from '@/components/podcast/PodcastEditor';
 import { ModerationPanel } from '@/components/moderation/ModerationPanel';
 import { AdInFeed } from '@/components/ads/AdInFeed';
 import { FEED_AD_INTERVAL } from '@arena/shared';
@@ -50,27 +54,46 @@ export function FeedContainer({
     getMessageById,
   } = useFeed(communityId, user?.id ?? null);
   const { onlineMembers } = usePresence(communityId, user?.id ?? null, username);
-  const feedEndRef = useRef<HTMLDivElement>(null);
   const feedContainerRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const [showMembers, setShowMembers] = useState(false);
   const [showArticleEditor, setShowArticleEditor] = useState(false);
   const [showModeration, setShowModeration] = useState(false);
+  const [showArticleList, setShowArticleList] = useState(false);
+  const [showPodcastEditor, setShowPodcastEditor] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Reply/quote state
   const [replyTarget, setReplyTarget] = useState<FeedMessageType | null>(null);
   const [quoteTarget, setQuoteTarget] = useState<FeedMessageType | null>(null);
 
-  // Auto-scroll to bottom on new items
-  useEffect(() => {
-    if (autoScroll && feedEndRef.current) {
-      feedEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [items, autoScroll]);
+  // Virtualizer for feed items (~15-20 DOM nodes instead of 50+)
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => feedContainerRef.current,
+    estimateSize: (index) => {
+      const item = items[index];
+      let size = item.feedType === 'article' ? 220 : item.feedType === 'podcast' ? 160 : 80;
+      if ((index + 1) % FEED_AD_INTERVAL === 0) size += 250;
+      return size;
+    },
+    overscan: 5,
+  });
 
-  // Throttled scroll handler to avoid excessive re-renders
+  // Auto-scroll to bottom on new items (appended via Realtime)
+  const prevItemCountRef = useRef(items.length);
+  useEffect(() => {
+    const prevCount = prevItemCountRef.current;
+    prevItemCountRef.current = items.length;
+    if (autoScroll && items.length > prevCount && items.length > 0) {
+      virtualizer.scrollToIndex(items.length - 1, { align: 'end', behavior: 'smooth' });
+    }
+  }, [items.length, autoScroll, virtualizer]);
+
+  // Throttled scroll handler: auto-scroll detection + infinite scroll
   const scrollTickRef = useRef(false);
   const rafRef = useRef<number>(0);
+  const loadingMoreRef = useRef(false);
 
   const handleScrollThrottled = useCallback(() => {
     if (scrollTickRef.current) return;
@@ -83,14 +106,19 @@ export function FeedContainer({
         const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
         setAutoScroll(atBottom);
 
-        // Load more on scroll to top
-        if (hasMore && el.scrollTop < 50) {
+        // Infinite scroll: load older messages when near top
+        if (hasMore && !loadingMoreRef.current && el.scrollTop < 200) {
+          loadingMoreRef.current = true;
+          setLoadingMore(true);
           const prevHeight = el.scrollHeight;
           loadMore().then(() => {
             requestAnimationFrame(() => {
+              // Restore scroll position so user stays at same content
               if (feedContainerRef.current) {
                 feedContainerRef.current.scrollTop = feedContainerRef.current.scrollHeight - prevHeight;
               }
+              loadingMoreRef.current = false;
+              setLoadingMore(false);
             });
           });
         }
@@ -147,6 +175,19 @@ export function FeedContainer({
 
   const inputDisabled = !user || !isMember || isMuted || sending;
 
+  // Collect IDs for batch like queries (3 queries instead of 50+)
+  const { messageIds, articleIds, podcastIds } = useMemo(() => {
+    const mIds: number[] = [];
+    const aIds: number[] = [];
+    const pIds: number[] = [];
+    for (const item of items) {
+      if (item.feedType === 'message') mIds.push(item.id);
+      else if (item.feedType === 'article') aIds.push(item.id);
+      else if (item.feedType === 'podcast') pIds.push(item.id);
+    }
+    return { messageIds: mIds, articleIds: aIds, podcastIds: pIds };
+  }, [items]);
+
   return (
     <div className="flex h-full flex-col lg:flex-row">
       {/* Feed area */}
@@ -180,6 +221,26 @@ export function FeedContainer({
                   </svg>
                   Article
                 </button>
+                <button
+                  onClick={() => setShowArticleList(true)}
+                  className="flex items-center gap-1 rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-100"
+                  title="Gérer mes articles"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                  </svg>
+                  Mes articles
+                </button>
+                <button
+                  onClick={() => setShowPodcastEditor(true)}
+                  className="flex items-center gap-1 rounded-lg bg-orange-50 px-3 py-1.5 text-xs font-medium text-orange-700 transition hover:bg-orange-100"
+                  title="Nouveau podcast"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                  </svg>
+                  Podcast
+                </button>
               </>
             )}
             <button
@@ -194,7 +255,7 @@ export function FeedContainer({
           </div>
         </div>
 
-        {/* Feed items */}
+        {/* Feed items - virtualized */}
         <div
           ref={feedContainerRef}
           onScroll={handleScrollThrottled}
@@ -203,17 +264,12 @@ export function FeedContainer({
           {loading ? (
             <FeedSkeleton />
           ) : (
-            <>
-              {hasMore && (
-                <div className="py-3 text-center">
-                  <button
-                    onClick={loadMore}
-                    className="text-sm text-brand-blue hover:underline"
-                  >
-                    Charger les messages précédents
-                  </button>
-                </div>
-              )}
+            <BatchLikeProvider
+              userId={user?.id ?? null}
+              messageIds={messageIds}
+              articleIds={articleIds}
+              podcastIds={podcastIds}
+            >
               {items.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-gray-400">
                   <svg className="mb-3 h-12 w-12" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
@@ -222,29 +278,66 @@ export function FeedContainer({
                   <p className="text-sm">Aucun contenu. Soyez le premier à écrire!</p>
                 </div>
               ) : (
-                <div className="py-2">
-                  {items.map((item, index) => (
-                    <div key={item.feedKey}>
-                      <FeedItem
-                        item={item}
-                        userId={user?.id ?? null}
-                        canModerate={canModerate}
-                        communitySlug={communitySlug}
-                        onDeleteMessage={deleteMessage}
-                        onReply={handleReply}
-                        onRepost={handleRepost}
-                        onQuote={handleQuote}
-                        getMessageById={getMessageById}
-                      />
-                      {(index + 1) % FEED_AD_INTERVAL === 0 && (
-                        <AdInFeed index={Math.floor(index / FEED_AD_INTERVAL)} />
-                      )}
+                <>
+                  {/* Loading spinner for infinite scroll */}
+                  {loadingMore && (
+                    <div className="flex justify-center py-3">
+                      <svg
+                        className="h-5 w-5 animate-spin text-gray-400"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
                     </div>
-                  ))}
-                </div>
+                  )}
+                  {/* Virtualized feed list */}
+                  <div
+                    style={{
+                      height: `${virtualizer.getTotalSize()}px`,
+                      width: '100%',
+                      position: 'relative',
+                    }}
+                  >
+                    {virtualizer.getVirtualItems().map((virtualRow) => {
+                      const item = items[virtualRow.index];
+                      const index = virtualRow.index;
+                      return (
+                        <div
+                          key={item.feedKey}
+                          data-index={virtualRow.index}
+                          ref={virtualizer.measureElement}
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            transform: `translateY(${virtualRow.start}px)`,
+                          }}
+                        >
+                          <FeedItem
+                            item={item}
+                            userId={user?.id ?? null}
+                            canModerate={canModerate}
+                            communitySlug={communitySlug}
+                            onDeleteMessage={deleteMessage}
+                            onReply={handleReply}
+                            onRepost={handleRepost}
+                            onQuote={handleQuote}
+                            getMessageById={getMessageById}
+                          />
+                          {(index + 1) % FEED_AD_INTERVAL === 0 && (
+                            <AdInFeed index={Math.floor(index / FEED_AD_INTERVAL)} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
               )}
-              <div ref={feedEndRef} />
-            </>
+            </BatchLikeProvider>
           )}
         </div>
 
@@ -309,6 +402,34 @@ export function FeedContainer({
                 router.push(`/communities/${communitySlug}/articles/${slug}`);
               }}
               onCancel={() => setShowArticleEditor(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Podcast editor overlay */}
+      {showPodcastEditor && user && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-white">
+          <div className="p-4">
+            <PodcastEditor
+              communityId={communityId}
+              userId={user.id}
+              onSaved={() => setShowPodcastEditor(false)}
+              onCancel={() => setShowPodcastEditor(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Article list overlay */}
+      {showArticleList && user && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-white">
+          <div className="p-4">
+            <ArticleList
+              communityId={communityId}
+              communitySlug={communitySlug}
+              userId={user.id}
+              onClose={() => setShowArticleList(false)}
             />
           </div>
         </div>
