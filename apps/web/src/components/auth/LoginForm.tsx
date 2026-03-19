@@ -24,7 +24,7 @@ export function LoginForm() {
     });
 
     if (authError) {
-      setError('Courriel ou mot de passe incorrect');
+      setError(authError.message);
       setLoading(false);
       return;
     }
