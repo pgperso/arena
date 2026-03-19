@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { CommunityCard } from '@/components/community/CommunityCard';
+import { AdBanner } from '@/components/ads/AdBanner';
 import type { Database } from '@arena/supabase-client';
 
 export const revalidate = 60;
@@ -19,9 +20,9 @@ export default async function HomePage() {
   const communities = (data ?? []) as CommunityRow[];
 
   return (
-    <div className="flex min-h-[calc(100dvh_-_4rem)] flex-col">
+    <div className="flex h-[calc(100dvh_-_4rem)] flex-col">
       {/* Centered group: hero + tribunes */}
-      <div className="flex flex-1 items-center justify-center px-4">
+      <div className="flex flex-1 items-center justify-center overflow-hidden px-4">
         <div className="w-full max-w-7xl">
           <div className="mb-10 text-center">
             <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">
@@ -54,6 +55,11 @@ export default async function HomePage() {
             </p>
           )}
         </div>
+      </div>
+
+      {/* Ad at the bottom */}
+      <div className="mx-auto w-full max-w-7xl px-4 py-2">
+        <AdBanner slotId="home-footer" />
       </div>
     </div>
   );
