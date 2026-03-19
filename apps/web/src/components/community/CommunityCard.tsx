@@ -21,7 +21,7 @@ export function CommunityCard({
   return (
     <Link
       href={`/tribunes/${slug}`}
-      className="group rounded-xl border border-gray-200 bg-white p-6 transition hover:border-gray-300 hover:shadow-md"
+      className="group rounded-xl border border-gray-200 p-6 transition hover:border-gray-300 hover:shadow-md"
     >
       <div className="mb-4 flex items-center gap-3">
         <Avatar url={logoUrl} name={name} size="xl" color={primaryColor} />

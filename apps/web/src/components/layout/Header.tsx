@@ -21,7 +21,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
+    <header className="sticky top-0 z-50 border-b border-gray-200">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
@@ -34,16 +34,6 @@ export function Header() {
           />
           <span className="text-xl font-bold text-gray-900">La tribune des fans</span>
         </Link>
-
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-6 md:flex">
-          <Link
-            href="/"
-            className="text-sm font-medium text-gray-600 transition hover:text-brand-blue"
-          >
-            Tribunes
-          </Link>
-        </nav>
 
         {/* Desktop auth */}
         <div className="hidden items-center gap-3 md:flex">
