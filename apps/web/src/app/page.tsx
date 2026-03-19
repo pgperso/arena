@@ -25,8 +25,8 @@ export default async function HomePage() {
       {/* Centered group: hero + tribunes */}
       <div className="flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-7xl">
-          <div className="mb-6 text-center">
-            <h1 className="mb-3 text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">
+          <div className="mb-10 text-center">
+            <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">
               Vos tribunes,{' '}
               <span className="text-red-600">votre opinion.</span>
             </h1>
