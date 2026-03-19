@@ -20,7 +20,7 @@ export default async function HomePage() {
   const communities = (data ?? []) as CommunityRow[];
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-h-[calc(100dvh-4rem)] flex-col">
       {/* Centered group: hero + tribunes */}
       <div className="flex flex-1 items-center justify-center px-4">
         <div className="w-full max-w-7xl">
@@ -30,8 +30,9 @@ export default async function HomePage() {
               <span className="text-red-600">votre opinion.</span>
             </h1>
             <p className="mx-auto max-w-2xl text-lg text-gray-500">
-              Rejoignez le chat de votre équipe préférée. Discutez en temps réel avec
-              d&apos;autres fans, écoutez des podcasts exclusifs et vivez chaque moment ensemble.
+              Tes tribunes. Ton opinion. Ton équipe.
+              <br />
+              Tu veux jouer robuste ? On aime ça quand ça brasse.
             </p>
           </div>
 

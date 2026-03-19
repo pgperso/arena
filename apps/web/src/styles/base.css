@@ -5,13 +5,3 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
-/* Next.js App Router injects intermediate wrapper divs between
-   <main> and the page component. Make them inherit the flex chain
-   so vertical centering propagates correctly. */
-main > * {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
