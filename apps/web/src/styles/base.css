@@ -5,3 +5,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Propagate height through Next.js App Router wrapper divs */
+main > * {
+  height: 100%;
+}
