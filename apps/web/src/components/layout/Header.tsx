@@ -26,7 +26,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <Image
-            src="/images/fanstribune.png"
+            src="/images/fanstribune.webp"
             alt="La tribune des fans"
             width={36}
             height={36}

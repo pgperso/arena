@@ -7,7 +7,7 @@ export function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 md:flex-row">
         <div className="flex items-center gap-2">
           <Image
-            src="/images/fanstribune.png"
+            src="/images/fanstribune.webp"
             alt="La tribune des fans"
             width={28}
             height={28}

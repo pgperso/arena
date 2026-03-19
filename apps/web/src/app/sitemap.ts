@@ -17,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: communities } = await supabase
     .from('communities')
     .select('slug, updated_at')
+    .eq('is_active', true)
     .limit(1000);
 
   if (communities) {

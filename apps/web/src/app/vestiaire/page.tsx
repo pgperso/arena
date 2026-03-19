@@ -33,7 +33,8 @@ export default async function VestiairePage() {
   const { data: memberships } = await supabase
     .from('community_members')
     .select('community_id, joined_at')
-    .eq('member_id', user.id);
+    .eq('member_id', user.id)
+    .limit(500);
 
   let communities: CommunityRow[] = [];
   if (memberships && memberships.length > 0) {
@@ -51,7 +52,8 @@ export default async function VestiairePage() {
   const { data: memberRoles } = await supabase
     .from('community_member_roles')
     .select('community_id, roles(code)')
-    .eq('member_id', user.id);
+    .eq('member_id', user.id)
+    .limit(500);
 
   const roleMap = new Map<number, string>();
   memberRoles?.forEach((r) => {
