@@ -28,7 +28,7 @@ export default async function HomePage() {
             <span className="text-red-600">ton opinion.</span>
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-gray-900">
-            T&apos;aimes ça jouer robuste ? Nous autres aussi !
+            Tu veux jouer robuste ? On aime ça quand ça brasse.
           </p>
         </div>
 
