@@ -39,7 +39,7 @@ export function FeedContainer({
   canModerate,
 }: FeedContainerProps) {
   const router = useRouter();
-  const { user, username } = useAuth();
+  const { user, username, avatarUrl } = useAuth();
   const {
     items,
     loading,
@@ -53,7 +53,7 @@ export function FeedContainer({
     deleteMessage,
     getMessageById,
   } = useFeed(communityId, user?.id ?? null);
-  const { onlineMembers } = usePresence(communityId, user?.id ?? null, username);
+  const { onlineMembers } = usePresence(communityId, user?.id ?? null, username, avatarUrl);
   const feedContainerRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const [showMembers, setShowMembers] = useState(false);

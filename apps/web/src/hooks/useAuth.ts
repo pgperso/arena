@@ -7,12 +7,14 @@ import type { User } from '@supabase/supabase-js';
 interface AuthState {
   user: User | null;
   username: string | null;
+  avatarUrl: string | null;
   loading: boolean;
 }
 
 export function useAuth(): AuthState {
   const [user, setUser] = useState<User | null>(null);
   const [username, setUsername] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,11 +31,12 @@ export function useAuth(): AuthState {
       if (user) {
         const { data: member } = await supabase
           .from('members')
-          .select('username')
+          .select('username, avatar_url')
           .eq('id', user.id)
           .single();
         if (cancelled) return;
         setUsername(member?.username ?? null);
+        setAvatarUrl(member?.avatar_url ?? null);
       }
       setLoading(false);
     }
@@ -47,6 +50,7 @@ export function useAuth(): AuthState {
       setUser(session?.user ?? null);
       if (!session?.user) {
         setUsername(null);
+        setAvatarUrl(null);
       }
     });
 
@@ -56,5 +60,5 @@ export function useAuth(): AuthState {
     };
   }, []);
 
-  return { user, username, loading };
+  return { user, username, avatarUrl, loading };
 }
