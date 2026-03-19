@@ -162,7 +162,7 @@ export function VestiaireClient({
               return (
                 <Link
                   key={community.id}
-                  href={`/communities/${community.slug}`}
+                  href={`/tribunes/${community.slug}`}
                   className="group flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 hover:shadow-sm"
                 >
                   <Avatar
@@ -255,13 +255,13 @@ export function VestiaireClient({
                     </div>
                     <div className="flex gap-2">
                       <Link
-                        href={`/communities/${community.slug}`}
+                        href={`/tribunes/${community.slug}`}
                         className="rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100"
                       >
                         Gérer les articles
                       </Link>
                       <Link
-                        href={`/communities/${community.slug}`}
+                        href={`/tribunes/${community.slug}`}
                         className="rounded-lg bg-orange-50 px-3 py-1.5 text-xs font-medium text-orange-700 transition hover:bg-orange-100"
                       >
                         Gérer les podcasts

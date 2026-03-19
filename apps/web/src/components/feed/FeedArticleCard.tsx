@@ -22,7 +22,7 @@ export function FeedArticleCard({ article, communitySlug, userId, canModerate }:
   return (
     <div className="px-4 py-3">
       <Link
-        href={`/communities/${communitySlug}/articles/${article.slug}`}
+        href={`/tribunes/${communitySlug}/articles/${article.slug}`}
         className="block overflow-hidden rounded-xl border border-gray-200 transition hover:border-gray-300 hover:shadow-sm"
       >
         {/* Cover image */}

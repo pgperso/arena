@@ -106,7 +106,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId }: FeedPodcastC
               )}
             </div>
             <Link
-              href={`/communities/${communitySlug}/podcasts/${podcast.id}`}
+              href={`/tribunes/${communitySlug}/podcasts/${podcast.id}`}
               className="text-sm font-semibold text-gray-900 hover:text-orange-700 line-clamp-1"
             >
               {podcast.title}

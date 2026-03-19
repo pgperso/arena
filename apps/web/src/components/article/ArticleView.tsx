@@ -103,7 +103,7 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
       <article className="max-w-3xl flex-1 overflow-hidden">
         {/* Back link */}
         <Link
-          href={`/communities/${communitySlug}`}
+          href={`/tribunes/${communitySlug}`}
           className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">

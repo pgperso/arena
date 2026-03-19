@@ -20,7 +20,7 @@ export function CommunityCard({
 }: CommunityCardProps) {
   return (
     <Link
-      href={`/communities/${slug}`}
+      href={`/tribunes/${slug}`}
       className="group rounded-xl border border-gray-200 bg-white p-6 transition hover:border-gray-300 hover:shadow-md"
     >
       <div className="mb-4 flex items-center gap-3">
