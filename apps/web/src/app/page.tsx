@@ -29,7 +29,7 @@ export default async function HomePage() {
               Vos tribunes,{' '}
               <span className="text-red-600">votre opinion.</span>
             </h1>
-            <p className="mx-auto max-w-2xl text-lg text-gray-500">
+            <p className="mx-auto max-w-2xl text-lg text-gray-900">
               Tes tribunes. Ton opinion. Ton équipe.
               <br />
               Tu veux jouer robuste ? On aime ça quand ça brasse.
