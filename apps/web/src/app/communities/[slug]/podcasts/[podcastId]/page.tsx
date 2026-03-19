@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { PodcastPlayer } from '@/components/podcast/PodcastPlayer';
 
+export const revalidate = 300;
+
 interface PodcastPageProps {
   params: Promise<{ slug: string; podcastId: string }>;
 }
@@ -58,7 +60,7 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
   // Load podcast
   const { data: podcastData } = await supabase
     .from('podcasts')
-    .select('*')
+    .select('id, community_id, published_by, title, description, audio_url, cover_image_url, duration_seconds, like_count, is_published, is_removed, created_at')
     .eq('id', id)
     .eq('community_id', community.id)
     .eq('is_published', true)

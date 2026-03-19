@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { ArticleView } from '@/components/article/ArticleView';
 
+export const revalidate = 300;
+
 interface ArticlePageProps {
   params: Promise<{ slug: string; articleSlug: string }>;
 }

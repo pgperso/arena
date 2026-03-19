@@ -5,6 +5,8 @@ import { HomeInFeedAd } from '@/components/ads/HomeInFeedAd';
 import { Footer } from '@/components/layout/Footer';
 import type { Database } from '@arena/supabase-client';
 
+export const revalidate = 60;
+
 type CommunityRow = Database['public']['Tables']['communities']['Row'];
 
 export default async function HomePage() {

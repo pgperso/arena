@@ -96,7 +96,7 @@ export async function fetchArticle(
 ) {
   return supabase
     .from('articles')
-    .select('*')
+    .select('id, community_id, author_id, title, slug, excerpt, body, cover_image_url, like_count, view_count, published_at, is_published, is_removed, created_at, updated_at')
     .eq('id', articleId)
     .single();
 }

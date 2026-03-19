@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 export function useSupabase() {
-  return useMemo(() => createClient(), []);
+  return useRef(createClient()).current;
 }

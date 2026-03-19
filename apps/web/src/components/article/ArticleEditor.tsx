@@ -7,6 +7,7 @@ import LinkExtension from '@tiptap/extension-link';
 import ImageExtension from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import { useSupabase } from '@/hooks/useSupabase';
+import { useCoverUpload } from '@/hooks/useCoverUpload';
 import { createArticle, updateArticle } from '@/services/articleService';
 import { slugify } from '@/lib/slugify';
 
@@ -40,11 +41,12 @@ export function ArticleEditor({
   const isEditMode = !!existingArticle;
   const [title, setTitle] = useState(existingArticle?.title ?? '');
   const [excerpt, setExcerpt] = useState(existingArticle?.excerpt ?? '');
-  const [coverPreview, setCoverPreview] = useState<string | null>(existingArticle?.cover_image_url ?? null);
-  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = useSupabase();
+  const { coverPreview, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
+    supabase, communityId, existingArticle?.cover_image_url ?? null,
+  );
 
   const editor = useEditor({
     extensions: [
@@ -69,39 +71,9 @@ export function ArticleEditor({
   });
 
   function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
-      setError('Type de fichier non supporté. Utilisez JPG, PNG, WebP ou GIF.');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setError("L'image ne doit pas dépasser 5 Mo.");
-      return;
-    }
-
-    setCoverFile(file);
-    setCoverPreview(URL.createObjectURL(file));
+    const err = onCoverChange(e);
+    if (err) setError(err);
   }
-
-  const uploadCover = useCallback(async (): Promise<string | null> => {
-    if (!coverFile) return coverPreview; // Keep existing URL or null
-
-    const safeExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-    const rawExt = (coverFile.name.split('.').pop() ?? '').toLowerCase();
-    const ext = safeExtensions.includes(rawExt) ? rawExt : 'webp';
-    const path = `article-covers/${communityId}/${Date.now()}.${ext}`;
-    const { error: uploadError } = await supabase.storage
-      .from('article-covers')
-      .upload(path, coverFile, { contentType: coverFile.type });
-
-    if (uploadError) return coverPreview;
-    const { data: urlData } = supabase.storage.from('article-covers').getPublicUrl(path);
-    return urlData.publicUrl;
-  }, [coverFile, coverPreview, communityId, supabase]);
 
   const handleSave = useCallback(async (publish: boolean) => {
     if (!title.trim()) {
@@ -200,10 +172,7 @@ export function ArticleEditor({
           <div className="relative">
             <img src={coverPreview} alt="Couverture" className="h-48 w-full rounded-xl object-cover" />
             <button
-              onClick={() => {
-                setCoverPreview(null);
-                setCoverFile(null);
-              }}
+              onClick={removeCover}
               className="absolute right-2 top-2 rounded-full bg-black/50 p-1 text-white transition hover:bg-black/70"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">

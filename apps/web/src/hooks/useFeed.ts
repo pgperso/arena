@@ -386,6 +386,9 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
   // --- Realtime subscriptions (consolidated: 3 channels → 1) ---
 
   useEffect(() => {
+    // Skip Realtime for anonymous visitors (saves connections)
+    if (!userId) return;
+
     let cancelled = false;
     const supabase = supabaseRef.current;
 
@@ -459,7 +462,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
       clearTimeout(flushTimerRef.current);
       supabase.removeChannel(feedChannel);
     };
-  }, [communityId]);
+  }, [communityId, userId]);
 
   // --- Send messages ---
 

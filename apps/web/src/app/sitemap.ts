@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next';
 import { createClient } from '@/lib/supabase/server';
 
+export const revalidate = 3600;
+
 const BASE_URL = 'https://fanstribune.com';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

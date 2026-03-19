@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useAudioUpload } from '@/hooks/useAudioUpload';
+import { useCoverUpload } from '@/hooks/useCoverUpload';
 import { createPodcast, updatePodcast } from '@/services/podcastService';
 
 interface ExistingPodcast {
@@ -39,8 +40,9 @@ export function PodcastEditor({
   const [audioUrl, setAudioUrl] = useState(existingPodcast?.audio_url ?? '');
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [durationSeconds, setDurationSeconds] = useState<number | null>(existingPodcast?.duration_seconds ?? null);
-  const [coverPreview, setCoverPreview] = useState<string | null>(existingPodcast?.cover_image_url ?? null);
-  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const { coverPreview, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
+    supabase, communityId, existingPodcast?.cover_image_url ?? null, '-pod',
+  );
   const [useExternalUrl, setUseExternalUrl] = useState(isEditMode && !!existingPodcast?.audio_url);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,19 +61,8 @@ export function PodcastEditor({
   }
 
   function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
-      setError('Type de fichier non supporté. Utilisez JPG, PNG, WebP ou GIF.');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setError("L'image ne doit pas dépasser 5 Mo.");
-      return;
-    }
-    setCoverFile(file);
-    setCoverPreview(URL.createObjectURL(file));
+    const err = onCoverChange(e);
+    if (err) setError(err);
   }
 
   const handleSave = useCallback(async (publish: boolean) => {
@@ -102,21 +93,7 @@ export function PodcastEditor({
       return;
     }
 
-    // Upload cover image if new file
-    let coverImageUrl = coverPreview;
-    if (coverFile) {
-      const safeExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-      const rawExt = (coverFile.name.split('.').pop() ?? '').toLowerCase();
-      const ext = safeExtensions.includes(rawExt) ? rawExt : 'webp';
-      const path = `article-covers/${communityId}/${Date.now()}-pod.${ext}`;
-      const { error: uploadErr } = await supabase.storage
-        .from('article-covers')
-        .upload(path, coverFile, { contentType: coverFile.type });
-      if (!uploadErr) {
-        const { data: urlData } = supabase.storage.from('article-covers').getPublicUrl(path);
-        coverImageUrl = urlData.publicUrl;
-      }
-    }
+    const coverImageUrl = await uploadCover();
 
     if (isEditMode) {
       const { error: updateErr } = await updatePodcast(supabase, existingPodcast.id, {
@@ -152,7 +129,7 @@ export function PodcastEditor({
 
     setSaving(false);
     onSaved();
-  }, [title, description, audioUrl, audioFile, durationSeconds, coverPreview, coverFile, communityId, userId, supabase, upload, isEditMode, existingPodcast, onSaved]);
+  }, [title, description, audioUrl, audioFile, durationSeconds, uploadCover, communityId, userId, supabase, upload, isEditMode, existingPodcast, onSaved]);
 
   const isBusy = saving || uploading;
 
@@ -301,7 +278,7 @@ export function PodcastEditor({
           <div className="relative">
             <img src={coverPreview} alt="Couverture" className="h-36 w-full rounded-lg object-cover" />
             <button
-              onClick={() => { setCoverPreview(null); setCoverFile(null); }}
+              onClick={removeCover}
               className="absolute right-2 top-2 rounded-full bg-black/50 p-1 text-white transition hover:bg-black/70"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
