@@ -76,7 +76,7 @@ export default async function RootLayout({
       <body className={`${inter.variable} antialiased`}>
         <div className="flex h-screen flex-col overflow-hidden">
           <Header />
-          <main className="flex-1 overflow-hidden" style={{ height: 0 }}>{children}</main>
+          <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
         </div>
       </body>
     </html>

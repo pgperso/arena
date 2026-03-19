@@ -20,7 +20,7 @@ export default async function HomePage() {
   const communities = (data ?? []) as CommunityRow[];
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex flex-1 flex-col">
       {/* Centered group: hero + tribunes */}
       <div className="flex flex-1 items-center justify-center px-4">
         <div className="w-full max-w-7xl">
