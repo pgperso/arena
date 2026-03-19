@@ -1,10 +1,14 @@
 import { ImageResponse } from 'next/og';
-import { BRAND } from '@/lib/brand';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 export const size = { width: 32, height: 32 };
 export const contentType = 'image/png';
 
 export default function Icon() {
+  const logoData = readFileSync(join(process.cwd(), 'public/images/fanstribune.png'));
+  const logoSrc = `data:image/png;base64,${logoData.toString('base64')}`;
+
   return new ImageResponse(
     (
       <div
@@ -14,14 +18,10 @@ export default function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: BRAND.colors.blue,
-          borderRadius: 6,
-          color: BRAND.colors.white,
-          fontSize: 18,
-          fontWeight: 700,
+          backgroundColor: 'transparent',
         }}
       >
-        {BRAND.shortName}
+        <img src={logoSrc} width={32} height={32} />
       </div>
     ),
     { ...size },

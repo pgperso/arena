@@ -1,4 +1,6 @@
 import { ImageResponse } from 'next/og';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { BRAND } from '@/lib/brand';
 
 export const alt = 'La tribune des fans - Communautés sportives en direct';
@@ -6,6 +8,9 @@ export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 export default function OGImage() {
+  const logoData = readFileSync(join(process.cwd(), 'public/images/fanstribune.png'));
+  const logoSrc = `data:image/png;base64,${logoData.toString('base64')}`;
+
   return new ImageResponse(
     (
       <div
@@ -20,23 +25,7 @@ export default function OGImage() {
           color: BRAND.colors.white,
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 100,
-            height: 100,
-            backgroundColor: BRAND.colors.white,
-            borderRadius: 20,
-            marginBottom: 40,
-            color: BRAND.colors.blue,
-            fontSize: 52,
-            fontWeight: 700,
-          }}
-        >
-          {BRAND.shortName}
-        </div>
+        <img src={logoSrc} width={160} height={160} style={{ marginBottom: 40 }} />
         <div style={{ fontSize: 56, fontWeight: 700, marginBottom: 16 }}>
           {BRAND.name}
         </div>
