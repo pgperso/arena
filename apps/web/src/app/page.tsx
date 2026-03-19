@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { CommunityCard } from '@/components/community/CommunityCard';
 import { AdBanner } from '@/components/ads/AdBanner';
-import { HomeInFeedAd } from '@/components/ads/HomeInFeedAd';
 import { Footer } from '@/components/layout/Footer';
 import type { Database } from '@arena/supabase-client';
 
@@ -38,20 +37,16 @@ export default async function HomePage() {
 
         {communities.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {communities.map((community, index) => (
-              <div key={community.id} className="contents">
-                <CommunityCard
-                  name={community.name}
-                  slug={community.slug}
-                  description={community.description}
-                  memberCount={community.member_count}
-                  primaryColor={community.primary_color}
-                  logoUrl={community.logo_url}
-                />
-                {(index + 1) % 3 === 0 && index < communities.length - 1 && (
-                  <HomeInFeedAd index={Math.floor(index / 3)} />
-                )}
-              </div>
+            {communities.map((community) => (
+              <CommunityCard
+                key={community.id}
+                name={community.name}
+                slug={community.slug}
+                description={community.description}
+                memberCount={community.member_count}
+                primaryColor={community.primary_color}
+                logoUrl={community.logo_url}
+              />
             ))}
           </div>
         ) : (
