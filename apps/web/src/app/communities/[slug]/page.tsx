@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: CommunityPageProps) {
     .eq('slug', slug)
     .single();
 
-  if (!community) return { title: 'Communauté introuvable' };
+  if (!community) return { title: 'Tribune introuvable' };
 
   const name = (community as { name: string }).name;
   const description = (community as { description: string | null }).description;
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: CommunityPageProps) {
     description,
     openGraph: {
       title: `${name} | La tribune des fans`,
-      description: description ?? `Rejoignez la communauté ${name} sur La tribune des fans`,
+      description: description ?? `Rejoignez la tribune ${name} sur La tribune des fans`,
       type: 'website',
     },
   };

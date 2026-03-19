@@ -134,8 +134,8 @@ export function FeedContainer({
 
   function getInputPlaceholder(): string {
     if (!user) return 'Connectez-vous pour participer';
-    if (!isMember) return 'Rejoignez la communauté pour participer';
-    if (isMuted) return 'Vous êtes en sourdine dans cette communauté';
+    if (!isMember) return 'Rejoignez la tribune pour participer';
+    if (isMuted) return 'Vous êtes en sourdine dans cette tribune';
     if (replyTarget) return `Répondre à @${replyTarget.member?.username ?? 'utilisateur'}...`;
     if (quoteTarget) return `Citer @${quoteTarget.member?.username ?? 'utilisateur'}...`;
     return 'Écrire un message... (Enter pour envoyer)';

@@ -23,7 +23,7 @@ export default function PolitiqueConfidentialite() {
             La tribune des fans collecte les informations suivantes lors de
             votre inscription : nom d&apos;utilisateur, adresse courriel. Ces
             données sont nécessaires pour le fonctionnement de votre compte et
-            la participation aux communautés.
+            la participation aux tribunes.
           </p>
         </section>
 
@@ -34,7 +34,7 @@ export default function PolitiqueConfidentialite() {
           <p>Vos données sont utilisées pour :</p>
           <ul className="mt-2 list-disc space-y-1 pl-6">
             <li>Gérer votre compte et votre profil</li>
-            <li>Permettre votre participation aux communautés sportives</li>
+            <li>Permettre votre participation aux tribunes sportives</li>
             <li>Afficher votre nom d&apos;utilisateur dans les discussions</li>
             <li>Vous envoyer des notifications liées à votre compte</li>
           </ul>

@@ -153,7 +153,7 @@ export function VestiaireClient({
       {/* Communities */}
       <div>
         <h2 className="mb-4 text-lg font-semibold text-gray-900">
-          Mes communautés
+          Mes tribunes
         </h2>
         {communities.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2">
@@ -207,13 +207,13 @@ export function VestiaireClient({
         ) : (
           <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
             <p className="text-sm text-gray-500">
-              Vous n&apos;avez rejoint aucune communauté.
+              Vous n&apos;avez rejoint aucune tribune.
             </p>
             <Link
               href="/"
               className="mt-3 inline-block text-sm font-medium text-brand-blue hover:underline"
             >
-              Découvrir les communautés
+              Découvrir les tribunes
             </Link>
           </div>
         )}

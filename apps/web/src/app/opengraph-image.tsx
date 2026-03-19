@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { BRAND } from '@/lib/brand';
 
-export const alt = 'La tribune des fans - Communautés sportives en direct';
+export const alt = 'La tribune des fans - Tribunes sportives en direct';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 

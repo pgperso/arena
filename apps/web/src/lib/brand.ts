@@ -6,7 +6,7 @@
 export const BRAND = {
   name: 'La tribune des fans',
   shortName: 'LT',
-  tagline: 'Communautés sportives en direct',
+  tagline: 'Vos tribunes, vos opinions',
   domain: 'fanstribune.com',
   colors: {
     blue: '#0B4870',

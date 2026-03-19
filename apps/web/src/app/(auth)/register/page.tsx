@@ -14,7 +14,7 @@ export default function RegisterPage() {
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold text-gray-900">Créer un compte</h1>
             <p className="mt-2 text-sm text-gray-500">
-              Inscrivez-vous pour rejoindre vos communautés sportives
+              Inscrivez-vous pour rejoindre vos tribunes sportives
             </p>
           </div>
           <RegisterForm />

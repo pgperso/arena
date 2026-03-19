@@ -15,24 +15,24 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL('https://fanstribune.com'),
   title: {
-    default: 'La tribune des fans - Communautés sportives en direct',
+    default: 'La tribune des fans - Tribunes sportives en direct',
     template: '%s | La tribune des fans',
   },
   description:
-    'Rejoignez la communauté de votre équipe sportive préférée. Chat en direct, podcasts et plus encore.',
+    'Rejoignez la tribune de votre équipe sportive préférée. Chat en direct, podcasts et plus encore.',
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
     siteName: 'La tribune des fans',
-    title: 'La tribune des fans - Communautés sportives en direct',
+    title: 'La tribune des fans - Tribunes sportives en direct',
     description:
-      'Rejoignez la communauté de votre équipe sportive préférée. Chat en direct, podcasts et plus encore.',
+      'Rejoignez la tribune de votre équipe sportive préférée. Chat en direct, podcasts et plus encore.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'La tribune des fans - Communautés sportives en direct',
+    title: 'La tribune des fans - Tribunes sportives en direct',
     description:
-      'Rejoignez la communauté de votre équipe sportive préférée. Chat en direct, podcasts et plus encore.',
+      'Rejoignez la tribune de votre équipe sportive préférée. Chat en direct, podcasts et plus encore.',
   },
   robots: {
     index: true,
@@ -47,7 +47,7 @@ const jsonLd = {
   name: 'La tribune des fans',
   url: 'https://fanstribune.com',
   description:
-    'Plateforme de communautés sportives en direct : chat, articles et podcasts.',
+    'Plateforme de tribunes sportives en direct : chat, articles et podcasts.',
 };
 
 export default async function RootLayout({

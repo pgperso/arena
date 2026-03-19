@@ -14,7 +14,7 @@ export default function LoginPage() {
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold text-gray-900">Connexion</h1>
             <p className="mt-2 text-sm text-gray-500">
-              Connectez-vous pour rejoindre vos communautés
+              Connectez-vous pour rejoindre vos tribunes
             </p>
           </div>
           <LoginForm />

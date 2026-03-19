@@ -41,7 +41,7 @@ export function Header() {
             href="/"
             className="text-sm font-medium text-gray-600 transition hover:text-brand-blue"
           >
-            Communautés
+            Tribunes
           </Link>
         </nav>
 

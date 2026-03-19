@@ -65,7 +65,7 @@ export function CommunityPageClient({
       >
         <div className="flex items-center gap-3">
           <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
-            &larr; Communautés
+            &larr; Tribunes
           </Link>
           <span className="text-gray-300">|</span>
           <Avatar url={community.logo_url} name={community.name} size="md" color={community.primary_color} />
