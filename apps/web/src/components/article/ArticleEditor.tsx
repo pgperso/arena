@@ -36,7 +36,7 @@ export function ArticleEditor({
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({ link: false }),
       LinkExtension.configure({
         openOnClick: false,
         HTMLAttributes: {
