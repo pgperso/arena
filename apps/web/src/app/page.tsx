@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { CommunityCard } from '@/components/community/CommunityCard';
+import { CommunityGrid } from '@/components/community/CommunityGrid';
 import { AdBanner } from '@/components/ads/AdBanner';
 import type { Database } from '@arena/supabase-client';
 
@@ -33,18 +33,7 @@ export default async function HomePage() {
         </div>
 
         {communities.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {communities.map((community) => (
-              <CommunityCard
-                key={community.id}
-                name={community.name}
-                slug={community.slug}
-                description={community.description}
-                memberCount={community.member_count}
-                logoUrl={community.logo_url}
-              />
-            ))}
-          </div>
+          <CommunityGrid communities={communities} />
         ) : (
           <p className="text-center text-gray-500">
             Aucune tribune disponible pour le moment.

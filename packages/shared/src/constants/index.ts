@@ -12,6 +12,9 @@ export const IMAGE_MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 export const IMAGE_MAX_DIMENSION = 1920;
 export const IMAGE_THUMB_DIMENSION = 400;
 
+// Community constants
+export const MAX_COMMUNITIES_PER_USER = 50;
+
 // Ad constants
 export const FEED_AD_INTERVAL = 25;
 export const ARTICLE_AD_WORD_THRESHOLD = 300;
