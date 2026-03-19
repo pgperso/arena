@@ -20,7 +20,7 @@ export default async function HomePage() {
   const communities = (data ?? []) as CommunityRow[];
 
   return (
-    <div className="relative flex min-h-[calc(100dvh_-_4rem)] items-center justify-center px-4 pb-28">
+    <div className="relative flex min-h-[calc(100dvh_-_4rem)] items-center justify-center px-4 pb-28 pt-12">
       <div className="w-full max-w-7xl">
         <div className="mb-10 text-center">
           <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">
