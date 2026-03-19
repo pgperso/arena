@@ -97,5 +97,6 @@ export async function fetchPodcastsByPublisher(
     .eq('published_by', publishedBy)
     .eq('community_id', communityId)
     .or('is_removed.eq.false,is_removed.is.null')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(100);
 }

@@ -23,6 +23,7 @@ export function usePresence(
 ): UsePresenceReturn {
   const [onlineMembers, setOnlineMembers] = useState<PresenceMember[]>([]);
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const supabase = useSupabase();
 
   useEffect(() => {
@@ -34,23 +35,26 @@ export function usePresence(
 
     channel
       .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState<{
-          memberId: string;
-          username: string;
-          avatarUrl: string | null;
-        }>();
-        const members: PresenceMember[] = [];
-        for (const key in state) {
-          const presences = state[key];
-          if (presences && presences.length > 0) {
-            members.push({
-              memberId: presences[0].memberId,
-              username: presences[0].username,
-              avatarUrl: presences[0].avatarUrl,
-            });
+        clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+          const state = channel.presenceState<{
+            memberId: string;
+            username: string;
+            avatarUrl: string | null;
+          }>();
+          const members: PresenceMember[] = [];
+          for (const key in state) {
+            const presences = state[key];
+            if (presences && presences.length > 0) {
+              members.push({
+                memberId: presences[0].memberId,
+                username: presences[0].username,
+                avatarUrl: presences[0].avatarUrl,
+              });
+            }
           }
-        }
-        setOnlineMembers(members);
+          setOnlineMembers(members);
+        }, 500);
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
@@ -65,6 +69,7 @@ export function usePresence(
     channelRef.current = channel;
 
     return () => {
+      clearTimeout(debounceRef.current);
       channel.untrack();
       supabase.removeChannel(channel);
     };

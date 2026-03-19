@@ -90,9 +90,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Increment view count atomically via RPC (fire and forget)
+  // Increment view count (fire and forget — RPC not in generated types)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (supabase.rpc as any)('increment_article_views', { p_article_id: article.id }).then(() => {});
+  (supabase.rpc as any)('increment_article_views', { p_article_id: article.id }).catch(() => {});
 
   const articleJsonLd = {
     '@context': 'https://schema.org',
