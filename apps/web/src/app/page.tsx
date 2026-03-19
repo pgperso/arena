@@ -14,7 +14,8 @@ export default async function HomePage() {
     .from('communities')
     .select('id, name, slug, description, member_count, primary_color, logo_url')
     .eq('is_active', true)
-    .order('member_count', { ascending: false });
+    .order('member_count', { ascending: false })
+    .limit(100);
 
   const communities = (data ?? []) as CommunityRow[];
 

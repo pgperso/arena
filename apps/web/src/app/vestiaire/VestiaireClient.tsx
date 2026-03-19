@@ -12,7 +12,6 @@ type CommunityRow = Database['public']['Tables']['communities']['Row'];
 interface MemberProfile {
   id: string;
   username: string;
-  email: string | null;
   avatar_url: string | null;
   description: string | null;
   created_at: string;

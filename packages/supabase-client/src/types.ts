@@ -55,12 +55,9 @@ export type Database = {
           username: string;
           first_name: string | null;
           last_name: string | null;
-          email: string;
           description: string | null;
           avatar_url: string | null;
           is_verified: boolean;
-          legacy_password_hash: string | null;
-          password_migrated: boolean;
           legacy_member_id: number | null;
           created_at: string;
           updated_at: string;
@@ -68,14 +65,11 @@ export type Database = {
         Insert: {
           id: string;
           username: string;
-          email: string;
           first_name?: string | null;
           last_name?: string | null;
           description?: string | null;
           avatar_url?: string | null;
           is_verified?: boolean;
-          legacy_password_hash?: string | null;
-          password_migrated?: boolean;
           legacy_member_id?: number | null;
           created_at?: string;
           updated_at?: string;
@@ -83,14 +77,11 @@ export type Database = {
         Update: {
           id?: string;
           username?: string;
-          email?: string;
           first_name?: string | null;
           last_name?: string | null;
           description?: string | null;
           avatar_url?: string | null;
           is_verified?: boolean;
-          legacy_password_hash?: string | null;
-          password_migrated?: boolean;
           legacy_member_id?: number | null;
           created_at?: string;
           updated_at?: string;

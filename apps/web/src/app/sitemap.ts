@@ -14,7 +14,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Communities
   const { data: communities } = await supabase
     .from('communities')
-    .select('slug, updated_at');
+    .select('slug, updated_at')
+    .limit(1000);
 
   if (communities) {
     for (const c of communities) {
@@ -32,7 +33,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from('articles')
     .select('slug, community_id, updated_at, communities!inner(slug)')
     .eq('is_published', true)
-    .eq('is_removed', false);
+    .eq('is_removed', false)
+    .limit(5000);
 
   if (articles) {
     for (const a of articles as (typeof articles)[number][]) {
@@ -52,7 +54,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: podcasts } = await supabase
     .from('podcasts')
     .select('id, updated_at, communities!inner(slug)')
-    .eq('is_published', true);
+    .eq('is_published', true)
+    .limit(5000);
 
   if (podcasts) {
     for (const p of podcasts as (typeof podcasts)[number][]) {

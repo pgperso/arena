@@ -2,58 +2,20 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { MobileNav } from './MobileNav';
-import type { User } from '@supabase/supabase-js';
 
 export function Header() {
   const router = useRouter();
+  const { user, username, loading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    async function getUser() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-
-      if (user) {
-        const { data: member } = await supabase
-          .from('members')
-          .select('username')
-          .eq('id', user.id)
-          .single();
-        setUsername(member?.username ?? null);
-      }
-      setLoading(false);
-    }
-
-    getUser();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (!session?.user) {
-        setUsername(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    setUser(null);
-    setUsername(null);
     router.push('/');
     router.refresh();
   }

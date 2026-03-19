@@ -22,6 +22,12 @@ type PodcastRow = Database['public']['Tables']['podcasts']['Row'];
 type MemberRow = Database['public']['Tables']['members']['Row'];
 
 const MAX_FEED_ITEMS = 500;
+const REALTIME_DEBOUNCE_MS = 100;
+
+// Explicit column selections (avoid select('*') to exclude large columns like body)
+const CHAT_MSG_SELECT = 'id, community_id, member_id, content, image_urls, created_at, is_removed, removed_at, removed_by, like_count, reply_count, repost_count, parent_id, repost_of_id, quote_of_id, members:members!chat_messages_member_id_fkey(id, username, avatar_url)';
+const ARTICLE_SELECT = 'id, community_id, author_id, title, slug, excerpt, cover_image_url, like_count, view_count, published_at, is_published, is_removed, created_at, members:members!articles_author_id_fkey(id, username, avatar_url)';
+const PODCAST_SELECT = 'id, community_id, published_by, title, description, audio_url, cover_image_url, duration_seconds, like_count, is_published, is_removed, created_at';
 
 // --- Row to FeedItem converters ---
 
@@ -270,13 +276,47 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
   const [state, dispatch] = useReducer(feedReducer, initialState);
   const supabaseRef = useRef(createClient());
 
+  // Client-side member cache to avoid N+1 queries on Realtime INSERTs
+  const memberCacheRef = useRef(new Map<string, Pick<MemberRow, 'id' | 'username' | 'avatar_url'>>());
+
+  // Debounce buffer for Realtime events
+  const realtimeBufferRef = useRef<FeedAction[]>([]);
+  const flushTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  function bufferAndFlush(action: FeedAction) {
+    realtimeBufferRef.current.push(action);
+    clearTimeout(flushTimerRef.current);
+    flushTimerRef.current = setTimeout(() => {
+      const batch = realtimeBufferRef.current.splice(0);
+      // React 18+ batches synchronous dispatches in setTimeout automatically
+      batch.forEach(a => dispatch(a));
+    }, REALTIME_DEBOUNCE_MS);
+  }
+
+  // Helper: resolve member from cache or fetch
+  async function resolveMember(
+    memberId: string | null,
+  ): Promise<Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null> {
+    if (!memberId) return null;
+    const cached = memberCacheRef.current.get(memberId);
+    if (cached) return cached;
+    const { data } = await supabaseRef.current
+      .from('members')
+      .select('id, username, avatar_url')
+      .eq('id', memberId)
+      .single();
+    const member = data as Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null;
+    if (member) memberCacheRef.current.set(member.id, member);
+    return member;
+  }
+
   // Merged and sorted feed
   const items = useMemo(
     () => sortByTimestamp([...state.messages, ...state.articles, ...state.podcasts]),
     [state.messages, state.articles, state.podcasts],
   );
 
-  // --- Initial load (single dispatch instead of 3 setStates) ---
+  // --- Initial load ---
 
   useEffect(() => {
     let cancelled = false;
@@ -287,13 +327,13 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
       const [messagesRes, articlesRes, podcastsRes] = await Promise.all([
         supabase
           .from('chat_messages')
-          .select('*, members:members!chat_messages_member_id_fkey(id, username, avatar_url)')
+          .select(CHAT_MSG_SELECT)
           .eq('community_id', communityId)
           .order('created_at', { ascending: false })
           .limit(FEED_INITIAL_LIMIT),
         supabase
           .from('articles')
-          .select('*, members:members!articles_author_id_fkey(id, username, avatar_url)')
+          .select(ARTICLE_SELECT)
           .eq('community_id', communityId)
           .eq('is_published', true)
           .eq('is_removed', false)
@@ -301,7 +341,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           .limit(FEED_INITIAL_LIMIT),
         supabase
           .from('podcasts')
-          .select('*')
+          .select(PODCAST_SELECT)
           .eq('community_id', communityId)
           .eq('is_published', true)
           .or('is_removed.eq.false,is_removed.is.null')
@@ -313,11 +353,18 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
 
       const messages = (messagesRes.data ?? [])
         .reverse()
-        .map((row) => messageToFeedItem(row as unknown as ChatMessageWithJoin));
+        .map((row) => {
+          const typed = row as unknown as ChatMessageWithJoin;
+          // Populate member cache from initial load
+          if (typed.members) memberCacheRef.current.set(typed.members.id, typed.members);
+          return messageToFeedItem(typed);
+        });
 
-      const articles = (articlesRes.data ?? []).map((row) =>
-        articleToFeedItem(row as unknown as ArticleWithJoin),
-      );
+      const articles = (articlesRes.data ?? []).map((row) => {
+        const typed = row as unknown as ArticleWithJoin;
+        if (typed.members) memberCacheRef.current.set(typed.members.id, typed.members);
+        return articleToFeedItem(typed);
+      });
 
       const podcasts = (podcastsRes.data ?? []).map((row) =>
         podcastToFeedItem(row as PodcastRow),
@@ -336,133 +383,81 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
     return () => { cancelled = true; };
   }, [communityId]);
 
-  // --- Realtime subscriptions ---
+  // --- Realtime subscriptions (consolidated: 3 channels → 1) ---
 
   useEffect(() => {
     let cancelled = false;
     const supabase = supabaseRef.current;
 
-    // Channel 1: chat_messages
-    const msgChannel = supabase
-      .channel(`feed-msg:${communityId}`)
+    const feedChannel = supabase
+      .channel(`feed:${communityId}`)
+      // chat_messages INSERT
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `community_id=eq.${communityId}`,
-        },
+        { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `community_id=eq.${communityId}` },
         async (payload: RealtimePostgresInsertPayload<ChatMessageRow>) => {
           const newMsg = payload.new;
-          let member: Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null = null;
-          if (newMsg.member_id) {
-            const { data } = await supabase
-              .from('members')
-              .select('id, username, avatar_url')
-              .eq('id', newMsg.member_id)
-              .single();
-            member = data as Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null;
-          }
+          const member = await resolveMember(newMsg.member_id);
           if (cancelled) return;
-          dispatch({ type: 'ADD_MESSAGE', message: messageToFeedItem({ ...newMsg, members: member }) });
+          bufferAndFlush({ type: 'ADD_MESSAGE', message: messageToFeedItem({ ...newMsg, members: member }) });
         },
       )
+      // chat_messages UPDATE
       .on(
         'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `community_id=eq.${communityId}`,
-        },
+        { event: 'UPDATE', schema: 'public', table: 'chat_messages', filter: `community_id=eq.${communityId}` },
         (payload: RealtimePostgresUpdatePayload<ChatMessageRow>) => {
           if (cancelled) return;
-          dispatch({ type: 'UPDATE_MESSAGE', updated: payload.new });
+          bufferAndFlush({ type: 'UPDATE_MESSAGE', updated: payload.new });
         },
       )
-      .subscribe();
-
-    // Channel 2: articles
-    const artChannel = supabase
-      .channel(`feed-art:${communityId}`)
+      // articles INSERT
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'articles',
-          filter: `community_id=eq.${communityId}`,
-        },
+        { event: 'INSERT', schema: 'public', table: 'articles', filter: `community_id=eq.${communityId}` },
         async (payload: RealtimePostgresInsertPayload<ArticleRow>) => {
           const newArt = payload.new;
           if (!newArt.is_published) return;
-          let member: Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null = null;
-          if (newArt.author_id) {
-            const { data } = await supabase
-              .from('members')
-              .select('id, username, avatar_url')
-              .eq('id', newArt.author_id)
-              .single();
-            member = data as Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null;
-          }
+          const member = await resolveMember(newArt.author_id);
           if (cancelled) return;
-          dispatch({ type: 'ADD_ARTICLE', article: articleToFeedItem({ ...newArt, members: member } as ArticleWithJoin) });
+          bufferAndFlush({ type: 'ADD_ARTICLE', article: articleToFeedItem({ ...newArt, members: member } as ArticleWithJoin) });
         },
       )
+      // articles UPDATE
       .on(
         'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'articles',
-          filter: `community_id=eq.${communityId}`,
-        },
+        { event: 'UPDATE', schema: 'public', table: 'articles', filter: `community_id=eq.${communityId}` },
         (payload: RealtimePostgresUpdatePayload<ArticleRow>) => {
           if (cancelled) return;
-          dispatch({ type: 'UPDATE_ARTICLE', updated: payload.new });
+          bufferAndFlush({ type: 'UPDATE_ARTICLE', updated: payload.new });
         },
       )
-      .subscribe();
-
-    // Channel 3: podcasts
-    const podChannel = supabase
-      .channel(`feed-pod:${communityId}`)
+      // podcasts INSERT
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'podcasts',
-          filter: `community_id=eq.${communityId}`,
-        },
+        { event: 'INSERT', schema: 'public', table: 'podcasts', filter: `community_id=eq.${communityId}` },
         (payload: RealtimePostgresInsertPayload<PodcastRow>) => {
           if (cancelled) return;
           const newPod = payload.new;
           if (!newPod.is_published) return;
-          dispatch({ type: 'ADD_PODCAST', podcast: podcastToFeedItem(newPod) });
+          bufferAndFlush({ type: 'ADD_PODCAST', podcast: podcastToFeedItem(newPod) });
         },
       )
+      // podcasts UPDATE
       .on(
         'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'podcasts',
-          filter: `community_id=eq.${communityId}`,
-        },
+        { event: 'UPDATE', schema: 'public', table: 'podcasts', filter: `community_id=eq.${communityId}` },
         (payload: RealtimePostgresUpdatePayload<PodcastRow>) => {
           if (cancelled) return;
-          dispatch({ type: 'UPDATE_PODCAST', updated: payload.new });
+          bufferAndFlush({ type: 'UPDATE_PODCAST', updated: payload.new });
         },
       )
       .subscribe();
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(msgChannel);
-      supabase.removeChannel(artChannel);
-      supabase.removeChannel(podChannel);
+      clearTimeout(flushTimerRef.current);
+      supabase.removeChannel(feedChannel);
     };
   }, [communityId]);
 
@@ -532,7 +527,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
     const oldestMsg = state.messages[0];
     const { data } = await supabaseRef.current
       .from('chat_messages')
-      .select('*, members:members!chat_messages_member_id_fkey(id, username, avatar_url)')
+      .select(CHAT_MSG_SELECT)
       .eq('community_id', communityId)
       .lt('created_at', oldestMsg.createdAt)
       .order('created_at', { ascending: false })
@@ -541,7 +536,11 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
     if (data) {
       const olderMsgs = data
         .reverse()
-        .map((row) => messageToFeedItem(row as unknown as ChatMessageWithJoin));
+        .map((row) => {
+          const typed = row as unknown as ChatMessageWithJoin;
+          if (typed.members) memberCacheRef.current.set(typed.members.id, typed.members);
+          return messageToFeedItem(typed);
+        });
       dispatch({
         type: 'PREPEND_MESSAGES',
         messages: olderMsgs,

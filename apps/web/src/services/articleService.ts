@@ -112,5 +112,6 @@ export async function fetchArticlesByAuthor(
     .eq('author_id', authorId)
     .eq('community_id', communityId)
     .eq('is_removed', false)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(100);
 }

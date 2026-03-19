@@ -62,5 +62,6 @@ export async function fetchRestrictions(
     .from('member_restrictions')
     .select('*, members:members!member_restrictions_member_id_fkey(username)')
     .eq('community_id', communityId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(200);
 }

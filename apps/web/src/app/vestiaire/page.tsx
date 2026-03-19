@@ -25,7 +25,7 @@ export default async function VestiairePage() {
   // Fetch member profile
   const { data: member } = await supabase
     .from('members')
-    .select('id, username, email, avatar_url, description, created_at')
+    .select('id, username, avatar_url, description, created_at')
     .eq('id', user.id)
     .single();
 
