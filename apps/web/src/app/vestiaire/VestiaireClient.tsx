@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Avatar } from '@/components/ui/Avatar';
+import { useAvatarUpload } from '@/hooks/useAvatarUpload';
 import type { Database } from '@arena/supabase-client';
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'];
@@ -42,6 +43,9 @@ export function VestiaireClient({
   const [editing, setEditing] = useState(false);
   const [description, setDescription] = useState(member?.description ?? '');
   const [saving, setSaving] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(member?.avatar_url ?? null);
+  const { uploading, uploadAvatar } = useAvatarUpload();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleSaveDescription() {
     if (!member) return;
@@ -54,6 +58,16 @@ export function VestiaireClient({
     setSaving(false);
     setEditing(false);
     router.refresh();
+  }
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !member) return;
+    const url = await uploadAvatar(file, member.id);
+    if (url) {
+      setAvatarUrl(url);
+      router.refresh();
+    }
   }
 
   async function handleLogout() {
@@ -82,11 +96,41 @@ export function VestiaireClient({
       {/* Profile header */}
       <div className="rounded-xl border border-gray-200 bg-white p-6">
         <div className="flex items-start gap-4">
-          <Avatar
-            url={member.avatar_url}
-            name={member.username}
-            size="xl"
-          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="group relative shrink-0"
+          >
+            <Avatar
+              url={avatarUrl}
+              name={member.username}
+              size="xl"
+            />
+            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 transition group-hover:bg-black/40">
+              {uploading ? (
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+                <svg
+                  className="h-5 w-5 text-white opacity-0 transition group-hover:opacity-100"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+                </svg>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
+          </button>
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-900">
               {member.username}
