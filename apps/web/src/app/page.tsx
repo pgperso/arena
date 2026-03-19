@@ -21,9 +21,9 @@ export default async function HomePage() {
   const communities = (data ?? []) as CommunityRow[];
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto">
+    <div className="grid h-full grid-rows-[1fr_auto_auto] overflow-y-auto">
       {/* Centered group: hero + tribunes */}
-      <div className="flex flex-1 items-center justify-center px-4 py-12">
+      <div className="flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-7xl">
           <div className="mb-6 text-center">
             <h1 className="mb-3 text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">
