@@ -24,13 +24,11 @@ export default async function HomePage() {
       <div className="w-full max-w-7xl">
         <div className="mb-10 text-center">
           <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">
-            Vos tribunes,{' '}
-            <span className="text-red-600">votre opinion.</span>
+            Ta tribune, ton équipe,{' '}
+            <span className="text-red-600">ton opinion.</span>
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-gray-900">
-            Tes tribunes. Ton opinion. Ton équipe.
-            <br />
-            Tu veux jouer robuste ? On aime ça quand ça brasse.
+            Tu aimes ça jouer robuste ? Ici on aime ça quand ça brasse.
           </p>
         </div>
 
