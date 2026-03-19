@@ -60,7 +60,7 @@ export async function fetchRestrictions(
 ) {
   return supabase
     .from('member_restrictions')
-    .select('*, members:members!member_restrictions_member_id_fkey(username)')
+    .select('id, community_id, member_id, restriction_type, reason, starts_at, ends_at, created_at, members:members!member_restrictions_member_id_fkey(username)')
     .eq('community_id', communityId)
     .order('created_at', { ascending: false })
     .limit(200);

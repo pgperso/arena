@@ -12,14 +12,16 @@ import { FeedItem } from './FeedItem';
 import { FeedInput } from './FeedInput';
 import { FeedSkeleton } from './FeedSkeleton';
 import { FeedReplyBar } from './FeedReplyBar';
+import dynamic from 'next/dynamic';
 import { OnlineMembers } from '@/components/chat/OnlineMembers';
-import { ArticleEditor } from '@/components/article/ArticleEditor';
-import { ArticleList } from '@/components/article/ArticleList';
-import { PodcastEditor } from '@/components/podcast/PodcastEditor';
-import { ModerationPanel } from '@/components/moderation/ModerationPanel';
 import { AdInFeed } from '@/components/ads/AdInFeed';
 import { FEED_AD_INTERVAL } from '@arena/shared';
 import Link from 'next/link';
+
+const ArticleEditor = dynamic(() => import('@/components/article/ArticleEditor').then((m) => m.ArticleEditor), { ssr: false });
+const ArticleList = dynamic(() => import('@/components/article/ArticleList').then((m) => m.ArticleList), { ssr: false });
+const PodcastEditor = dynamic(() => import('@/components/podcast/PodcastEditor').then((m) => m.PodcastEditor), { ssr: false });
+const ModerationPanel = dynamic(() => import('@/components/moderation/ModerationPanel').then((m) => m.ModerationPanel), { ssr: false });
 
 interface FeedContainerProps {
   communityId: number;

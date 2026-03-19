@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import imageCompression from 'browser-image-compression';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -43,13 +44,18 @@ export function useCoverUpload(
   const uploadCover = useCallback(async (): Promise<string | null> => {
     if (!coverFile) return coverPreview;
 
-    const rawExt = (coverFile.name.split('.').pop() ?? '').toLowerCase();
-    const ext = SAFE_EXTENSIONS.includes(rawExt) ? rawExt : 'webp';
-    const path = `article-covers/${communityId}/${Date.now()}${suffix}.${ext}`;
+    const compressed = await imageCompression(coverFile, {
+      maxSizeMB: 1.0,
+      maxWidthOrHeight: 1200,
+      useWebWorker: true,
+      fileType: 'image/webp',
+    });
+
+    const path = `article-covers/${communityId}/${Date.now()}${suffix}.webp`;
 
     const { error } = await supabase.storage
       .from('article-covers')
-      .upload(path, coverFile, { contentType: coverFile.type });
+      .upload(path, compressed, { contentType: 'image/webp', cacheControl: '31536000' });
 
     if (error) return coverPreview;
 
