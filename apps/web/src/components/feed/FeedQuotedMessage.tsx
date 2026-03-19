@@ -1,6 +1,7 @@
 'use client';
 
 import { formatTime } from '@arena/shared';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface QuotedMessageData {
   content: string | null;
@@ -14,22 +15,10 @@ interface FeedQuotedMessageProps {
 }
 
 export function FeedQuotedMessage({ message }: FeedQuotedMessageProps) {
-  const initial = message.username[0]?.toUpperCase() ?? '?';
-
   return (
     <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
       <div className="flex items-center gap-2">
-        {message.avatarUrl ? (
-          <img
-            src={message.avatarUrl}
-            alt={message.username}
-            className="h-5 w-5 rounded-full object-cover"
-          />
-        ) : (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-blue text-[10px] font-bold text-white">
-            {initial}
-          </div>
-        )}
+        <Avatar url={message.avatarUrl} name={message.username} size="xs" />
         <span className="text-xs font-medium text-gray-700">{message.username}</span>
         <span className="text-xs text-gray-400">{formatTime(message.createdAt)}</span>
       </div>

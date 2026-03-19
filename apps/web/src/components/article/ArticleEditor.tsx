@@ -6,8 +6,10 @@ import StarterKit from '@tiptap/starter-kit';
 import LinkExtension from '@tiptap/extension-link';
 import ImageExtension from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
-import { createClient } from '@/lib/supabase/client';
+import { useSupabase } from '@/hooks/useSupabase';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { createArticle } from '@/services/articleService';
+import { slugify } from '@/lib/slugify';
 
 interface ArticleEditorProps {
   communityId: number;
@@ -30,11 +32,19 @@ export function ArticleEditor({
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const supabase = useSupabase();
 
   const editor = useEditor({
     extensions: [
       StarterKit,
-      LinkExtension.configure({ openOnClick: false }),
+      LinkExtension.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          rel: 'noopener noreferrer',
+          target: '_blank',
+        },
+        validate: (href: string) => /^https?:\/\//.test(href),
+      }),
       ImageExtension,
       Placeholder.configure({ placeholder: 'Écrivez votre article ici...' }),
     ],
@@ -48,18 +58,22 @@ export function ArticleEditor({
   function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validate MIME type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Type de fichier non supporté. Utilisez JPG, PNG, WebP ou GIF.');
+      return;
+    }
+
+    // Validate file size (5 MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("L'image ne doit pas dépasser 5 Mo.");
+      return;
+    }
+
     setCoverFile(file);
     setCoverPreview(URL.createObjectURL(file));
-  }
-
-  function generateSlug(text: string): string {
-    return text
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 200);
   }
 
   const handlePublish = useCallback(async () => {
@@ -75,36 +89,35 @@ export function ArticleEditor({
     setPublishing(true);
     setError(null);
 
-    const supabase = createClient();
     let coverImageUrl: string | null = null;
 
     // Upload cover image if present
     if (coverFile) {
-      const ext = coverFile.name.split('.').pop() ?? 'jpg';
+      const safeExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+      const rawExt = (coverFile.name.split('.').pop() ?? '').toLowerCase();
+      const ext = safeExtensions.includes(rawExt) ? rawExt : 'webp';
       const path = `article-covers/${communityId}/${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage
-        .from('chat-images')
+        .from('article-covers')
         .upload(path, coverFile, { contentType: coverFile.type });
 
       if (!uploadError) {
-        const { data: urlData } = supabase.storage.from('chat-images').getPublicUrl(path);
+        const { data: urlData } = supabase.storage.from('article-covers').getPublicUrl(path);
         coverImageUrl = urlData.publicUrl;
       }
     }
 
-    const slug = generateSlug(title) || `article-${Date.now()}`;
+    const slug = slugify(title) || `article-${Date.now()}`;
     const body = editor!.getHTML();
 
-    const { error: insertError } = await supabase.from('articles').insert({
-      community_id: communityId,
-      author_id: userId,
+    const { error: insertError } = await createArticle(supabase, {
+      communityId,
+      authorId: userId,
       title: title.trim(),
       slug,
       excerpt: excerpt.trim() || null,
       body,
-      cover_image_url: coverImageUrl,
-      is_published: true,
-      published_at: new Date().toISOString(),
+      coverImageUrl,
     });
 
     if (insertError) {
@@ -115,7 +128,7 @@ export function ArticleEditor({
 
     setPublishing(false);
     onPublished(slug);
-  }, [title, excerpt, editor, coverFile, communityId, userId, onPublished]);
+  }, [title, excerpt, editor, coverFile, communityId, userId, supabase, onPublished]);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -169,7 +182,7 @@ export function ArticleEditor({
               </svg>
               Ajouter une image de couverture
             </div>
-            <input type="file" accept="image/*" className="hidden" onChange={handleCoverChange} />
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleCoverChange} />
           </label>
         )}
       </div>
@@ -181,7 +194,7 @@ export function ArticleEditor({
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Titre de l'article"
         className="mb-2 w-full border-none text-2xl font-bold text-gray-900 placeholder-gray-300 focus:ring-0 focus:outline-none"
-        maxLength={500}
+        maxLength={200}
       />
 
       {/* Excerpt */}
@@ -248,7 +261,7 @@ export function ArticleEditor({
             active={false}
             onClick={() => {
               const url = window.prompt('URL du lien:');
-              if (url) editor.chain().focus().setLink({ href: url }).run();
+              if (url && /^https?:\/\//.test(url)) editor.chain().focus().setLink({ href: url }).run();
             }}
             title="Lien"
           >

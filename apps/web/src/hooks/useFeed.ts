@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { FEED_INITIAL_LIMIT, FEED_LOAD_MORE_LIMIT } from '@arena/shared';
+import { FEED_INITIAL_LIMIT, FEED_LOAD_MORE_LIMIT, messageSchema } from '@arena/shared';
 import type {
   FeedItem,
   FeedMessage,
@@ -213,6 +213,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
   // --- Realtime subscriptions ---
 
   useEffect(() => {
+    let cancelled = false;
     const supabase = supabaseRef.current;
 
     // Channel 1: chat_messages
@@ -237,6 +238,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
               .single();
             member = data as Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null;
           }
+          if (cancelled) return;
           const feedMsg = messageToFeedItem({ ...newMsg, members: member });
           setRawMessages((prev) => [...prev, feedMsg]);
         },
@@ -250,6 +252,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           filter: `community_id=eq.${communityId}`,
         },
         (payload: RealtimePostgresUpdatePayload<ChatMessageRow>) => {
+          if (cancelled) return;
           const updated = payload.new;
           setRawMessages((prev) =>
             prev.map((msg) => {
@@ -294,6 +297,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
               .single();
             member = data as Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null;
           }
+          if (cancelled) return;
           const feedArt = articleToFeedItem({ ...newArt, members: member } as ArticleWithJoin);
           setRawArticles((prev) => [...prev, feedArt]);
         },
@@ -307,6 +311,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           filter: `community_id=eq.${communityId}`,
         },
         (payload: RealtimePostgresUpdatePayload<ArticleRow>) => {
+          if (cancelled) return;
           const updated = payload.new;
           setRawArticles((prev) =>
             prev.map((art) => {
@@ -337,6 +342,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           filter: `community_id=eq.${communityId}`,
         },
         (payload: RealtimePostgresInsertPayload<PodcastRow>) => {
+          if (cancelled) return;
           const newPod = payload.new;
           if (!newPod.is_published) return;
           const feedPod = podcastToFeedItem(newPod);
@@ -352,6 +358,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           filter: `community_id=eq.${communityId}`,
         },
         (payload: RealtimePostgresUpdatePayload<PodcastRow>) => {
+          if (cancelled) return;
           const updated = payload.new;
           setRawPodcasts((prev) =>
             prev.map((pod) => {
@@ -370,6 +377,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
       .subscribe();
 
     return () => {
+      cancelled = true;
       supabase.removeChannel(msgChannel);
       supabase.removeChannel(artChannel);
       supabase.removeChannel(podChannel);
@@ -386,6 +394,15 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
       const isRepost = !!options.repostOfId;
 
       if (!hasContent && !hasImages && !isRepost) return;
+
+      // Validate message content with Zod schema
+      if (hasContent || hasImages) {
+        const result = messageSchema.safeParse({
+          content: hasContent ? options.content!.trim() : '',
+          imageUrls: options.imageUrls,
+        });
+        if (!result.success) return;
+      }
 
       setSending(true);
       await supabaseRef.current.from('chat_messages').insert({
@@ -461,6 +478,8 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
       await supabaseRef.current
         .from('chat_messages')
         .update({
+          content: null,
+          image_urls: [],
           is_removed: true,
           removed_at: new Date().toISOString(),
           removed_by: userId,

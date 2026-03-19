@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import type { FeedItem as FeedItemType, FeedMessage as FeedMessageType } from '@arena/shared';
 import { FeedMessage } from './FeedMessage';
 import { FeedArticleCard } from './FeedArticleCard';
@@ -17,7 +18,7 @@ interface FeedItemProps {
   getMessageById: (id: number) => FeedMessageType | undefined;
 }
 
-export function FeedItem({
+export const FeedItem = memo(function FeedItem({
   item,
   userId,
   canModerate,
@@ -63,4 +64,4 @@ export function FeedItem({
     default:
       return null;
   }
-}
+});

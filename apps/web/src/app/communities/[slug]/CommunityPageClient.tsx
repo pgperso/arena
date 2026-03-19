@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import { FeedContainer } from '@/components/feed/FeedContainer';
 import { AdSidebar } from '@/components/ads/AdSidebar';
 import { AdAnchor } from '@/components/ads/AdAnchor';
+import { Avatar } from '@/components/ui/Avatar';
+import { useSupabase } from '@/hooks/useSupabase';
+import { joinCommunity, leaveCommunity } from '@/services/communityService';
 import Link from 'next/link';
 import type { Database } from '@arena/supabase-client';
 
@@ -27,6 +29,7 @@ export function CommunityPageClient({
   userId,
 }: CommunityPageClientProps) {
   const router = useRouter();
+  const supabase = useSupabase();
   const [isMember, setIsMember] = useState(initialIsMember);
   const [joining, setJoining] = useState(false);
 
@@ -36,11 +39,7 @@ export function CommunityPageClient({
       return;
     }
     setJoining(true);
-    const supabase = createClient();
-    const { error } = await supabase.from('community_members').insert({
-      community_id: community.id,
-      member_id: userId,
-    });
+    const { error } = await joinCommunity(supabase, community.id, userId);
     if (!error) {
       setIsMember(true);
       router.refresh();
@@ -50,12 +49,7 @@ export function CommunityPageClient({
 
   async function handleLeave() {
     if (!userId) return;
-    const supabase = createClient();
-    const { error } = await supabase
-      .from('community_members')
-      .delete()
-      .eq('community_id', community.id)
-      .eq('member_id', userId);
+    const { error } = await leaveCommunity(supabase, community.id, userId);
     if (!error) {
       setIsMember(false);
       router.refresh();
@@ -74,20 +68,7 @@ export function CommunityPageClient({
             &larr; Communautés
           </Link>
           <span className="text-gray-300">|</span>
-          {community.logo_url ? (
-            <img
-              src={community.logo_url}
-              alt={community.name}
-              className="h-8 w-8 rounded-full object-cover"
-            />
-          ) : (
-            <div
-              className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-white"
-              style={{ backgroundColor: community.primary_color }}
-            >
-              {community.name[0]}
-            </div>
-          )}
+          <Avatar url={community.logo_url} name={community.name} size="md" color={community.primary_color} />
           <span className="font-semibold text-gray-900">{community.name}</span>
           <span className="text-sm text-gray-500">
             {community.member_count} membre{community.member_count !== 1 ? 's' : ''}

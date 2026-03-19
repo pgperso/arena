@@ -14,7 +14,7 @@ interface ImagePreview {
 interface UseImageUploadReturn {
   images: ImagePreview[];
   uploading: boolean;
-  addImages: (files: FileList) => void;
+  addImages: (files: FileList) => Promise<void>;
   removeImage: (id: string) => void;
   clearImages: () => void;
   uploadAll: (communityId: number, memberId: string) => Promise<string[]>;
@@ -22,13 +22,28 @@ interface UseImageUploadReturn {
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
+const MAGIC_BYTES: Record<string, number[]> = {
+  'image/jpeg': [0xff, 0xd8, 0xff],
+  'image/png': [0x89, 0x50, 0x4e, 0x47],
+  'image/gif': [0x47, 0x49, 0x46, 0x38],
+  'image/webp': [0x52, 0x49, 0x46, 0x46],
+};
+
+async function validateMagicBytes(file: File): Promise<boolean> {
+  const header = await file.slice(0, 4).arrayBuffer();
+  const bytes = new Uint8Array(header);
+  const expected = MAGIC_BYTES[file.type];
+  if (!expected) return false;
+  return expected.every((b, i) => bytes[i] === b);
+}
+
 export function useImageUpload(): UseImageUploadReturn {
   const [images, setImages] = useState<ImagePreview[]>([]);
   const [uploading, setUploading] = useState(false);
   const supabaseRef = useRef(createClient());
 
   const addImages = useCallback(
-    (files: FileList) => {
+    async (files: FileList) => {
       const remaining = MAX_IMAGES_PER_MESSAGE - images.length;
       if (remaining <= 0) return;
 
@@ -37,6 +52,8 @@ export function useImageUpload(): UseImageUploadReturn {
         const file = files[i];
         if (!ALLOWED_TYPES.includes(file.type)) continue;
         if (file.size > IMAGE_MAX_SIZE_BYTES) continue;
+        const valid = await validateMagicBytes(file);
+        if (!valid) continue;
 
         newImages.push({
           id: crypto.randomUUID(),

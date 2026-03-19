@@ -3,7 +3,10 @@
 import { formatTime } from '@arena/shared';
 import type { FeedArticle } from '@arena/shared';
 import { FeedLikeButton } from './FeedLikeButton';
-import { createClient } from '@/lib/supabase/client';
+import { Avatar } from '@/components/ui/Avatar';
+import { useSupabase } from '@/hooks/useSupabase';
+import { removeArticle } from '@/services/articleService';
+import Image from 'next/image';
 import Link from 'next/link';
 
 interface FeedArticleCardProps {
@@ -14,7 +17,7 @@ interface FeedArticleCardProps {
 }
 
 export function FeedArticleCard({ article, communitySlug, userId, canModerate }: FeedArticleCardProps) {
-  const authorInitial = article.author.username[0]?.toUpperCase() ?? '?';
+  const supabase = useSupabase();
 
   return (
     <div className="px-4 py-3">
@@ -25,10 +28,12 @@ export function FeedArticleCard({ article, communitySlug, userId, canModerate }:
         {/* Cover image */}
         {article.coverImageUrl && (
           <div className="relative h-40 w-full bg-gray-100">
-            <img
+            <Image
               src={article.coverImageUrl}
               alt={article.title}
-              className="h-full w-full object-cover"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 600px"
             />
           </div>
         )}
@@ -55,17 +60,7 @@ export function FeedArticleCard({ article, communitySlug, userId, canModerate }:
           {/* Author + stats */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {article.author.avatarUrl ? (
-                <img
-                  src={article.author.avatarUrl}
-                  alt={article.author.username}
-                  className="h-5 w-5 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-blue text-[10px] font-bold text-white">
-                  {authorInitial}
-                </div>
-              )}
+              <Avatar url={article.author.avatarUrl} name={article.author.username} size="xs" />
               <span className="text-xs font-medium text-gray-700">{article.author.username}</span>
             </div>
 
@@ -94,13 +89,7 @@ export function FeedArticleCard({ article, communitySlug, userId, canModerate }:
         />
         {canModerate && userId && (
           <button
-            onClick={async () => {
-              const supabase = createClient();
-              await supabase
-                .from('articles')
-                .update({ is_removed: true, removed_at: new Date().toISOString(), removed_by: userId })
-                .eq('id', article.id);
-            }}
+            onClick={() => removeArticle(supabase, article.id, userId)}
             className="ml-auto rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-red-50 hover:text-red-500"
             title="Supprimer l'article"
           >

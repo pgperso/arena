@@ -8,25 +8,40 @@ interface PodcastPageProps {
 
 export async function generateMetadata({ params }: PodcastPageProps) {
   const { podcastId } = await params;
+  const id = parseInt(podcastId, 10);
+  if (isNaN(id)) return { title: 'Podcast introuvable' };
+
   const supabase = await createClient();
 
   const { data: podcast } = await supabase
     .from('podcasts')
-    .select('title, description')
-    .eq('id', parseInt(podcastId, 10))
+    .select('title, description, audio_url')
+    .eq('id', id)
     .eq('is_published', true)
     .single();
 
   if (!podcast) return { title: 'Podcast introuvable' };
 
+  const title = (podcast as { title: string }).title;
+  const description = (podcast as { description: string | null }).description;
+
   return {
-    title: (podcast as { title: string }).title,
-    description: (podcast as { description: string | null }).description,
+    title,
+    description,
+    openGraph: {
+      title: `${title} | Arena`,
+      description: description ?? title,
+      type: 'music.song',
+      audio: (podcast as { audio_url: string }).audio_url,
+    },
   };
 }
 
 export default async function PodcastPage({ params }: PodcastPageProps) {
   const { slug, podcastId } = await params;
+  const id = parseInt(podcastId, 10);
+  if (isNaN(id)) notFound();
+
   const supabase = await createClient();
 
   // Verify community exists
@@ -44,7 +59,7 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
   const { data: podcastData } = await supabase
     .from('podcasts')
     .select('*')
-    .eq('id', parseInt(podcastId, 10))
+    .eq('id', id)
     .eq('community_id', community.id)
     .eq('is_published', true)
     .single();

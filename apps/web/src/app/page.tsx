@@ -12,7 +12,7 @@ export default async function HomePage() {
 
   const { data } = await supabase
     .from('communities')
-    .select('*')
+    .select('id, name, slug, description, member_count, primary_color, logo_url')
     .eq('is_active', true)
     .order('member_count', { ascending: false });
 

@@ -29,9 +29,17 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 
   if (!article) return { title: 'Article introuvable' };
 
+  const title = (article as { title: string }).title;
+  const excerpt = (article as { excerpt: string | null }).excerpt;
+
   return {
-    title: (article as { title: string }).title,
-    description: (article as { excerpt: string | null }).excerpt,
+    title,
+    description: excerpt,
+    openGraph: {
+      title: `${title} | Arena`,
+      description: excerpt ?? title,
+      type: 'article',
+    },
   };
 }
 
@@ -80,15 +88,29 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Increment view count (fire and forget)
-  supabase
-    .from('articles')
-    .update({ view_count: article.view_count + 1 })
-    .eq('id', article.id)
-    .then(() => {});
+  // Increment view count atomically via RPC (fire and forget)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (supabase.rpc as any)('increment_article_views', { p_article_id: article.id }).then(() => {});
+
+  const articleJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: article.excerpt ?? undefined,
+    image: article.cover_image_url ?? undefined,
+    datePublished: article.published_at ?? article.created_at,
+    author: {
+      '@type': 'Person',
+      name: article.members?.username ?? 'Inconnu',
+    },
+  };
 
   return (
     <div className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, '\\u003c') }}
+      />
       <ArticleView
         article={{
           ...article,

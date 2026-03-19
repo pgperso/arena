@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /vestiaire/
+Disallow: /admin/
+
+Sitemap: https://arena.fr/sitemap.xml

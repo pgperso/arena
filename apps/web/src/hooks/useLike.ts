@@ -107,8 +107,13 @@ export function useLike(
   // Check if user has liked this item
   useEffect(() => {
     if (!userId) return;
+    let cancelled = false;
 
-    checkIfLiked(supabaseRef.current, targetType, targetId, userId).then(setIsLiked);
+    checkIfLiked(supabaseRef.current, targetType, targetId, userId).then((liked) => {
+      if (!cancelled) setIsLiked(liked);
+    });
+
+    return () => { cancelled = true; };
   }, [userId, targetId, targetType]);
 
   // Sync like count from parent prop

@@ -1,22 +1,16 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { formatTime } from '@arena/shared';
+import { formatTime, formatDuration } from '@arena/shared';
 import type { FeedPodcast } from '@arena/shared';
 import { FeedLikeButton } from './FeedLikeButton';
+import Image from 'next/image';
 import Link from 'next/link';
 
 interface FeedPodcastCardProps {
   podcast: FeedPodcast;
   communitySlug: string;
   userId: string | null;
-}
-
-function formatDuration(seconds: number | null): string {
-  if (!seconds) return '';
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
 export function FeedPodcastCard({ podcast, communitySlug, userId }: FeedPodcastCardProps) {
@@ -72,10 +66,12 @@ export function FeedPodcastCard({ podcast, communitySlug, userId }: FeedPodcastC
             className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-orange-200"
           >
             {podcast.coverImageUrl ? (
-              <img
+              <Image
                 src={podcast.coverImageUrl}
                 alt={podcast.title}
-                className="h-full w-full object-cover"
+                fill
+                className="object-cover"
+                sizes="56px"
               />
             ) : (
               <svg className="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">

@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { useLike } from '@/hooks/useLike';
 
 interface FeedLikeButtonProps {
@@ -9,7 +10,7 @@ interface FeedLikeButtonProps {
   userId: string | null;
 }
 
-export function FeedLikeButton({
+export const FeedLikeButton = memo(function FeedLikeButton({
   targetType,
   targetId,
   initialLikeCount,
@@ -49,4 +50,4 @@ export function FeedLikeButton({
       {likeCount > 0 && <span>{likeCount}</span>}
     </button>
   );
-}
+});

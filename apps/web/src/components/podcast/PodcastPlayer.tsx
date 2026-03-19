@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { formatDuration } from '@arena/shared';
 import { FeedLikeButton } from '@/components/feed/FeedLikeButton';
 import { AdSlot } from '@/components/ads/AdSlot';
+import Image from 'next/image';
 import Link from 'next/link';
 
 interface PodcastPlayerProps {
@@ -22,16 +24,6 @@ interface PodcastPlayerProps {
   };
   communitySlug: string;
   userId: string | null;
-}
-
-function formatDuration(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  if (h > 0) {
-    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  }
-  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
 export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerProps) {
@@ -124,9 +116,9 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
 
       {/* Cover & info */}
       <div className="mb-6 flex flex-col items-center">
-        <div className="mb-4 h-48 w-48 overflow-hidden rounded-2xl bg-gradient-to-br from-orange-100 to-amber-100 shadow-lg">
+        <div className="relative mb-4 h-48 w-48 overflow-hidden rounded-2xl bg-gradient-to-br from-orange-100 to-amber-100 shadow-lg">
           {podcast.cover_image_url ? (
-            <img src={podcast.cover_image_url} alt={podcast.title} className="h-full w-full object-cover" />
+            <Image src={podcast.cover_image_url} alt={podcast.title} fill className="object-cover" sizes="192px" />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
               <svg className="h-16 w-16 text-orange-400" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">

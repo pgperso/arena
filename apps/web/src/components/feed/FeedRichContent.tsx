@@ -1,5 +1,7 @@
 'use client';
 
+import { isSafeUrl } from '@/lib/url';
+
 interface FeedRichContentProps {
   content: string;
 }
@@ -18,9 +20,12 @@ function parseContent(text: string): React.ReactNode[] {
 
   // First, find all URLs
   const urlMatches: { start: number; end: number; url: string }[] = [];
+  URL_REGEX.lastIndex = 0;
   let match;
   while ((match = URL_REGEX.exec(text)) !== null) {
-    urlMatches.push({ start: match.index, end: match.index + match[0].length, url: match[0] });
+    if (isSafeUrl(match[0])) {
+      urlMatches.push({ start: match.index, end: match.index + match[0].length, url: match[0] });
+    }
   }
 
   // Process text segments between URLs

@@ -6,6 +6,8 @@ import DOMPurify from 'dompurify';
 import { FeedLikeButton } from '@/components/feed/FeedLikeButton';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { AdInArticle } from '@/components/ads/AdInArticle';
+import { Avatar } from '@/components/ui/Avatar';
+import Image from 'next/image';
 import Link from 'next/link';
 
 interface ArticleViewProps {
@@ -74,9 +76,17 @@ function splitHtmlAtParagraph(html: string, wordThreshold: number): [string, str
 }
 
 export function ArticleView({ article, communitySlug, userId }: ArticleViewProps) {
-  const sanitizedBody = DOMPurify.sanitize(article.body);
-  const authorInitial = article.author.username[0]?.toUpperCase() ?? '?';
-
+  const sanitizedBody = DOMPurify.sanitize(article.body, {
+    ALLOWED_TAGS: [
+      'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'a', 'strong', 'em', 'b', 'i', 'u', 's',
+      'ul', 'ol', 'li', 'blockquote', 'img', 'br', 'hr',
+      'code', 'pre', 'span', 'div', 'figure', 'figcaption',
+    ],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target', 'rel', 'id'],
+    ALLOWED_URI_REGEXP: /^(?:https?|mailto):/i,
+    ALLOW_DATA_ATTR: false,
+  });
   const bodyParts = useMemo(
     () => splitHtmlAtParagraph(sanitizedBody, ARTICLE_AD_WORD_THRESHOLD),
     [sanitizedBody],
@@ -99,11 +109,14 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
 
         {/* Cover image */}
         {article.cover_image_url && (
-          <div className="mb-6 overflow-hidden rounded-xl">
-            <img
+          <div className="relative mb-6 h-64 overflow-hidden rounded-xl">
+            <Image
               src={article.cover_image_url}
               alt={article.title}
-              className="h-64 w-full object-cover"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 720px"
+              priority
             />
           </div>
         )}
@@ -113,17 +126,7 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
 
         {/* Author & meta */}
         <div className="mb-6 flex items-center gap-3 border-b border-gray-100 pb-4">
-          {article.author.avatar_url ? (
-            <img
-              src={article.author.avatar_url}
-              alt={article.author.username}
-              className="h-10 w-10 rounded-full object-cover"
-            />
-          ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-blue text-sm font-bold text-white">
-              {authorInitial}
-            </div>
-          )}
+          <Avatar url={article.author.avatar_url} name={article.author.username} size="lg" />
           <div>
             <p className="text-sm font-semibold text-gray-900">{article.author.username}</p>
             <p className="text-xs text-gray-400">

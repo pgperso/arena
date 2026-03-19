@@ -1,8 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useSupabase } from '@/hooks/useSupabase';
 import { RESTRICTION_DISPLAY_NAMES } from '@arena/shared';
+import {
+  findMemberByUsername,
+  checkCommunityMembership,
+  applyRestriction,
+  removeRestriction as removeRestrictionApi,
+  fetchRestrictions,
+} from '@/services/moderationService';
 
 interface Restriction {
   id: number;
@@ -21,6 +28,7 @@ interface ModerationPanelProps {
 }
 
 export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) {
+  const supabase = useSupabase();
   const [activeTab, setActiveTab] = useState<'restrict' | 'active'>('restrict');
   const [restrictions, setRestrictions] = useState<Restriction[]>([]);
   const [loading, setLoading] = useState(false);
@@ -45,12 +53,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
 
   const loadRestrictions = useCallback(async () => {
     setLoading(true);
-    const supabase = createClient();
-    const { data } = await supabase
-      .from('member_restrictions')
-      .select('*, members:members!member_restrictions_member_id_fkey(username)')
-      .eq('community_id', communityId)
-      .order('created_at', { ascending: false });
+    const { data } = await fetchRestrictions(supabase, communityId);
 
     if (data) {
       setRestrictions(
@@ -61,7 +64,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
       );
     }
     setLoading(false);
-  }, [communityId]);
+  }, [supabase, communityId]);
 
   useEffect(() => {
     if (activeTab === 'active') {
@@ -79,14 +82,8 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
     setError(null);
     setSuccess(null);
 
-    const supabase = createClient();
-
     // Find member by username
-    const { data: member } = await supabase
-      .from('members')
-      .select('id')
-      .eq('username', targetUsername.trim())
-      .single();
+    const { data: member } = await findMemberByUsername(supabase, targetUsername.trim());
 
     if (!member) {
       setError('Utilisateur introuvable');
@@ -97,12 +94,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
     const memberId = (member as { id: string }).id;
 
     // Check if member is part of the community
-    const { data: membership } = await supabase
-      .from('community_members')
-      .select('id')
-      .eq('community_id', communityId)
-      .eq('member_id', memberId)
-      .single();
+    const { data: membership } = await checkCommunityMembership(supabase, communityId, memberId);
 
     if (!membership) {
       setError("Cet utilisateur n'est pas membre de la communauté");
@@ -110,7 +102,22 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
       return;
     }
 
+    // Validate restriction type
+    const validTypes = ['chat:mute', 'community:ban'];
+    if (!validTypes.includes(restrictionType)) {
+      setError('Type de restriction invalide');
+      setSubmitting(false);
+      return;
+    }
+
     // Calculate end time
+    const validDurations = ['1', '24', '168', '720', 'permanent'];
+    if (!validDurations.includes(duration)) {
+      setError('Durée invalide');
+      setSubmitting(false);
+      return;
+    }
+
     let endsAt: string | null = null;
     if (duration !== 'permanent') {
       const now = new Date();
@@ -119,16 +126,17 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
       endsAt = now.toISOString();
     }
 
-    const { error: insertError } = await supabase.from('member_restrictions').insert({
-      community_id: communityId,
-      member_id: memberId,
-      restriction_type: restrictionType,
+    const { error: insertError } = await applyRestriction(supabase, {
+      communityId,
+      memberId,
+      restrictionType,
       reason: reason.trim() || null,
-      ends_at: endsAt,
+      endsAt,
     });
 
     if (insertError) {
-      setError(insertError.message);
+      console.error('Restriction error:', insertError);
+      setError("Impossible d'appliquer la restriction. Veuillez réessayer.");
     } else {
       setSuccess(`Restriction appliquée à @${targetUsername}`);
       setTargetUsername('');
@@ -138,8 +146,11 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
   }
 
   async function handleRemoveRestriction(restrictionId: number) {
-    const supabase = createClient();
-    await supabase.from('member_restrictions').delete().eq('id', restrictionId);
+    const { error: removeError } = await removeRestrictionApi(supabase, restrictionId);
+    if (removeError) {
+      setError('Impossible de retirer la restriction');
+      return;
+    }
     setRestrictions((prev) => prev.filter((r) => r.id !== restrictionId));
   }
 

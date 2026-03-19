@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { FeedLikeButton } from './FeedLikeButton';
 import { FeedRepostMenu } from './FeedRepostMenu';
 
@@ -14,7 +15,7 @@ interface FeedActionsProps {
   onQuote: () => void;
 }
 
-export function FeedActions({
+export const FeedActions = memo(function FeedActions({
   messageId,
   likeCount,
   replyCount,
@@ -60,4 +61,4 @@ export function FeedActions({
       />
     </div>
   );
-}
+});

@@ -1,6 +1,7 @@
 'use client';
 
 import type { PresenceMember } from '@/hooks/usePresence';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface OnlineMembersProps {
   members: PresenceMember[];
@@ -23,17 +24,7 @@ export function OnlineMembers({ members }: OnlineMembersProps) {
             {members.map((member) => (
               <li key={member.memberId} className="flex items-center gap-2 rounded-lg px-2 py-1.5">
                 <div className="relative">
-                  {member.avatarUrl ? (
-                    <img
-                      src={member.avatarUrl}
-                      alt={member.username}
-                      className="h-7 w-7 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-blue text-[10px] font-bold text-white">
-                      {member.username[0]?.toUpperCase()}
-                    </div>
-                  )}
+                  <Avatar url={member.avatarUrl} name={member.username} size="sm" />
                   <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-green-500" />
                 </div>
                 <span className="truncate text-sm text-gray-700">{member.username}</span>

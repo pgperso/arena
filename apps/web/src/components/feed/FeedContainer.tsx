@@ -68,29 +68,41 @@ export function FeedContainer({
     }
   }, [items, autoScroll]);
 
-  // Detect scroll position to toggle auto-scroll
-  function handleScroll() {
-    const el = feedContainerRef.current;
-    if (!el) return;
-    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
-    setAutoScroll(atBottom);
-  }
+  // Throttled scroll handler to avoid excessive re-renders
+  const scrollTickRef = useRef(false);
+  const rafRef = useRef<number>(0);
 
-  // Load more on scroll to top
-  function handleScrollTop() {
-    const el = feedContainerRef.current;
-    if (!el || !hasMore) return;
-    if (el.scrollTop < 50) {
-      const prevHeight = el.scrollHeight;
-      loadMore().then(() => {
-        requestAnimationFrame(() => {
-          if (el) {
-            el.scrollTop = el.scrollHeight - prevHeight;
-          }
-        });
-      });
-    }
-  }
+  const handleScrollThrottled = useCallback(() => {
+    if (scrollTickRef.current) return;
+    scrollTickRef.current = true;
+
+    rafRef.current = requestAnimationFrame(() => {
+      const el = feedContainerRef.current;
+      if (el) {
+        // Auto-scroll detection
+        const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+        setAutoScroll(atBottom);
+
+        // Load more on scroll to top
+        if (hasMore && el.scrollTop < 50) {
+          const prevHeight = el.scrollHeight;
+          loadMore().then(() => {
+            requestAnimationFrame(() => {
+              if (feedContainerRef.current) {
+                feedContainerRef.current.scrollTop = feedContainerRef.current.scrollHeight - prevHeight;
+              }
+            });
+          });
+        }
+      }
+      scrollTickRef.current = false;
+    });
+  }, [hasMore, loadMore]);
+
+  // Cleanup requestAnimationFrame on unmount
+  useEffect(() => {
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
 
   function getInputPlaceholder(): string {
     if (!user) return 'Connectez-vous pour participer';
@@ -185,10 +197,7 @@ export function FeedContainer({
         {/* Feed items */}
         <div
           ref={feedContainerRef}
-          onScroll={() => {
-            handleScroll();
-            handleScrollTop();
-          }}
+          onScroll={handleScrollThrottled}
           className="flex-1 overflow-y-auto"
         >
           {loading ? (

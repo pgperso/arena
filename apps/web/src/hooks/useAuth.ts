@@ -16,12 +16,14 @@ export function useAuth(): AuthState {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     const supabase = createClient();
 
     async function getUser() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+      if (cancelled) return;
       setUser(user);
 
       if (user) {
@@ -30,6 +32,7 @@ export function useAuth(): AuthState {
           .select('username')
           .eq('id', user.id)
           .single();
+        if (cancelled) return;
         setUsername(member?.username ?? null);
       }
       setLoading(false);
@@ -40,13 +43,17 @@ export function useAuth(): AuthState {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (cancelled) return;
       setUser(session?.user ?? null);
       if (!session?.user) {
         setUsername(null);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return { user, username, loading };

@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { formatTime } from '@arena/shared';
 import type { FeedMessage as FeedMessageType } from '@arena/shared';
 import { FeedActions } from './FeedActions';
@@ -8,6 +9,7 @@ import { FeedRichContent } from './FeedRichContent';
 import { FeedReplyContext } from './FeedReplyContext';
 import { FeedRepostBadge } from './FeedRepostBadge';
 import { FeedQuotedMessage } from './FeedQuotedMessage';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface FeedMessageProps {
   message: FeedMessageType;
@@ -21,7 +23,7 @@ interface FeedMessageProps {
   getMessageById: (id: number) => FeedMessageType | undefined;
 }
 
-export function FeedMessage({
+export const FeedMessage = memo(function FeedMessage({
   message,
   isOwn,
   canModerate,
@@ -33,7 +35,6 @@ export function FeedMessage({
   getMessageById,
 }: FeedMessageProps) {
   const username = message.member?.username ?? 'Utilisateur supprimé';
-  const initial = username[0]?.toUpperCase() ?? '?';
   const time = formatTime(message.createdAt);
 
   if (message.isRemoved) {
@@ -71,17 +72,7 @@ export function FeedMessage({
   return (
     <div className="group flex gap-3 px-4 py-2 hover:bg-gray-50">
       {/* Avatar */}
-      {message.member?.avatarUrl ? (
-        <img
-          src={message.member.avatarUrl}
-          alt={username}
-          className="mt-0.5 h-8 w-8 flex-shrink-0 rounded-full object-cover"
-        />
-      ) : (
-        <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-blue text-xs font-bold text-white">
-          {initial}
-        </div>
-      )}
+      <Avatar url={message.member?.avatarUrl} name={username} size="md" className="mt-0.5 flex-shrink-0" />
 
       {/* Content */}
       <div className="min-w-0 flex-1">
@@ -138,4 +129,4 @@ export function FeedMessage({
       </div>
     </div>
   );
-}
+});
