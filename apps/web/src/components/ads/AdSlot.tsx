@@ -92,10 +92,10 @@ function AdSlotLive({ slotId, format = 'rectangle', className = '', layoutKey }:
   return (
     <div
       ref={containerRef}
-      className={`flex items-center justify-center overflow-hidden ${className}`}
-      style={isFluid ? { minHeight: '100px' } : { minWidth: size.width, minHeight: size.height }}
+      className={`flex items-center justify-center overflow-hidden rounded-lg border border-dashed border-gray-300 bg-gray-50 ${className}`}
+      style={isFluid ? { minHeight: '100px' } : { minWidth: size.width, minHeight: size.height, maxWidth: '100%' }}
     >
-      {visible && (
+      {visible ? (
         <ins
           className="adsbygoogle"
           style={
@@ -109,6 +109,8 @@ function AdSlotLive({ slotId, format = 'rectangle', className = '', layoutKey }:
           data-ad-layout-key={isFluid && layoutKey ? layoutKey : undefined}
           data-full-width-responsive={isResponsive ? 'true' : undefined}
         />
+      ) : (
+        <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400">Publicité</p>
       )}
     </div>
   );
