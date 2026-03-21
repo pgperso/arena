@@ -6,6 +6,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Pointer cursor on all interactive elements */
+button,
+[role="button"],
+a,
+select,
+summary,
+input[type="submit"],
+input[type="button"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
+label[for] {
+  cursor: pointer;
+}
+
 /* Propagate height through Next.js App Router wrapper divs */
 main > * {
   height: 100%;
