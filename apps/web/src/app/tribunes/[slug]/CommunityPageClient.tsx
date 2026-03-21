@@ -32,6 +32,9 @@ export function CommunityPageClient({
   const supabase = useSupabase();
   const [isMember, setIsMember] = useState(initialIsMember);
   const [joining, setJoining] = useState(false);
+  const [memberCount, setMemberCount] = useState(community.member_count);
+  const [showJoinModal, setShowJoinModal] = useState(!initialIsMember);
+  const [joinError, setJoinError] = useState<string | null>(null);
 
   async function handleJoin() {
     if (!userId) {
@@ -39,10 +42,15 @@ export function CommunityPageClient({
       return;
     }
     setJoining(true);
+    setJoinError(null);
     const { error } = await joinCommunity(supabase, community.id, userId);
     if (!error) {
       setIsMember(true);
+      setMemberCount((c) => c + 1);
+      setShowJoinModal(false);
       router.refresh();
+    } else {
+      setJoinError(error.message);
     }
     setJoining(false);
   }
@@ -52,12 +60,78 @@ export function CommunityPageClient({
     const { error } = await leaveCommunity(supabase, community.id, userId);
     if (!error) {
       setIsMember(false);
+      setMemberCount((c) => Math.max(0, c - 1));
       router.refresh();
     }
   }
 
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col">
+      {/* Join / Login modal */}
+      {showJoinModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex flex-col items-center gap-3 text-center">
+              <Avatar
+                url={community.logo_url}
+                name={community.name}
+                size="lg"
+                color={community.primary_color}
+              />
+              <h2 className="text-lg font-bold text-gray-900">{community.name}</h2>
+              {community.description && (
+                <p className="text-sm text-gray-500">{community.description}</p>
+              )}
+              <p className="text-sm text-gray-600">
+                {memberCount} membre{memberCount !== 1 ? 's' : ''}
+              </p>
+            </div>
+
+            {userId ? (
+              <>
+                <button
+                  onClick={handleJoin}
+                  disabled={joining}
+                  className="w-full rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
+                >
+                  {joining ? 'En cours...' : 'Rejoindre cette tribune'}
+                </button>
+                {joinError && (
+                  <p className="mt-2 text-center text-xs text-red-500">{joinError}</p>
+                )}
+                <button
+                  onClick={() => setShowJoinModal(false)}
+                  className="mt-2 w-full rounded-lg px-4 py-2 text-sm text-gray-500 transition hover:text-gray-700"
+                >
+                  Continuer sans rejoindre
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="block w-full rounded-lg bg-brand-blue px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-brand-blue-dark"
+                >
+                  Se connecter
+                </Link>
+                <Link
+                  href="/register"
+                  className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-center text-sm font-medium text-gray-700 transition hover:border-gray-400"
+                >
+                  Créer un compte
+                </Link>
+                <button
+                  onClick={() => setShowJoinModal(false)}
+                  className="mt-2 w-full rounded-lg px-4 py-2 text-sm text-gray-500 transition hover:text-gray-700"
+                >
+                  Continuer en tant que visiteur
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Community bar */}
       <div
         className="flex items-center justify-between px-4 py-2"
@@ -71,7 +145,7 @@ export function CommunityPageClient({
           <Avatar url={community.logo_url} name={community.name} size="md" color={community.primary_color} />
           <span className="font-semibold text-gray-900">{community.name}</span>
           <span className="text-sm text-gray-500">
-            {community.member_count} membre{community.member_count !== 1 ? 's' : ''}
+            {memberCount} membre{memberCount !== 1 ? 's' : ''}
           </span>
         </div>
 
