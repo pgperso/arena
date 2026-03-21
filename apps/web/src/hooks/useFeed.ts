@@ -484,16 +484,19 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
       }
 
       dispatch({ type: 'SET_SENDING', sending: true });
-      await supabaseRef.current.from('chat_messages').insert({
-        community_id: communityId,
-        member_id: userId,
-        content: hasContent ? options.content!.trim() : null,
-        image_urls: options.imageUrls ?? [],
-        parent_id: options.parentId ?? null,
-        repost_of_id: options.repostOfId ?? null,
-        quote_of_id: options.quoteOfId ?? null,
-      });
-      dispatch({ type: 'SET_SENDING', sending: false });
+      try {
+        await supabaseRef.current.from('chat_messages').insert({
+          community_id: communityId,
+          member_id: userId,
+          content: hasContent ? options.content!.trim() : null,
+          image_urls: options.imageUrls ?? [],
+          parent_id: options.parentId ?? null,
+          repost_of_id: options.repostOfId ?? null,
+          quote_of_id: options.quoteOfId ?? null,
+        });
+      } finally {
+        dispatch({ type: 'SET_SENDING', sending: false });
+      }
     },
     [communityId, userId],
   );

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { formatTime, ARTICLE_AD_WORD_THRESHOLD } from '@arena/shared';
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import { FeedLikeButton } from '@/components/feed/FeedLikeButton';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { AdInArticle } from '@/components/ads/AdInArticle';
@@ -76,22 +76,17 @@ function splitHtmlAtParagraph(html: string, wordThreshold: number): [string, str
 }
 
 export function ArticleView({ article, communitySlug, userId }: ArticleViewProps) {
-  // DOMPurify needs a browser DOM — skip sanitization during SSR to avoid
-  // crash (jsdom is not available in production). Content is trusted (TipTap editor).
-  const sanitizedBody =
-    typeof window !== 'undefined'
-      ? DOMPurify.sanitize(article.body, {
-          ALLOWED_TAGS: [
-            'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-            'a', 'strong', 'em', 'b', 'i', 'u', 's',
-            'ul', 'ol', 'li', 'blockquote', 'img', 'br', 'hr',
-            'code', 'pre', 'span', 'div', 'figure', 'figcaption',
-          ],
-          ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target', 'rel', 'id'],
-          ALLOWED_URI_REGEXP: /^(?:https?|mailto):/i,
-          ALLOW_DATA_ATTR: false,
-        })
-      : article.body;
+  const sanitizedBody = DOMPurify.sanitize(article.body, {
+    ALLOWED_TAGS: [
+      'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'a', 'strong', 'em', 'b', 'i', 'u', 's',
+      'ul', 'ol', 'li', 'blockquote', 'img', 'br', 'hr',
+      'code', 'pre', 'span', 'div', 'figure', 'figcaption',
+    ],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target', 'rel', 'id'],
+    ALLOWED_URI_REGEXP: /^(?:https?|mailto):/i,
+    ALLOW_DATA_ATTR: false,
+  });
   const bodyParts = useMemo(
     () => splitHtmlAtParagraph(sanitizedBody, ARTICLE_AD_WORD_THRESHOLD),
     [sanitizedBody],
