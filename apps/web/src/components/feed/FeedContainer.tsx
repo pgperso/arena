@@ -346,13 +346,17 @@ export function FeedContainer({
         {/* Reply/Quote bar */}
         {replyTarget && (
           <FeedReplyBar
-            replyToUsername={replyTarget.member?.username ?? 'utilisateur'}
+            username={replyTarget.member?.username ?? 'utilisateur'}
+            mode="reply"
+            preview={replyTarget.content}
             onCancel={() => setReplyTarget(null)}
           />
         )}
         {quoteTarget && (
           <FeedReplyBar
-            replyToUsername={quoteTarget.member?.username ?? 'utilisateur'}
+            username={quoteTarget.member?.username ?? 'utilisateur'}
+            mode="quote"
+            preview={quoteTarget.content}
             onCancel={() => setQuoteTarget(null)}
           />
         )}

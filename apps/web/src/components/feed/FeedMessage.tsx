@@ -80,6 +80,7 @@ export const FeedMessage = memo(function FeedMessage({
         {message.parentId && parentMessage && (
           <FeedReplyContext
             parentUsername={parentMessage.member?.username ?? 'Utilisateur supprimé'}
+            parentContent={parentMessage.content}
           />
         )}
 
