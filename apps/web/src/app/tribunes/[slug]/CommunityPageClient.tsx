@@ -8,6 +8,7 @@ import { AdAnchor } from '@/components/ads/AdAnchor';
 import { Avatar } from '@/components/ui/Avatar';
 import { useSupabase } from '@/hooks/useSupabase';
 import { joinCommunity, leaveCommunity } from '@/services/communityService';
+import Image from 'next/image';
 import Link from 'next/link';
 import type { Database } from '@arena/supabase-client';
 
@@ -70,12 +71,22 @@ export function CommunityPageClient({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
             <div className="mb-4 flex flex-col items-center gap-3 text-center">
-              <Avatar
-                url={community.logo_url}
-                name={community.name}
-                size="lg"
-                color={community.primary_color}
-              />
+              {community.logo_url ? (
+                <Image
+                  src={community.logo_url}
+                  alt={community.name}
+                  width={64}
+                  height={64}
+                  className="h-16 w-16 object-contain"
+                />
+              ) : (
+                <Avatar
+                  name={community.name}
+                  url={null}
+                  size="lg"
+                  color={community.primary_color}
+                />
+              )}
               <h2 className="text-lg font-bold text-gray-900">{community.name}</h2>
               {community.description && (
                 <p className="text-sm text-gray-500">{community.description}</p>
