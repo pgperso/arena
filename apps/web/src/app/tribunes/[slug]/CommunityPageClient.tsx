@@ -59,9 +59,7 @@ export function CommunityPageClient({
     if (!userId) return;
     const { error } = await leaveCommunity(supabase, community.id, userId);
     if (!error) {
-      setIsMember(false);
-      setMemberCount((c) => Math.max(0, c - 1));
-      router.refresh();
+      router.push('/');
     }
   }
 
@@ -99,12 +97,6 @@ export function CommunityPageClient({
                 {joinError && (
                   <p className="mt-2 text-center text-xs text-red-500">{joinError}</p>
                 )}
-                <button
-                  onClick={() => setShowJoinModal(false)}
-                  className="mt-2 w-full rounded-lg px-4 py-2 text-sm text-gray-500 transition hover:text-gray-700"
-                >
-                  Continuer sans rejoindre
-                </button>
               </>
             ) : (
               <>
@@ -120,14 +112,14 @@ export function CommunityPageClient({
                 >
                   Créer un compte
                 </Link>
-                <button
-                  onClick={() => setShowJoinModal(false)}
-                  className="mt-2 w-full rounded-lg px-4 py-2 text-sm text-gray-500 transition hover:text-gray-700"
-                >
-                  Continuer en tant que visiteur
-                </button>
               </>
             )}
+            <Link
+              href="/"
+              className="mt-3 block w-full text-center text-sm text-gray-400 transition hover:text-gray-600"
+            >
+              &larr; Retour aux tribunes
+            </Link>
           </div>
         </div>
       )}
@@ -171,29 +163,39 @@ export function CommunityPageClient({
         </div>
       </div>
 
-      {/* 3-column layout: [Ad left] | [Feed] | [Ad right] */}
-      <div className="flex flex-1 overflow-hidden border-t border-gray-200">
-        {/* Left ad sidebar - xl+ only */}
-        <AdSidebar position="left" />
+      {isMember ? (
+        <>
+          {/* 3-column layout: [Ad left] | [Feed] | [Ad right] */}
+          <div className="flex flex-1 overflow-hidden border-t border-gray-200">
+            {/* Left ad sidebar - xl+ only */}
+            <AdSidebar position="left" />
 
-        {/* Central feed area */}
-        <div className="flex-1 overflow-hidden bg-white">
-          <FeedContainer
-            communityId={community.id}
-            communityName={community.name}
-            communitySlug={community.slug}
-            isMember={isMember}
-            isMuted={isMuted}
-            canModerate={canModerate}
-          />
+            {/* Central feed area */}
+            <div className="flex-1 overflow-hidden bg-white">
+              <FeedContainer
+                communityId={community.id}
+                communityName={community.name}
+                communitySlug={community.slug}
+                isMember={isMember}
+                isMuted={isMuted}
+                canModerate={canModerate}
+              />
+            </div>
+
+            {/* Right ad sidebar - xl+ only (below online members in FeedContainer) */}
+            <AdSidebar position="right" />
+          </div>
+
+          {/* Mobile sticky ad banner */}
+          <AdAnchor />
+        </>
+      ) : (
+        <div className="flex flex-1 items-center justify-center border-t border-gray-200 bg-gray-50">
+          <p className="text-sm text-gray-400">
+            Rejoignez cette tribune pour accéder au contenu.
+          </p>
         </div>
-
-        {/* Right ad sidebar - xl+ only (below online members in FeedContainer) */}
-        <AdSidebar position="right" />
-      </div>
-
-      {/* Mobile sticky ad banner */}
-      <AdAnchor />
+      )}
     </div>
   );
 }
