@@ -120,6 +120,7 @@ export const FeedMessage = memo(function FeedMessage({
         <FeedActions
           messageId={message.id}
           likeCount={message.likeCount}
+          dislikeCount={message.dislikeCount}
           replyCount={message.replyCount}
           repostCount={message.repostCount}
           userId={userId}

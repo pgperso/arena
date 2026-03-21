@@ -135,6 +135,7 @@ export type Database = {
           quote_of_id: number | null;
           image_urls: string[];
           like_count: number;
+          dislike_count: number;
           reply_count: number;
           repost_count: number;
           is_removed: boolean;
@@ -152,6 +153,7 @@ export type Database = {
           quote_of_id?: number | null;
           image_urls?: string[];
           like_count?: number;
+          dislike_count?: number;
           reply_count?: number;
           repost_count?: number;
           is_removed?: boolean;
@@ -169,6 +171,7 @@ export type Database = {
           quote_of_id?: number | null;
           image_urls?: string[];
           like_count?: number;
+          dislike_count?: number;
           reply_count?: number;
           repost_count?: number;
           is_removed?: boolean;
@@ -250,6 +253,42 @@ export type Database = {
           },
           {
             foreignKeyName: 'message_likes_member_id_fkey';
+            columns: ['member_id'];
+            isOneToOne: false;
+            referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      message_dislikes: {
+        Row: {
+          id: number;
+          message_id: number;
+          member_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          message_id: number;
+          member_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          message_id?: number;
+          member_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'message_dislikes_message_id_fkey';
+            columns: ['message_id'];
+            isOneToOne: false;
+            referencedRelation: 'chat_messages';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'message_dislikes_member_id_fkey';
             columns: ['member_id'];
             isOneToOne: false;
             referencedRelation: 'members';

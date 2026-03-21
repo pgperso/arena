@@ -21,6 +21,30 @@ label[for] {
   cursor: pointer;
 }
 
+/* Reaction animations */
+@keyframes reaction-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.4); }
+  65% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+@keyframes reaction-shake {
+  0% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.2) rotate(-8deg); }
+  50% { transform: scale(1.3) rotate(6deg); }
+  75% { transform: scale(1.1) rotate(-3deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.animate-reaction-pop {
+  animation: reaction-pop 0.4s ease-out;
+}
+
+.animate-reaction-shake {
+  animation: reaction-shake 0.4s ease-out;
+}
+
 /* Propagate height through Next.js App Router wrapper divs */
 main > * {
   height: 100%;

@@ -5,20 +5,27 @@ import { createClient } from '@/lib/supabase/client';
 
 type LikeTargetType = 'message' | 'article' | 'podcast';
 
-interface LikeStatusMap {
-  messages: Set<number>;
-  articles: Set<number>;
-  podcasts: Set<number>;
+interface ReactionStatusMap {
+  likes: {
+    messages: Set<number>;
+    articles: Set<number>;
+    podcasts: Set<number>;
+  };
+  dislikes: {
+    messages: Set<number>;
+  };
 }
 
 interface BatchLikeContextValue {
   isLiked: (type: LikeTargetType, id: number) => boolean;
   setLiked: (type: LikeTargetType, id: number, liked: boolean) => void;
+  isDisliked: (id: number) => boolean;
+  setDisliked: (id: number, disliked: boolean) => void;
 }
 
 const BatchLikeContext = createContext<BatchLikeContextValue | null>(null);
 
-function typeKey(type: LikeTargetType): keyof LikeStatusMap {
+function typeKey(type: LikeTargetType): 'messages' | 'articles' | 'podcasts' {
   if (type === 'message') return 'messages';
   if (type === 'article') return 'articles';
   return 'podcasts';
@@ -39,10 +46,9 @@ export function BatchLikeProvider({
   podcastIds,
   children,
 }: BatchLikeProviderProps) {
-  const [likeStatus, setLikeStatus] = useState<LikeStatusMap>({
-    messages: new Set(),
-    articles: new Set(),
-    podcasts: new Set(),
+  const [status, setStatus] = useState<ReactionStatusMap>({
+    likes: { messages: new Set(), articles: new Set(), podcasts: new Set() },
+    dislikes: { messages: new Set() },
   });
   const supabaseRef = useRef(createClient());
   const fetchedRef = useRef(false);
@@ -76,22 +82,37 @@ export function BatchLikeProvider({
             .eq('member_id', userId)
             .in('podcast_id', podcastIds)
         : { data: [] },
-    ]).then(([msgLikes, artLikes, podLikes]) => {
+      messageIds.length > 0
+        ? supabaseRef.current
+            .from('message_dislikes')
+            .select('message_id')
+            .eq('member_id', userId)
+            .in('message_id', messageIds)
+        : { data: [] },
+    ]).then(([msgLikes, artLikes, podLikes, msgDislikes]) => {
       if (cancelled) return;
       fetchedRef.current = true;
-      setLikeStatus({
-        messages: new Set(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (msgLikes.data ?? []).map((r: any) => r.message_id as number),
-        ),
-        articles: new Set(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (artLikes.data ?? []).map((r: any) => r.article_id as number),
-        ),
-        podcasts: new Set(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (podLikes.data ?? []).map((r: any) => r.podcast_id as number),
-        ),
+      setStatus({
+        likes: {
+          messages: new Set(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (msgLikes.data ?? []).map((r: any) => r.message_id as number),
+          ),
+          articles: new Set(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (artLikes.data ?? []).map((r: any) => r.article_id as number),
+          ),
+          podcasts: new Set(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (podLikes.data ?? []).map((r: any) => r.podcast_id as number),
+          ),
+        },
+        dislikes: {
+          messages: new Set(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (msgDislikes.data ?? []).map((r: any) => r.message_id as number),
+          ),
+        },
       });
     });
 
@@ -101,21 +122,49 @@ export function BatchLikeProvider({
   }, [userId, messageIds, articleIds, podcastIds]);
 
   const isLiked = useCallback(
-    (type: LikeTargetType, id: number) => likeStatus[typeKey(type)].has(id),
-    [likeStatus],
+    (type: LikeTargetType, id: number) => status.likes[typeKey(type)].has(id),
+    [status],
   );
 
   const setLiked = useCallback((type: LikeTargetType, id: number, liked: boolean) => {
-    setLikeStatus((prev) => {
+    setStatus((prev) => {
       const key = typeKey(type);
-      const next = new Set(prev[key]);
-      if (liked) next.add(id);
-      else next.delete(id);
-      return { ...prev, [key]: next };
+      const nextLikes = new Set(prev.likes[key]);
+      if (liked) nextLikes.add(id);
+      else nextLikes.delete(id);
+      // If liking, remove dislike (mutual exclusion)
+      let nextDislikes = prev.dislikes;
+      if (liked && type === 'message') {
+        const ds = new Set(prev.dislikes.messages);
+        ds.delete(id);
+        nextDislikes = { messages: ds };
+      }
+      return { likes: { ...prev.likes, [key]: nextLikes }, dislikes: nextDislikes };
     });
   }, []);
 
-  const value = useMemo(() => ({ isLiked, setLiked }), [isLiked, setLiked]);
+  const isDisliked = useCallback(
+    (id: number) => status.dislikes.messages.has(id),
+    [status],
+  );
+
+  const setDisliked = useCallback((id: number, disliked: boolean) => {
+    setStatus((prev) => {
+      const nextDislikes = new Set(prev.dislikes.messages);
+      if (disliked) nextDislikes.add(id);
+      else nextDislikes.delete(id);
+      // If disliking, remove like (mutual exclusion)
+      let nextLikes = prev.likes;
+      if (disliked) {
+        const ls = new Set(prev.likes.messages);
+        ls.delete(id);
+        nextLikes = { ...prev.likes, messages: ls };
+      }
+      return { likes: nextLikes, dislikes: { messages: nextDislikes } };
+    });
+  }, []);
+
+  const value = useMemo(() => ({ isLiked, setLiked, isDisliked, setDisliked }), [isLiked, setLiked, isDisliked, setDisliked]);
 
   return <BatchLikeContext.Provider value={value}>{children}</BatchLikeContext.Provider>;
 }

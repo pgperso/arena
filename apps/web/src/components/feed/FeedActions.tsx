@@ -1,12 +1,13 @@
 'use client';
 
 import { memo } from 'react';
-import { FeedLikeButton } from './FeedLikeButton';
+import { FeedReactionButtons } from './FeedReactionButtons';
 import { FeedRepostMenu } from './FeedRepostMenu';
 
 interface FeedActionsProps {
   messageId: number;
   likeCount: number;
+  dislikeCount: number;
   replyCount: number;
   repostCount: number;
   userId: string | null;
@@ -18,6 +19,7 @@ interface FeedActionsProps {
 export const FeedActions = memo(function FeedActions({
   messageId,
   likeCount,
+  dislikeCount,
   replyCount,
   repostCount,
   userId,
@@ -52,11 +54,11 @@ export const FeedActions = memo(function FeedActions({
         repostCount={repostCount}
       />
 
-      {/* Like */}
-      <FeedLikeButton
-        targetType="message"
-        targetId={messageId}
+      {/* Like / Dislike */}
+      <FeedReactionButtons
+        messageId={messageId}
         initialLikeCount={likeCount}
+        initialDislikeCount={dislikeCount}
         userId={userId}
       />
     </div>
