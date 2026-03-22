@@ -1,4 +1,7 @@
 {
+  "brand": {
+    "name": "Fans Tribune"
+  },
   "common": {
     "cancel": "Cancel",
     "save": "Save",

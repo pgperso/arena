@@ -55,7 +55,7 @@ export function Header() {
             height={36}
             priority
           />
-          <span className="text-xl font-bold text-gray-900">La tribune des fans</span>
+          <span className="text-xl font-bold text-gray-900">{t('brand.name')}</span>
         </Link>
 
         {/* Language + Desktop auth */}

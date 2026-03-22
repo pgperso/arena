@@ -1,4 +1,7 @@
 {
+  "brand": {
+    "name": "La tribune des fans"
+  },
   "common": {
     "cancel": "Annuler",
     "save": "Sauvegarder",
