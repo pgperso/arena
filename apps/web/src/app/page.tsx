@@ -83,8 +83,8 @@ export default async function HomePage() {
           <TrendingMessages popular={popular} controversial={controversial} />
         </div>
 
-        {/* Tribunes — fills remaining space, internal scroll if needed */}
-        <div className="min-h-0 flex-1 overflow-y-auto pb-4">
+        {/* Tribunes — centered in remaining space */}
+        <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto pb-4">
           {communities.length > 0 ? (
             <CommunityGrid communities={communities} />
           ) : (
