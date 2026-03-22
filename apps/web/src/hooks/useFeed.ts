@@ -25,7 +25,7 @@ const MAX_FEED_ITEMS = 500;
 const REALTIME_DEBOUNCE_MS = 100;
 
 // Explicit column selections (avoid select('*') to exclude large columns like body)
-const CHAT_MSG_SELECT = 'id, community_id, member_id, content, image_urls, created_at, is_removed, removed_at, removed_by, like_count, dislike_count, reply_count, repost_count, parent_id, repost_of_id, quote_of_id, members:members!chat_messages_member_id_fkey(id, username, avatar_url)';
+const CHAT_MSG_SELECT = 'id, community_id, member_id, content, image_urls, created_at, is_removed, removed_at, removed_by, like_count, dislike_count, reply_count, parent_id, members:members!chat_messages_member_id_fkey(id, username, avatar_url)';
 const ARTICLE_SELECT = 'id, community_id, author_id, title, slug, excerpt, cover_image_url, like_count, view_count, published_at, is_published, is_removed, created_at, members:members!articles_author_id_fkey(id, username, avatar_url)';
 const PODCAST_SELECT = 'id, community_id, published_by, title, description, audio_url, cover_image_url, duration_seconds, like_count, is_published, is_removed, created_at';
 
@@ -53,12 +53,9 @@ function messageToFeedItem(row: ChatMessageWithJoin): FeedMessage {
     content: row.content,
     imageUrls: row.image_urls ?? [],
     parentId: row.parent_id,
-    repostOfId: row.repost_of_id,
-    quoteOfId: row.quote_of_id,
     likeCount: row.like_count,
     dislikeCount: row.dislike_count,
     replyCount: row.reply_count,
-    repostCount: row.repost_count,
     isRemoved: row.is_removed ?? false,
     removedAt: row.removed_at,
     removedBy: row.removed_by,
@@ -171,7 +168,6 @@ function feedReducer(state: FeedState, action: FeedAction): FeedState {
                 likeCount: u.like_count,
                 dislikeCount: u.dislike_count,
                 replyCount: u.reply_count,
-                repostCount: u.repost_count,
                 isRemoved: u.is_removed ?? false,
                 removedAt: u.removed_at,
                 removedBy: u.removed_by,
@@ -253,8 +249,6 @@ interface SendOptions {
   content?: string;
   imageUrls?: string[];
   parentId?: number;
-  repostOfId?: number;
-  quoteOfId?: number;
 }
 
 // --- Hook return ---
@@ -267,8 +261,6 @@ export interface UseFeedReturn {
   hasMore: boolean;
   sendMessage: (content: string, imageUrls?: string[]) => Promise<void>;
   sendReply: (parentId: number, content: string, imageUrls?: string[]) => Promise<void>;
-  sendRepost: (repostOfId: number) => Promise<void>;
-  sendQuote: (quoteOfId: number, content: string, imageUrls?: string[]) => Promise<void>;
   loadMore: () => Promise<void>;
   deleteMessage: (messageId: number) => Promise<void>;
   getMessageById: (id: number) => FeedMessage | undefined;
@@ -473,9 +465,8 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
       if (!userId) return;
       const hasContent = options.content && options.content.trim();
       const hasImages = options.imageUrls && options.imageUrls.length > 0;
-      const isRepost = !!options.repostOfId;
 
-      if (!hasContent && !hasImages && !isRepost) return;
+      if (!hasContent && !hasImages) return;
 
       if (hasContent || hasImages) {
         const result = messageSchema.safeParse({
@@ -493,8 +484,6 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           content: hasContent ? options.content!.trim() : null,
           image_urls: options.imageUrls ?? [],
           parent_id: options.parentId ?? null,
-          repost_of_id: options.repostOfId ?? null,
-          quote_of_id: options.quoteOfId ?? null,
         });
       } finally {
         dispatch({ type: 'SET_SENDING', sending: false });
@@ -511,18 +500,6 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
   const sendReply = useCallback(
     async (parentId: number, content: string, imageUrls?: string[]) => {
       await send({ content, imageUrls, parentId });
-    },
-    [send],
-  );
-
-  const sendRepost = useCallback(
-    async (repostOfId: number) => { await send({ repostOfId }); },
-    [send],
-  );
-
-  const sendQuote = useCallback(
-    async (quoteOfId: number, content: string, imageUrls?: string[]) => {
-      await send({ content, imageUrls, quoteOfId });
     },
     [send],
   );
@@ -595,8 +572,6 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
     hasMore: state.hasMoreMessages,
     sendMessage,
     sendReply,
-    sendRepost,
-    sendQuote,
     loadMore,
     deleteMessage,
     getMessageById,

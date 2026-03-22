@@ -4,12 +4,9 @@ export interface ChatMessage {
   memberId: string | null;
   content: string | null;
   parentId: number | null;
-  repostOfId: number | null;
-  quoteOfId: number | null;
   imageUrls: string[];
   likeCount: number;
   replyCount: number;
-  repostCount: number;
   isRemoved: boolean;
   removedAt: string | null;
   removedBy: string | null;

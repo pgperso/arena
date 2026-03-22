@@ -20,20 +20,14 @@ export interface FeedMessage extends FeedItemBase {
   content: string | null;
   imageUrls: string[];
   parentId: number | null;
-  repostOfId: number | null;
-  quoteOfId: number | null;
   likeCount: number;
   dislikeCount: number;
   replyCount: number;
-  repostCount: number;
   isRemoved: boolean;
   removedAt: string | null;
   removedBy: string | null;
   createdAt: string;
   member: FeedMember | null;
-  parentMessage?: FeedMessage | null;
-  repostedMessage?: FeedMessage | null;
-  quotedMessage?: FeedMessage | null;
 }
 
 export interface FeedArticle extends FeedItemBase {
