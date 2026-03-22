@@ -65,11 +65,10 @@ function parseContent(text: string): React.ReactNode[] {
 
 function formatText(text: string, baseKey: number): React.ReactNode[] {
   const nodes: React.ReactNode[] = [];
-  const processed = text;
   let key = baseKey;
 
   // Replace bold (**text**)
-  const parts = processed.split(BOLD_REGEX);
+  const parts = text.split(BOLD_REGEX);
   for (let i = 0; i < parts.length; i++) {
     if (i % 2 === 1) {
       // Bold content

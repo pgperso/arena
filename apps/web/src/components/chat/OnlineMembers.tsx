@@ -1,16 +1,10 @@
 'use client';
 
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import type { PresenceMember } from '@/hooks/usePresence';
 import { Avatar } from '@/components/ui/Avatar';
 import { StatusDot } from '@/components/ui/StatusDot';
-import { BOT_MEMBER_ID } from '@/components/feed/FeedBotMessage';
-
-const BOT_NAME: Record<string, string> = {
-  fr: "Gérant d'estrade",
-  en: 'Tribune Speaker',
-};
 
 interface OnlineMembersProps {
   members: PresenceMember[];
@@ -18,8 +12,8 @@ interface OnlineMembersProps {
 
 export function OnlineMembers({ members }: OnlineMembersProps) {
   const t = useTranslations('tribune');
-  const locale = useLocale();
-  const botName = BOT_NAME[locale] ?? BOT_NAME.fr;
+  const tr = useTranslations('roles');
+  const botName = tr('bot');
 
   // Sort: online first, then idle
   const sorted = [...members].sort((a, b) => {

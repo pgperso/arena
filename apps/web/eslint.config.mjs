@@ -7,11 +7,6 @@ const eslintConfig = defineConfig([
   ...nextTs,
   {
     rules: {
-      // Data-fetching effects legitimately set loading/data state
-      "react-hooks/set-state-in-effect": "warn",
-      // Singleton ref pattern is intentional for Supabase client
-      "react-hooks/refs": "warn",
-      // Server Components legitimately call Date.now() etc.
       "react-hooks/rules-of-hooks": "error",
     },
   },

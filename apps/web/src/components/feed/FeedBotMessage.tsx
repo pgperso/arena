@@ -1,26 +1,20 @@
 'use client';
 
 import Image from 'next/image';
-import { useTranslations, useLocale } from 'next-intl';
-import { formatTime } from '@arena/shared';
+import { useTranslations } from 'next-intl';
+import { formatTime, BOT_MEMBER_ID } from '@arena/shared';
 import type { FeedMessage as FeedMessageType } from '@arena/shared';
 
-export const BOT_MEMBER_ID = '00000000-0000-0000-0000-000000000001';
-
-const BOT_NAME: Record<string, string> = {
-  fr: "Gérant d'estrade",
-  en: 'Tribune Speaker',
-};
+export { BOT_MEMBER_ID };
 
 interface FeedBotMessageProps {
   message: FeedMessageType;
 }
 
 export function FeedBotMessage({ message }: FeedBotMessageProps) {
-  const t = useTranslations('tribune');
-  const locale = useLocale();
+  const t = useTranslations();
   const time = formatTime(message.createdAt);
-  const botName = BOT_NAME[locale] ?? BOT_NAME.fr;
+  const botName = t('roles.bot');
 
   return (
     <div className="px-4 py-3">

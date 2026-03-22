@@ -3,6 +3,9 @@ export { RESTRICTION_TYPES, RESTRICTION_DISPLAY_NAMES } from './restrictions';
 
 export const CHAT_MAX_MESSAGE_LENGTH = 1000;
 
+// Bot user
+export const BOT_MEMBER_ID = '00000000-0000-0000-0000-000000000001';
+
 // Feed constants
 export const FEED_INITIAL_LIMIT = 50;
 export const FEED_LOAD_MORE_LIMIT = 20;

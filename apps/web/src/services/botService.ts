@@ -1,7 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@arena/supabase-client';
-
-const BOT_MEMBER_ID = '00000000-0000-0000-0000-000000000001';
+import { BOT_MEMBER_ID } from '@arena/shared';
 
 // ── Join announcements (already used in communityService) ──
 

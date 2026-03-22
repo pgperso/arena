@@ -135,7 +135,6 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
     });
 
     if (insertError) {
-      console.error('Restriction error:', insertError);
       setError(t('restrictionError'));
     } else {
       setSuccess(t('restrictionApplied', { username: targetUsername }));

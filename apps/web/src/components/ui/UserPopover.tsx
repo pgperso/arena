@@ -10,8 +10,6 @@ import { assignRole, removeRole } from '@/services/moderationService';
 interface UserPopoverProps {
   memberId: string;
   username: string;
-  avatarUrl?: string | null;
-  messageCount: number;
   communityId: number;
   currentRole?: string;
   canManageRoles: boolean;

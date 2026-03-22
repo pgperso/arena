@@ -625,13 +625,10 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
     async (messageId: number) => {
       if (!userId) return;
       dispatch({ type: 'REMOVE_MESSAGE', messageId });
-      const { error } = await supabaseRef.current
+      await supabaseRef.current
         .from('chat_messages')
         .delete()
         .eq('id', messageId);
-      if (error) {
-        console.error('Delete failed:', error);
-      }
     },
     [userId],
   );

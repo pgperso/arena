@@ -200,8 +200,6 @@ export const FeedMessage = memo(function FeedMessage({
     <UserPopover
       memberId={message.memberId}
       username={username}
-      avatarUrl={message.member?.avatarUrl}
-      messageCount={message.member?.messageCount ?? 0}
       communityId={communityId}
       currentRole={staffRole}
       canManageRoles={canModerate}
@@ -304,7 +302,10 @@ export const FeedMessage = memo(function FeedMessage({
               replyCount={message.replyCount}
               userId={userId}
               isOwn={isOwn}
+              canModerate={canModerate}
               onReply={() => onReply(message)}
+              onStartEdit={isOwn ? onStartEdit : undefined}
+              onDelete={(canModerate || isOwn) ? () => onDelete(message.id) : undefined}
             />
           )}
         </div>

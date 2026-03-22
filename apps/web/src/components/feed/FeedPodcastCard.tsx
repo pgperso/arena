@@ -71,7 +71,6 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
   async function handleDelete() {
     const { error } = await removePodcast(supabase, podcast.id);
     if (error) {
-      console.error('Delete podcast failed:', error);
       return;
     }
     setRemoved(true);

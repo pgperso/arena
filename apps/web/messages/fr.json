@@ -209,7 +209,8 @@
     "recruit": "Recrue",
     "regular": "Régulier",
     "veteran": "Vétéran",
-    "legend": "Légende"
+    "legend": "Légende",
+    "bot": "Gérant d'estrade"
   },
   "vestiaire": {
     "title": "Vestiaire",
