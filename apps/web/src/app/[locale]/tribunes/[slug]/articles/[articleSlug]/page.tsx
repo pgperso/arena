@@ -93,7 +93,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   } = await supabase.auth.getUser();
 
   // Increment view count (fire and forget)
-  supabase.rpc('increment_article_views' as never, { p_article_id: article.id } as never).catch(() => {});
+  void (async () => { try { await supabase.rpc('increment_article_views' as never, { p_article_id: article.id } as never); } catch { /* ignore */ } })();
 
   const articleJsonLd = {
     '@context': 'https://schema.org',
