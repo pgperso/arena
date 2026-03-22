@@ -18,7 +18,7 @@ interface FeedMessageProps {
   isHighlighted?: boolean;
   isGrouped?: boolean;
   editing?: boolean;
-  isAdmin?: boolean;
+  staffRole?: string;
   onDelete: (messageId: number) => void;
   onEdit: (messageId: number, content: string) => void;
   onStartEdit: () => void;
@@ -82,7 +82,7 @@ export const FeedMessage = memo(function FeedMessage({
   isHighlighted,
   isGrouped,
   editing,
-  isAdmin,
+  staffRole,
   onDelete,
   onEdit,
   onStartEdit,
@@ -92,9 +92,13 @@ export const FeedMessage = memo(function FeedMessage({
   getMessageById,
 }: FeedMessageProps) {
   const username = message.member?.username ?? 'Utilisateur supprimé';
-  const rank = isAdmin
-    ? { label: 'Arbitre', color: 'text-red-500' }
-    : getMemberRank(message.member?.messageCount ?? 0);
+  const staffRankMap: Record<string, { label: string; color: string }> = {
+    owner: { label: 'Propriétaire', color: 'text-yellow-500' },
+    admin: { label: 'Arbitre', color: 'text-red-500' },
+    moderator: { label: 'Arbitre', color: 'text-red-500' },
+  };
+  const rank: { label: string; color: string } =
+    (staffRole ? staffRankMap[staffRole] : undefined) ?? getMemberRank(message.member?.messageCount ?? 0);
   const time = formatTime(message.createdAt);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [editContent, setEditContent] = useState(message.content ?? '');

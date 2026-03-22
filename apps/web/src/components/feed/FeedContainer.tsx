@@ -31,7 +31,7 @@ interface FeedContainerProps {
   isMember: boolean;
   isMuted: boolean;
   canModerate: boolean;
-  adminIds: string[];
+  staffRoles: Record<string, string>;
 }
 
 export function FeedContainer({
@@ -41,7 +41,7 @@ export function FeedContainer({
   isMember,
   isMuted,
   canModerate,
-  adminIds,
+  staffRoles,
 }: FeedContainerProps) {
   const router = useRouter();
   const { user, username, avatarUrl } = useAuth();
@@ -335,7 +335,7 @@ export function FeedContainer({
                             item={item}
                             userId={user?.id ?? null}
                             canModerate={canModerate}
-                            adminIds={adminIds}
+                            staffRoles={staffRoles}
                             communitySlug={communitySlug}
                             isHighlighted={item.feedType === 'message' && item.id === highlightedMessageId}
                             isGrouped={isGrouped}
