@@ -25,7 +25,7 @@ const MAX_FEED_ITEMS = 500;
 const REALTIME_DEBOUNCE_MS = 100;
 
 // Explicit column selections (avoid select('*') to exclude large columns like body)
-const CHAT_MSG_SELECT = 'id, community_id, member_id, content, image_urls, created_at, edited_at, is_removed, removed_at, removed_by, like_count, dislike_count, reply_count, parent_id, members:members!chat_messages_member_id_fkey(id, username, avatar_url)';
+const CHAT_MSG_SELECT = 'id, community_id, member_id, content, image_urls, created_at, is_removed, removed_at, removed_by, like_count, dislike_count, reply_count, parent_id, members:members!chat_messages_member_id_fkey(id, username, avatar_url)';
 const ARTICLE_SELECT = 'id, community_id, author_id, title, slug, excerpt, cover_image_url, like_count, view_count, published_at, is_published, is_removed, created_at, members:members!articles_author_id_fkey(id, username, avatar_url)';
 const PODCAST_SELECT = 'id, community_id, published_by, title, description, audio_url, cover_image_url, duration_seconds, like_count, is_published, is_removed, created_at';
 
