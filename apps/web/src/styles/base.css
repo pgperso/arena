@@ -72,7 +72,13 @@ label[for] {
   100% { background-color: transparent; }
 }
 
-/* Propagate height through Next.js App Router wrapper divs */
+/* Propagate flex layout through Next.js App Router wrapper divs.
+   flex-1 + min-height:0 is robust regardless of rendering path
+   (server-side, client navigation, React reconciliation).
+   Unlike height:100% which requires every parent to have explicit height. */
 main > * {
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }

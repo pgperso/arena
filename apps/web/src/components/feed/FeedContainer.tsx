@@ -228,7 +228,7 @@ export function FeedContainer({
   }, [items]);
 
   return (
-    <div className="flex h-full flex-col lg:flex-row">
+    <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
       {/* Feed area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
