@@ -25,21 +25,21 @@ const MAX_FEED_ITEMS = 500;
 const REALTIME_DEBOUNCE_MS = 100;
 
 // Explicit column selections (avoid select('*') to exclude large columns like body)
-const CHAT_MSG_SELECT = 'id, community_id, member_id, content, image_urls, created_at, is_removed, removed_at, removed_by, like_count, dislike_count, reply_count, parent_id, members:members!chat_messages_member_id_fkey(id, username, avatar_url)';
-const ARTICLE_SELECT = 'id, community_id, author_id, title, slug, excerpt, cover_image_url, like_count, view_count, published_at, is_published, is_removed, created_at, members:members!articles_author_id_fkey(id, username, avatar_url)';
+const CHAT_MSG_SELECT = 'id, community_id, member_id, content, image_urls, created_at, is_removed, removed_at, removed_by, like_count, dislike_count, reply_count, parent_id, members:members!chat_messages_member_id_fkey(id, username, avatar_url, message_count)';
+const ARTICLE_SELECT = 'id, community_id, author_id, title, slug, excerpt, cover_image_url, like_count, view_count, published_at, is_published, is_removed, created_at, members:members!articles_author_id_fkey(id, username, avatar_url, message_count)';
 const PODCAST_SELECT = 'id, community_id, published_by, title, description, audio_url, cover_image_url, duration_seconds, like_count, is_published, is_removed, created_at';
 
 // --- Row to FeedItem converters ---
 
 function memberFromRow(
-  row: Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null,
+  row: Pick<MemberRow, 'id' | 'username' | 'avatar_url' | 'message_count'> | null,
 ): FeedMember | null {
   if (!row) return null;
-  return { id: row.id, username: row.username, avatarUrl: row.avatar_url };
+  return { id: row.id, username: row.username, avatarUrl: row.avatar_url, messageCount: row.message_count };
 }
 
 interface ChatMessageWithJoin extends ChatMessageRow {
-  members: Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null;
+  members: Pick<MemberRow, 'id' | 'username' | 'avatar_url' | 'message_count'> | null;
 }
 
 function messageToFeedItem(row: ChatMessageWithJoin): FeedMessage {
@@ -66,7 +66,7 @@ function messageToFeedItem(row: ChatMessageWithJoin): FeedMessage {
 }
 
 interface ArticleWithJoin extends ArticleRow {
-  members: Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null;
+  members: Pick<MemberRow, 'id' | 'username' | 'avatar_url' | 'message_count'> | null;
 }
 
 function articleToFeedItem(row: ArticleWithJoin): FeedArticle {
@@ -83,7 +83,7 @@ function articleToFeedItem(row: ArticleWithJoin): FeedArticle {
     likeCount: row.like_count,
     viewCount: row.view_count,
     publishedAt: row.published_at ?? row.created_at,
-    author: memberFromRow(row.members) ?? { id: row.author_id, username: 'unknown', avatarUrl: null },
+    author: memberFromRow(row.members) ?? { id: row.author_id, username: 'unknown', avatarUrl: null, messageCount: 0 },
   };
 }
 
@@ -296,7 +296,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
   const supabaseRef = useRef(createClient());
 
   // Client-side member cache to avoid N+1 queries on Realtime INSERTs
-  const memberCacheRef = useRef(new Map<string, Pick<MemberRow, 'id' | 'username' | 'avatar_url'>>());
+  const memberCacheRef = useRef(new Map<string, Pick<MemberRow, 'id' | 'username' | 'avatar_url' | 'message_count'>>());
 
   // Debounce buffer for Realtime events
   const realtimeBufferRef = useRef<FeedAction[]>([]);
@@ -315,16 +315,16 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
   // Helper: resolve member from cache or fetch
   async function resolveMember(
     memberId: string | null,
-  ): Promise<Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null> {
+  ): Promise<Pick<MemberRow, 'id' | 'username' | 'avatar_url' | 'message_count'> | null> {
     if (!memberId) return null;
     const cached = memberCacheRef.current.get(memberId);
     if (cached) return cached;
     const { data } = await supabaseRef.current
       .from('members')
-      .select('id, username, avatar_url')
+      .select('id, username, avatar_url, message_count')
       .eq('id', memberId)
       .single();
-    const member = data as Pick<MemberRow, 'id' | 'username' | 'avatar_url'> | null;
+    const member = data as Pick<MemberRow, 'id' | 'username' | 'avatar_url' | 'message_count'> | null;
     if (member) memberCacheRef.current.set(member.id, member);
     return member;
   }

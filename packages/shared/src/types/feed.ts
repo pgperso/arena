@@ -4,6 +4,7 @@ export interface FeedMember {
   id: string;
   username: string;
   avatarUrl: string | null;
+  messageCount: number;
 }
 
 interface FeedItemBase {

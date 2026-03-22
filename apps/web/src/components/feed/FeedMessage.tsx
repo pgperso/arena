@@ -2,7 +2,7 @@
 
 import { memo, useState, useRef, useEffect } from 'react';
 import { Trash2, Pencil } from 'lucide-react';
-import { formatTime } from '@arena/shared';
+import { formatTime, getMemberRank } from '@arena/shared';
 import type { FeedMessage as FeedMessageType } from '@arena/shared';
 import { FeedActions } from './FeedActions';
 import { FeedImageGallery } from './FeedImageGallery';
@@ -90,6 +90,7 @@ export const FeedMessage = memo(function FeedMessage({
   getMessageById,
 }: FeedMessageProps) {
   const username = message.member?.username ?? 'Utilisateur supprimé';
+  const rank = getMemberRank(message.member?.messageCount ?? 0);
   const time = formatTime(message.createdAt);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [editContent, setEditContent] = useState(message.content ?? '');
@@ -223,6 +224,7 @@ export const FeedMessage = memo(function FeedMessage({
             <span className={`text-sm font-semibold ${isOwn ? 'text-brand-blue' : 'text-gray-900'}`}>
               {username}
             </span>
+            <span className={`text-[10px] font-bold ${rank.color}`}>{rank.label}</span>
             <span className="text-xs text-gray-400">{time}</span>
           </div>
 

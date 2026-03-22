@@ -15,6 +15,22 @@ export const IMAGE_THUMB_DIMENSION = 400;
 // Community constants
 export const MAX_COMMUNITIES_PER_USER = 50;
 
+// Member rank thresholds
+export const MEMBER_RANKS = [
+  { min: 0, label: 'Recrue', color: 'text-gray-400' },
+  { min: 10, label: 'Régulier', color: 'text-blue-500' },
+  { min: 50, label: 'Vétéran', color: 'text-purple-500' },
+  { min: 200, label: 'Légende', color: 'text-brand-orange' },
+  { min: 500, label: 'Élite', color: 'text-red-500' },
+] as const;
+
+export function getMemberRank(messageCount: number) {
+  for (let i = MEMBER_RANKS.length - 1; i >= 0; i--) {
+    if (messageCount >= MEMBER_RANKS[i].min) return MEMBER_RANKS[i];
+  }
+  return MEMBER_RANKS[0];
+}
+
 // Ad constants
 export const FEED_AD_INTERVAL = 25;
 export const ARTICLE_AD_WORD_THRESHOLD = 300;
