@@ -1,8 +1,15 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 export function useSupabase() {
-  return useRef(createClient()).current;
+  const ref = useRef<ReturnType<typeof createClient> | null>(null);
+
+  const getClient = useCallback(() => {
+    if (!ref.current) ref.current = createClient();
+    return ref.current;
+  }, []);
+
+  return getClient();
 }

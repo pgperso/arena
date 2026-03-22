@@ -76,7 +76,6 @@ export async function updatePodcast(
 export async function removePodcast(
   supabase: SupabaseClient<Database>,
   podcastId: number,
-  userId: string,
 ) {
   const { data: podcast } = await supabase
     .from('podcasts')

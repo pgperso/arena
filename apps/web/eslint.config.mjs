@@ -11,6 +11,8 @@ const eslintConfig = defineConfig([
       "react-hooks/set-state-in-effect": "warn",
       // Singleton ref pattern is intentional for Supabase client
       "react-hooks/refs": "warn",
+      // Server Components legitimately call Date.now() etc.
+      "react-hooks/rules-of-hooks": "error",
     },
   },
   // Override default ignores of eslint-config-next.
