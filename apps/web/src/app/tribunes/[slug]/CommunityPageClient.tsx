@@ -38,6 +38,7 @@ export function CommunityPageClient({
   const [memberCount, setMemberCount] = useState(community.member_count);
   const [showJoinModal, setShowJoinModal] = useState(!initialIsMember);
   const [joinError, setJoinError] = useState<string | null>(null);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   async function handleJoin() {
     if (!userId) {
@@ -144,12 +145,11 @@ export function CommunityPageClient({
       >
         <div className="flex items-center gap-3">
           <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
-            &larr; Tribunes
+            &larr; <span className="hidden sm:inline">Tribunes</span>
           </Link>
           <span className="text-gray-300">|</span>
-          <Avatar url={community.logo_url} name={community.name} size="md" color={community.primary_color} />
           <span className="font-semibold text-gray-900">{community.name}</span>
-          <span className="text-sm text-gray-500">
+          <span className="hidden text-sm text-gray-500 sm:inline">
             {memberCount} membre{memberCount !== 1 ? 's' : ''}
           </span>
         </div>
@@ -158,10 +158,11 @@ export function CommunityPageClient({
           {userId && (
             isMember ? (
               <button
-                onClick={handleLeave}
+                onClick={() => setShowLeaveConfirm(true)}
                 className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-red-300 hover:text-red-600"
               >
-                Quitter
+                <span className="sm:hidden">Quitter</span>
+                <span className="hidden sm:inline">Quitter la tribune</span>
               </button>
             ) : (
               <button
@@ -175,6 +176,32 @@ export function CommunityPageClient({
           )}
         </div>
       </div>
+
+      {/* Leave confirmation modal */}
+      {showLeaveConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="mb-2 text-base font-bold text-gray-900">Quitter la tribune ?</h3>
+            <p className="mb-5 text-sm text-gray-500">
+              Tu ne verras plus les messages de cette tribune. Tu devras la rejoindre de nouveau pour y accéder.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLeaveConfirm(false)}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => { setShowLeaveConfirm(false); handleLeave(); }}
+                className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700"
+              >
+                Quitter
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isMember ? (
         <>
