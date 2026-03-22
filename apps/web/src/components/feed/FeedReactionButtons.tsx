@@ -60,15 +60,14 @@ export const FeedReactionButtons = memo(function FeedReactionButtons({
         disabled={!userId || loading}
         className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs transition disabled:cursor-not-allowed disabled:opacity-50 ${
           isDisliked
-            ? 'text-brand-orange hover:bg-orange-50'
-            : 'text-gray-400 hover:bg-gray-100 hover:text-brand-orange'
+            ? 'text-brand-blue hover:bg-blue-50'
+            : 'text-gray-400 hover:bg-gray-100 hover:text-brand-blue'
         }`}
         title={isDisliked ? 'Retirer le dislike' : 'Je n\'aime pas'}
       >
         <Annoyed
           className={`h-4 w-4 transition-transform ${dislikeAnim ? 'animate-reaction-shake' : ''}`}
-          fill={isDisliked ? 'currentColor' : 'none'}
-          strokeWidth={1.5}
+          strokeWidth={isDisliked ? 2.5 : 1.5}
         />
         {dislikeCount > 0 && <span>{dislikeCount}</span>}
       </button>
