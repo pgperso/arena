@@ -176,13 +176,14 @@ export const FeedMessage = memo(function FeedMessage({
     </>
   );
 
-  // Grouped message: no avatar, no username, compact
+  // Grouped message: compact, with subtle username
   if (isGrouped && !hasReplyContext) {
     return (
       <div className={`group relative py-0.5 pl-[60px] pr-4 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}>
         <span className="absolute left-2 top-1 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100">
           {time}
         </span>
+        <span className="text-[10px] font-medium text-gray-400">{username}</span>
 
         {toolbar}
         {contentBlock}
