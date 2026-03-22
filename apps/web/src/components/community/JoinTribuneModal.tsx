@@ -71,11 +71,16 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                 </svg>
               </button>
             )}
-            <h2 className="text-lg font-semibold text-gray-900">
-              {selectedCategory
-                ? categories.find((c) => c.id === selectedCategory)?.name ?? 'Tribunes'
-                : 'Rejoindre une tribune'}
-            </h2>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {selectedCategory
+                  ? categories.find((c) => c.id === selectedCategory)?.name ?? 'Tribunes'
+                  : 'Rejoindre une tribune'}
+              </h2>
+              {!selectedCategory && (
+                <p className="text-xs text-gray-500">Hockey, Baseball, Football et plein d&apos;autres affaires</p>
+              )}
+            </div>
           </div>
           <button
             onClick={onClose}
