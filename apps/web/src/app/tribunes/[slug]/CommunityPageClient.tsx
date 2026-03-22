@@ -143,11 +143,16 @@ export function CommunityPageClient({
       <div
         className="flex shrink-0 items-center justify-between bg-gray-100 px-4 py-2"
       >
-        <div className="flex items-center gap-3">
-          <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
-            &larr; <span className="hidden sm:inline">Tribunes</span>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 rounded-lg bg-brand-blue px-2.5 py-1.5 text-xs font-medium text-white transition hover:bg-brand-blue-dark sm:px-3"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+            <span className="hidden sm:inline">Tribunes</span>
           </Link>
-          <span className="text-gray-300">|</span>
           <span className="font-semibold text-gray-900">{community.name}</span>
           <span className="hidden text-sm text-gray-500 sm:inline">
             {memberCount} membre{memberCount !== 1 ? 's' : ''}
