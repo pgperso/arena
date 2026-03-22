@@ -17,6 +17,7 @@ import dynamic from 'next/dynamic';
 import { OnlineMembers } from '@/components/chat/OnlineMembers';
 import { AdInFeed } from '@/components/ads/AdInFeed';
 import { FEED_AD_INTERVAL } from '@arena/shared';
+import { CommunityContentTab } from './CommunityContentTab';
 import Link from 'next/link';
 
 const ArticleEditor = dynamic(() => import('@/components/article/ArticleEditor').then((m) => m.ArticleEditor), { ssr: false });
@@ -71,6 +72,7 @@ export function FeedContainer({
   const [showArticleList, setShowArticleList] = useState(false);
   const [showPodcastEditor, setShowPodcastEditor] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [activeTab, setActiveTab] = useState<'chat' | 'content'>('chat');
 
   // Reply state
   const [replyTarget, setReplyTarget] = useState<FeedMessageType | null>(null);
@@ -236,6 +238,34 @@ export function FeedContainer({
           </div>
         </div>
 
+        {/* Tab bar: Chat / Contenu */}
+        <div className="flex shrink-0 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab('chat')}
+            className={`flex-1 px-4 py-2 text-center text-sm font-medium transition ${
+              activeTab === 'chat'
+                ? 'border-b-2 border-brand-blue text-brand-blue'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Chat
+          </button>
+          <button
+            onClick={() => setActiveTab('content')}
+            className={`flex-1 px-4 py-2 text-center text-sm font-medium transition ${
+              activeTab === 'content'
+                ? 'border-b-2 border-brand-blue text-brand-blue'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Contenu
+          </button>
+        </div>
+
+        {activeTab === 'content' ? (
+          <CommunityContentTab communityId={communityId} communitySlug={communitySlug} />
+        ) : (
+        <>
         {/* Live banner — small notification, click to scroll to the live card */}
         {activeLive && (
           <button
@@ -380,6 +410,8 @@ export function FeedContainer({
               pour participer.
             </p>
           </div>
+        )}
+        </>
         )}
       </div>
 
