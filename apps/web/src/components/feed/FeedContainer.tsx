@@ -95,6 +95,10 @@ export function FeedContainer({
     estimateSize: (index) => {
       const item = items[index];
       let size = item.feedType === 'article' ? 220 : item.feedType === 'podcast' ? 160 : 72;
+      if (item.feedType === 'message' && item.imageUrls.length > 0) {
+        const imgCount = item.imageUrls.length;
+        size += imgCount === 1 ? 300 : imgCount === 2 ? 200 : 260;
+      }
       if (index > 0 && isGroupedMessage(item, items[index - 1])) size = 48;
       if ((index + 1) % FEED_AD_INTERVAL === 0) size += 250;
       return size;
