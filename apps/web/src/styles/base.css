@@ -1,27 +1,56 @@
-body {
-  background: var(--color-gray-50);
-  color: var(--color-gray-900);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* All base styles must be in @layer base so that Tailwind utility classes
+   (which live in @layer utilities) can override them. Without this,
+   unlayered CSS beats all layered CSS in the Cascade Layers spec,
+   making it impossible for Tailwind classes to override these rules. */
+@layer base {
+  body {
+    background: var(--color-gray-50);
+    color: var(--color-gray-900);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Pointer cursor on all interactive elements */
+  button,
+  [role="button"],
+  a,
+  select,
+  summary,
+  input[type="submit"],
+  input[type="button"],
+  input[type="reset"],
+  input[type="checkbox"],
+  input[type="radio"],
+  label[for] {
+    cursor: pointer;
+  }
+
+  /* Propagate height through Next.js App Router wrapper for pages
+     that use height:100% (login, register, vestiaire). Tribune pages
+     override this with explicit dvh height via Tailwind utility. */
+  main > * {
+    height: 100%;
+  }
+
+  /* Reply connector — curved L-shape from reply context down to avatar */
+  .reply-connector {
+    position: absolute;
+    left: 32px;
+    width: 28px;
+    height: 10px;
+    border-left: 2px solid var(--color-gray-300);
+    border-top: 2px solid var(--color-gray-300);
+    border-top-left-radius: 6px;
+  }
+
+  /* Scroll-to-message highlight flash */
+  .message-highlight {
+    animation: message-flash 1.5s ease-out;
+  }
 }
 
-/* Pointer cursor on all interactive elements */
-button,
-[role="button"],
-a,
-select,
-summary,
-input[type="submit"],
-input[type="button"],
-input[type="reset"],
-input[type="checkbox"],
-input[type="radio"],
-label[for] {
-  cursor: pointer;
-}
-
-/* Reaction animations */
+/* Animations — keyframes must be outside @layer for browser compat */
 @keyframes reaction-pop {
   0% { transform: scale(1); }
   35% { transform: scale(1.4); }
@@ -45,35 +74,12 @@ label[for] {
   animation: reaction-shake 0.4s ease-out;
 }
 
-/* Trending fade-in */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Reply connector — curved L-shape from reply context down to avatar */
-.reply-connector {
-  position: absolute;
-  left: 32px;
-  width: 28px;
-  height: 10px;
-  border-left: 2px solid var(--color-gray-300);
-  border-top: 2px solid var(--color-gray-300);
-  border-top-left-radius: 6px;
-}
-
-/* Scroll-to-message highlight flash */
-.message-highlight {
-  animation: message-flash 1.5s ease-out;
-}
-
 @keyframes message-flash {
   0%, 15% { background-color: color-mix(in srgb, var(--color-brand-blue) 12%, transparent); }
   100% { background-color: transparent; }
-}
-
-/* Propagate height through Next.js App Router for pages that need it
-   (login, register, vestiaire). Tribune pages use explicit dvh height. */
-main > * {
-  height: 100%;
 }
