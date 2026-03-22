@@ -16,7 +16,6 @@ import { FeedReplyBar } from './FeedReplyBar';
 import dynamic from 'next/dynamic';
 import { OnlineMembers } from '@/components/chat/OnlineMembers';
 import { AdInFeed } from '@/components/ads/AdInFeed';
-import { FeedLivePlayer } from './FeedLivePlayer';
 import { FEED_AD_INTERVAL } from '@arena/shared';
 import Link from 'next/link';
 
@@ -237,11 +236,21 @@ export function FeedContainer({
           </div>
         </div>
 
-        {/* Sticky live player — stays visible above the chat */}
+        {/* Live banner — small notification, click to scroll to the live card */}
         {activeLive && (
-          <div className="shrink-0 border-b border-gray-200">
-            <FeedLivePlayer videoId={activeLive.youtubeVideoId} isLive />
-          </div>
+          <button
+            onClick={() => {
+              const idx = displayItems.findIndex(
+                (d) => d.kind === 'feed' && d.item.feedType === 'podcast' && d.item.id === activeLive.id,
+              );
+              if (idx !== -1) virtuosoRef.current?.scrollToIndex({ index: idx, align: 'start', behavior: 'smooth' });
+            }}
+            className="flex w-full shrink-0 items-center gap-2 border-b border-red-100 bg-red-50 px-4 py-2 text-left text-sm transition hover:bg-red-100"
+          >
+            <span className="flex h-2 w-2 animate-pulse rounded-full bg-red-500" />
+            <span className="font-semibold text-red-700">EN DIRECT</span>
+            <span className="truncate text-red-600">{activeLive.title}</span>
+          </button>
         )}
 
         {/* Feed items — react-virtuoso handles measurement, scroll, and positioning */}

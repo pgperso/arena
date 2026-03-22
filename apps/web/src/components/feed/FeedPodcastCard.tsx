@@ -58,6 +58,13 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
     setProgress(0);
   }
 
+  async function handleEndLive() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- is_live requires migration 00026
+    await (supabase.from('podcasts') as any).update({ is_live: false }).eq('id', podcast.id);
+    // Force reload to update the feed
+    window.location.reload();
+  }
+
   async function handleRemoveFromFeed() {
     await supabase
       .from('podcasts')
@@ -108,7 +115,15 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
           {isOwn && podcast.likeCount > 0 && (
             <span className="px-2 py-1 text-xs text-gray-300">{podcast.likeCount} ♥</span>
           )}
-          {canRemove && (
+          {canRemove && podcast.isLive && (
+            <button
+              onClick={handleEndLive}
+              className="ml-auto rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-red-700"
+            >
+              Terminer le direct
+            </button>
+          )}
+          {canRemove && !podcast.isLive && (
             <button
               onClick={handleRemoveFromFeed}
               className="ml-auto rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
