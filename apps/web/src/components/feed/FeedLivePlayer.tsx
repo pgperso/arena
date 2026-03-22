@@ -7,7 +7,7 @@ interface FeedLivePlayerProps {
 
 export function FeedLivePlayer({ videoId, isLive }: FeedLivePlayerProps) {
   return (
-    <div className="relative overflow-hidden rounded-xl">
+    <div className="relative mx-auto w-full max-w-[640px] overflow-hidden rounded-xl">
       {/* Badge */}
       <div className="absolute left-3 top-3 z-10">
         {isLive ? (
@@ -22,8 +22,8 @@ export function FeedLivePlayer({ videoId, isLive }: FeedLivePlayerProps) {
         )}
       </div>
 
-      {/* YouTube iframe — responsive 16:9 */}
-      <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+      {/* YouTube iframe — responsive 16:9, max 360px height */}
+      <div className="relative w-full max-h-[360px]" style={{ paddingBottom: '56.25%' }}>
         <iframe
           className="absolute inset-0 h-full w-full"
           src={`https://www.youtube.com/embed/${videoId}?autoplay=${isLive ? 1 : 0}&rel=0&modestbranding=1`}
