@@ -72,14 +72,8 @@ label[for] {
   100% { background-color: transparent; }
 }
 
-/* Propagate flex layout through Next.js App Router wrapper divs.
-   Next.js generates one wrapper div per route segment (e.g. /tribunes/[slug]
-   creates 2 levels). We must target ALL levels, not just the first. */
-main > *,
-main > * > *,
-main > * > * > * {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
+/* Propagate height through Next.js App Router for pages that need it
+   (login, register, vestiaire). Tribune pages use explicit dvh height. */
+main > * {
+  height: 100%;
 }
