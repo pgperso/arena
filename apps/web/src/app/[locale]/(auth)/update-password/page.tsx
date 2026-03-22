@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
 import { Footer } from '@/components/layout/Footer';
 
 export default function UpdatePasswordPage() {
+  const t = useTranslations('auth');
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -18,12 +20,12 @@ export default function UpdatePasswordPage() {
     setError('');
 
     if (password.length < 8) {
-      setError('Le mot de passe doit contenir au moins 8 caractères.');
+      setError(t('passwordTooShort'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas.');
+      setError(t('passwordMismatch'));
       return;
     }
 
@@ -49,17 +51,17 @@ export default function UpdatePasswordPage() {
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold text-gray-900">
-              Nouveau mot de passe
+              {t('newPassword')}
             </h1>
             <p className="mt-2 text-sm text-gray-500">
-              Choisissez un nouveau mot de passe pour votre compte
+              {t('newPasswordSubtitle')}
             </p>
           </div>
 
           {success ? (
             <div className="rounded-lg bg-green-50 p-4 text-center text-sm text-green-700">
-              <p className="font-medium">Mot de passe mis à jour !</p>
-              <p className="mt-1">Redirection en cours...</p>
+              <p className="font-medium">{t('passwordUpdated')}</p>
+              <p className="mt-1">{t('redirecting')}</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -70,7 +72,7 @@ export default function UpdatePasswordPage() {
               )}
               <div>
                 <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
-                  Nouveau mot de passe
+                  {t('newPassword')}
                 </label>
                 <input
                   id="password"
@@ -80,12 +82,12 @@ export default function UpdatePasswordPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-                  placeholder="Minimum 8 caractères"
+                  placeholder={t('minChars')}
                 />
               </div>
               <div>
                 <label htmlFor="confirm" className="mb-1 block text-sm font-medium text-gray-700">
-                  Confirmer le mot de passe
+                  {t('confirmPassword')}
                 </label>
                 <input
                   id="confirm"
@@ -95,7 +97,7 @@ export default function UpdatePasswordPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-                  placeholder="Retapez votre mot de passe"
+                  placeholder={t('retypePassword')}
                 />
               </div>
               <button
@@ -103,7 +105,7 @@ export default function UpdatePasswordPage() {
                 disabled={loading}
                 className="w-full rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
               >
-                {loading ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}
+                {loading ? t('updating') : t('updatePassword')}
               </button>
             </form>
           )}

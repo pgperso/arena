@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslations } from 'next-intl';
 import { Shield } from 'lucide-react';
 import { useSupabase } from '@/hooks/useSupabase';
 import { assignRole, removeRole } from '@/services/moderationService';
@@ -19,10 +20,7 @@ interface UserPopoverProps {
   onRoleChanged?: (memberId: string, newRole: string | null) => void;
 }
 
-const ASSIGNABLE_ROLES = [
-  { code: 'owner', label: 'Propriétaire', desc: 'Toutes tribunes' },
-  { code: 'admin', label: 'Arbitre', desc: 'Cette tribune' },
-] as const;
+const ASSIGNABLE_ROLE_CODES = ['owner', 'admin'] as const;
 
 export function UserPopover({
   memberId,
@@ -36,6 +34,7 @@ export function UserPopover({
 }: UserPopoverProps) {
   const supabase = useSupabase();
   const popoverRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeRole, setActiveRole] = useState(currentRole ?? null);
@@ -66,26 +65,26 @@ export function UserPopover({
       roleCode,
     });
     if (err) {
-      setError(typeof err === 'object' && 'message' in err ? err.message : 'Erreur');
+      setError(typeof err === 'object' && 'message' in err ? err.message : t('common.error'));
     } else {
       setActiveRole(roleCode);
       onRoleChanged?.(memberId, roleCode);
     }
     setSaving(false);
-  }, [supabase, communityId, memberId, onRoleChanged]);
+  }, [supabase, communityId, memberId, onRoleChanged, t]);
 
   const handleRemoveRole = useCallback(async () => {
     setSaving(true);
     setError(null);
     const { error: err } = await removeRole(supabase, { communityId, memberId });
     if (err) {
-      setError('Erreur');
+      setError(t('common.error'));
     } else {
       setActiveRole(null);
       onRoleChanged?.(memberId, null);
     }
     setSaving(false);
-  }, [supabase, communityId, memberId, onRoleChanged]);
+  }, [supabase, communityId, memberId, onRoleChanged, t]);
 
   const top = Math.min(anchorRect.bottom + 8, window.innerHeight - 240);
   const left = Math.max(8, Math.min(anchorRect.left, window.innerWidth - 220));
@@ -110,12 +109,12 @@ export function UserPopover({
 
       {/* Roles */}
       <div className="p-1.5">
-        {ASSIGNABLE_ROLES.map((role) => {
-          const isActive = activeRole === role.code;
+        {ASSIGNABLE_ROLE_CODES.map((code) => {
+          const isActive = activeRole === code;
           return (
             <button
-              key={role.code}
-              onClick={() => handleAssignRole(role.code)}
+              key={code}
+              onClick={() => handleAssignRole(code)}
               disabled={saving || isActive}
               className={`flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left transition ${
                 isActive
@@ -125,9 +124,9 @@ export function UserPopover({
             >
               <div>
                 <span className={`text-sm font-semibold ${isActive ? 'text-brand-blue' : ''}`}>
-                  {role.label}
+                  {t(`roles.${code}`)}
                 </span>
-                <p className="text-[10px] text-gray-400">{role.desc}</p>
+                <p className="text-[10px] text-gray-400">{code === 'owner' ? t('moderation.allTribunes') : t('moderation.thisTribune')}</p>
               </div>
               {isActive && (
                 <div className="h-2 w-2 rounded-full bg-brand-blue" />
@@ -142,7 +141,7 @@ export function UserPopover({
             disabled={saving}
             className="mt-0.5 w-full rounded-md px-3 py-2 text-left text-xs text-gray-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
           >
-            Retirer le rôle
+            {t('moderation.removeRole')}
           </button>
         )}
       </div>

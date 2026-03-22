@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Heart, Annoyed, Flame } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatTime } from '@arena/shared';
@@ -24,6 +25,7 @@ interface TrendingMessagesProps {
 }
 
 export function TrendingMessages({ popular, controversial }: TrendingMessagesProps) {
+  const t = useTranslations('home');
   const allMessages = useMemo(() => [
     ...popular.map((msg) => ({ ...msg, variant: 'popular' as const })),
     ...controversial.map((msg) => ({ ...msg, variant: 'controversial' as const })),
@@ -52,7 +54,7 @@ export function TrendingMessages({ popular, controversial }: TrendingMessagesPro
           <div className="flex items-center gap-2">
             <Flame className="h-4 w-4 text-brand-orange" strokeWidth={2.5} />
             <span className="text-sm font-bold tracking-wide uppercase text-gray-400">
-              En ce moment
+              {t('rightNow')}
             </span>
           </div>
           <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
@@ -60,7 +62,7 @@ export function TrendingMessages({ popular, controversial }: TrendingMessagesPro
               ? 'bg-red-500/20 text-red-400'
               : 'bg-orange-500/20 text-orange-400'
           }`}>
-            {isPopular ? 'Populaire' : 'Controversé'}
+            {isPopular ? t('popular') : t('controversial')}
           </span>
         </div>
 

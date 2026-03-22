@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { formatTime, formatDuration } from '@arena/shared';
 import type { FeedPodcast } from '@arena/shared';
 import { FeedLikeButton } from './FeedLikeButton';
@@ -18,6 +19,8 @@ interface FeedPodcastCardProps {
 }
 
 export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }: FeedPodcastCardProps) {
+  const t = useTranslations('tribune');
+  const tc = useTranslations('common');
   const supabase = useSupabase();
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -95,11 +98,11 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
             <div className="mb-1 flex items-center gap-2">
               {podcast.isLive ? (
                 <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
-                  EN DIRECT
+                  {t('liveNow')}
                 </span>
               ) : (
                 <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">
-                  Replay
+                  {t('replay')}
                 </span>
               )}
               <span className="text-xs text-gray-400">{formatTime(podcast.createdAt)}</span>
@@ -131,7 +134,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
                   onClick={handleEndLive}
                   className="rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-red-700"
                 >
-                  Terminer le direct
+                  {t('endLive')}
                 </button>
               )}
               {!podcast.isLive && (
@@ -139,20 +142,20 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
                   onClick={handleRemoveFromFeed}
                   className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
                 >
-                  Retirer du chat
+                  {tc('remove')}
                 </button>
               )}
               {confirmDelete ? (
                 <span className="flex items-center gap-1.5 text-xs">
-                  <button onClick={handleDelete} className="font-semibold text-red-500 hover:text-red-700">Supprimer</button>
-                  <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600">Annuler</button>
+                  <button onClick={handleDelete} className="font-semibold text-red-500 hover:text-red-700">{tc('delete')}</button>
+                  <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600">{tc('cancel')}</button>
                 </span>
               ) : (
                 <button
                   onClick={() => setConfirmDelete(true)}
                   className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-red-50 hover:text-red-500"
                 >
-                  Supprimer
+                  {tc('delete')}
                 </button>
               )}
             </div>
@@ -212,7 +215,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center gap-2">
               <span className="rounded-full bg-brand-blue/20 px-2 py-0.5 text-xs font-medium text-brand-blue-light">
-                Podcast
+                {t('podcast')}
               </span>
               <span className="text-xs text-gray-500">{formatTime(podcast.createdAt)}</span>
               {podcast.durationSeconds && (
@@ -264,19 +267,19 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
               onClick={handleRemoveFromFeed}
               className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
             >
-              Retirer du chat
+              {tc('remove')}
             </button>
             {confirmDelete ? (
               <span className="flex items-center gap-1.5 text-xs">
-                <button onClick={handleDelete} className="font-semibold text-red-500 hover:text-red-700">Supprimer</button>
-                <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600">Annuler</button>
+                <button onClick={handleDelete} className="font-semibold text-red-500 hover:text-red-700">{tc('delete')}</button>
+                <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600">{tc('cancel')}</button>
               </span>
             ) : (
               <button
                 onClick={() => setConfirmDelete(true)}
                 className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-red-50 hover:text-red-500"
               >
-                Supprimer
+                {tc('delete')}
               </button>
             )}
           </div>

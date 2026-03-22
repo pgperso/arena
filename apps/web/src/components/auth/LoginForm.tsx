@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
 
 export function LoginForm() {
+  const t = useTranslations('auth');
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,7 +43,7 @@ export function LoginForm() {
 
       <div>
         <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
-          Courriel
+          {t('email')}
         </label>
         <input
           id="email"
@@ -50,13 +52,13 @@ export function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
-          placeholder="vous@exemple.com"
+          placeholder={t('emailPlaceholder')}
         />
       </div>
 
       <div>
         <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
-          Mot de passe
+          {t('password')}
         </label>
         <input
           id="password"
@@ -65,7 +67,7 @@ export function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
-          placeholder="Votre mot de passe"
+          placeholder={t('passwordPlaceholder')}
         />
       </div>
 
@@ -74,15 +76,15 @@ export function LoginForm() {
         disabled={loading}
         className="w-full rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {loading ? 'Connexion...' : 'Se connecter'}
+        {loading ? `${t('login')}...` : t('loginAction')}
       </button>
 
       <div className="flex items-center justify-between text-sm">
         <Link href="/reset-password" className="text-brand-blue hover:underline">
-          Mot de passe oublié?
+          {t('forgotPassword')}
         </Link>
         <Link href="/register" className="text-brand-blue hover:underline">
-          Créer un compte
+          {t('createAccount')}
         </Link>
       </div>
     </form>

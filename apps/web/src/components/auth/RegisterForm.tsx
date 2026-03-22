@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
 import { validateUsername, validateEmail, validatePassword } from '@arena/shared';
 
 export function RegisterForm() {
+  const t = useTranslations('auth');
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -70,7 +72,7 @@ export function RegisterForm() {
 
       <div>
         <label htmlFor="username" className="mb-1 block text-sm font-medium text-gray-700">
-          Nom d&apos;utilisateur
+          {t('username')}
         </label>
         <input
           id="username"
@@ -79,13 +81,13 @@ export function RegisterForm() {
           onChange={(e) => setUsername(e.target.value)}
           required
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
-          placeholder="mon_pseudo"
+          placeholder={t('usernamePlaceholder')}
         />
       </div>
 
       <div>
         <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
-          Courriel
+          {t('email')}
         </label>
         <input
           id="email"
@@ -94,13 +96,13 @@ export function RegisterForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
-          placeholder="vous@exemple.com"
+          placeholder={t('emailPlaceholder')}
         />
       </div>
 
       <div>
         <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
-          Mot de passe
+          {t('password')}
         </label>
         <input
           id="password"
@@ -109,7 +111,7 @@ export function RegisterForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
-          placeholder="Minimum 8 caractères"
+          placeholder={t('minChars')}
         />
       </div>
 
@@ -118,13 +120,13 @@ export function RegisterForm() {
         disabled={loading}
         className="w-full rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {loading ? 'Inscription...' : 'Créer mon compte'}
+        {loading ? `${t('register')}...` : t('createAccount')}
       </button>
 
       <p className="text-center text-sm text-gray-500">
-        Déjà inscrit?{' '}
+        {t('hasAccount')}{' '}
         <Link href="/login" className="text-brand-blue hover:underline">
-          Se connecter
+          {t('loginAction')}
         </Link>
       </p>
     </form>

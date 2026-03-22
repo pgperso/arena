@@ -6,13 +6,21 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslations, useLocale } from 'next-intl';
+import { usePathname } from 'next/navigation';
 import { MobileNav } from './MobileNav';
 
 export function Header() {
   const router = useRouter();
   const { user, username, avatarUrl, loading } = useAuth();
+  const t = useTranslations();
+  const locale = useLocale();
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const otherLocale = locale === 'fr' ? 'en' : 'fr';
+  const switchLocalePath = pathname.replace(`/${locale}`, `/${otherLocale}`);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   async function handleLogout() {
@@ -50,8 +58,15 @@ export function Header() {
           <span className="text-xl font-bold text-gray-900">La tribune des fans</span>
         </Link>
 
-        {/* Desktop auth */}
+        {/* Language + Desktop auth */}
         <div className="hidden items-center gap-3 md:flex">
+          <Link
+            href={switchLocalePath}
+            className="rounded-md px-2 py-1 text-xs font-bold text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+          >
+            {otherLocale.toUpperCase()}
+          </Link>
+          <div className="h-4 w-px bg-gray-200" />
           {loading ? (
             <div className="h-8 w-24 animate-pulse rounded-lg bg-gray-200" />
           ) : user ? (
@@ -89,7 +104,7 @@ export function Header() {
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                     </svg>
-                    Vestiaire
+                    {t('vestiaire.title')}
                   </Link>
                   <button
                     onClick={handleLogout}
@@ -98,7 +113,7 @@ export function Header() {
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
                     </svg>
-                    Déconnexion
+                    {t('auth.logout')}
                   </button>
                 </div>
               )}
@@ -109,13 +124,13 @@ export function Header() {
                 href="/login"
                 className="text-sm font-medium text-gray-600 transition hover:text-brand-blue"
               >
-                Connexion
+                {t('auth.login')}
               </Link>
               <Link
                 href="/register"
                 className="rounded-lg bg-brand-blue px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-blue-dark"
               >
-                S&apos;inscrire
+                {t('auth.register')}
               </Link>
             </>
           )}

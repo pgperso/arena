@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Plus, X, SendHorizontal } from 'lucide-react';
 import Image from 'next/image';
 import { CHAT_MAX_MESSAGE_LENGTH, MAX_IMAGES_PER_MESSAGE } from '@arena/shared';
@@ -16,6 +17,8 @@ interface FeedInputProps {
 }
 
 export function FeedInput({ onSend, disabled, placeholder, communityId, userId, autoFocus }: FeedInputProps) {
+  const t = useTranslations('tribune');
+  const tc = useTranslations('common');
   const [content, setContent] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -92,7 +95,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
               <div key={img.id} className="relative flex-shrink-0">
                 <Image
                   src={img.previewUrl}
-                  alt="Aperçu"
+                  alt={t('preview')}
                   width={80}
                   height={80}
                   className="h-16 w-16 rounded-lg object-cover"
@@ -111,7 +114,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
                 onClick={() => fileInputRef.current?.click()}
                 disabled={disabled}
                 className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-400 transition hover:border-gray-400 hover:text-gray-500 disabled:opacity-50"
-                title="Ajouter plus d'images"
+                title={t('addMoreImages')}
               >
                 <Plus className="h-5 w-5" strokeWidth={2} />
               </button>
@@ -126,7 +129,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || !canAddMoreImages}
             className="flex h-10 w-10 shrink-0 items-center justify-center text-gray-400 transition hover:text-gray-600 disabled:opacity-50"
-            title="Ajouter des images"
+            title={t('addImages')}
           >
             <Plus className="h-5 w-5" strokeWidth={2} />
           </button>
@@ -138,7 +141,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
             onChange={handleInput}
             onKeyDown={handleKeyDown}
             disabled={disabled || uploading}
-            placeholder={uploading ? 'Envoi des images...' : (placeholder ?? 'Écrire un message...')}
+            placeholder={uploading ? t('uploadingImages') : (placeholder ?? t('writeMessage'))}
             rows={1}
             className="flex-1 resize-none bg-transparent px-1 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none disabled:text-gray-400"
           />
@@ -149,7 +152,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
               onClick={handleSend}
               disabled={disabled || (!content.trim() && images.length === 0)}
               className="flex h-10 w-10 shrink-0 items-center justify-center text-brand-blue transition hover:text-brand-blue-dark disabled:text-gray-300 md:hidden"
-              title="Envoyer"
+              title={tc('send')}
             >
               <SendHorizontal className="h-5 w-5" strokeWidth={2} />
             </button>

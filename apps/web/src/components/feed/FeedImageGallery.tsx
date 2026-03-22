@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 
 interface FeedImageGalleryProps {
@@ -8,6 +9,8 @@ interface FeedImageGalleryProps {
 }
 
 export const FeedImageGallery = memo(function FeedImageGallery({ imageUrls }: FeedImageGalleryProps) {
+  const t = useTranslations('tribune');
+  const tc = useTranslations('common');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const count = imageUrls.length;
 
@@ -20,7 +23,7 @@ export const FeedImageGallery = memo(function FeedImageGallery({ imageUrls }: Fe
           <button
             onClick={() => setLightboxIndex(0)}
             className="block w-full overflow-hidden rounded-xl"
-            aria-label="Voir l'image en plein écran"
+            aria-label={t('viewImageFullscreen')}
           >
             <Image
               src={imageUrls[0]}
@@ -40,7 +43,7 @@ export const FeedImageGallery = memo(function FeedImageGallery({ imageUrls }: Fe
                 key={url}
                 onClick={() => setLightboxIndex(i)}
                 className="block overflow-hidden"
-                aria-label={`Voir l'image ${i + 1} en plein écran`}
+                aria-label={t('viewImageNFullscreen', { n: i + 1 })}
               >
                 <Image
                   src={url}
@@ -61,7 +64,7 @@ export const FeedImageGallery = memo(function FeedImageGallery({ imageUrls }: Fe
                 key={url}
                 onClick={() => setLightboxIndex(i)}
                 className={`block overflow-hidden ${i === 0 && count === 3 ? 'row-span-2' : ''}`}
-                aria-label={`Voir l'image ${i + 1} en plein écran`}
+                aria-label={t('viewImageNFullscreen', { n: i + 1 })}
               >
                 <Image
                   src={url}
@@ -89,12 +92,12 @@ export const FeedImageGallery = memo(function FeedImageGallery({ imageUrls }: Fe
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
           onClick={() => setLightboxIndex(null)}
           role="dialog"
-          aria-label="Visionneuse d'images"
+          aria-label={t('imageViewer')}
         >
           <button
             onClick={() => setLightboxIndex(null)}
             className="absolute right-4 top-4 text-2xl text-white hover:text-gray-300"
-            aria-label="Fermer"
+            aria-label={tc('close')}
           >
             &times;
           </button>
@@ -102,7 +105,7 @@ export const FeedImageGallery = memo(function FeedImageGallery({ imageUrls }: Fe
             <button
               onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1); }}
               className="absolute left-4 text-3xl text-white hover:text-gray-300"
-              aria-label="Image précédente"
+              aria-label={t('previousImage')}
             >
               &lsaquo;
             </button>
@@ -111,7 +114,7 @@ export const FeedImageGallery = memo(function FeedImageGallery({ imageUrls }: Fe
             <button
               onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1); }}
               className="absolute right-4 text-3xl text-white hover:text-gray-300"
-              aria-label="Image suivante"
+              aria-label={t('nextImage')}
             >
               &rsaquo;
             </button>

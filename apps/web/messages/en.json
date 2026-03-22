@@ -61,7 +61,8 @@
     "myTribunes": "My tribunes",
     "noTribunes": "No tribunes available at the moment.",
     "popular": "Popular",
-    "controversial": "Controversial"
+    "controversial": "Controversial",
+    "rightNow": "Right now"
   },
   "tribune": {
     "online": "{count} online",
@@ -109,7 +110,9 @@
     "leave": "Leave",
     "leaveTitle": "Leave {name}?",
     "leaveMessage": "You won't have access to this tribune until you rejoin. Message history will remain available if you come back.",
-    "backToTribunes": "Tribunes"
+    "backToTribunes": "Tribunes",
+    "joinToAccess": "Join this tribune to access the content.",
+    "allJoinedMessage": "You've already joined all tribunes in this category."
   },
   "content": {
     "all": "All",
@@ -146,7 +149,12 @@
     "titleRequired": "Title is required",
     "youtubeRequired": "YouTube ID or URL is required",
     "audioRequired": "Audio URL is required",
-    "newArticle": "Write an article"
+    "newArticle": "Write an article",
+    "type": "Type",
+    "youtubeUrlPlaceholder": "https://youtube.com/watch?v=... or video ID",
+    "youtubeExampleId": "e.g.: dQw4w9WgXcQ",
+    "preview": "Preview",
+    "coverAlt": "Cover"
   },
   "moderation": {
     "title": "Moderation",
@@ -173,6 +181,13 @@
     "restrictionApplied": "Restriction applied to @{username}",
     "restrictionError": "Unable to apply restriction. Please try again.",
     "removeError": "Unable to remove restriction",
+    "invalidType": "Invalid restriction type",
+    "invalidDuration": "Invalid duration",
+    "duration1h": "1 hour",
+    "duration24h": "24 hours",
+    "duration7d": "7 days",
+    "duration30d": "30 days",
+    "reasonPrefix": "Reason:",
     "manageRole": "Manage role",
     "removeRole": "Remove role",
     "allTribunes": "All tribunes",

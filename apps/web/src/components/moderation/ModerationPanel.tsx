@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useSupabase } from '@/hooks/useSupabase';
 import { RESTRICTION_DISPLAY_NAMES } from '@arena/shared';
 import {
@@ -29,6 +30,7 @@ interface ModerationPanelProps {
 
 export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) {
   const supabase = useSupabase();
+  const t = useTranslations('moderation');
   const [activeTab, setActiveTab] = useState<'restrict' | 'active'>('restrict');
   const [restrictions, setRestrictions] = useState<Restriction[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,7 +63,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
         setRestrictions(
           (data as (Restriction & { members: { username: string } | null })[]).map((r) => ({
             ...r,
-            member_username: r.members?.username ?? 'Inconnu',
+            member_username: r.members?.username ?? '?',
           })),
         );
       }
@@ -72,7 +74,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
 
   async function handleSubmit() {
     if (!targetUsername.trim()) {
-      setError("Nom d'utilisateur requis");
+      setError(t('userRequired'));
       return;
     }
 
@@ -84,7 +86,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
     const { data: member } = await findMemberByUsername(supabase, targetUsername.trim());
 
     if (!member) {
-      setError('Utilisateur introuvable');
+      setError(t('userNotFound'));
       setSubmitting(false);
       return;
     }
@@ -95,7 +97,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
     const { data: membership } = await checkCommunityMembership(supabase, communityId, memberId);
 
     if (!membership) {
-      setError("Cet utilisateur n'est pas membre de la tribune");
+      setError(t('notMember'));
       setSubmitting(false);
       return;
     }
@@ -103,7 +105,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
     // Validate restriction type
     const validTypes = ['chat:mute', 'community:ban'];
     if (!validTypes.includes(restrictionType)) {
-      setError('Type de restriction invalide');
+      setError(t('invalidType'));
       setSubmitting(false);
       return;
     }
@@ -111,7 +113,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
     // Calculate end time
     const validDurations = ['1', '24', '168', '720', 'permanent'];
     if (!validDurations.includes(duration)) {
-      setError('Durée invalide');
+      setError(t('invalidDuration'));
       setSubmitting(false);
       return;
     }
@@ -134,9 +136,9 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
 
     if (insertError) {
       console.error('Restriction error:', insertError);
-      setError("Impossible d'appliquer la restriction. Veuillez réessayer.");
+      setError(t('restrictionError'));
     } else {
-      setSuccess(`Restriction appliquée à @${targetUsername}`);
+      setSuccess(t('restrictionApplied', { username: targetUsername }));
       setTargetUsername('');
       setReason('');
     }
@@ -146,7 +148,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
   async function handleRemoveRestriction(restrictionId: number) {
     const { error: removeError } = await removeRestrictionApi(supabase, restrictionId);
     if (removeError) {
-      setError('Impossible de retirer la restriction');
+      setError(t('removeError'));
       return;
     }
     setRestrictions((prev) => prev.filter((r) => r.id !== restrictionId));
@@ -157,7 +159,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
       <div className="mx-4 w-full max-w-lg rounded-2xl bg-white shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">Modération</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('title')}</h2>
           <button
             onClick={onClose}
             className="rounded-full p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
@@ -178,7 +180,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Restreindre
+            {t('restrict')}
           </button>
           <button
             onClick={() => setActiveTab('active')}
@@ -188,7 +190,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Restrictions actives
+            {t('activeRestrictions')}
           </button>
         </div>
 
@@ -204,49 +206,49 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
               )}
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Utilisateur</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">{t('user')}</label>
                 <input
                   type="text"
                   value={targetUsername}
                   onChange={(e) => setTargetUsername(e.target.value)}
-                  placeholder="Nom d'utilisateur"
+                  placeholder={t('userPlaceholder')}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Type de restriction</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">{t('restrictionType')}</label>
                 <select
                   value={restrictionType}
                   onChange={(e) => setRestrictionType(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
                 >
-                  <option value="chat:mute">Muter (chat)</option>
-                  <option value="community:ban">Bannir (tribune)</option>
+                  <option value="chat:mute">{t('muteChatLabel')}</option>
+                  <option value="community:ban">{t('banLabel')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Durée</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">{t('duration')}</label>
                 <select
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
                 >
-                  <option value="1">1 heure</option>
-                  <option value="24">24 heures</option>
-                  <option value="168">7 jours</option>
-                  <option value="720">30 jours</option>
-                  <option value="permanent">Permanent</option>
+                  <option value="1">{t('duration1h')}</option>
+                  <option value="24">{t('duration24h')}</option>
+                  <option value="168">{t('duration7d')}</option>
+                  <option value="720">{t('duration30d')}</option>
+                  <option value="permanent">{t('permanent')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Raison (optionnel)</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">{t('reason')}</label>
                 <textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="Raison de la restriction..."
+                  placeholder={t('reasonPlaceholder')}
                   rows={2}
                   className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
                 />
@@ -257,7 +259,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
                 disabled={submitting}
                 className="w-full rounded-lg bg-red-600 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
               >
-                {submitting ? 'Application...' : 'Appliquer la restriction'}
+                {submitting ? t('applying') : t('apply')}
               </button>
             </div>
           )}
@@ -269,7 +271,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
                   <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-brand-blue border-t-transparent" />
                 </div>
               ) : restrictions.length === 0 ? (
-                <p className="py-8 text-center text-sm text-gray-400">Aucune restriction active</p>
+                <p className="py-8 text-center text-sm text-gray-400">{t('noRestrictions')}</p>
               ) : (
                 <div className="space-y-3">
                   {restrictions.map((r) => {
@@ -292,7 +294,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
                               {RESTRICTION_DISPLAY_NAMES[r.restriction_type] ?? r.restriction_type}
                             </span>
                             {isExpired && (
-                              <span className="ml-1 text-xs text-gray-400">(expirée)</span>
+                              <span className="ml-1 text-xs text-gray-400">({t('expired')})</span>
                             )}
                           </div>
                           {!isExpired && (
@@ -300,17 +302,17 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
                               onClick={() => handleRemoveRestriction(r.id)}
                               className="text-xs text-red-500 hover:text-red-700"
                             >
-                              Retirer
+                              {t('removeRestriction')}
                             </button>
                           )}
                         </div>
                         {r.reason && (
-                          <p className="mt-1 text-xs text-gray-500">Raison: {r.reason}</p>
+                          <p className="mt-1 text-xs text-gray-500">{t('reasonPrefix')} {r.reason}</p>
                         )}
                         <p className="mt-1 text-xs text-gray-400">
                           {r.ends_at
-                            ? `Expire le ${new Date(r.ends_at).toLocaleDateString('fr-FR')}`
-                            : 'Permanent'}
+                            ? t('expiresOn', { date: new Date(r.ends_at).toLocaleDateString() })
+                            : t('permanent')}
                         </p>
                       </div>
                     );

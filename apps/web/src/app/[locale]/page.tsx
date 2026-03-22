@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { setRequestLocale } from 'next-intl/server';
+import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { CommunityGrid } from '@/components/community/CommunityGrid';
 import { TrendingMessages } from '@/components/home/TrendingMessages';
 import { AdBanner } from '@/components/ads/AdBanner';
@@ -12,6 +12,7 @@ type CommunityRow = Database['public']['Tables']['communities']['Row'];
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations('home');
   const supabase = await createClient();
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -73,11 +74,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         {/* Header — fixed height */}
         <div className="shrink-0 pt-8 pb-6 text-center">
           <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
-            Ta tribune, ton équipe,{' '}
-            <span className="text-red-600">ton opinion.</span>
+            {t('title')}{' '}
+            <span className="text-red-600">{t('titleAccent')}</span>
           </h1>
           <p className="text-sm text-gray-600 md:text-base">
-            Du sport, ben du sport et plein d&apos;autres affaires...
+            {t('subtitle')}
           </p>
         </div>
 

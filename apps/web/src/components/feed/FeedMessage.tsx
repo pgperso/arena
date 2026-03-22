@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { Trash2, Pencil } from 'lucide-react';
 import { formatTime, getMemberRank } from '@arena/shared';
 import type { FeedMessage as FeedMessageType } from '@arena/shared';
@@ -56,26 +57,27 @@ function MessageToolbar({
   onConfirmDelete: () => void;
   onCancelDelete: () => void;
 }) {
+  const t = useTranslations('common');
   return (
     <div className="absolute -top-3 right-4 z-10 hidden items-center gap-1 rounded-lg bg-red-600 px-1 py-0.5 shadow-md opacity-0 transition group-hover:opacity-100 md:flex">
       {confirmDelete ? (
         <span className="flex items-center gap-2 px-2 py-1 text-xs">
           <button onClick={onConfirmDelete} className="font-bold text-white hover:text-red-200">
-            Supprimer
+            {t('delete')}
           </button>
           <button onClick={onCancelDelete} className="text-red-200 hover:text-white">
-            Annuler
+            {t('cancel')}
           </button>
         </span>
       ) : (
         <>
           {isOwn && (
-            <button onClick={onStartEdit} className="rounded-md p-2 text-white/80 transition hover:bg-red-700 hover:text-white" title="Modifier">
+            <button onClick={onStartEdit} className="rounded-md p-2 text-white/80 transition hover:bg-red-700 hover:text-white" title={t('edit')}>
               <Pencil className="h-4 w-4" strokeWidth={2} />
             </button>
           )}
           {(canModerate || isOwn) && (
-            <button onClick={onDelete} className="rounded-md p-2 text-white/80 transition hover:bg-red-700 hover:text-white" title="Supprimer">
+            <button onClick={onDelete} className="rounded-md p-2 text-white/80 transition hover:bg-red-700 hover:text-white" title={t('delete')}>
               <Trash2 className="h-4 w-4" strokeWidth={2} />
             </button>
           )}
@@ -105,7 +107,8 @@ export const FeedMessage = memo(function FeedMessage({
   onRoleChanged,
   presenceStatus,
 }: FeedMessageProps) {
-  const username = message.member?.username ?? 'Utilisateur supprimé';
+  const t = useTranslations('tribune');
+  const username = message.member?.username ?? t('deletedUser');
   const rank: { label: string; color: string; bg: string } =
     (staffRole ? STAFF_RANK_MAP[staffRole] : undefined) ?? getMemberRank(message.member?.messageCount ?? 0);
   const time = formatTime(message.createdAt);
@@ -130,7 +133,7 @@ export const FeedMessage = memo(function FeedMessage({
   if (message.isRemoved) {
     return (
       <div className="px-4 py-0.5">
-        <p className="text-sm italic text-gray-400">[Message supprimé]</p>
+        <p className="text-sm italic text-gray-400">[{t('deletedMessage')}]</p>
       </div>
     );
   }
@@ -182,7 +185,7 @@ export const FeedMessage = memo(function FeedMessage({
         }}
       />
       <p className="mt-0.5 text-[10px] text-gray-400">
-        Enter pour sauvegarder · Escape pour annuler
+        {t('editSave')}
       </p>
     </div>
   ) : (
@@ -259,7 +262,7 @@ export const FeedMessage = memo(function FeedMessage({
           <div className="reply-connector relative -top-0.5" />
           <div className="ml-8">
             <FeedReplyContext
-              parentUsername={parentMessage.member?.username ?? 'Utilisateur supprimé'}
+              parentUsername={parentMessage.member?.username ?? t('deletedUser')}
               parentAvatarUrl={parentMessage.member?.avatarUrl}
               parentContent={parentMessage.content}
               onClick={onScrollToMessage ? () => onScrollToMessage(parentMessage.id) : undefined}

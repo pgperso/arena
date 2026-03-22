@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useSupabase } from '@/hooks/useSupabase';
 import { formatTime, formatDuration } from '@arena/shared';
 import { Avatar } from '@/components/ui/Avatar';
@@ -41,6 +42,9 @@ interface CommunityContentTabProps {
 type FilterType = 'all' | 'articles' | 'podcasts';
 
 export function CommunityContentTab({ communityId, communitySlug, userId, canModerate }: CommunityContentTabProps) {
+  const t = useTranslations('content');
+  const tt = useTranslations('tribune');
+  const tc = useTranslations('common');
   const supabase = useSupabase();
   const [items, setItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -132,7 +136,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
                 : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
             }`}
           >
-            {f === 'all' ? 'Tout' : f === 'articles' ? 'Articles' : 'Podcasts'}
+            {f === 'all' ? t('all') : f === 'articles' ? t('articles') : t('podcasts')}
           </button>
         ))}
       </div>
@@ -150,7 +154,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
             <svg className="mb-2 h-10 w-10" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
             </svg>
-            <p className="text-sm">Aucun contenu publié</p>
+            <p className="text-sm">{t('noContent')}</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -158,7 +162,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
               <div key={`${item.type}-${item.id}`}>
               {idx > 0 && idx % CONTENT_AD_INTERVAL === 0 && (
                 <div className="border-y border-gray-100 bg-gray-50 px-4 py-3">
-                  <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-gray-400">Sponsorisé</p>
+                  <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-gray-400">{tt('sponsored')}</p>
                   <AdSlot slotId={`content-feed-${idx}`} format="in-feed" className="w-full" />
                 </div>
               )}
@@ -196,6 +200,9 @@ function ContentRow({
   supabase: ReturnType<typeof useSupabase>;
   onRemoved: (id: number, type: 'article' | 'podcast') => void;
 }) {
+  const t = useTranslations('content');
+  const tt = useTranslations('tribune');
+  const tc = useTranslations('common');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const isOwn = userId === item.authorId;
   const canManage = isOwn || canModerate;
@@ -256,7 +263,7 @@ function ContentRow({
               ? 'bg-purple-100 text-purple-700'
               : 'bg-gray-900 text-gray-300'
           }`}>
-            {item.type === 'article' ? 'Article' : 'Podcast'}
+            {item.type === 'article' ? tt('article') : tt('podcast')}
           </span>
           <span className="text-[10px] text-gray-400">{formatTime(item.publishedAt)}</span>
           {item.durationSeconds && (
@@ -273,7 +280,7 @@ function ContentRow({
             <span className="text-xs text-gray-400">{item.likeCount} ♥</span>
           )}
           {item.viewCount && item.viewCount > 0 && (
-            <span className="text-xs text-gray-400">{item.viewCount} vues</span>
+            <span className="text-xs text-gray-400">{t('views', { count: item.viewCount })}</span>
           )}
         </div>
       </div>
@@ -283,22 +290,22 @@ function ContentRow({
         <div className="flex shrink-0 items-center gap-1">
           {confirmDelete ? (
             <span className="flex items-center gap-1.5 text-xs">
-              <button onClick={handleDelete} className="font-semibold text-red-500 hover:text-red-700">Confirmer</button>
-              <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600">Annuler</button>
+              <button onClick={handleDelete} className="font-semibold text-red-500 hover:text-red-700">{tc('confirm')}</button>
+              <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600">{tc('cancel')}</button>
             </span>
           ) : (
             <>
               <button
                 onClick={handleHideFromFeed}
                 className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-                title="Retirer du chat"
+                title={t('removeFromFeed')}
               >
                 <EyeOff className="h-4 w-4" strokeWidth={1.5} />
               </button>
               <button
                 onClick={() => setConfirmDelete(true)}
                 className="rounded-lg p-2 text-gray-400 transition hover:bg-red-50 hover:text-red-500"
-                title="Supprimer définitivement"
+                title={t('deleteForever')}
               >
                 <Trash2 className="h-4 w-4" strokeWidth={1.5} />
               </button>

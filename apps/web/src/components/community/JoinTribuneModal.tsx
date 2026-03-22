@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useSupabase } from '@/hooks/useSupabase';
 import { Avatar } from '@/components/ui/Avatar';
 import Image from 'next/image';
@@ -19,6 +20,7 @@ interface JoinTribuneModalProps {
 export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTribuneModalProps) {
   const supabase = useSupabase();
   const router = useRouter();
+  const t = useTranslations();
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [communities, setCommunities] = useState<CommunityRow[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -75,11 +77,11 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
                 {selectedCategory
-                  ? categories.find((c) => c.id === selectedCategory)?.name ?? 'Tribunes'
-                  : 'Rejoindre une tribune'}
+                  ? categories.find((c) => c.id === selectedCategory)?.name ?? t('community.backToTribunes')
+                  : t('community.joinTitle')}
               </h2>
               {!selectedCategory && (
-                <p className="text-xs text-gray-500">Hockey, Baseball, Football et plein d&apos;autres affaires</p>
+                <p className="text-xs text-gray-500">{t('community.joinSubtitle')}</p>
               )}
             </div>
           </div>
@@ -118,10 +120,10 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                       <span className="text-base font-bold text-gray-900">{cat.name}</span>
                       <p className="text-xs text-gray-500">
                         {totalInCategory === 0
-                          ? 'Bientôt disponible'
+                          ? t('community.comingSoon')
                           : availableCount > 0
-                            ? `${availableCount} tribune${availableCount > 1 ? 's' : ''} disponible${availableCount > 1 ? 's' : ''}`
-                            : 'Toutes rejointes'}
+                            ? t('community.available', { count: availableCount })
+                            : t('community.allJoined')}
                       </p>
                     </div>
                     <svg className="h-5 w-5 text-brand-blue" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -136,7 +138,7 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
             <div className="space-y-2">
               {filteredCommunities.length === 0 ? (
                 <p className="py-8 text-center text-sm text-gray-400">
-                  Tu as déjà rejoint toutes les tribunes de cette catégorie.
+                  {t('community.allJoinedMessage')}
                 </p>
               ) : (
                 filteredCommunities.map((com) => (
@@ -160,10 +162,10 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                       {com.description && (
                         <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">{com.description}</p>
                       )}
-                      <p className="mt-0.5 text-xs text-gray-400">{com.member_count} membre{com.member_count !== 1 ? 's' : ''}</p>
+                      <p className="mt-0.5 text-xs text-gray-400">{t('common.members', { count: com.member_count })}</p>
                     </div>
                     <span className="rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-medium text-white">
-                      Rejoindre
+                      {t('community.join')}
                     </span>
                   </button>
                 ))

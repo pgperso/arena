@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
 import { Footer } from '@/components/layout/Footer';
 
 export default function ResetPasswordPage() {
+  const t = useTranslations('auth');
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
@@ -35,25 +37,24 @@ export default function ResetPasswordPage() {
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold text-gray-900">
-              Réinitialiser le mot de passe
+              {t('resetPassword')}
             </h1>
             <p className="mt-2 text-sm text-gray-500">
-              Entrez votre courriel pour recevoir un lien de réinitialisation
+              {t('resetSubtitle')}
             </p>
           </div>
 
           {sent ? (
             <div className="rounded-lg bg-green-50 p-4 text-center text-sm text-green-700">
-              <p className="font-medium">Courriel envoyé !</p>
+              <p className="font-medium">{t('resetSent')}</p>
               <p className="mt-1">
-                Vérifiez votre boîte de réception pour le lien de
-                réinitialisation.
+                {t('resetSentDetail')}
               </p>
               <Link
                 href="/login"
                 className="mt-4 inline-block text-brand-blue hover:underline"
               >
-                Retour à la connexion
+                {t('backToLogin')}
               </Link>
             </div>
           ) : (
@@ -68,7 +69,7 @@ export default function ResetPasswordPage() {
                   htmlFor="email"
                   className="mb-1 block text-sm font-medium text-gray-700"
                 >
-                  Courriel
+                  {t('email')}
                 </label>
                 <input
                   id="email"
@@ -77,7 +78,7 @@ export default function ResetPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-                  placeholder="votre@courriel.com"
+                  placeholder={t('emailPlaceholder')}
                 />
               </div>
               <button
@@ -85,14 +86,14 @@ export default function ResetPasswordPage() {
                 disabled={loading}
                 className="w-full rounded-lg bg-brand-blue px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
               >
-                {loading ? 'Envoi...' : 'Envoyer le lien'}
+                {loading ? t('sending') : t('sendLink')}
               </button>
               <p className="text-center text-sm text-gray-500">
                 <Link
                   href="/login"
                   className="text-brand-blue hover:underline"
                 >
-                  Retour à la connexion
+                  {t('backToLogin')}
                 </Link>
               </p>
             </form>

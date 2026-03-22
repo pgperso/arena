@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import type { PresenceMember } from '@/hooks/usePresence';
 import { Avatar } from '@/components/ui/Avatar';
 import { StatusDot } from '@/components/ui/StatusDot';
@@ -9,6 +10,7 @@ interface OnlineMembersProps {
 }
 
 export function OnlineMembers({ members }: OnlineMembersProps) {
+  const t = useTranslations('tribune');
   // Sort: online first, then idle
   const sorted = [...members].sort((a, b) => {
     if (a.status === 'online' && b.status === 'idle') return -1;
@@ -20,13 +22,13 @@ export function OnlineMembers({ members }: OnlineMembersProps) {
     <div className="flex flex-col">
       <div className="border-b border-gray-200 px-4 py-3">
         <h3 className="text-sm font-semibold text-gray-900">
-          En ligne{' '}
+          {t('membersOnline')}{' '}
           <span className="text-gray-400">({members.length})</span>
         </h3>
       </div>
       <div className="flex-1 overflow-y-auto p-3">
         {members.length === 0 ? (
-          <p className="text-center text-xs text-gray-400">Aucun membre en ligne</p>
+          <p className="text-center text-xs text-gray-400">{t('noMembersOnline')}</p>
         ) : (
           <ul className="space-y-1">
             {sorted.map((member) => (

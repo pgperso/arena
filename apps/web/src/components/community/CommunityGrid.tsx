@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { CommunityCard } from './CommunityCard';
@@ -22,6 +23,7 @@ interface CommunityGridProps {
 
 export function CommunityGrid({ communities }: CommunityGridProps) {
   const { user } = useAuth();
+  const t = useTranslations('home');
   const [joinedIds, setJoinedIds] = useState<Set<number>>(new Set());
   const [showJoinModal, setShowJoinModal] = useState(false);
 
@@ -65,7 +67,7 @@ export function CommunityGrid({ communities }: CommunityGridProps) {
       {/* Mes tribunes */}
       {joined.length > 0 && (
         <div className="mb-8">
-          <h2 className="mb-4 text-lg font-bold text-gray-900">Mes tribunes</h2>
+          <h2 className="mb-4 text-lg font-bold text-gray-900">{t('myTribunes')}</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {joined.map((community) => (
               <CommunityCard
@@ -90,7 +92,7 @@ export function CommunityGrid({ communities }: CommunityGridProps) {
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          Rejoindre une tribune
+          {t('joinTribune')}
         </button>
       </div>
 

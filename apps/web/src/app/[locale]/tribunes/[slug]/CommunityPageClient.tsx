@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { FeedContainer } from '@/components/feed/FeedContainer';
 import { AdSidebar } from '@/components/ads/AdSidebar';
 import { AdAnchor } from '@/components/ads/AdAnchor';
@@ -33,6 +34,7 @@ export function CommunityPageClient({
 }: CommunityPageClientProps) {
   const router = useRouter();
   const supabase = useSupabase();
+  const t = useTranslations();
   const [isMember, setIsMember] = useState(initialIsMember);
   const [joining, setJoining] = useState(false);
   const [memberCount, setMemberCount] = useState(community.member_count);
@@ -87,7 +89,7 @@ export function CommunityPageClient({
                 <p className="text-sm text-gray-500">{community.description}</p>
               )}
               <p className="text-sm text-gray-600">
-                {memberCount} membre{memberCount !== 1 ? 's' : ''}
+                {t('common.members', { count: memberCount })}
               </p>
             </div>
 
@@ -98,7 +100,7 @@ export function CommunityPageClient({
                   disabled={joining}
                   className="w-full rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
                 >
-                  {joining ? 'Chargement de la tribune...' : 'Rejoindre cette tribune'}
+                  {joining ? t('community.joining') : t('community.joinThisTribune')}
                 </button>
                 {joinError && (
                   <p className="mt-2 text-center text-xs text-red-500">{joinError}</p>
@@ -110,13 +112,13 @@ export function CommunityPageClient({
                   href="/login"
                   className="block w-full rounded-lg bg-brand-blue px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-brand-blue-dark"
                 >
-                  Se connecter
+                  {t('auth.loginAction')}
                 </Link>
                 <Link
                   href="/register"
                   className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-center text-sm font-medium text-gray-700 transition hover:border-gray-400"
                 >
-                  Créer un compte
+                  {t('auth.register')}
                 </Link>
               </>
             )}
@@ -124,7 +126,7 @@ export function CommunityPageClient({
               href="/"
               className="mt-3 block w-full text-center text-sm text-gray-400 transition hover:text-gray-600"
             >
-              &larr; Retour aux tribunes
+              &larr; {t('common.back')}
             </Link>
           </div>
         </div>
@@ -142,11 +144,11 @@ export function CommunityPageClient({
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
             </svg>
-            <span className="hidden sm:inline">Tribunes</span>
+            <span className="hidden sm:inline">{t('community.backToTribunes')}</span>
           </Link>
           <span className="font-semibold text-gray-900">{community.name}</span>
           <span className="hidden text-sm text-gray-500 sm:inline">
-            {memberCount} membre{memberCount !== 1 ? 's' : ''}
+            {t('common.members', { count: memberCount })}
           </span>
         </div>
 
@@ -157,8 +159,8 @@ export function CommunityPageClient({
                 onClick={() => setShowLeaveConfirm(true)}
                 className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-red-300 hover:text-red-600"
               >
-                <span className="sm:hidden">Quitter</span>
-                <span className="hidden sm:inline">Quitter la tribune</span>
+                <span className="sm:hidden">{t('community.leave')}</span>
+                <span className="hidden sm:inline">{t('community.leaveTribune')}</span>
               </button>
             ) : (
               <button
@@ -166,7 +168,7 @@ export function CommunityPageClient({
                 disabled={joining}
                 className="rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
               >
-                {joining ? 'En cours...' : 'Rejoindre'}
+                {joining ? t('common.loading') : t('community.join')}
               </button>
             )
           )}
@@ -177,22 +179,22 @@ export function CommunityPageClient({
       {showLeaveConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-2 text-base font-bold text-gray-900">Quitter {community.name} ?</h3>
+            <h3 className="mb-2 text-base font-bold text-gray-900">{t('community.leaveTitle', { name: community.name })}</h3>
             <p className="mb-5 text-sm text-gray-500">
-              Tu n&apos;auras plus accès à cette tribune tant que tu ne la rejoindras pas de nouveau. L&apos;historique des messages restera disponible si tu reviens.
+              {t('community.leaveMessage')}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowLeaveConfirm(false)}
                 className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
               >
-                Annuler
+                {t('common.cancel')}
               </button>
               <button
                 onClick={() => { setShowLeaveConfirm(false); handleLeave(); }}
                 className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700"
               >
-                Quitter
+                {t('community.leave')}
               </button>
             </div>
           </div>
@@ -229,7 +231,7 @@ export function CommunityPageClient({
       ) : (
         <div className="flex flex-1 items-center justify-center border-t border-gray-200 bg-gray-50">
           <p className="text-sm text-gray-400">
-            Rejoignez cette tribune pour accéder au contenu.
+            {t('community.joinToAccess')}
           </p>
         </div>
       )}

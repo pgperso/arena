@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { X } from 'lucide-react';
 
 interface FeedReplyBarProps {
@@ -9,11 +10,12 @@ interface FeedReplyBarProps {
 }
 
 export function FeedReplyBar({ username, preview, onCancel }: FeedReplyBarProps) {
+  const t = useTranslations('tribune');
   return (
     <div className="flex shrink-0 items-center gap-2 border-l-2 border-brand-blue bg-gray-100 px-4 py-2">
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs text-gray-500">
-          Répondre à <strong className="font-semibold text-gray-700">@{username}</strong>
+          {t('replyToLabel')} <strong className="font-semibold text-gray-700">@{username}</strong>
           {preview && (
             <span className="ml-1.5 text-gray-400">— {preview}</span>
           )}

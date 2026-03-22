@@ -61,7 +61,8 @@
     "myTribunes": "Mes tribunes",
     "noTribunes": "Aucune tribune disponible pour le moment.",
     "popular": "Populaire",
-    "controversial": "Controversé"
+    "controversial": "Controversé",
+    "rightNow": "En ce moment"
   },
   "tribune": {
     "online": "{count} en ligne",
@@ -94,7 +95,13 @@
     "liveNow": "EN DIRECT",
     "replay": "Replay",
     "endLive": "Terminer le direct",
-    "sponsored": "Sponsorisé"
+    "sponsored": "Sponsorisé",
+    "replyToLabel": "Répondre à",
+    "viewImageFullscreen": "Voir l'image en plein écran",
+    "viewImageNFullscreen": "Voir l'image {n} en plein écran",
+    "imageViewer": "Visionneuse d'images",
+    "previousImage": "Image précédente",
+    "nextImage": "Image suivante"
   },
   "community": {
     "joinTitle": "Rejoindre une tribune",
@@ -109,7 +116,9 @@
     "leave": "Quitter",
     "leaveTitle": "Quitter {name} ?",
     "leaveMessage": "Tu n'auras plus accès à cette tribune tant que tu ne la rejoindras pas de nouveau. L'historique des messages restera disponible si tu reviens.",
-    "backToTribunes": "Tribunes"
+    "backToTribunes": "Tribunes",
+    "joinToAccess": "Rejoignez cette tribune pour accéder au contenu.",
+    "allJoinedMessage": "Tu as déjà rejoint toutes les tribunes de cette catégorie."
   },
   "content": {
     "all": "Tout",
@@ -146,7 +155,12 @@
     "titleRequired": "Le titre est requis",
     "youtubeRequired": "L'ID ou URL YouTube est requis",
     "audioRequired": "L'URL audio est requise",
-    "newArticle": "Écrire un article"
+    "newArticle": "Écrire un article",
+    "type": "Type",
+    "youtubeUrlPlaceholder": "https://youtube.com/watch?v=... ou ID vidéo",
+    "youtubeExampleId": "ex: dQw4w9WgXcQ",
+    "preview": "Aperçu",
+    "coverAlt": "Couverture"
   },
   "moderation": {
     "title": "Modération",
@@ -173,6 +187,13 @@
     "restrictionApplied": "Restriction appliquée à @{username}",
     "restrictionError": "Impossible d'appliquer la restriction. Veuillez réessayer.",
     "removeError": "Impossible de retirer la restriction",
+    "invalidType": "Type de restriction invalide",
+    "invalidDuration": "Durée invalide",
+    "duration1h": "1 heure",
+    "duration24h": "24 heures",
+    "duration7d": "7 jours",
+    "duration30d": "30 jours",
+    "reasonPrefix": "Raison:",
     "manageRole": "Gérer le rôle",
     "removeRole": "Retirer le rôle",
     "allTribunes": "Toutes tribunes",

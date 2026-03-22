@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { formatTime } from '@arena/shared';
 import type { FeedArticle } from '@arena/shared';
 import { FeedLikeButton } from './FeedLikeButton';
@@ -17,6 +18,8 @@ interface FeedArticleCardProps {
 }
 
 export function FeedArticleCard({ article, communitySlug, userId, canModerate }: FeedArticleCardProps) {
+  const t = useTranslations('tribune');
+  const tc = useTranslations('common');
   const supabase = useSupabase();
   const [removed, setRemoved] = useState(false);
 
@@ -57,7 +60,7 @@ export function FeedArticleCard({ article, communitySlug, userId, canModerate }:
           {/* Article badge */}
           <div className="mb-2 flex items-center gap-2">
             <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
-              Article
+              {t('article')}
             </span>
             <span className="text-xs text-gray-400">{formatTime(article.publishedAt)}</span>
           </div>
@@ -112,7 +115,7 @@ export function FeedArticleCard({ article, communitySlug, userId, canModerate }:
             onClick={handleRemoveFromFeed}
             className="ml-auto rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
           >
-            Retirer du chat
+            {tc('remove')}
           </button>
         )}
       </div>

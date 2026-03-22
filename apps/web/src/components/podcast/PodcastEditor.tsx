@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useAudioUpload } from '@/hooks/useAudioUpload';
 import { useCoverUpload } from '@/hooks/useCoverUpload';
@@ -37,6 +38,8 @@ export function PodcastEditor({
 }: PodcastEditorProps) {
   const isEditMode = !!existingPodcast;
   const supabase = useSupabase();
+  const t = useTranslations('editor');
+  const tc = useTranslations('common');
   const { uploading, progress, error: uploadError, upload, validateFile } = useAudioUpload();
 
   const initialMode: PodcastMode = existingPodcast?.youtube_video_id ? 'youtube' : 'audio';
@@ -86,14 +89,14 @@ export function PodcastEditor({
 
   const handleSave = useCallback(async (publish: boolean) => {
     if (!title.trim()) {
-      setError('Le titre est requis');
+      setError(t('titleRequired'));
       return;
     }
 
     if (mode === 'youtube') {
       const vid = parseYoutubeId(youtubeVideoId);
       if (!vid) {
-        setError('L\'ID ou URL YouTube est requis');
+        setError(t('youtubeRequired'));
         return;
       }
       setSaving(true);
@@ -144,7 +147,7 @@ export function PodcastEditor({
     }
 
     if (!finalAudioUrl) {
-      setError("L'URL audio est requise");
+      setError(t('audioRequired'));
       setSaving(false);
       return;
     }
@@ -176,7 +179,7 @@ export function PodcastEditor({
 
     setSaving(false);
     onSaved();
-  }, [title, description, mode, audioUrl, audioFile, durationSeconds, youtubeVideoId, isLive, uploadCover, communityId, userId, supabase, upload, isEditMode, existingPodcast, onSaved]);
+  }, [title, description, mode, audioUrl, audioFile, durationSeconds, youtubeVideoId, isLive, uploadCover, communityId, userId, supabase, upload, isEditMode, existingPodcast, onSaved, t]);
 
   const isBusy = saving || uploading;
 
@@ -184,28 +187,28 @@ export function PodcastEditor({
     <div className="mx-auto max-w-2xl">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900">
-          {isEditMode ? 'Modifier le podcast' : 'Nouveau podcast'}
+          {isEditMode ? t('editPodcast') : t('newPodcast')}
         </h2>
         <div className="flex gap-2">
           <button
             onClick={onCancel}
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
           >
-            Annuler
+            {tc('cancel')}
           </button>
           <button
             onClick={() => handleSave(false)}
             disabled={isBusy}
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
           >
-            Brouillon
+            {tc('draft')}
           </button>
           <button
             onClick={() => handleSave(true)}
             disabled={isBusy}
             className="rounded-lg bg-brand-blue px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
           >
-            {isBusy ? 'Enregistrement...' : isEditMode ? 'Mettre à jour' : 'Publier'}
+            {isBusy ? tc('saving') : isEditMode ? t('update') : tc('publish')}
           </button>
         </div>
       </div>
@@ -218,7 +221,7 @@ export function PodcastEditor({
 
       {/* Mode toggle: Audio vs YouTube */}
       <div className="mb-4">
-        <label className="mb-2 block text-sm font-medium text-gray-700">Type</label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">{t('type')}</label>
         <div className="flex gap-2">
           <button
             onClick={() => setMode('audio')}
@@ -226,7 +229,7 @@ export function PodcastEditor({
               mode === 'audio' ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            Podcast audio
+            {t('typePodcast')}
           </button>
           <button
             onClick={() => setMode('youtube')}
@@ -234,19 +237,19 @@ export function PodcastEditor({
               mode === 'youtube' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            YouTube Live / Vidéo
+            {t('typeYoutube')}
           </button>
         </div>
       </div>
 
       {/* Title */}
       <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-gray-700">Titre</label>
+        <label className="mb-1 block text-sm font-medium text-gray-700">{t('title')}</label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder={mode === 'youtube' ? 'Titre du live' : 'Titre du podcast'}
+          placeholder={mode === 'youtube' ? t('liveTitlePlaceholder') : t('titlePlaceholder')}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
           maxLength={500}
         />
@@ -254,11 +257,11 @@ export function PodcastEditor({
 
       {/* Description */}
       <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-gray-700">Description (optionnel)</label>
+        <label className="mb-1 block text-sm font-medium text-gray-700">{t('description')}</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Décrivez votre contenu..."
+          placeholder={t('descriptionPlaceholder')}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
           rows={3}
           maxLength={5000}
@@ -269,16 +272,16 @@ export function PodcastEditor({
       {mode === 'youtube' && (
         <div className="mb-4 space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">URL ou ID YouTube</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('youtubeUrl')}</label>
             <input
               type="text"
               value={youtubeVideoId}
               onChange={(e) => setYoutubeVideoId(e.target.value)}
-              placeholder="https://youtube.com/watch?v=... ou ID vidéo"
+              placeholder={t('youtubeUrlPlaceholder')}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
             />
             <p className="mt-1 text-xs text-gray-400">
-              Collez l&apos;URL YouTube ou l&apos;ID de la vidéo (ex: dQw4w9WgXcQ)
+              {t('youtubeHelp')} ({t('youtubeExampleId')})
             </p>
           </div>
 
@@ -291,8 +294,8 @@ export function PodcastEditor({
               className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
             />
             <div>
-              <span className="text-sm font-medium text-gray-700">EN DIRECT</span>
-              <p className="text-xs text-gray-400">Affiche le badge LIVE rouge et le player en haut du chat</p>
+              <span className="text-sm font-medium text-gray-700">{t('isLive')}</span>
+              <p className="text-xs text-gray-400">{t('isLiveHelp')}</p>
             </div>
           </label>
 
@@ -303,7 +306,7 @@ export function PodcastEditor({
                 <iframe
                   className="absolute inset-0 h-full w-full"
                   src={`https://www.youtube.com/embed/${parseYoutubeId(youtubeVideoId)}?rel=0`}
-                  title="Aperçu"
+                  title={t('preview')}
                   allow="encrypted-media"
                   allowFullScreen
                 />
@@ -316,7 +319,7 @@ export function PodcastEditor({
       {/* Audio mode */}
       {mode === 'audio' && (
         <div className="mb-4">
-          <label className="mb-2 block text-sm font-medium text-gray-700">Source audio</label>
+          <label className="mb-2 block text-sm font-medium text-gray-700">{t('audioSource')}</label>
           <div className="mb-3 flex gap-2">
             <button
               onClick={() => setUseExternalUrl(false)}
@@ -324,7 +327,7 @@ export function PodcastEditor({
                 !useExternalUrl ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              Fichier audio
+              {t('audioFile')}
             </button>
             <button
               onClick={() => setUseExternalUrl(true)}
@@ -332,7 +335,7 @@ export function PodcastEditor({
                 useExternalUrl ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              URL externe
+              {t('externalUrl')}
             </button>
           </div>
 
@@ -356,7 +359,7 @@ export function PodcastEditor({
                     onClick={() => setAudioFile(null)}
                     className="text-xs text-gray-400 hover:text-gray-600"
                   >
-                    Changer
+                    {t('change')}
                   </button>
                 </div>
               ) : (
@@ -365,7 +368,7 @@ export function PodcastEditor({
                     <svg className="mx-auto mb-1 h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
                     </svg>
-                    Sélectionner un fichier audio (MP3, M4A, OGG, max 25 Mo)
+                    {t('selectAudio')}
                   </div>
                   <input
                     type="file"
@@ -383,7 +386,7 @@ export function PodcastEditor({
                       style={{ width: `${progress}%` }}
                     />
                   </div>
-                  <p className="mt-1 text-xs text-gray-400">Upload en cours... {progress}%</p>
+                  <p className="mt-1 text-xs text-gray-400">{t('uploadProgress', { progress })}</p>
                 </div>
               )}
             </div>
@@ -393,10 +396,10 @@ export function PodcastEditor({
 
       {/* Cover image */}
       <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-gray-700">Image de couverture (optionnel)</label>
+        <label className="mb-1 block text-sm font-medium text-gray-700">{t('coverImage')}</label>
         {coverPreview ? (
           <div className="relative">
-            <img src={coverPreview} alt="Couverture" className="h-36 w-full rounded-lg object-cover" />
+            <img src={coverPreview} alt={t('coverAlt')} className="h-36 w-full rounded-lg object-cover" />
             <button
               onClick={removeCover}
               className="absolute right-2 top-2 rounded-full bg-black/50 p-1 text-white transition hover:bg-black/70"
@@ -412,7 +415,7 @@ export function PodcastEditor({
               <svg className="mx-auto mb-1 h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
               </svg>
-              Ajouter une couverture
+              {t('addCover')}
             </div>
             <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleCoverChange} />
           </label>

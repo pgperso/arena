@@ -1,6 +1,7 @@
 'use client';
 
 import { memo } from 'react';
+import { useTranslations } from 'next-intl';
 import { MessageCircle, Pencil, Trash2 } from 'lucide-react';
 import { FeedReactionButtons } from './FeedReactionButtons';
 
@@ -33,6 +34,8 @@ export const FeedActions = memo(function FeedActions({
   onStartEdit,
   onDelete,
 }: FeedActionsProps) {
+  const t = useTranslations('tribune');
+  const tc = useTranslations('common');
   const showMobileEdit = isOwn && onStartEdit;
   const showMobileDelete = (canModerate || isOwn) && onDelete;
 
@@ -44,7 +47,7 @@ export const FeedActions = memo(function FeedActions({
           onClick={onReply}
           disabled={!userId}
           className={`${BTN} text-gray-400 hover:bg-blue-50 hover:text-blue-500 disabled:cursor-not-allowed disabled:opacity-50`}
-          title="Répondre"
+          title={t('reply')}
         >
           <MessageCircle className="h-4 w-4" strokeWidth={1.5} />
           {replyCount > 0 && <span>{replyCount}</span>}
@@ -77,7 +80,7 @@ export const FeedActions = memo(function FeedActions({
         <button
           onClick={onStartEdit}
           className={`${BTN} text-gray-400 hover:bg-gray-100 hover:text-gray-600 md:hidden`}
-          title="Modifier"
+          title={tc('edit')}
         >
           <Pencil className="h-4 w-4" strokeWidth={1.5} />
         </button>
@@ -86,7 +89,7 @@ export const FeedActions = memo(function FeedActions({
         <button
           onClick={onDelete}
           className={`${BTN} text-gray-400 hover:bg-red-50 hover:text-red-500 md:hidden`}
-          title="Supprimer"
+          title={tc('delete')}
         >
           <Trash2 className="h-4 w-4" strokeWidth={1.5} />
         </button>
