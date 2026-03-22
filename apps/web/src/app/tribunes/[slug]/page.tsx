@@ -57,19 +57,27 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
   let isMuted = false;
 
   if (user) {
-    // Run membership, roles, restrictions checks in parallel
-    const [{ data: membership }, { data: roles }, { data: restrictions }] = await Promise.all([
+    // Run membership, local roles, global owner check, restrictions in parallel
+    const [{ data: membership }, { data: localRoles }, { data: globalOwner }, { data: restrictions }] = await Promise.all([
       supabase
         .from('community_members')
         .select('id')
         .eq('community_id', community.id)
         .eq('member_id', user.id)
         .single(),
+      // Arbitre check — per tribune
       supabase
         .from('community_member_roles')
         .select('role_id, roles(code)')
         .eq('community_id', community.id)
         .eq('member_id', user.id),
+      // Propriétaire check — any tribune (global)
+      supabase
+        .from('community_member_roles')
+        .select('id, roles!inner(code)')
+        .eq('member_id', user.id)
+        .eq('roles.code', 'owner')
+        .limit(1),
       supabase
         .from('member_restrictions')
         .select('id')
@@ -81,8 +89,11 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
 
     isMember = !!membership;
 
-    if (roles) {
-      canModerate = (roles as { roles: { code: string } | null }[]).some(
+    const isOwner = ((globalOwner as unknown[] | null)?.length ?? 0) > 0;
+    if (isOwner) {
+      canModerate = true;
+    } else if (localRoles) {
+      canModerate = (localRoles as { roles: { code: string } | null }[]).some(
         (r) => r.roles?.code === 'admin' || r.roles?.code === 'moderator',
       );
     }
@@ -90,11 +101,24 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
     isMuted = ((restrictions as { id: number }[] | null)?.length ?? 0) > 0;
   }
 
-  // Load staff roles (owner, admin, moderator) for rank display
-  const { data: modRoles } = await supabase
-    .from('community_member_roles')
-    .select('member_id, roles(code)')
-    .eq('community_id', community.id);
+  // Load staff roles for rank display:
+  // 1. Local arbitres (per tribune)
+  // 2. Global owners (any tribune)
+  const [{ data: localStaff }, { data: globalOwners }] = await Promise.all([
+    supabase
+      .from('community_member_roles')
+      .select('member_id, roles(code)')
+      .eq('community_id', community.id),
+    supabase
+      .from('community_member_roles')
+      .select('member_id, roles!inner(code)')
+      .eq('roles.code', 'owner'),
+  ]);
+
+  const modRoles = [
+    ...(localStaff ?? []),
+    ...(globalOwners ?? []),
+  ] as { member_id: string; roles: { code: string } | null }[];
 
   const staffRoles: Record<string, string> = {};
   for (const r of (modRoles as { member_id: string; roles: { code: string } | null }[] ?? [])) {
