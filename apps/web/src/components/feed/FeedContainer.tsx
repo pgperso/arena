@@ -95,31 +95,27 @@ export function FeedContainer({
     estimateSize: (index) => {
       const item = items[index];
 
-      // Articles and podcasts — fixed-size cards
-      if (item.feedType === 'article') return 350;
-      if (item.feedType === 'podcast') return 200;
-
-      // Removed messages — minimal height
+      if (item.feedType === 'article') return 380;
+      if (item.feedType === 'podcast') return 220;
       if (item.isRemoved) return 28;
 
       const isGrouped = index > 0 && isGroupedMessage(item, items[index - 1]);
-      let size = isGrouped ? 64 : 100;
+      let size = isGrouped ? 80 : 120;
 
-      // Reply context adds ~30px (connector + parent preview)
-      if (item.parentId) size += 30;
+      if (item.parentId) size += 36;
 
-      // Images add container height
       if (item.imageUrls.length > 0) {
         const count = item.imageUrls.length;
-        size += count === 1 ? 270 : count === 2 ? 210 : 270;
+        size += count === 1 ? 320 : count === 2 ? 220 : 290;
       }
 
-      // In-feed ad after this item
       if ((index + 1) % FEED_AD_INTERVAL === 0) size += 300;
 
       return size;
     },
-    overscan: 5,
+    // Measure all initial items (FEED_INITIAL_LIMIT=50) so there's no
+    // unmeasured items with wrong estimates on first render
+    overscan: 50,
   });
 
   // Scroll to bottom on initial load (instant) and on new messages (smooth)
