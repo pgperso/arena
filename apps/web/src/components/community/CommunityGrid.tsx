@@ -46,19 +46,50 @@ export function CommunityGrid({ communities }: CommunityGridProps) {
     };
   }, [user]);
 
+  const joined = communities.filter((c) => joinedIds.has(c.id));
+  const notJoined = communities.filter((c) => !joinedIds.has(c.id));
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {communities.map((community) => (
-        <CommunityCard
-          key={community.id}
-          name={community.name}
-          slug={community.slug}
-          description={community.description}
-          memberCount={community.member_count}
-          logoUrl={community.logo_url}
-          isMember={joinedIds.has(community.id)}
-        />
-      ))}
+    <div>
+      {/* Mes tribunes */}
+      {joined.length > 0 && (
+        <div className="mb-8">
+          <h2 className="mb-4 text-lg font-bold text-gray-900">Mes tribunes</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {joined.map((community) => (
+              <CommunityCard
+                key={community.id}
+                name={community.name}
+                slug={community.slug}
+                description={community.description}
+                memberCount={community.member_count}
+                logoUrl={community.logo_url}
+                isMember
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Toutes les tribunes */}
+      <div>
+        <h2 className="mb-4 text-lg font-bold text-gray-900">
+          {joined.length > 0 ? 'Découvrir' : 'Tribunes'}
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {(joined.length > 0 ? notJoined : communities).map((community) => (
+            <CommunityCard
+              key={community.id}
+              name={community.name}
+              slug={community.slug}
+              description={community.description}
+              memberCount={community.member_count}
+              logoUrl={community.logo_url}
+              isMember={joinedIds.has(community.id)}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
