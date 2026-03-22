@@ -22,13 +22,7 @@ export function CommunityCard({
       className="group rounded-xl border border-gray-200 p-6 transition hover:border-gray-300 hover:shadow-md"
     >
       <div className="mb-4 flex items-center gap-3">
-        {logoUrl ? (
-          <Image src={logoUrl} alt={name} width={48} height={48} className="h-12 w-12 object-contain" />
-        ) : (
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-200 text-lg font-bold text-gray-500">
-            {name[0]?.toUpperCase() ?? '?'}
-          </div>
-        )}
+        <Image src={logoUrl || '/images/fanstribune.webp'} alt={name} width={48} height={48} className="h-12 w-12 shrink-0 object-contain" />
         <div className="flex-1 min-w-0">
           <h3 className="truncate text-base font-semibold text-gray-900 group-hover:text-brand-blue">
             {name}
