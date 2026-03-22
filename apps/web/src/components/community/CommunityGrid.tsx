@@ -72,7 +72,7 @@ export function CommunityGrid({ communities }: CommunityGridProps) {
       )}
 
       {/* Rejoindre une tribune */}
-      <div>
+      <div className="flex justify-center">
         <button
           onClick={() => setShowJoinModal(true)}
           className="flex items-center gap-2 rounded-xl bg-brand-blue px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-blue-dark"
