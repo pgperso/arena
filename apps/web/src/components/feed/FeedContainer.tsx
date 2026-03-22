@@ -80,13 +80,19 @@ export function FeedContainer({
     overscan: 5,
   });
 
-  // Auto-scroll to bottom on new items (appended via Realtime)
+  // Auto-scroll to bottom on new items
   const prevItemCountRef = useRef(items.length);
+  const justSentRef = useRef(false);
   useEffect(() => {
     const prevCount = prevItemCountRef.current;
     prevItemCountRef.current = items.length;
-    if (autoScroll && items.length > prevCount && items.length > 0) {
-      virtualizer.scrollToIndex(items.length - 1, { align: 'end', behavior: 'smooth' });
+    if (items.length > prevCount && items.length > 0) {
+      // Always scroll if user just sent a message; otherwise only if already at bottom
+      if (justSentRef.current || autoScroll) {
+        virtualizer.scrollToIndex(items.length - 1, { align: 'end', behavior: 'smooth' });
+        justSentRef.current = false;
+        setAutoScroll(true);
+      }
     }
   }, [items.length, autoScroll, virtualizer]);
 
@@ -142,6 +148,7 @@ export function FeedContainer({
 
   const handleSend = useCallback(
     async (content: string, imageUrls?: string[]) => {
+      justSentRef.current = true;
       if (replyTarget) {
         await sendReply(replyTarget.id, content, imageUrls);
         setReplyTarget(null);
