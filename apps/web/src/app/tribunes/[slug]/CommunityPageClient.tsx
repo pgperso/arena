@@ -39,13 +39,6 @@ export function CommunityPageClient({
   const [showJoinModal, setShowJoinModal] = useState(!initialIsMember);
   const [joinError, setJoinError] = useState<string | null>(null);
 
-  // React-recommended pattern: sync state from server props after router.refresh()
-  // See: https://react.dev/reference/react/useState#storing-information-from-previous-renders
-  if (initialIsMember && !isMember) {
-    setIsMember(true);
-    setShowJoinModal(false);
-  }
-
   async function handleJoin() {
     if (!userId) {
       router.push('/login');
@@ -59,11 +52,11 @@ export function CommunityPageClient({
       setJoining(false);
       return;
     }
-    setMemberCount((c) => c + 1);
-    // Don't set isMember locally — let the server be the source of truth.
-    // router.refresh() re-fetches the server component which will pass
-    // initialIsMember=true. The prop sync above handles the state update.
-    // This guarantees the page renders from a clean server-validated state.
+    // Full navigation reload — joining is a major state transition (entire DOM
+    // tree changes from "join modal" to "feed layout"). A fresh page load
+    // guarantees the flex height chain is computed correctly from the start.
+    // This is a one-time event per tribune per user, so the cost is negligible.
+    router.replace(`/tribunes/${community.slug}`);
     router.refresh();
   }
 
