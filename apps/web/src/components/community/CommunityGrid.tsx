@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { CommunityCard } from './CommunityCard';
+import { JoinTribuneModal } from './JoinTribuneModal';
 
 interface Community {
   id: number;
@@ -21,6 +22,7 @@ interface CommunityGridProps {
 export function CommunityGrid({ communities }: CommunityGridProps) {
   const { user } = useAuth();
   const [joinedIds, setJoinedIds] = useState<Set<number>>(new Set());
+  const [showJoinModal, setShowJoinModal] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -47,7 +49,6 @@ export function CommunityGrid({ communities }: CommunityGridProps) {
   }, [user]);
 
   const joined = communities.filter((c) => joinedIds.has(c.id));
-  const notJoined = communities.filter((c) => !joinedIds.has(c.id));
 
   return (
     <div>
@@ -70,24 +71,26 @@ export function CommunityGrid({ communities }: CommunityGridProps) {
         </div>
       )}
 
-      {/* Toutes les tribunes */}
+      {/* Rejoindre une tribune */}
       <div>
-        <h2 className="mb-4 text-lg font-bold text-gray-900">
-          {joined.length > 0 ? 'Découvrir' : 'Tribunes'}
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {(joined.length > 0 ? notJoined : communities).map((community) => (
-            <CommunityCard
-              key={community.id}
-              name={community.name}
-              slug={community.slug}
-              description={community.description}
-              memberCount={community.member_count}
-              logoUrl={community.logo_url}
-            />
-          ))}
-        </div>
+        <button
+          onClick={() => setShowJoinModal(true)}
+          className="flex items-center gap-2 rounded-xl bg-brand-blue px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-blue-dark"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Rejoindre une tribune
+        </button>
       </div>
+
+      {showJoinModal && (
+        <JoinTribuneModal
+          userId={user?.id ?? null}
+          memberCommunityIds={Array.from(joinedIds)}
+          onClose={() => setShowJoinModal(false)}
+        />
+      )}
     </div>
   );
 }

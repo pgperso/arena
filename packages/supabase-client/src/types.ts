@@ -4,6 +4,33 @@
 export type Database = {
   public: {
     Tables: {
+      categories: {
+        Row: {
+          id: number;
+          name: string;
+          slug: string;
+          icon: string | null;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          name: string;
+          slug: string;
+          icon?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          name?: string;
+          slug?: string;
+          icon?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       communities: {
         Row: {
           id: number;
@@ -14,6 +41,7 @@ export type Database = {
           banner_url: string | null;
           primary_color: string;
           secondary_color: string;
+          category_id: number | null;
           is_active: boolean;
           member_count: number;
           created_at: string;
@@ -28,6 +56,7 @@ export type Database = {
           banner_url?: string | null;
           primary_color?: string;
           secondary_color?: string;
+          category_id?: number | null;
           is_active?: boolean;
           member_count?: number;
           created_at?: string;
@@ -42,6 +71,7 @@ export type Database = {
           banner_url?: string | null;
           primary_color?: string;
           secondary_color?: string;
+          category_id?: number | null;
           is_active?: boolean;
           member_count?: number;
           created_at?: string;
