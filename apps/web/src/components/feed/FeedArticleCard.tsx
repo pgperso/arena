@@ -27,12 +27,13 @@ export function FeedArticleCard({ article, communitySlug, userId, canModerate }:
       >
         {/* Cover image */}
         {article.coverImageUrl && (
-          <div className="relative h-40 w-full bg-gray-100">
+          <div className="h-40 w-full bg-gray-100">
             <Image
               src={article.coverImageUrl}
               alt={article.title}
-              fill
-              className="object-cover"
+              width={600}
+              height={160}
+              className="h-40 w-full object-cover"
               sizes="(max-width: 768px) 100vw, 600px"
             />
           </div>

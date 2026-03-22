@@ -127,14 +127,11 @@ export function FeedContainer({
   const justSentRef = useRef(false);
   const initialScrollDone = useRef(false);
 
-  // Initial scroll: when loading finishes and items are available, jump to bottom instantly
+  // Initial scroll: when loading finishes and items are available, jump to bottom
   useEffect(() => {
     if (!loading && items.length > 0 && !initialScrollDone.current) {
       initialScrollDone.current = true;
-      // Wait one frame for the virtualizer to measure the scroll element
-      requestAnimationFrame(() => {
-        virtualizer.scrollToIndex(items.length - 1, { align: 'end' });
-      });
+      virtualizer.scrollToIndex(items.length - 1, { align: 'end' });
     }
   }, [loading, items.length, virtualizer]);
 

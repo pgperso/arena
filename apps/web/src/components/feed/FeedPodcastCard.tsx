@@ -70,8 +70,9 @@ export function FeedPodcastCard({ podcast, communitySlug, userId }: FeedPodcastC
               <Image
                 src={podcast.coverImageUrl}
                 alt={podcast.title}
-                fill
-                className="object-cover"
+                width={56}
+                height={56}
+                className="h-14 w-14 object-cover"
                 sizes="56px"
               />
             ) : (
