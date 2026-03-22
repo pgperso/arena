@@ -56,7 +56,7 @@ function messageToFeedItem(row: ChatMessageWithJoin): FeedMessage {
     likeCount: row.like_count,
     dislikeCount: row.dislike_count,
     replyCount: row.reply_count,
-    editedAt: row.edited_at,
+    editedAt: null,
     isRemoved: row.is_removed ?? false,
     removedAt: row.removed_at,
     removedBy: row.removed_by,
@@ -171,7 +171,7 @@ function feedReducer(state: FeedState, action: FeedAction): FeedState {
                 likeCount: u.like_count,
                 dislikeCount: u.dislike_count,
                 replyCount: u.reply_count,
-                editedAt: u.edited_at,
+                editedAt: u.edited_at ?? null,
                 isRemoved: u.is_removed ?? false,
                 removedAt: u.removed_at,
                 removedBy: u.removed_by,
@@ -249,7 +249,7 @@ function feedReducer(state: FeedState, action: FeedAction): FeedState {
         messages: state.messages.map((msg) =>
           msg.id !== action.messageId
             ? msg
-            : { ...msg, content: action.content, editedAt: new Date().toISOString() },
+            : { ...msg, content: action.content },
         ),
       };
 
@@ -537,7 +537,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
       dispatch({ type: 'EDIT_MESSAGE', messageId, content: trimmed });
       await supabaseRef.current
         .from('chat_messages')
-        .update({ content: trimmed, edited_at: new Date().toISOString() })
+        .update({ content: trimmed })
         .eq('id', messageId);
     },
     [userId],

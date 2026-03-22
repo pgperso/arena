@@ -65,7 +65,7 @@ export default async function HomePage() {
   const controversial = mapTrending(controversialRes.data ?? []);
 
   return (
-    <div className="flex h-[calc(100dvh-4rem)] flex-col overflow-hidden px-4">
+    <div className="flex h-full flex-col overflow-hidden px-4">
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col overflow-hidden">
         {/* Header — fixed height */}
         <div className="shrink-0 pt-8 pb-6 text-center">
