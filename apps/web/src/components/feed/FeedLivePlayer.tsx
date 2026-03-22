@@ -7,7 +7,7 @@ interface FeedLivePlayerProps {
 
 export function FeedLivePlayer({ videoId, isLive }: FeedLivePlayerProps) {
   return (
-    <div className="relative mx-auto w-full max-w-[640px] overflow-hidden rounded-xl">
+    <div className="relative w-full max-w-[640px] overflow-hidden rounded-xl">
       {/* Badge */}
       <div className="absolute left-3 top-3 z-10">
         {isLive ? (
