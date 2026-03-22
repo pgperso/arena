@@ -13,48 +13,71 @@ export const FeedImageGallery = memo(function FeedImageGallery({ imageUrls }: Fe
 
   if (count === 0) return null;
 
-  function getGridClass(): string {
-    if (count === 1) return 'grid-cols-1';
-    if (count === 2) return 'grid-cols-2';
-    if (count === 3) return 'grid-cols-2';
-    return 'grid-cols-2';
-  }
-
-  function getAspect(index: number): string {
-    if (count === 1) return 'aspect-[16/10]';
-    if (count === 3 && index === 0) return 'row-span-2 aspect-auto h-full';
-    return 'aspect-square';
-  }
-
-  function getContainerHeight(): string {
-    if (count === 1) return 'max-h-[350px]';
-    if (count === 2) return 'max-h-[250px]';
-    return 'max-h-[300px]';
-  }
-
   return (
     <>
-      <div className={`mt-2 grid ${getGridClass()} ${getContainerHeight()} gap-1 overflow-hidden rounded-xl max-w-[420px]`}>
-        {imageUrls.map((url, i) => (
+      <div className="mt-2 max-w-[420px]">
+        {count === 1 && (
           <button
-            key={url}
-            onClick={() => setLightboxIndex(i)}
-            className={`relative overflow-hidden ${getAspect(i)} cursor-pointer`}
-            aria-label={`Voir l'image ${i + 1} en plein écran`}
+            onClick={() => setLightboxIndex(0)}
+            className="block w-full overflow-hidden rounded-xl"
+            aria-label="Voir l'image en plein écran"
           >
             <Image
-              src={url}
-              alt={`Image ${i + 1}`}
-              fill
-              loading="lazy"
-              className="object-cover transition hover:scale-105"
-              sizes="(max-width: 768px) 100vw, 400px"
+              src={imageUrls[0]}
+              alt="Image 1"
+              width={420}
+              height={280}
+              className="w-full rounded-xl object-cover"
+              style={{ maxHeight: '300px' }}
+              sizes="(max-width: 768px) 100vw, 420px"
             />
           </button>
-        ))}
+        )}
+        {count === 2 && (
+          <div className="grid grid-cols-2 gap-1 overflow-hidden rounded-xl">
+            {imageUrls.map((url, i) => (
+              <button
+                key={url}
+                onClick={() => setLightboxIndex(i)}
+                className="block overflow-hidden"
+                aria-label={`Voir l'image ${i + 1} en plein écran`}
+              >
+                <Image
+                  src={url}
+                  alt={`Image ${i + 1}`}
+                  width={210}
+                  height={210}
+                  className="h-[200px] w-full object-cover"
+                  sizes="210px"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+        {count >= 3 && (
+          <div className="grid grid-cols-2 gap-1 overflow-hidden rounded-xl" style={{ height: '260px' }}>
+            {imageUrls.slice(0, 4).map((url, i) => (
+              <button
+                key={url}
+                onClick={() => setLightboxIndex(i)}
+                className={`block overflow-hidden ${i === 0 && count === 3 ? 'row-span-2' : ''}`}
+                aria-label={`Voir l'image ${i + 1} en plein écran`}
+              >
+                <Image
+                  src={url}
+                  alt={`Image ${i + 1}`}
+                  width={210}
+                  height={i === 0 && count === 3 ? 260 : 130}
+                  className="h-full w-full object-cover"
+                  sizes="210px"
+                />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Lightbox with keyboard support */}
+      {/* Lightbox */}
       <LightboxKeyHandler
         isOpen={lightboxIndex !== null}
         onClose={() => setLightboxIndex(null)}
@@ -77,22 +100,18 @@ export const FeedImageGallery = memo(function FeedImageGallery({ imageUrls }: Fe
           </button>
           {lightboxIndex > 0 && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setLightboxIndex(lightboxIndex - 1);
-              }}
+              onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1); }}
               className="absolute left-4 text-3xl text-white hover:text-gray-300"
+              aria-label="Image précédente"
             >
               &lsaquo;
             </button>
           )}
           {lightboxIndex < imageUrls.length - 1 && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setLightboxIndex(lightboxIndex + 1);
-              }}
+              onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1); }}
               className="absolute right-4 text-3xl text-white hover:text-gray-300"
+              aria-label="Image suivante"
             >
               &rsaquo;
             </button>
