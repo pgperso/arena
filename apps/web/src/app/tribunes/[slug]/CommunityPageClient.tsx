@@ -39,13 +39,6 @@ export function CommunityPageClient({
   const [showJoinModal, setShowJoinModal] = useState(!initialIsMember);
   const [joinError, setJoinError] = useState<string | null>(null);
 
-  // Sync state from server props after router.refresh().
-  // When the server confirms membership, update client state to match.
-  if (initialIsMember && !isMember) {
-    setIsMember(true);
-    setShowJoinModal(false);
-  }
-
   async function handleJoin() {
     if (!userId) {
       router.push('/login');
@@ -59,10 +52,10 @@ export function CommunityPageClient({
       setJoining(false);
       return;
     }
-    setMemberCount((c) => c + 1);
-    // Server is the source of truth. router.refresh() re-fetches the server
-    // component which passes initialIsMember=true. The prop sync above
-    // detects the change and updates client state.
+    // router.refresh() re-fetches the server component. The server now
+    // returns isMember=true, which changes the key from "id-false" to
+    // "id-true". React destroys this instance and creates a fresh one
+    // with initialIsMember=true — all state initializes correctly.
     router.refresh();
   }
 

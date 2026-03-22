@@ -127,7 +127,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
 
   return (
     <CommunityPageClient
-      key={community.id}
+      key={`${community.id}-${isMember}`}
       community={community}
       isMember={isMember}
       canModerate={canModerate}

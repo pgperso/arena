@@ -73,10 +73,11 @@ label[for] {
 }
 
 /* Propagate flex layout through Next.js App Router wrapper divs.
-   flex-1 + min-height:0 is robust regardless of rendering path
-   (server-side, client navigation, React reconciliation).
-   Unlike height:100% which requires every parent to have explicit height. */
-main > * {
+   Next.js generates one wrapper div per route segment (e.g. /tribunes/[slug]
+   creates 2 levels). We must target ALL levels, not just the first. */
+main > *,
+main > * > *,
+main > * > * > * {
   display: flex;
   flex-direction: column;
   flex: 1;
