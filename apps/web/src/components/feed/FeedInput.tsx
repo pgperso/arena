@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, SendHorizontal } from 'lucide-react';
 import Image from 'next/image';
 import { CHAT_MAX_MESSAGE_LENGTH, MAX_IMAGES_PER_MESSAGE } from '@arena/shared';
 import { useImageUpload } from '@/hooks/useImageUpload';
@@ -135,6 +135,18 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId }
             rows={1}
             className="flex-1 resize-none bg-transparent px-1 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none disabled:text-gray-400"
           />
+
+          {/* Send button — mobile only (Enter works on desktop) */}
+          {!uploading && (content.trim() || images.length > 0) && (
+            <button
+              onClick={handleSend}
+              disabled={disabled}
+              className="flex h-10 w-10 shrink-0 items-center justify-center text-brand-blue transition hover:text-brand-blue-dark disabled:opacity-50 md:hidden"
+              title="Envoyer"
+            >
+              <SendHorizontal className="h-5 w-5" strokeWidth={2} />
+            </button>
+          )}
 
           {/* Upload spinner */}
           {uploading && (
