@@ -73,6 +73,8 @@ label[for] {
 }
 
 /* Propagate height through Next.js App Router wrapper divs */
-main > * {
+main > *,
+main > * > *,
+main > * > * > * {
   height: 100%;
 }
