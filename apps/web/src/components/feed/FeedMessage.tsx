@@ -82,8 +82,8 @@ export const FeedMessage = memo(function FeedMessage({
             </span>
             <span className="text-xs text-gray-400">{time}</span>
 
-            {/* Delete: two-step inline confirmation */}
-            {(canModerate || isOwn) && (
+            {/* Delete: admin/moderator only */}
+            {canModerate && (
               <div className="ml-auto">
                 {confirmDelete ? (
                   <span className="flex items-center gap-1.5 text-xs">

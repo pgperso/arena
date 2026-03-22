@@ -137,8 +137,7 @@ export function CommunityPageClient({
 
       {/* Community bar */}
       <div
-        className="flex items-center justify-between px-4 py-2"
-        style={{ backgroundColor: community.primary_color + '10' }}
+        className="flex items-center justify-between bg-gray-100 px-4 py-2"
       >
         <div className="flex items-center gap-3">
           <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
