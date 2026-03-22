@@ -7,6 +7,8 @@ import { Avatar } from '@/components/ui/Avatar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { removePodcast } from '@/services/podcastService';
+import { Trash2, EyeOff } from 'lucide-react';
 
 const CONTENT_AD_INTERVAL = 5; // Ad every 5 items
 
@@ -22,6 +24,7 @@ interface ContentItem {
   viewCount?: number;
   durationSeconds?: number | null;
   publishedAt: string;
+  authorId: string;
   authorName: string;
   authorAvatarUrl: string | null;
   isLive?: boolean;
@@ -31,11 +34,13 @@ interface ContentItem {
 interface CommunityContentTabProps {
   communityId: number;
   communitySlug: string;
+  userId: string | null;
+  canModerate: boolean;
 }
 
 type FilterType = 'all' | 'articles' | 'podcasts';
 
-export function CommunityContentTab({ communityId, communitySlug }: CommunityContentTabProps) {
+export function CommunityContentTab({ communityId, communitySlug, userId, canModerate }: CommunityContentTabProps) {
   const supabase = useSupabase();
   const [items, setItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +54,7 @@ export function CommunityContentTab({ communityId, communitySlug }: CommunityCon
       const [{ data: articles }, { data: podcasts }] = await Promise.all([
         supabase
           .from('articles')
-          .select('id, title, slug, excerpt, cover_image_url, like_count, view_count, published_at, members:members!articles_author_id_fkey(username, avatar_url)')
+          .select('id, author_id, title, slug, excerpt, cover_image_url, like_count, view_count, published_at, members:members!articles_author_id_fkey(username, avatar_url)')
           .eq('community_id', communityId)
           .eq('is_published', true)
           .eq('is_removed', false)
@@ -57,7 +62,7 @@ export function CommunityContentTab({ communityId, communitySlug }: CommunityCon
           .limit(50),
         supabase
           .from('podcasts')
-          .select('id, title, description, cover_image_url, like_count, duration_seconds, created_at, members:members!podcasts_published_by_fkey(username, avatar_url)')
+          .select('id, published_by, title, description, cover_image_url, like_count, duration_seconds, created_at, members:members!podcasts_published_by_fkey(username, avatar_url)')
           .eq('community_id', communityId)
           .eq('is_published', true)
           .or('is_removed.eq.false,is_removed.is.null')
@@ -69,7 +74,7 @@ export function CommunityContentTab({ communityId, communitySlug }: CommunityCon
 
       const mapped: ContentItem[] = [];
 
-      for (const a of (articles ?? []) as { id: number; title: string; slug: string; excerpt: string | null; cover_image_url: string | null; like_count: number; view_count: number; published_at: string; members: { username: string; avatar_url: string | null } | null }[]) {
+      for (const a of (articles ?? []) as { id: number; author_id: string; title: string; slug: string; excerpt: string | null; cover_image_url: string | null; like_count: number; view_count: number; published_at: string; members: { username: string; avatar_url: string | null } | null }[]) {
         mapped.push({
           type: 'article',
           id: a.id,
@@ -80,12 +85,13 @@ export function CommunityContentTab({ communityId, communitySlug }: CommunityCon
           likeCount: a.like_count,
           viewCount: a.view_count,
           publishedAt: a.published_at,
+          authorId: a.author_id,
           authorName: a.members?.username ?? 'Inconnu',
           authorAvatarUrl: a.members?.avatar_url ?? null,
         });
       }
 
-      for (const p of (podcasts ?? []) as { id: number; title: string; description: string | null; cover_image_url: string | null; like_count: number; duration_seconds: number | null; created_at: string; members: { username: string; avatar_url: string | null } | null }[]) {
+      for (const p of (podcasts ?? []) as { id: number; published_by: string | null; title: string; description: string | null; cover_image_url: string | null; like_count: number; duration_seconds: number | null; created_at: string; members: { username: string; avatar_url: string | null } | null }[]) {
         mapped.push({
           type: 'podcast',
           id: p.id,
@@ -95,6 +101,7 @@ export function CommunityContentTab({ communityId, communitySlug }: CommunityCon
           likeCount: p.like_count,
           durationSeconds: p.duration_seconds,
           publishedAt: p.created_at,
+          authorId: p.published_by ?? '',
           authorName: p.members?.username ?? 'Inconnu',
           authorAvatarUrl: p.members?.avatar_url ?? null,
         });
@@ -155,72 +162,150 @@ export function CommunityContentTab({ communityId, communitySlug }: CommunityCon
                   <AdSlot slotId={`content-feed-${idx}`} format="in-feed" className="w-full" />
                 </div>
               )}
-              <Link
-                href={
-                  item.type === 'article'
-                    ? `/tribunes/${communitySlug}/articles/${item.slug}`
-                    : `/tribunes/${communitySlug}/podcasts/${item.id}`
-                }
-                className="flex gap-3 px-4 py-3 transition hover:bg-gray-50"
-              >
-                {/* Thumbnail */}
-                {item.coverImageUrl ? (
-                  <Image
-                    src={item.coverImageUrl}
-                    alt={item.title}
-                    width={80}
-                    height={56}
-                    className="h-14 w-20 shrink-0 rounded-lg object-cover"
-                  />
-                ) : (
-                  <div className={`flex h-14 w-20 shrink-0 items-center justify-center rounded-lg ${
-                    item.type === 'article' ? 'bg-purple-100' : 'bg-gray-900'
-                  }`}>
-                    {item.type === 'article' ? (
-                      <svg className="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-                      </svg>
-                    ) : (
-                      <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
-                      </svg>
-                    )}
-                  </div>
-                )}
-
-                {/* Info */}
-                <div className="min-w-0 flex-1">
-                  <div className="mb-0.5 flex items-center gap-2">
-                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
-                      item.type === 'article'
-                        ? 'bg-purple-100 text-purple-700'
-                        : 'bg-gray-900 text-gray-300'
-                    }`}>
-                      {item.type === 'article' ? 'Article' : 'Podcast'}
-                    </span>
-                    <span className="text-[10px] text-gray-400">{formatTime(item.publishedAt)}</span>
-                    {item.durationSeconds && (
-                      <span className="text-[10px] text-gray-400">{formatDuration(item.durationSeconds)}</span>
-                    )}
-                  </div>
-                  <h3 className="text-sm font-semibold text-gray-900 line-clamp-1">{item.title}</h3>
-                  <div className="mt-0.5 flex items-center gap-2">
-                    <Avatar url={item.authorAvatarUrl} name={item.authorName} size="xs" />
-                    <span className="text-xs text-gray-500">{item.authorName}</span>
-                    {item.likeCount > 0 && (
-                      <span className="text-xs text-gray-400">{item.likeCount} ♥</span>
-                    )}
-                    {item.viewCount && item.viewCount > 0 && (
-                      <span className="text-xs text-gray-400">{item.viewCount} vues</span>
-                    )}
-                  </div>
-                </div>
-              </Link>
+              <ContentRow
+                item={item}
+                communitySlug={communitySlug}
+                userId={userId}
+                canModerate={canModerate}
+                supabase={supabase}
+                onRemoved={(id, type) => setItems((prev) => prev.filter((i) => !(i.id === id && i.type === type)))}
+              />
               </div>
             ))}
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// --- Content row with action buttons ---
+
+function ContentRow({
+  item,
+  communitySlug,
+  userId,
+  canModerate,
+  supabase,
+  onRemoved,
+}: {
+  item: ContentItem;
+  communitySlug: string;
+  userId: string | null;
+  canModerate: boolean;
+  supabase: ReturnType<typeof useSupabase>;
+  onRemoved: (id: number, type: 'article' | 'podcast') => void;
+}) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const isOwn = userId === item.authorId;
+  const canManage = isOwn || canModerate;
+
+  const href = item.type === 'article'
+    ? `/tribunes/${communitySlug}/articles/${item.slug}`
+    : `/tribunes/${communitySlug}/podcasts/${item.id}`;
+
+  async function handleHideFromFeed() {
+    const table = item.type === 'article' ? 'articles' : 'podcasts';
+    await supabase.from(table).update({ is_published: false }).eq('id', item.id);
+    onRemoved(item.id, item.type);
+  }
+
+  async function handleDelete() {
+    if (item.type === 'podcast') {
+      await removePodcast(supabase, item.id);
+    } else {
+      await supabase.from('articles').delete().eq('id', item.id);
+    }
+    onRemoved(item.id, item.type);
+  }
+
+  return (
+    <div className="flex items-center gap-3 px-4 py-3 transition hover:bg-gray-50">
+      {/* Thumbnail */}
+      <Link href={href} className="shrink-0">
+        {item.coverImageUrl ? (
+          <Image
+            src={item.coverImageUrl}
+            alt={item.title}
+            width={80}
+            height={56}
+            className="h-14 w-20 rounded-lg object-cover"
+          />
+        ) : (
+          <div className={`flex h-14 w-20 items-center justify-center rounded-lg ${
+            item.type === 'article' ? 'bg-purple-100' : 'bg-gray-900'
+          }`}>
+            {item.type === 'article' ? (
+              <svg className="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+              </svg>
+            )}
+          </div>
+        )}
+      </Link>
+
+      {/* Info */}
+      <div className="min-w-0 flex-1">
+        <div className="mb-0.5 flex items-center gap-2">
+          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+            item.type === 'article'
+              ? 'bg-purple-100 text-purple-700'
+              : 'bg-gray-900 text-gray-300'
+          }`}>
+            {item.type === 'article' ? 'Article' : 'Podcast'}
+          </span>
+          <span className="text-[10px] text-gray-400">{formatTime(item.publishedAt)}</span>
+          {item.durationSeconds && (
+            <span className="text-[10px] text-gray-400">{formatDuration(item.durationSeconds)}</span>
+          )}
+        </div>
+        <Link href={href}>
+          <h3 className="text-sm font-semibold text-gray-900 line-clamp-1 hover:text-brand-blue">{item.title}</h3>
+        </Link>
+        <div className="mt-0.5 flex items-center gap-2">
+          <Avatar url={item.authorAvatarUrl} name={item.authorName} size="xs" />
+          <span className="text-xs text-gray-500">{item.authorName}</span>
+          {item.likeCount > 0 && (
+            <span className="text-xs text-gray-400">{item.likeCount} ♥</span>
+          )}
+          {item.viewCount && item.viewCount > 0 && (
+            <span className="text-xs text-gray-400">{item.viewCount} vues</span>
+          )}
+        </div>
+      </div>
+
+      {/* Action buttons */}
+      {canManage && (
+        <div className="flex shrink-0 items-center gap-1">
+          {confirmDelete ? (
+            <span className="flex items-center gap-1.5 text-xs">
+              <button onClick={handleDelete} className="font-semibold text-red-500 hover:text-red-700">Confirmer</button>
+              <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600">Annuler</button>
+            </span>
+          ) : (
+            <>
+              <button
+                onClick={handleHideFromFeed}
+                className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+                title="Retirer du chat"
+              >
+                <EyeOff className="h-4 w-4" strokeWidth={1.5} />
+              </button>
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="rounded-lg p-2 text-gray-400 transition hover:bg-red-50 hover:text-red-500"
+                title="Supprimer définitivement"
+              >
+                <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -269,7 +269,7 @@ export function FeedContainer({
         </div>
 
         {activeTab === 'content' ? (
-          <CommunityContentTab communityId={communityId} communitySlug={communitySlug} />
+          <CommunityContentTab communityId={communityId} communitySlug={communitySlug} userId={user?.id ?? null} canModerate={canModerate} />
         ) : (
         <>
         {/* Live banner — small notification, click to scroll to the live card */}
