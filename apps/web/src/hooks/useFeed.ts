@@ -587,18 +587,10 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
       dispatch({ type: 'REMOVE_MESSAGE', messageId });
       const { error } = await supabaseRef.current
         .from('chat_messages')
-        .update({
-          content: null,
-          image_urls: [],
-          is_removed: true,
-          removed_at: new Date().toISOString(),
-          removed_by: userId,
-        })
+        .delete()
         .eq('id', messageId);
       if (error) {
-        // Rollback: realtime will eventually sync the correct state,
-        // but we reload to ensure consistency
-        dispatch({ type: 'EDIT_MESSAGE', messageId, content: '[Erreur de suppression]' });
+        console.error('Delete failed:', error);
       }
     },
     [userId],
