@@ -223,8 +223,12 @@ export function VestiaireClient({
                         {community.name}
                       </h3>
                       {role && (
-                        <span className="shrink-0 rounded-full bg-brand-blue/10 px-2 py-0.5 text-xs font-medium text-brand-blue">
-                          {role === 'admin' ? 'Admin' : 'Mod'}
+                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                          role === 'owner'
+                            ? 'bg-brand-blue text-white'
+                            : 'bg-brand-blue/10 text-brand-blue'
+                        }`}>
+                          {role === 'owner' ? 'Propriétaire' : role === 'admin' ? 'Arbitre' : 'Mod'}
                         </span>
                       )}
                     </div>
@@ -283,15 +287,20 @@ export function VestiaireClient({
                     className="rounded-xl border border-gray-200 bg-white p-4"
                   >
                     <div className="mb-3 flex items-center gap-2">
-                      <Avatar
-                        url={community.logo_url}
-                        name={community.name}
-                        size="sm"
-                        color={community.primary_color}
+                      <Image
+                        src={community.logo_url || '/images/fanstribune.webp'}
+                        alt={community.name}
+                        width={28}
+                        height={28}
+                        className="h-7 w-7 shrink-0 object-contain"
                       />
                       <h3 className="text-sm font-semibold text-gray-900">{community.name}</h3>
-                      <span className="rounded-full bg-brand-blue/10 px-2 py-0.5 text-xs font-medium text-brand-blue">
-                        {role === 'admin' ? 'Admin' : 'Mod'}
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        role === 'owner'
+                          ? 'bg-brand-blue text-white'
+                          : 'bg-brand-blue/10 text-brand-blue'
+                      }`}>
+                        {role === 'owner' ? 'Propriétaire' : role === 'admin' ? 'Arbitre' : 'Mod'}
                       </span>
                     </div>
                     <div className="mb-3 flex gap-4 text-xs text-gray-500">

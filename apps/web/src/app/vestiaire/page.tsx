@@ -48,7 +48,17 @@ export default async function VestiairePage() {
     communities = (data ?? []) as CommunityRow[];
   }
 
-  // Fetch admin/moderator roles (join roles table to get role code)
+  // Check if user is a global owner
+  const { data: ownerCheck } = await supabase
+    .from('community_member_roles')
+    .select('id, roles!inner(code)')
+    .eq('member_id', user.id)
+    .eq('roles.code', 'owner')
+    .limit(1);
+
+  const isOwner = ((ownerCheck as unknown[] | null)?.length ?? 0) > 0;
+
+  // Fetch per-community roles
   const { data: memberRoles } = await supabase
     .from('community_member_roles')
     .select('community_id, roles(code)')
@@ -56,13 +66,23 @@ export default async function VestiairePage() {
     .limit(500);
 
   const roleMap = new Map<number, string>();
+
+  // If owner: set 'owner' role on ALL communities
+  if (isOwner) {
+    communities.forEach((c) => roleMap.set(c.id, 'owner'));
+  }
+
+  // Layer per-community roles (owner already set takes precedence)
   memberRoles?.forEach((r) => {
     const role = r.roles as unknown as { code: string } | null;
-    if (role) roleMap.set(r.community_id, role.code);
+    if (role && !isOwner) roleMap.set(r.community_id, role.code);
   });
 
-  // Fetch admin stats for communities where user is admin/mod
-  const adminCommunityIds = Array.from(roleMap.keys());
+  // Admin stats: owners get stats for ALL their communities
+  const adminCommunityIds = isOwner
+    ? communities.map((c) => c.id)
+    : Array.from(roleMap.keys());
+
   let adminStats: Record<number, { articles: number; drafts: number; podcasts: number }> = {};
 
   if (adminCommunityIds.length > 0) {
@@ -87,7 +107,6 @@ export default async function VestiairePage() {
         .or('is_removed.eq.false,is_removed.is.null'),
     ]);
 
-    // Count per community
     const stats: Record<number, { articles: number; drafts: number; podcasts: number }> = {};
     for (const id of adminCommunityIds) {
       stats[id] = { articles: 0, drafts: 0, podcasts: 0 };
