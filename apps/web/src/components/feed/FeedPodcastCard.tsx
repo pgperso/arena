@@ -6,6 +6,7 @@ import type { FeedPodcast } from '@arena/shared';
 import { FeedLikeButton } from './FeedLikeButton';
 import { FeedLivePlayer } from './FeedLivePlayer';
 import { useSupabase } from '@/hooks/useSupabase';
+import { removePodcast } from '@/services/podcastService';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -21,6 +22,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [removed, setRemoved] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const isOwn = !!(userId && podcast.publisher?.id === userId);
@@ -63,6 +65,11 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
     await (supabase.from('podcasts') as any).update({ is_live: false }).eq('id', podcast.id);
     // Force reload to update the feed
     window.location.reload();
+  }
+
+  async function handleDelete() {
+    await removePodcast(supabase, podcast.id);
+    setRemoved(true);
   }
 
   async function handleRemoveFromFeed() {
@@ -115,21 +122,38 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
           {isOwn && podcast.likeCount > 0 && (
             <span className="px-2 py-1 text-xs text-gray-300">{podcast.likeCount} ♥</span>
           )}
-          {canRemove && podcast.isLive && (
-            <button
-              onClick={handleEndLive}
-              className="ml-auto rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-red-700"
-            >
-              Terminer le direct
-            </button>
-          )}
-          {canRemove && !podcast.isLive && (
-            <button
-              onClick={handleRemoveFromFeed}
-              className="ml-auto rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-            >
-              Retirer du chat
-            </button>
+          {canRemove && (
+            <div className="ml-auto flex items-center gap-1">
+              {podcast.isLive && (
+                <button
+                  onClick={handleEndLive}
+                  className="rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-red-700"
+                >
+                  Terminer le direct
+                </button>
+              )}
+              {!podcast.isLive && (
+                <button
+                  onClick={handleRemoveFromFeed}
+                  className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+                >
+                  Retirer du chat
+                </button>
+              )}
+              {confirmDelete ? (
+                <span className="flex items-center gap-1.5 text-xs">
+                  <button onClick={handleDelete} className="font-semibold text-red-500 hover:text-red-700">Supprimer</button>
+                  <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600">Annuler</button>
+                </span>
+              ) : (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-red-50 hover:text-red-500"
+                >
+                  Supprimer
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -233,12 +257,27 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
           <span className="px-2 py-1 text-xs text-gray-300">{podcast.likeCount} ♥</span>
         )}
         {canRemove && (
-          <button
-            onClick={handleRemoveFromFeed}
-            className="ml-auto rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-          >
-            Retirer du chat
-          </button>
+          <div className="ml-auto flex items-center gap-1">
+            <button
+              onClick={handleRemoveFromFeed}
+              className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+            >
+              Retirer du chat
+            </button>
+            {confirmDelete ? (
+              <span className="flex items-center gap-1.5 text-xs">
+                <button onClick={handleDelete} className="font-semibold text-red-500 hover:text-red-700">Supprimer</button>
+                <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600">Annuler</button>
+              </span>
+            ) : (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-red-50 hover:text-red-500"
+              >
+                Supprimer
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
