@@ -194,7 +194,8 @@
     "manageRole": "Manage role",
     "removeRole": "Remove role",
     "allTribunes": "All tribunes",
-    "thisTribune": "This tribune"
+    "thisTribune": "This tribune",
+    "contentOnly": "Articles and podcasts"
   },
   "roles": {
     "owner": "Owner",
@@ -204,7 +205,8 @@
     "regular": "Regular",
     "veteran": "Veteran",
     "legend": "Legend",
-    "bot": "Tribune Speaker"
+    "bot": "Tribune Speaker",
+    "creator": "Creator"
   },
   "vestiaire": {
     "title": "Locker Room",

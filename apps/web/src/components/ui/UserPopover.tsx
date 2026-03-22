@@ -18,7 +18,7 @@ interface UserPopoverProps {
   onRoleChanged?: (memberId: string, newRole: string | null) => void;
 }
 
-const ASSIGNABLE_ROLE_CODES = ['owner', 'admin'] as const;
+const ASSIGNABLE_ROLE_CODES = ['owner', 'admin', 'creator'] as const;
 
 export function UserPopover({
   memberId,
@@ -124,7 +124,9 @@ export function UserPopover({
                 <span className={`text-sm font-semibold ${isActive ? 'text-brand-blue' : ''}`}>
                   {t(`roles.${code}`)}
                 </span>
-                <p className="text-[10px] text-gray-400">{code === 'owner' ? t('moderation.allTribunes') : t('moderation.thisTribune')}</p>
+                <p className="text-[10px] text-gray-400">
+                  {code === 'owner' ? t('moderation.allTribunes') : code === 'creator' ? t('moderation.contentOnly') : t('moderation.thisTribune')}
+                </p>
               </div>
               {isActive && (
                 <div className="h-2 w-2 rounded-full bg-brand-blue" />

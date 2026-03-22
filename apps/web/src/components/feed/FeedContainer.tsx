@@ -37,6 +37,7 @@ interface FeedContainerProps {
   isMember: boolean;
   isMuted: boolean;
   canModerate: boolean;
+  canCreateContent: boolean;
   staffRoles: Record<string, string>;
 }
 
@@ -47,6 +48,7 @@ export function FeedContainer({
   isMember,
   isMuted,
   canModerate,
+  canCreateContent,
   staffRoles,
 }: FeedContainerProps) {
   const router = useRouter();
@@ -194,9 +196,8 @@ export function FeedContainer({
           </div>
           <div className="flex items-center gap-2">
             {canModerate && user && (
-              <>
-                <button
-                  onClick={() => setShowModeration(true)}
+              <button
+                onClick={() => setShowModeration(true)}
                   className="flex items-center gap-1 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100"
                   title={t('moderate')}
                 >
@@ -205,6 +206,9 @@ export function FeedContainer({
                   </svg>
                   {t('moderate')}
                 </button>
+            )}
+            {canCreateContent && user && (
+              <>
                 <button
                   onClick={() => setShowArticleEditor(true)}
                   className="flex items-center gap-1 rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100"

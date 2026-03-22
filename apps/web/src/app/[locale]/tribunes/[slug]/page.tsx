@@ -56,6 +56,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
 
   let isMember = false;
   let canModerate = false;
+  let canCreateContent = false;
   let isMuted = false;
 
   if (user) {
@@ -94,10 +95,11 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
     const isOwner = ((globalOwner as unknown[] | null)?.length ?? 0) > 0;
     if (isOwner) {
       canModerate = true;
+      canCreateContent = true;
     } else if (localRoles) {
-      canModerate = (localRoles as { roles: { code: string } | null }[]).some(
-        (r) => r.roles?.code === 'admin' || r.roles?.code === 'moderator',
-      );
+      const roleCodes = (localRoles as { roles: { code: string } | null }[]).map((r) => r.roles?.code);
+      canModerate = roleCodes.some((c) => c === 'admin' || c === 'moderator');
+      canCreateContent = canModerate || roleCodes.some((c) => c === 'creator');
     }
 
     isMuted = ((restrictions as { id: number }[] | null)?.length ?? 0) > 0;
@@ -133,6 +135,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
       community={community}
       isMember={isMember}
       canModerate={canModerate}
+      canCreateContent={canCreateContent}
       isMuted={isMuted}
       userId={user?.id ?? null}
       staffRoles={staffRoles}

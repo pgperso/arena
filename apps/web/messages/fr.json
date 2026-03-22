@@ -200,7 +200,8 @@
     "manageRole": "Gérer le rôle",
     "removeRole": "Retirer le rôle",
     "allTribunes": "Toutes tribunes",
-    "thisTribune": "Cette tribune"
+    "thisTribune": "Cette tribune",
+    "contentOnly": "Articles et podcasts"
   },
   "roles": {
     "owner": "Propriétaire",
@@ -210,7 +211,8 @@
     "regular": "Régulier",
     "veteran": "Vétéran",
     "legend": "Légende",
-    "bot": "Gérant d'estrade"
+    "bot": "Gérant d'estrade",
+    "creator": "Créateur"
   },
   "vestiaire": {
     "title": "Vestiaire",

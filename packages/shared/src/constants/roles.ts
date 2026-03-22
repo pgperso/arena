@@ -2,6 +2,7 @@ export const ROLES = {
   OWNER: 'owner',
   ADMIN: 'admin',
   MODERATOR: 'moderator',
+  CREATOR: 'creator',
   MEMBER: 'member',
 } as const;
 
@@ -18,5 +19,6 @@ export const ROLE_DISPLAY_NAMES: Record<string, string> = {
   owner: 'Propriétaire',
   admin: 'Arbitre',
   moderator: 'Arbitre',
+  creator: 'Créateur',
   member: 'Membre',
 };

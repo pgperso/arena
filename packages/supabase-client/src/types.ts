@@ -87,6 +87,8 @@ export type Database = {
           last_name: string | null;
           description: string | null;
           avatar_url: string | null;
+          creator_display_name: string | null;
+          creator_avatar_url: string | null;
           is_verified: boolean;
           message_count: number;
           legacy_member_id: number | null;
@@ -100,6 +102,8 @@ export type Database = {
           last_name?: string | null;
           description?: string | null;
           avatar_url?: string | null;
+          creator_display_name?: string | null;
+          creator_avatar_url?: string | null;
           is_verified?: boolean;
           legacy_member_id?: number | null;
           created_at?: string;
@@ -112,6 +116,8 @@ export type Database = {
           last_name?: string | null;
           description?: string | null;
           avatar_url?: string | null;
+          creator_display_name?: string | null;
+          creator_avatar_url?: string | null;
           is_verified?: boolean;
           legacy_member_id?: number | null;
           created_at?: string;

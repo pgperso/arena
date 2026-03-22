@@ -19,6 +19,7 @@ interface CommunityPageClientProps {
   community: CommunityRow;
   isMember: boolean;
   canModerate: boolean;
+  canCreateContent: boolean;
   isMuted: boolean;
   userId: string | null;
   staffRoles: Record<string, string>;
@@ -28,6 +29,7 @@ export function CommunityPageClient({
   community,
   isMember: initialIsMember,
   canModerate,
+  canCreateContent,
   staffRoles,
   isMuted,
   userId,
@@ -217,6 +219,7 @@ export function CommunityPageClient({
                 isMember={isMember}
                 isMuted={isMuted}
                 canModerate={canModerate}
+                canCreateContent={canCreateContent}
                 staffRoles={staffRoles}
               />
             </div>
