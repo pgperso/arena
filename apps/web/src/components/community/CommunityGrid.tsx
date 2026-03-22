@@ -64,7 +64,6 @@ export function CommunityGrid({ communities }: CommunityGridProps) {
                 description={community.description}
                 memberCount={community.member_count}
                 logoUrl={community.logo_url}
-                isMember
               />
             ))}
           </div>
@@ -85,7 +84,6 @@ export function CommunityGrid({ communities }: CommunityGridProps) {
               description={community.description}
               memberCount={community.member_count}
               logoUrl={community.logo_url}
-              isMember={joinedIds.has(community.id)}
             />
           ))}
         </div>

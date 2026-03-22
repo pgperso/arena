@@ -7,7 +7,6 @@ interface CommunityCardProps {
   description: string | null;
   memberCount: number;
   logoUrl: string | null;
-  isMember?: boolean;
 }
 
 export function CommunityCard({
@@ -16,18 +15,12 @@ export function CommunityCard({
   description,
   memberCount,
   logoUrl,
-  isMember = false,
 }: CommunityCardProps) {
   return (
     <Link
       href={`/tribunes/${slug}`}
-      className="group relative rounded-xl border border-gray-200 p-6 transition hover:border-gray-300 hover:shadow-md"
+      className="group rounded-xl border border-gray-200 p-6 transition hover:border-gray-300 hover:shadow-md"
     >
-      {isMember && (
-        <span className="absolute right-3 top-3 rounded-full bg-brand-blue/10 px-2.5 py-0.5 text-xs font-semibold text-brand-blue">
-          Membre
-        </span>
-      )}
       <div className="mb-4 flex items-center gap-3">
         {logoUrl ? (
           <Image src={logoUrl} alt={name} width={48} height={48} className="h-12 w-12 object-contain" />
