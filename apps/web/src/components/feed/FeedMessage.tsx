@@ -127,6 +127,7 @@ export const FeedMessage = memo(function FeedMessage({
             dislikeCount={message.dislikeCount}
             replyCount={message.replyCount}
             userId={userId}
+            isOwn={isOwn}
             onReply={() => onReply(message)}
           />
         </div>
