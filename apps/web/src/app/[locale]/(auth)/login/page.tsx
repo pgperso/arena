@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { Footer } from '@/components/layout/Footer';
 
@@ -7,7 +7,9 @@ export const metadata: Metadata = {
   title: 'Connexion',
 };
 
-export default async function LoginPage() {
+export default async function LoginPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('auth');
 
   return (

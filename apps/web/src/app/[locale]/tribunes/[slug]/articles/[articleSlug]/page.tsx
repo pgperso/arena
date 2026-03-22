@@ -1,11 +1,12 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { setRequestLocale } from 'next-intl/server';
 import { ArticleView } from '@/components/article/ArticleView';
 
 export const revalidate = 300;
 
 interface ArticlePageProps {
-  params: Promise<{ slug: string; articleSlug: string }>;
+  params: Promise<{ locale: string; slug: string; articleSlug: string }>;
 }
 
 export async function generateMetadata({ params }: ArticlePageProps) {
@@ -46,7 +47,8 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
-  const { slug, articleSlug } = await params;
+  const { locale, slug, articleSlug } = await params;
+  setRequestLocale(locale);
   const supabase = await createClient();
 
   // Load community

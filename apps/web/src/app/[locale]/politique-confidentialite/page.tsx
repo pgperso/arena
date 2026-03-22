@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
+import { setRequestLocale } from 'next-intl/server';
 
 export const metadata: Metadata = {
   title: 'Politique de confidentialité',
 };
 
-export default function PolitiqueConfidentialite() {
+export default async function PolitiqueConfidentialite({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   return (
     <div className="mx-auto max-w-3xl overflow-y-auto px-4 py-12">
       <h1 className="mb-8 text-3xl font-bold text-gray-900">

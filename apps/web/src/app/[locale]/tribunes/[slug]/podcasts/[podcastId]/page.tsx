@@ -1,11 +1,12 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { setRequestLocale } from 'next-intl/server';
 import { PodcastPlayer } from '@/components/podcast/PodcastPlayer';
 
 export const revalidate = 300;
 
 interface PodcastPageProps {
-  params: Promise<{ slug: string; podcastId: string }>;
+  params: Promise<{ locale: string; slug: string; podcastId: string }>;
 }
 
 export async function generateMetadata({ params }: PodcastPageProps) {
@@ -40,7 +41,8 @@ export async function generateMetadata({ params }: PodcastPageProps) {
 }
 
 export default async function PodcastPage({ params }: PodcastPageProps) {
-  const { slug, podcastId } = await params;
+  const { locale, slug, podcastId } = await params;
+  setRequestLocale(locale);
   const id = parseInt(podcastId, 10);
   if (isNaN(id)) notFound();
 

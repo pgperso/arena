@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { setRequestLocale } from 'next-intl/server';
 import { VestiaireClient } from './VestiaireClient';
 import { Footer } from '@/components/layout/Footer';
 import type { Database } from '@arena/supabase-client';
@@ -11,7 +12,9 @@ export const metadata: Metadata = {
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'];
 
-export default async function VestiairePage() {
+export default async function VestiairePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const supabase = await createClient();
 
   const {
