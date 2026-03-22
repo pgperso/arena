@@ -29,7 +29,7 @@ export default async function HomePage() {
       .gte('created_at', sevenDaysAgo)
       .gt('like_count', 0)
       .order('like_count', { ascending: false })
-      .limit(3),
+      .limit(5),
     supabase
       .from('chat_messages')
       .select('id, content, like_count, dislike_count, created_at, members!chat_messages_member_id_fkey(username, avatar_url), communities!chat_messages_community_id_fkey(name, slug)')
@@ -39,7 +39,7 @@ export default async function HomePage() {
       .gte('created_at', sevenDaysAgo)
       .gt('dislike_count', 0)
       .order('dislike_count', { ascending: false })
-      .limit(3),
+      .limit(5),
   ]);
 
   const communities = (communitiesRes.data ?? []) as CommunityRow[];
@@ -65,8 +65,8 @@ export default async function HomePage() {
   const controversial = mapTrending(controversialRes.data ?? []);
 
   return (
-    <div className="relative flex min-h-[calc(100dvh_-_4rem)] items-center justify-center px-4 pb-28 pt-12">
-      <div className="w-full max-w-7xl">
+    <div className="px-4 pb-12 pt-12">
+      <div className="mx-auto w-full max-w-7xl">
         <div className="mb-10 text-center">
           <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">
             Ta tribune, ton équipe,{' '}
@@ -86,11 +86,11 @@ export default async function HomePage() {
             Aucune tribune disponible pour le moment.
           </p>
         )}
-      </div>
 
-      {/* Ad pinned to bottom */}
-      <div className="absolute inset-x-0 bottom-0 mx-auto max-w-7xl px-4 py-2">
-        <AdBanner slotId="home-footer" />
+        {/* Ad banner */}
+        <div className="mt-10">
+          <AdBanner slotId="home-footer" />
+        </div>
       </div>
     </div>
   );
