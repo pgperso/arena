@@ -146,18 +146,18 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
         {bodyParts ? (
           <>
             <div
-              className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
+              className="prose max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
               dangerouslySetInnerHTML={{ __html: bodyParts[0] }}
             />
             <AdInArticle />
             <div
-              className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
+              className="prose max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
               dangerouslySetInnerHTML={{ __html: bodyParts[1] }}
             />
           </>
         ) : (
           <div
-            className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
+            className="prose max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
             dangerouslySetInnerHTML={{ __html: sanitizedBody }}
           />
         )}
