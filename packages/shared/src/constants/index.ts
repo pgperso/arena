@@ -16,10 +16,10 @@ export const MAX_COMMUNITIES_PER_USER = 50;
 
 // Member rank thresholds
 export const MEMBER_RANKS = [
-  { min: 0, label: 'Recrue', color: 'text-gray-400' },
-  { min: 10, label: 'Régulier', color: 'text-blue-500' },
-  { min: 50, label: 'Vétéran', color: 'text-purple-500' },
-  { min: 200, label: 'Légende', color: 'text-brand-orange' },
+  { min: 0, label: 'Recrue', color: 'text-gray-500', bg: 'bg-gray-100 text-gray-600' },
+  { min: 200, label: 'Régulier', color: 'text-blue-600', bg: 'bg-blue-100 text-blue-700' },
+  { min: 500, label: 'Vétéran', color: 'text-purple-600', bg: 'bg-purple-100 text-purple-700' },
+  { min: 1000, label: 'Légende', color: 'text-brand-orange', bg: 'bg-orange-100 text-orange-700' },
 ] as const;
 
 export function getMemberRank(messageCount: number) {

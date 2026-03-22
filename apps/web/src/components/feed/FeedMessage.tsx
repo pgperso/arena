@@ -12,10 +12,10 @@ import { Avatar } from '@/components/ui/Avatar';
 import { UserPopover } from '@/components/ui/UserPopover';
 import { StatusDot } from '@/components/ui/StatusDot';
 
-const STAFF_RANK_MAP: Record<string, { label: string; color: string }> = {
-  owner: { label: 'Propriétaire', color: 'text-yellow-500' },
-  admin: { label: 'Arbitre', color: 'text-red-500' },
-  moderator: { label: 'Arbitre', color: 'text-red-500' },
+const STAFF_RANK_MAP: Record<string, { label: string; color: string; bg: string }> = {
+  owner: { label: 'Propriétaire', color: 'text-brand-blue', bg: 'bg-brand-blue text-white' },
+  admin: { label: 'Arbitre', color: 'text-red-600', bg: 'bg-red-100 text-red-700' },
+  moderator: { label: 'Arbitre', color: 'text-red-600', bg: 'bg-red-100 text-red-700' },
 };
 
 interface FeedMessageProps {
@@ -106,7 +106,7 @@ export const FeedMessage = memo(function FeedMessage({
   presenceStatus,
 }: FeedMessageProps) {
   const username = message.member?.username ?? 'Utilisateur supprimé';
-  const rank: { label: string; color: string } =
+  const rank: { label: string; color: string; bg: string } =
     (staffRole ? STAFF_RANK_MAP[staffRole] : undefined) ?? getMemberRank(message.member?.messageCount ?? 0);
   const time = formatTime(message.createdAt);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -271,9 +271,9 @@ export const FeedMessage = memo(function FeedMessage({
       {toolbar}
 
       <div className="flex gap-3">
-        <div className="relative mt-0.5 flex-shrink-0">
+        <div className="relative mt-0.5 h-8 w-8 flex-shrink-0">
           <Avatar url={message.member?.avatarUrl} name={username} size="md" />
-          {presenceStatus && <StatusDot status={presenceStatus} />}
+          {presenceStatus && <StatusDot status={presenceStatus} size="md" />}
         </div>
 
         <div className="min-w-0 flex-1">
@@ -284,7 +284,7 @@ export const FeedMessage = memo(function FeedMessage({
             >
               {username}
             </span>
-            <span className={`text-[10px] font-bold ${rank.color}`}>{rank.label}</span>
+            <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${rank.bg}`}>{rank.label}</span>
             <span className="text-xs text-gray-400">{time}</span>
           </div>
 

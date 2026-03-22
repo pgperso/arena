@@ -6,10 +6,11 @@ interface StatusDotProps {
 }
 
 export function StatusDot({ status, size = 'sm' }: StatusDotProps) {
-  const sizeClass = size === 'sm' ? 'h-2.5 w-2.5' : 'h-3 w-3';
+  const dotSize = size === 'sm' ? 'h-2.5 w-2.5' : 'h-3 w-3';
+  const position = size === 'sm' ? 'bottom-0 right-0' : '-bottom-px -right-px';
   const color = status === 'online' ? 'bg-green-500' : 'bg-yellow-400';
 
   return (
-    <div className={`absolute bottom-0 right-0 rounded-full border-2 border-white ${sizeClass} ${color}`} />
+    <div className={`absolute ${position} rounded-full border-2 border-white ${dotSize} ${color}`} />
   );
 }
