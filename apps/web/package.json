@@ -15,7 +15,6 @@
     "@arena/supabase-client": "*",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.49.1",
-    "@tanstack/react-virtual": "^3.13.23",
     "@tiptap/extension-image": "^3.20.4",
     "@tiptap/extension-link": "^3.20.4",
     "@tiptap/extension-placeholder": "^3.20.4",
@@ -27,7 +26,8 @@
     "lucide-react": "^0.577.0",
     "next": "16.1.7",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-virtuoso": "^4.18.3"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.2.0",

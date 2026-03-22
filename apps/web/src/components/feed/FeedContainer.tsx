@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useRef, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { isGroupedMessage } from '@/lib/feedUtils';
 import { useFeed } from '@/hooks/useFeed';
-import type { FeedMessage as FeedMessageType } from '@arena/shared';
+import type { FeedItem as FeedItemType, FeedMessage as FeedMessageType } from '@arena/shared';
 import { usePresence } from '@/hooks/usePresence';
 import { useAuth } from '@/hooks/useAuth';
 import { BatchLikeProvider } from '@/hooks/useBatchLikeStatus';
@@ -23,6 +23,10 @@ const ArticleEditor = dynamic(() => import('@/components/article/ArticleEditor')
 const ArticleList = dynamic(() => import('@/components/article/ArticleList').then((m) => m.ArticleList), { ssr: false });
 const PodcastEditor = dynamic(() => import('@/components/podcast/PodcastEditor').then((m) => m.PodcastEditor), { ssr: false });
 const ModerationPanel = dynamic(() => import('@/components/moderation/ModerationPanel').then((m) => m.ModerationPanel), { ssr: false });
+
+type DisplayItem =
+  | { kind: 'feed'; item: FeedItemType; index: number }
+  | { kind: 'ad'; adIndex: number };
 
 interface FeedContainerProps {
   communityId: number;
@@ -48,7 +52,6 @@ export function FeedContainer({
   const {
     items,
     loading,
-    sending,
     hasMore,
     sendMessage,
     sendReply,
@@ -58,8 +61,9 @@ export function FeedContainer({
     getMessageById,
   } = useFeed(communityId, user?.id ?? null);
   const { onlineMembers } = usePresence(communityId, user?.id ?? null, username, avatarUrl);
-  const feedContainerRef = useRef<HTMLDivElement>(null);
-  const [autoScroll, setAutoScroll] = useState(true);
+
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const [atBottom, setAtBottom] = useState(true);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
   const [showMembers, setShowMembers] = useState(false);
   const [showArticleEditor, setShowArticleEditor] = useState(false);
@@ -88,103 +92,17 @@ export function FeedContainer({
     });
   }, []);
 
-  // Virtualizer for feed items (~15-20 DOM nodes instead of 50+)
-  const virtualizer = useVirtualizer({
-    count: items.length,
-    getScrollElement: () => feedContainerRef.current,
-    estimateSize: (index) => {
-      const item = items[index];
-
-      if (item.feedType === 'article') return 350;
-      if (item.feedType === 'podcast') return 200;
-      if (item.isRemoved) return 28;
-
-      const isGrouped = index > 0 && isGroupedMessage(item, items[index - 1]);
-      let size = isGrouped ? 70 : 100;
-
-      if (item.parentId) size += 30;
-
-      if (item.imageUrls.length > 0) {
-        const count = item.imageUrls.length;
-        size += count === 1 ? 310 : count === 2 ? 210 : 270;
+  // Interleave ads into the items list
+  const displayItems: DisplayItem[] = useMemo(() => {
+    const result: DisplayItem[] = [];
+    items.forEach((item, i) => {
+      result.push({ kind: 'feed', item, index: i });
+      if ((i + 1) % FEED_AD_INTERVAL === 0) {
+        result.push({ kind: 'ad', adIndex: Math.floor(i / FEED_AD_INTERVAL) });
       }
-
-      if ((index + 1) % FEED_AD_INTERVAL === 0) size += 300;
-
-      return size;
-    },
-    overscan: 10,
-  });
-
-  // Scroll to bottom on initial load (instant) and on new messages (smooth)
-  const prevItemCountRef = useRef(items.length);
-  const justSentRef = useRef(false);
-  const initialScrollDone = useRef(false);
-
-  // Initial scroll: jump to bottom via native scrollTop (not virtualizer estimates)
-  useEffect(() => {
-    if (!loading && items.length > 0 && !initialScrollDone.current) {
-      initialScrollDone.current = true;
-      const el = feedContainerRef.current;
-      if (el) el.scrollTop = el.scrollHeight;
-    }
-  }, [loading, items.length]);
-
-  // Subsequent messages: smooth scroll to bottom if at bottom or own message
-  useEffect(() => {
-    if (!initialScrollDone.current) return; // Skip until initial scroll is done
-    const prevCount = prevItemCountRef.current;
-    prevItemCountRef.current = items.length;
-    if (items.length > prevCount && items.length > 0) {
-      if (justSentRef.current || autoScroll) {
-        virtualizer.scrollToIndex(items.length - 1, { align: 'end', behavior: 'smooth' });
-        justSentRef.current = false;
-        setAutoScroll(true);
-      }
-    }
-  }, [items.length, autoScroll, virtualizer]);
-
-  // Throttled scroll handler: auto-scroll detection + infinite scroll
-  const scrollTickRef = useRef(false);
-  const rafRef = useRef<number>(0);
-  const loadingMoreRef = useRef(false);
-
-  const handleScrollThrottled = useCallback(() => {
-    if (scrollTickRef.current) return;
-    scrollTickRef.current = true;
-
-    rafRef.current = requestAnimationFrame(() => {
-      const el = feedContainerRef.current;
-      if (el) {
-        // Auto-scroll detection
-        const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
-        setAutoScroll(atBottom);
-
-        // Infinite scroll: load older messages when near top
-        if (hasMore && !loadingMoreRef.current && el.scrollTop < 200) {
-          loadingMoreRef.current = true;
-          setLoadingMore(true);
-          const prevHeight = el.scrollHeight;
-          loadMore().then(() => {
-            requestAnimationFrame(() => {
-              // Restore scroll position so user stays at same content
-              if (feedContainerRef.current) {
-                feedContainerRef.current.scrollTop = feedContainerRef.current.scrollHeight - prevHeight;
-              }
-              loadingMoreRef.current = false;
-              setLoadingMore(false);
-            });
-          });
-        }
-      }
-      scrollTickRef.current = false;
     });
-  }, [hasMore, loadMore]);
-
-  // Cleanup requestAnimationFrame on unmount
-  useEffect(() => {
-    return () => cancelAnimationFrame(rafRef.current);
-  }, []);
+    return result;
+  }, [items]);
 
   function getInputPlaceholder(): string {
     if (!user) return 'Connectez-vous pour participer';
@@ -196,7 +114,6 @@ export function FeedContainer({
 
   const handleSend = useCallback(
     async (content: string, imageUrls?: string[]) => {
-      justSentRef.current = true;
       if (replyTarget) {
         await sendReply(replyTarget.id, content, imageUrls);
         setReplyTarget(null);
@@ -213,16 +130,22 @@ export function FeedContainer({
 
   const scrollToMessage = useCallback(
     (messageId: number) => {
-      const index = items.findIndex(
-        (item) => item.feedType === 'message' && item.id === messageId,
+      const index = displayItems.findIndex(
+        (d) => d.kind === 'feed' && d.item.feedType === 'message' && d.item.id === messageId,
       );
       if (index === -1) return;
-      virtualizer.scrollToIndex(index, { align: 'center', behavior: 'smooth' });
+      virtuosoRef.current?.scrollToIndex({ index, align: 'center', behavior: 'smooth' });
       setHighlightedMessageId(messageId);
       setTimeout(() => setHighlightedMessageId(null), 1500);
     },
-    [items, virtualizer],
+    [displayItems],
   );
+
+  const handleStartReached = useCallback(() => {
+    if (!hasMore || loadingMore) return;
+    setLoadingMore(true);
+    loadMore().then(() => setLoadingMore(false));
+  }, [hasMore, loadingMore, loadMore]);
 
   const inputDisabled = !user || !isMember || isMuted;
 
@@ -306,12 +229,8 @@ export function FeedContainer({
           </div>
         </div>
 
-        {/* Feed items - virtualized */}
-        <div
-          ref={feedContainerRef}
-          onScroll={handleScrollThrottled}
-          className="flex min-h-0 flex-1 flex-col overflow-y-auto"
-        >
+        {/* Feed items — react-virtuoso handles measurement, scroll, and positioning */}
+        <div className="min-h-0 flex-1">
           {loading ? (
             <FeedSkeleton />
           ) : (
@@ -321,95 +240,79 @@ export function FeedContainer({
               articleIds={articleIds}
               podcastIds={podcastIds}
             >
-              {items.length === 0 ? (
-                <div className="flex flex-1 flex-col items-center justify-center text-gray-400">
+              {displayItems.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center text-gray-400">
                   <svg className="mb-3 h-12 w-12" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
                   </svg>
                   <p className="text-sm">Aucun contenu. Soyez le premier à écrire!</p>
                 </div>
               ) : (
-                <>
-                  {/* Loading spinner for infinite scroll */}
-                  {loadingMore && (
-                    <div className="flex justify-center py-3">
-                      <svg
-                        className="h-5 w-5 animate-spin text-gray-400"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                    </div>
-                  )}
-                  {/* Virtualized feed list */}
-                  <div
-                    style={{
-                      height: `${virtualizer.getTotalSize()}px`,
-                      width: '100%',
-                      position: 'relative',
-                    }}
-                  >
-                    {virtualizer.getVirtualItems().map((virtualRow) => {
-                      const item = items[virtualRow.index];
-                      const index = virtualRow.index;
-
-                      const isGrouped = index > 0 && isGroupedMessage(item, items[index - 1]);
-
-                      return (
-                        <div
-                          key={item.feedKey}
-                          data-index={virtualRow.index}
-                          ref={virtualizer.measureElement}
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            overflow: 'hidden',
-                            transform: `translateY(${virtualRow.start}px)`,
-                          }}
+                <Virtuoso
+                  ref={virtuosoRef}
+                  data={displayItems}
+                  initialTopMostItemIndex={displayItems.length - 1}
+                  followOutput="smooth"
+                  atBottomStateChange={setAtBottom}
+                  atBottomThreshold={100}
+                  overscan={200}
+                  startReached={handleStartReached}
+                  components={{
+                    Header: loadingMore ? () => (
+                      <div className="flex justify-center py-3">
+                        <svg
+                          className="h-5 w-5 animate-spin text-gray-400"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
                         >
-                          <FeedItem
-                            item={item}
-                            userId={user?.id ?? null}
-                            canModerate={canModerate}
-                            communityId={communityId}
-                            staffRoles={liveStaffRoles}
-                            communitySlug={communitySlug}
-                            isHighlighted={item.feedType === 'message' && item.id === highlightedMessageId}
-                            isGrouped={isGrouped}
-                            onDeleteMessage={deleteMessage}
-                            onEditMessage={editMessage}
-                            editingMessageId={editingMessageId}
-                            onStartEdit={setEditingMessageId}
-                            onReply={handleReply}
-                            onScrollToMessage={scrollToMessage}
-                            getMessageById={getMessageById}
-                            onRoleChanged={handleRoleChanged}
-                          />
-                          {(index + 1) % FEED_AD_INTERVAL === 0 && (
-                            <AdInFeed index={Math.floor(index / FEED_AD_INTERVAL)} />
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                      </div>
+                    ) : undefined,
+                  }}
+                  itemContent={(virtuosoIndex, displayItem) => {
+                    if (displayItem.kind === 'ad') {
+                      return <AdInFeed index={displayItem.adIndex} />;
+                    }
+
+                    const { item, index } = displayItem;
+                    const isGrouped = index > 0 && isGroupedMessage(item, items[index - 1]);
+
+                    return (
+                      <FeedItem
+                        item={item}
+                        userId={user?.id ?? null}
+                        canModerate={canModerate}
+                        communityId={communityId}
+                        staffRoles={liveStaffRoles}
+                        communitySlug={communitySlug}
+                        isHighlighted={item.feedType === 'message' && item.id === highlightedMessageId}
+                        isGrouped={isGrouped}
+                        onDeleteMessage={deleteMessage}
+                        onEditMessage={editMessage}
+                        editingMessageId={editingMessageId}
+                        onStartEdit={setEditingMessageId}
+                        onReply={handleReply}
+                        onScrollToMessage={scrollToMessage}
+                        getMessageById={getMessageById}
+                        onRoleChanged={handleRoleChanged}
+                      />
+                    );
+                  }}
+                />
               )}
             </BatchLikeProvider>
           )}
         </div>
 
         {/* Jump to bottom — Discord-style */}
-        {!autoScroll && items.length > 0 && (
+        {!atBottom && displayItems.length > 0 && (
           <div className="absolute bottom-20 left-1/2 z-10 -translate-x-1/2">
             <button
               onClick={() => {
-                virtualizer.scrollToIndex(items.length - 1, { align: 'end', behavior: 'smooth' });
-                setAutoScroll(true);
+                virtuosoRef.current?.scrollToIndex({ index: displayItems.length - 1, behavior: 'smooth' });
               }}
               className="flex items-center gap-1.5 rounded-full bg-brand-blue px-4 py-2 text-xs font-medium text-white shadow-lg transition hover:bg-brand-blue-dark"
             >
@@ -437,7 +340,7 @@ export function FeedContainer({
             disabled={inputDisabled}
             placeholder={getInputPlaceholder()}
             communityId={communityId}
-            userId={user?.id ?? null}
+            userId={user.id}
             autoFocus={!!replyTarget}
           />
         ) : (
