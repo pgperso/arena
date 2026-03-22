@@ -55,26 +55,26 @@ function MessageToolbar({
   onCancelDelete: () => void;
 }) {
   return (
-    <div className="absolute -top-3 right-4 z-10 flex items-center gap-0.5 rounded-md border border-gray-200 bg-white px-1 py-0.5 shadow-sm opacity-0 transition group-hover:opacity-100">
+    <div className="absolute -top-3 right-4 z-10 flex items-center gap-1 rounded-lg bg-red-600 px-1 py-0.5 shadow-md opacity-0 transition group-hover:opacity-100">
       {confirmDelete ? (
-        <span className="flex items-center gap-1.5 px-1 text-xs">
-          <button onClick={onConfirmDelete} className="font-semibold text-red-500 hover:text-red-700">
+        <span className="flex items-center gap-2 px-2 py-1 text-xs">
+          <button onClick={onConfirmDelete} className="font-bold text-white hover:text-red-200">
             Supprimer
           </button>
-          <button onClick={onCancelDelete} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onCancelDelete} className="text-red-200 hover:text-white">
             Annuler
           </button>
         </span>
       ) : (
         <>
           {isOwn && (
-            <button onClick={onStartEdit} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600" title="Modifier">
-              <Pencil className="h-3.5 w-3.5" strokeWidth={1.5} />
+            <button onClick={onStartEdit} className="rounded-md p-2 text-white/80 transition hover:bg-red-700 hover:text-white" title="Modifier">
+              <Pencil className="h-4 w-4" strokeWidth={2} />
             </button>
           )}
           {(canModerate || isOwn) && (
-            <button onClick={onDelete} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-500" title="Supprimer">
-              <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+            <button onClick={onDelete} className="rounded-md p-2 text-white/80 transition hover:bg-red-700 hover:text-white" title="Supprimer">
+              <Trash2 className="h-4 w-4" strokeWidth={2} />
             </button>
           )}
         </>
