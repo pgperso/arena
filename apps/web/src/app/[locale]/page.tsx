@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { setRequestLocale } from 'next-intl/server';
 import { CommunityGrid } from '@/components/community/CommunityGrid';
 import { TrendingMessages } from '@/components/home/TrendingMessages';
 import { AdBanner } from '@/components/ads/AdBanner';
@@ -8,7 +9,9 @@ export const revalidate = 60;
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'];
 
-export default async function HomePage() {
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const supabase = await createClient();
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();

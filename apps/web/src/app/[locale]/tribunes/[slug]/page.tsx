@@ -1,12 +1,13 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { setRequestLocale } from 'next-intl/server';
 import { CommunityPageClient } from './CommunityPageClient';
 import type { Database } from '@arena/supabase-client';
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'];
 
 interface CommunityPageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: CommunityPageProps) {
@@ -35,7 +36,8 @@ export async function generateMetadata({ params }: CommunityPageProps) {
 }
 
 export default async function CommunityPage({ params }: CommunityPageProps) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
+  setRequestLocale(locale);
   const supabase = await createClient();
 
   // Load community + user in parallel

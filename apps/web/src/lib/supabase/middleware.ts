@@ -1,6 +1,12 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+/** Strip locale prefix from pathname for route matching */
+function stripLocale(pathname: string): string {
+  const match = pathname.match(/^\/(fr|en)(\/.*)?$/);
+  return match ? (match[2] || '/') : pathname;
+}
+
 export async function updateSession(request: NextRequest, requestHeaders?: Headers) {
   const headers = requestHeaders ?? request.headers;
   let supabaseResponse = NextResponse.next({ request: { headers } });
@@ -30,11 +36,11 @@ export async function updateSession(request: NextRequest, requestHeaders?: Heade
     data: { user },
   } = await supabase.auth.getUser();
 
+  const cleanPath = stripLocale(request.nextUrl.pathname);
+
   // Protected routes - redirect to login if not authenticated
   const protectedPaths = ['/vestiaire', '/admin'];
-  const isProtected = protectedPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path),
-  );
+  const isProtected = protectedPaths.some((path) => cleanPath.startsWith(path));
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone();
@@ -43,13 +49,12 @@ export async function updateSession(request: NextRequest, requestHeaders?: Heade
     return NextResponse.redirect(url);
   }
 
+  // Don't redirect away from update-password
+  if (cleanPath.startsWith('/update-password')) return supabaseResponse;
+
   // Redirect logged-in users away from auth pages
   const authPaths = ['/login', '/register', '/reset-password'];
-  // Don't redirect away from update-password — user needs to be logged in AND on this page
-  if (request.nextUrl.pathname.startsWith('/update-password')) return supabaseResponse;
-  const isAuthPage = authPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path),
-  );
+  const isAuthPage = authPaths.some((path) => cleanPath.startsWith(path));
 
   if (isAuthPage && user) {
     const url = request.nextUrl.clone();

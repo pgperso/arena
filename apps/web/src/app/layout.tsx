@@ -1,10 +1,5 @@
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { Inter } from 'next/font/google';
-import Script from 'next/script';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { ADSENSE_CLIENT_ID } from '@arena/shared';
 import './globals.css';
 
 const inter = Inter({
@@ -41,44 +36,10 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
 };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'La tribune des fans',
-  url: 'https://fanstribune.com',
-  description:
-    'Plateforme de tribunes sportives en direct : chat, articles et podcasts.',
-};
-
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const nonce = (await headers()).get('x-nonce') ?? '';
-
-  return (
-    <html lang="fr">
-      <head>
-        <Script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-          nonce={nonce}
-        />
-        <script
-          type="application/ld+json"
-          nonce={nonce}
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-        />
-      </head>
-      <body className={`${inter.variable} antialiased`}>
-        <div className="flex h-screen flex-col overflow-hidden">
-          <Header />
-          <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
-        </div>
-      </body>
-    </html>
-  );
+  return children;
 }
