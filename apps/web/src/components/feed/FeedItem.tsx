@@ -14,8 +14,6 @@ interface FeedItemProps {
   isHighlighted?: boolean;
   onDeleteMessage: (messageId: number) => void;
   onReply: (message: FeedMessageType) => void;
-  onRepost: (messageId: number) => void;
-  onQuote: (message: FeedMessageType) => void;
   onScrollToMessage?: (messageId: number) => void;
   getMessageById: (id: number) => FeedMessageType | undefined;
 }
@@ -28,8 +26,6 @@ export const FeedItem = memo(function FeedItem({
   isHighlighted,
   onDeleteMessage,
   onReply,
-  onRepost,
-  onQuote,
   onScrollToMessage,
   getMessageById,
 }: FeedItemProps) {
@@ -44,8 +40,6 @@ export const FeedItem = memo(function FeedItem({
           isHighlighted={isHighlighted}
           onDelete={onDeleteMessage}
           onReply={onReply}
-          onRepost={onRepost}
-          onQuote={onQuote}
           onScrollToMessage={onScrollToMessage}
           getMessageById={getMessageById}
         />

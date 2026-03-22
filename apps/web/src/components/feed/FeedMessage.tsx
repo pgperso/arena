@@ -7,8 +7,6 @@ import { FeedActions } from './FeedActions';
 import { FeedImageGallery } from './FeedImageGallery';
 import { FeedRichContent } from './FeedRichContent';
 import { FeedReplyContext } from './FeedReplyContext';
-import { FeedRepostBadge } from './FeedRepostBadge';
-import { FeedQuotedMessage } from './FeedQuotedMessage';
 import { Avatar } from '@/components/ui/Avatar';
 
 interface FeedMessageProps {
@@ -19,8 +17,6 @@ interface FeedMessageProps {
   isHighlighted?: boolean;
   onDelete: (messageId: number) => void;
   onReply: (message: FeedMessageType) => void;
-  onRepost: (messageId: number) => void;
-  onQuote: (message: FeedMessageType) => void;
   onScrollToMessage?: (messageId: number) => void;
   getMessageById: (id: number) => FeedMessageType | undefined;
 }
@@ -33,8 +29,6 @@ export const FeedMessage = memo(function FeedMessage({
   isHighlighted,
   onDelete,
   onReply,
-  onRepost,
-  onQuote,
   onScrollToMessage,
   getMessageById,
 }: FeedMessageProps) {
@@ -49,30 +43,7 @@ export const FeedMessage = memo(function FeedMessage({
     );
   }
 
-  // Pure repost (no content, just sharing someone else's message)
-  const repostedMessage = message.repostOfId ? getMessageById(message.repostOfId) : undefined;
-  if (message.repostOfId && !message.content && repostedMessage) {
-    return (
-      <div className="py-1">
-        <FeedRepostBadge username={username} />
-        <FeedMessage
-          message={repostedMessage}
-          isOwn={repostedMessage.memberId === userId}
-          canModerate={canModerate}
-          userId={userId}
-          onDelete={onDelete}
-          onReply={onReply}
-          onRepost={onRepost}
-          onQuote={onQuote}
-          onScrollToMessage={onScrollToMessage}
-          getMessageById={getMessageById}
-        />
-      </div>
-    );
-  }
-
   const parentMessage = message.parentId ? getMessageById(message.parentId) : undefined;
-  const quotedMessage = message.quoteOfId ? getMessageById(message.quoteOfId) : undefined;
   const hasReplyContext = !!(message.parentId && parentMessage);
 
   return (
@@ -123,29 +94,14 @@ export const FeedMessage = memo(function FeedMessage({
             <FeedImageGallery imageUrls={message.imageUrls} />
           )}
 
-          {/* Quoted message */}
-          {message.quoteOfId && quotedMessage && (
-            <FeedQuotedMessage
-              message={{
-                content: quotedMessage.content,
-                username: quotedMessage.member?.username ?? 'Utilisateur supprimé',
-                avatarUrl: quotedMessage.member?.avatarUrl ?? null,
-                createdAt: quotedMessage.createdAt,
-              }}
-            />
-          )}
-
           {/* Actions bar */}
           <FeedActions
             messageId={message.id}
             likeCount={message.likeCount}
             dislikeCount={message.dislikeCount}
             replyCount={message.replyCount}
-            repostCount={message.repostCount}
             userId={userId}
             onReply={() => onReply(message)}
-            onRepost={() => onRepost(message.id)}
-            onQuote={() => onQuote(message)}
           />
         </div>
       </div>

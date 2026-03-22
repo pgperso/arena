@@ -49,8 +49,6 @@ export function FeedContainer({
     hasMore,
     sendMessage,
     sendReply,
-    sendRepost,
-    sendQuote,
     loadMore,
     deleteMessage,
     getMessageById,
@@ -66,9 +64,8 @@ export function FeedContainer({
   const [showPodcastEditor, setShowPodcastEditor] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // Reply/quote state
+  // Reply state
   const [replyTarget, setReplyTarget] = useState<FeedMessageType | null>(null);
-  const [quoteTarget, setQuoteTarget] = useState<FeedMessageType | null>(null);
 
   // Virtualizer for feed items (~15-20 DOM nodes instead of 50+)
   const virtualizer = useVirtualizer({
@@ -140,7 +137,6 @@ export function FeedContainer({
     if (!isMember) return 'Rejoignez la tribune pour participer';
     if (isMuted) return 'Vous êtes en sourdine dans cette tribune';
     if (replyTarget) return `Répondre à @${replyTarget.member?.username ?? 'utilisateur'}...`;
-    if (quoteTarget) return `Citer @${quoteTarget.member?.username ?? 'utilisateur'}...`;
     return 'Écrire un message... (Enter pour envoyer)';
   }
 
@@ -149,31 +145,15 @@ export function FeedContainer({
       if (replyTarget) {
         await sendReply(replyTarget.id, content, imageUrls);
         setReplyTarget(null);
-      } else if (quoteTarget) {
-        await sendQuote(quoteTarget.id, content, imageUrls);
-        setQuoteTarget(null);
       } else {
         await sendMessage(content, imageUrls);
       }
     },
-    [replyTarget, quoteTarget, sendReply, sendQuote, sendMessage],
+    [replyTarget, sendReply, sendMessage],
   );
 
   const handleReply = useCallback((message: FeedMessageType) => {
-    setQuoteTarget(null);
     setReplyTarget(message);
-  }, []);
-
-  const handleRepost = useCallback(
-    async (messageId: number) => {
-      await sendRepost(messageId);
-    },
-    [sendRepost],
-  );
-
-  const handleQuote = useCallback((message: FeedMessageType) => {
-    setReplyTarget(null);
-    setQuoteTarget(message);
   }, []);
 
   const scrollToMessage = useCallback(
@@ -341,8 +321,6 @@ export function FeedContainer({
                             isHighlighted={item.feedType === 'message' && item.id === highlightedMessageId}
                             onDeleteMessage={deleteMessage}
                             onReply={handleReply}
-                            onRepost={handleRepost}
-                            onQuote={handleQuote}
                             onScrollToMessage={scrollToMessage}
                             getMessageById={getMessageById}
                           />
@@ -359,21 +337,13 @@ export function FeedContainer({
           )}
         </div>
 
-        {/* Reply/Quote bar */}
+        {/* Reply bar */}
         {replyTarget && (
           <FeedReplyBar
             username={replyTarget.member?.username ?? 'utilisateur'}
             mode="reply"
             preview={replyTarget.content}
             onCancel={() => setReplyTarget(null)}
-          />
-        )}
-        {quoteTarget && (
-          <FeedReplyBar
-            username={quoteTarget.member?.username ?? 'utilisateur'}
-            mode="quote"
-            preview={quoteTarget.content}
-            onCancel={() => setQuoteTarget(null)}
           />
         )}
 
