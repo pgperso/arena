@@ -50,23 +50,18 @@ export const FeedMessage = memo(function FeedMessage({
 
   return (
     <div className={`group relative px-4 py-2 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}>
-      {/* Connector line from reply context to avatar */}
+      {/* Reply context with curved connector */}
       {hasReplyContext && (
-        <div
-          className="reply-connector"
-          style={{ top: 6, height: 24 }}
-        />
-      )}
-
-      {/* Reply context */}
-      {hasReplyContext && (
-        <div className="ml-6 mb-0.5">
-          <FeedReplyContext
-            parentUsername={parentMessage.member?.username ?? 'Utilisateur supprimé'}
-            parentAvatarUrl={parentMessage.member?.avatarUrl}
-            parentContent={parentMessage.content}
-            onClick={onScrollToMessage ? () => onScrollToMessage(parentMessage.id) : undefined}
-          />
+        <div className="mb-0.5 flex items-end pl-4">
+          <div className="reply-connector relative -top-0.5" />
+          <div className="ml-8">
+            <FeedReplyContext
+              parentUsername={parentMessage.member?.username ?? 'Utilisateur supprimé'}
+              parentAvatarUrl={parentMessage.member?.avatarUrl}
+              parentContent={parentMessage.content}
+              onClick={onScrollToMessage ? () => onScrollToMessage(parentMessage.id) : undefined}
+            />
+          </div>
         </div>
       )}
 

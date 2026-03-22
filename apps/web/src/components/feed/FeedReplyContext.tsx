@@ -1,7 +1,6 @@
 'use client';
 
-import { Avatar } from '@/components/ui/Avatar';
-import { CornerDownRight } from 'lucide-react';
+import Image from 'next/image';
 
 interface FeedReplyContextProps {
   parentUsername: string;
@@ -20,14 +19,25 @@ export function FeedReplyContext({
     <button
       onClick={onClick}
       disabled={!onClick}
-      className="mb-1 flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+      className="flex h-4 items-center gap-1 text-[11px] leading-none text-gray-400 transition hover:text-gray-600 disabled:hover:text-gray-400"
     >
-      <CornerDownRight className="h-3 w-3 flex-shrink-0 rotate-180" strokeWidth={2} />
-      <Avatar url={parentAvatarUrl} name={parentUsername} size="xs" />
+      {parentAvatarUrl ? (
+        <Image
+          src={parentAvatarUrl}
+          alt={parentUsername}
+          width={14}
+          height={14}
+          className="h-3.5 w-3.5 rounded-full object-cover"
+        />
+      ) : (
+        <div className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-brand-blue text-[8px] font-bold text-white">
+          {parentUsername[0]?.toUpperCase() ?? '?'}
+        </div>
+      )}
       <span className="min-w-0 truncate">
-        <strong className="font-semibold text-gray-500">{parentUsername}</strong>
+        <strong className="font-semibold text-brand-blue">{parentUsername}</strong>
         {parentContent && (
-          <span className="ml-1 font-normal text-gray-400">{parentContent}</span>
+          <span className="ml-1 text-gray-400">{parentContent}</span>
         )}
       </span>
     </button>

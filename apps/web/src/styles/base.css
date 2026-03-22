@@ -51,13 +51,15 @@ label[for] {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Reply connector line (Discord-style) */
+/* Reply connector — curved L-shape from reply context down to avatar */
 .reply-connector {
   position: absolute;
-  left: 36px;
-  width: 2px;
-  background-color: var(--color-gray-300);
-  border-radius: 1px;
+  left: 32px;
+  width: 28px;
+  height: 10px;
+  border-left: 2px solid var(--color-gray-300);
+  border-top: 2px solid var(--color-gray-300);
+  border-top-left-radius: 6px;
 }
 
 /* Scroll-to-message highlight flash */
