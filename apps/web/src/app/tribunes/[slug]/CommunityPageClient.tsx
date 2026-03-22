@@ -75,22 +75,13 @@ export function CommunityPageClient({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
             <div className="mb-4 flex flex-col items-center gap-3 text-center">
-              {community.logo_url ? (
-                <Image
-                  src={community.logo_url}
-                  alt={community.name}
-                  width={64}
-                  height={64}
-                  className="h-16 w-16 object-contain"
-                />
-              ) : (
-                <Avatar
-                  name={community.name}
-                  url={null}
-                  size="lg"
-                  color={community.primary_color}
-                />
-              )}
+              <Image
+                src={community.logo_url || '/images/fanstribune.webp'}
+                alt={community.name}
+                width={64}
+                height={64}
+                className="h-16 w-16 object-contain"
+              />
               <h2 className="text-lg font-bold text-gray-900">{community.name}</h2>
               {community.description && (
                 <p className="text-sm text-gray-500">{community.description}</p>

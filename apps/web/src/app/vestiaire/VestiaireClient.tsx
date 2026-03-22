@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAvatarUpload } from '@/hooks/useAvatarUpload';
@@ -209,11 +210,12 @@ export function VestiaireClient({
                   href={`/tribunes/${community.slug}`}
                   className="group flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 hover:shadow-sm"
                 >
-                  <Avatar
-                    url={community.logo_url}
-                    name={community.name}
-                    size="lg"
-                    color={community.primary_color}
+                  <Image
+                    src={community.logo_url || '/images/fanstribune.webp'}
+                    alt={community.name}
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 shrink-0 object-contain"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">

@@ -99,7 +99,7 @@ export default async function VestiairePage() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto">
+    <div className="flex h-[calc(100dvh-4rem)] flex-col overflow-y-auto">
       <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
         <VestiaireClient
           member={member}
