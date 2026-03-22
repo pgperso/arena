@@ -1,11 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { formatTime } from '@arena/shared';
 import type { FeedArticle } from '@arena/shared';
 import { FeedLikeButton } from './FeedLikeButton';
 import { Avatar } from '@/components/ui/Avatar';
 import { useSupabase } from '@/hooks/useSupabase';
-import { removeArticle } from '@/services/articleService';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -18,6 +18,20 @@ interface FeedArticleCardProps {
 
 export function FeedArticleCard({ article, communitySlug, userId, canModerate }: FeedArticleCardProps) {
   const supabase = useSupabase();
+  const [removed, setRemoved] = useState(false);
+
+  const isOwn = !!(userId && article.author.id === userId);
+  const canRemove = isOwn || !!canModerate;
+
+  async function handleRemoveFromFeed() {
+    await supabase
+      .from('articles')
+      .update({ is_published: false })
+      .eq('id', article.id);
+    setRemoved(true);
+  }
+
+  if (removed) return null;
 
   return (
     <div className="px-4 py-3">
@@ -80,21 +94,25 @@ export function FeedArticleCard({ article, communitySlug, userId, canModerate }:
         </div>
       </Link>
 
-      {/* Like button + moderation actions */}
+      {/* Actions: like (not own) + remove from feed */}
       <div className="mt-1 flex items-center gap-1 pl-1">
-        <FeedLikeButton
-          targetType="article"
-          targetId={article.id}
-          initialLikeCount={article.likeCount}
-          userId={userId}
-        />
-        {canModerate && userId && (
+        {!isOwn && (
+          <FeedLikeButton
+            targetType="article"
+            targetId={article.id}
+            initialLikeCount={article.likeCount}
+            userId={userId}
+          />
+        )}
+        {isOwn && article.likeCount > 0 && (
+          <span className="px-2 py-1 text-xs text-gray-300">{article.likeCount} ♥</span>
+        )}
+        {canRemove && (
           <button
-            onClick={() => removeArticle(supabase, article.id, userId)}
-            className="ml-auto rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-red-50 hover:text-red-500"
-            title="Supprimer l'article"
+            onClick={handleRemoveFromFeed}
+            className="ml-auto rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
           >
-            Supprimer
+            Retirer du chat
           </button>
         )}
       </div>

@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { formatTime, formatDuration } from '@arena/shared';
 import type { FeedPodcast } from '@arena/shared';
 import { FeedLikeButton } from './FeedLikeButton';
+import { useSupabase } from '@/hooks/useSupabase';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -11,12 +12,18 @@ interface FeedPodcastCardProps {
   podcast: FeedPodcast;
   communitySlug: string;
   userId: string | null;
+  canModerate?: boolean;
 }
 
-export function FeedPodcastCard({ podcast, communitySlug, userId }: FeedPodcastCardProps) {
+export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }: FeedPodcastCardProps) {
+  const supabase = useSupabase();
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [removed, setRemoved] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  const isOwn = !!(userId && podcast.publisher?.id === userId);
+  const canRemove = isOwn || !!canModerate;
 
   function togglePlay() {
     const audio = audioRef.current;
@@ -49,6 +56,16 @@ export function FeedPodcastCard({ podcast, communitySlug, userId }: FeedPodcastC
     setProgress(0);
   }
 
+  async function handleRemoveFromFeed() {
+    await supabase
+      .from('podcasts')
+      .update({ is_published: false })
+      .eq('id', podcast.id);
+    setRemoved(true);
+  }
+
+  if (removed) return null;
+
   return (
     <div className="px-4 py-3">
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-orange-50 to-amber-50 p-4">
@@ -65,6 +82,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId }: FeedPodcastC
           <button
             onClick={togglePlay}
             className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-orange-200"
+            aria-label={playing ? 'Mettre en pause' : 'Lire'}
           >
             {podcast.coverImageUrl ? (
               <Image
@@ -80,7 +98,6 @@ export function FeedPodcastCard({ podcast, communitySlug, userId }: FeedPodcastC
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
               </svg>
             )}
-            {/* Play/Pause overlay */}
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition hover:bg-black/30">
               {playing ? (
                 <svg className="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -131,14 +148,27 @@ export function FeedPodcastCard({ podcast, communitySlug, userId }: FeedPodcastC
         </div>
       </div>
 
-      {/* Like button */}
+      {/* Actions: like (not own) + remove from feed */}
       <div className="mt-1 flex items-center gap-1 pl-1">
-        <FeedLikeButton
-          targetType="podcast"
-          targetId={podcast.id}
-          initialLikeCount={podcast.likeCount}
-          userId={userId}
-        />
+        {!isOwn && (
+          <FeedLikeButton
+            targetType="podcast"
+            targetId={podcast.id}
+            initialLikeCount={podcast.likeCount}
+            userId={userId}
+          />
+        )}
+        {isOwn && podcast.likeCount > 0 && (
+          <span className="px-2 py-1 text-xs text-gray-300">{podcast.likeCount} ♥</span>
+        )}
+        {canRemove && (
+          <button
+            onClick={handleRemoveFromFeed}
+            className="ml-auto rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+          >
+            Retirer du chat
+          </button>
+        )}
       </div>
     </div>
   );

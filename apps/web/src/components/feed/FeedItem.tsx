@@ -81,6 +81,7 @@ export const FeedItem = memo(function FeedItem({
           podcast={item}
           communitySlug={communitySlug}
           userId={userId}
+          canModerate={canModerate}
         />
       );
     default:
