@@ -3,6 +3,7 @@ import Script from 'next/script';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
 import { ADSENSE_CLIENT_ID } from '@arena/shared';
 import { routing } from '@/i18n/routing';
 
@@ -49,9 +50,10 @@ export default async function LocaleLayout({
       </head>
       <body className="font-sans antialiased">
         <NextIntlClientProvider messages={messages}>
-          <div className="flex h-screen flex-col overflow-hidden">
+          <div className="flex h-screen flex-col">
             <Header />
             <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
+            <Footer />
           </div>
         </NextIntlClientProvider>
       </body>

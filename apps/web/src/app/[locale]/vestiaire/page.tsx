@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
 import { VestiaireClient } from './VestiaireClient';
-import { Footer } from '@/components/layout/Footer';
 import type { Database } from '@arena/supabase-client';
 
 export const metadata: Metadata = {
@@ -121,7 +120,7 @@ export default async function VestiairePage({ params }: { params: Promise<{ loca
   }
 
   return (
-    <div className="flex h-[calc(100dvh-4rem)] flex-col overflow-y-auto">
+    <div className="flex flex-1 flex-col overflow-y-auto">
       <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
         <VestiaireClient
           member={member}
@@ -131,7 +130,6 @@ export default async function VestiairePage({ params }: { params: Promise<{ loca
           userEmail={user.email ?? ''}
         />
       </div>
-      <Footer />
     </div>
   );
 }

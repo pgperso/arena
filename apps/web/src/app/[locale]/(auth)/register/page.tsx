@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { RegisterForm } from '@/components/auth/RegisterForm';
-import { Footer } from '@/components/layout/Footer';
 
 export const metadata: Metadata = {
   title: 'Inscription',
@@ -13,7 +12,7 @@ export default async function RegisterPage({ params }: { params: Promise<{ local
   const t = await getTranslations('auth');
 
   return (
-    <div className="flex h-[calc(100dvh-4rem)] flex-col overflow-y-auto">
+    <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto">
       <div className="flex flex-1 items-center justify-center px-4">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
@@ -25,7 +24,6 @@ export default async function RegisterPage({ params }: { params: Promise<{ local
           <RegisterForm />
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

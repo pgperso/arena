@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
-import { Footer } from '@/components/layout/Footer';
 
 export default function UpdatePasswordPage() {
   const t = useTranslations('auth');
@@ -46,7 +45,7 @@ export default function UpdatePasswordPage() {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-4rem)] flex-col overflow-y-auto">
+    <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto">
       <div className="flex flex-1 items-center justify-center px-4">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
@@ -111,7 +110,6 @@ export default function UpdatePasswordPage() {
           )}
         </div>
       </div>
-      <Footer />
     </div>
   );
 }
