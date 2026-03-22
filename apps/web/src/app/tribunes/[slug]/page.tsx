@@ -42,7 +42,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
   const [{ data }, { data: { user } }] = await Promise.all([
     supabase
       .from('communities')
-      .select('id, name, slug, description, primary_color, secondary_color, logo_url, banner_url, member_count, is_active, created_at')
+      .select('id, name, slug, description, primary_color, logo_url, member_count, is_active, created_at')
       .eq('slug', slug)
       .eq('is_active', true)
       .single(),

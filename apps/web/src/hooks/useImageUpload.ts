@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useState, useCallback } from 'react';
+import { useSupabase } from './useSupabase';
 import imageCompression from 'browser-image-compression';
 import { MAX_IMAGES_PER_MESSAGE, IMAGE_MAX_SIZE_BYTES } from '@arena/shared';
 
@@ -40,7 +40,7 @@ async function validateMagicBytes(file: File): Promise<boolean> {
 export function useImageUpload(): UseImageUploadReturn {
   const [images, setImages] = useState<ImagePreview[]>([]);
   const [uploading, setUploading] = useState(false);
-  const supabaseRef = useRef(createClient());
+  const supabase = useSupabase();
 
   const addImages = useCallback(
     async (files: FileList) => {
@@ -101,7 +101,7 @@ export function useImageUpload(): UseImageUploadReturn {
         const timestamp = Date.now();
         const path = `${communityId}/${memberId}/${timestamp}_${img.id}.webp`;
 
-        const { error } = await supabaseRef.current.storage
+        const { error } = await supabase.storage
           .from('chat-images')
           .upload(path, compressed, {
             contentType: 'image/webp',
@@ -111,7 +111,7 @@ export function useImageUpload(): UseImageUploadReturn {
         if (!error) {
           const {
             data: { publicUrl },
-          } = supabaseRef.current.storage.from('chat-images').getPublicUrl(path);
+          } = supabase.storage.from('chat-images').getPublicUrl(path);
           urls.push(publicUrl);
         }
       }

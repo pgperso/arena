@@ -1,9 +1,8 @@
 'use client';
 
-import { memo, useState, useCallback, useRef, useEffect } from 'react';
+import { memo, useState } from 'react';
 import { Heart, ThumbsDown } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
-import { useBatchLikeStatus } from '@/hooks/useBatchLikeStatus';
+import { useMessageReaction } from '@/hooks/useMessageReaction';
 
 interface FeedReactionButtonsProps {
   messageId: number;
@@ -18,122 +17,26 @@ export const FeedReactionButtons = memo(function FeedReactionButtons({
   initialDislikeCount,
   userId,
 }: FeedReactionButtonsProps) {
-  const batchCtx = useBatchLikeStatus();
-  const batchLiked = batchCtx?.isLiked('message', messageId);
-  const batchDisliked = batchCtx?.isDisliked(messageId);
+  const { isLiked, isDisliked, likeCount, dislikeCount, toggleLike, toggleDislike, loading } =
+    useMessageReaction(messageId, initialLikeCount, initialDislikeCount, userId);
 
-  const [isLiked, setIsLiked] = useState(batchLiked ?? false);
-  const [isDisliked, setIsDisliked] = useState(batchDisliked ?? false);
-  const [likeCount, setLikeCount] = useState(initialLikeCount);
-  const [dislikeCount, setDislikeCount] = useState(initialDislikeCount);
   const [likeAnim, setLikeAnim] = useState(false);
   const [dislikeAnim, setDislikeAnim] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const supabaseRef = useRef(createClient());
 
-  // Sync from batch context
-  useEffect(() => {
-    if (batchLiked !== undefined) setIsLiked(batchLiked);
-  }, [batchLiked]);
-  useEffect(() => {
-    if (batchDisliked !== undefined) setIsDisliked(batchDisliked);
-  }, [batchDisliked]);
-
-  // Sync counts from parent (Realtime updates)
-  useEffect(() => setLikeCount(initialLikeCount), [initialLikeCount]);
-  useEffect(() => setDislikeCount(initialDislikeCount), [initialDislikeCount]);
-
-  const handleLike = useCallback(async () => {
-    if (!userId || loading) return;
-    setLoading(true);
+  function handleLike() {
     setLikeAnim(true);
     setTimeout(() => setLikeAnim(false), 400);
+    toggleLike();
+  }
 
-    const wasLiked = isLiked;
-    const wasDisliked = isDisliked;
-    const supabase = supabaseRef.current;
-
-    // Optimistic update
-    if (wasLiked) {
-      setIsLiked(false);
-      setLikeCount((c) => c - 1);
-    } else {
-      setIsLiked(true);
-      setLikeCount((c) => c + 1);
-      if (wasDisliked) {
-        setIsDisliked(false);
-        setDislikeCount((c) => Math.max(0, c - 1));
-      }
-    }
-
-    try {
-      if (wasLiked) {
-        await supabase.from('message_likes').delete().eq('message_id', messageId).eq('member_id', userId);
-      } else {
-        if (wasDisliked) {
-          await supabase.from('message_dislikes').delete().eq('message_id', messageId).eq('member_id', userId);
-          batchCtx?.setDisliked(messageId, false);
-        }
-        await supabase.from('message_likes').insert({ message_id: messageId, member_id: userId });
-      }
-      batchCtx?.setLiked('message', messageId, !wasLiked);
-    } catch {
-      // Rollback
-      setIsLiked(wasLiked);
-      setIsDisliked(wasDisliked);
-      setLikeCount(initialLikeCount);
-      setDislikeCount(initialDislikeCount);
-    }
-    setLoading(false);
-  }, [userId, loading, isLiked, isDisliked, messageId, initialLikeCount, initialDislikeCount, batchCtx]);
-
-  const handleDislike = useCallback(async () => {
-    if (!userId || loading) return;
-    setLoading(true);
+  function handleDislike() {
     setDislikeAnim(true);
     setTimeout(() => setDislikeAnim(false), 400);
-
-    const wasLiked = isLiked;
-    const wasDisliked = isDisliked;
-    const supabase = supabaseRef.current;
-
-    // Optimistic update
-    if (wasDisliked) {
-      setIsDisliked(false);
-      setDislikeCount((c) => c - 1);
-    } else {
-      setIsDisliked(true);
-      setDislikeCount((c) => c + 1);
-      if (wasLiked) {
-        setIsLiked(false);
-        setLikeCount((c) => Math.max(0, c - 1));
-      }
-    }
-
-    try {
-      if (wasDisliked) {
-        await supabase.from('message_dislikes').delete().eq('message_id', messageId).eq('member_id', userId);
-      } else {
-        if (wasLiked) {
-          await supabase.from('message_likes').delete().eq('message_id', messageId).eq('member_id', userId);
-          batchCtx?.setLiked('message', messageId, false);
-        }
-        await supabase.from('message_dislikes').insert({ message_id: messageId, member_id: userId });
-      }
-      batchCtx?.setDisliked(messageId, !wasDisliked);
-    } catch {
-      // Rollback
-      setIsLiked(wasLiked);
-      setIsDisliked(wasDisliked);
-      setLikeCount(initialLikeCount);
-      setDislikeCount(initialDislikeCount);
-    }
-    setLoading(false);
-  }, [userId, loading, isLiked, isDisliked, messageId, initialLikeCount, initialDislikeCount, batchCtx]);
+    toggleDislike();
+  }
 
   return (
     <div className="flex items-center gap-0.5">
-      {/* Like */}
       <button
         onClick={handleLike}
         disabled={!userId || loading}
@@ -152,7 +55,6 @@ export const FeedReactionButtons = memo(function FeedReactionButtons({
         {likeCount > 0 && <span>{likeCount}</span>}
       </button>
 
-      {/* Dislike */}
       <button
         onClick={handleDislike}
         disabled={!userId || loading}

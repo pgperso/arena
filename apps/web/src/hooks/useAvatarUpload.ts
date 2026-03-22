@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useState, useCallback } from 'react';
+import { useSupabase } from './useSupabase';
 import imageCompression from 'browser-image-compression';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -14,7 +14,7 @@ interface UseAvatarUploadReturn {
 
 export function useAvatarUpload(): UseAvatarUploadReturn {
   const [uploading, setUploading] = useState(false);
-  const supabaseRef = useRef(createClient());
+  const supabase = useSupabase();
 
   const uploadAvatar = useCallback(async (file: File, memberId: string): Promise<string | null> => {
     if (!ALLOWED_TYPES.includes(file.type)) return null;
@@ -31,7 +31,6 @@ export function useAvatarUpload(): UseAvatarUploadReturn {
       });
 
       const path = `${memberId}/${Date.now()}.webp`;
-      const supabase = supabaseRef.current;
 
       // Delete old avatars
       const { data: existing } = await supabase.storage

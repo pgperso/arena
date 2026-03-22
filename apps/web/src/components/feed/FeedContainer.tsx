@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { isGroupedMessage } from '@/lib/feedUtils';
 import { useFeed } from '@/hooks/useFeed';
 import type { FeedMessage as FeedMessageType } from '@arena/shared';
 import { usePresence } from '@/hooks/usePresence';
@@ -78,14 +79,7 @@ export function FeedContainer({
     estimateSize: (index) => {
       const item = items[index];
       let size = item.feedType === 'article' ? 220 : item.feedType === 'podcast' ? 160 : 72;
-      // Grouped messages are more compact (no avatar/name)
-      if (item.feedType === 'message' && !item.parentId && index > 0) {
-        const prev = items[index - 1];
-        if (prev.feedType === 'message' && prev.memberId === item.memberId && !prev.isRemoved && !item.isRemoved) {
-          const gap = new Date(item.feedTimestamp).getTime() - new Date(prev.feedTimestamp).getTime();
-          if (gap < 5 * 60 * 1000) size = 32;
-        }
-      }
+      if (index > 0 && isGroupedMessage(item, items[index - 1])) size = 32;
       if ((index + 1) % FEED_AD_INTERVAL === 0) size += 250;
       return size;
     },
@@ -320,20 +314,7 @@ export function FeedContainer({
                       const item = items[virtualRow.index];
                       const index = virtualRow.index;
 
-                      // Message grouping: same author, within 5 min, no reply context
-                      let isGrouped = false;
-                      if (item.feedType === 'message' && !item.parentId && index > 0) {
-                        const prev = items[index - 1];
-                        if (
-                          prev.feedType === 'message' &&
-                          prev.memberId === item.memberId &&
-                          !prev.isRemoved &&
-                          !item.isRemoved &&
-                          new Date(item.feedTimestamp).getTime() - new Date(prev.feedTimestamp).getTime() < 5 * 60 * 1000
-                        ) {
-                          isGrouped = true;
-                        }
-                      }
+                      const isGrouped = index > 0 && isGroupedMessage(item, items[index - 1]);
 
                       return (
                         <div
