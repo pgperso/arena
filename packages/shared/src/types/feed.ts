@@ -23,6 +23,7 @@ export interface FeedMessage extends FeedItemBase {
   likeCount: number;
   dislikeCount: number;
   replyCount: number;
+  editedAt: string | null;
   isRemoved: boolean;
   removedAt: string | null;
   removedBy: string | null;

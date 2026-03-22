@@ -49,6 +49,7 @@ export function FeedContainer({
     hasMore,
     sendMessage,
     sendReply,
+    editMessage,
     loadMore,
     deleteMessage,
     getMessageById,
@@ -352,6 +353,7 @@ export function FeedContainer({
                             isHighlighted={item.feedType === 'message' && item.id === highlightedMessageId}
                             isGrouped={isGrouped}
                             onDeleteMessage={deleteMessage}
+                            onEditMessage={editMessage}
                             onReply={handleReply}
                             onScrollToMessage={scrollToMessage}
                             getMessageById={getMessageById}

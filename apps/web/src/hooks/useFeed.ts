@@ -25,7 +25,7 @@ const MAX_FEED_ITEMS = 500;
 const REALTIME_DEBOUNCE_MS = 100;
 
 // Explicit column selections (avoid select('*') to exclude large columns like body)
-const CHAT_MSG_SELECT = 'id, community_id, member_id, content, image_urls, created_at, is_removed, removed_at, removed_by, like_count, dislike_count, reply_count, parent_id, members:members!chat_messages_member_id_fkey(id, username, avatar_url)';
+const CHAT_MSG_SELECT = 'id, community_id, member_id, content, image_urls, created_at, edited_at, is_removed, removed_at, removed_by, like_count, dislike_count, reply_count, parent_id, members:members!chat_messages_member_id_fkey(id, username, avatar_url)';
 const ARTICLE_SELECT = 'id, community_id, author_id, title, slug, excerpt, cover_image_url, like_count, view_count, published_at, is_published, is_removed, created_at, members:members!articles_author_id_fkey(id, username, avatar_url)';
 const PODCAST_SELECT = 'id, community_id, published_by, title, description, audio_url, cover_image_url, duration_seconds, like_count, is_published, is_removed, created_at';
 
@@ -56,6 +56,7 @@ function messageToFeedItem(row: ChatMessageWithJoin): FeedMessage {
     likeCount: row.like_count,
     dislikeCount: row.dislike_count,
     replyCount: row.reply_count,
+    editedAt: row.edited_at,
     isRemoved: row.is_removed ?? false,
     removedAt: row.removed_at,
     removedBy: row.removed_by,
@@ -133,7 +134,8 @@ type FeedAction =
   | { type: 'ADD_PODCAST'; podcast: FeedPodcast }
   | { type: 'UPDATE_PODCAST'; updated: PodcastRow }
   | { type: 'SET_SENDING'; sending: boolean }
-  | { type: 'REMOVE_MESSAGE'; messageId: number };
+  | { type: 'REMOVE_MESSAGE'; messageId: number }
+  | { type: 'EDIT_MESSAGE'; messageId: number; content: string };
 
 function evict<T>(arr: T[]): T[] {
   if (arr.length > MAX_FEED_ITEMS) return arr.slice(arr.length - MAX_FEED_ITEMS);
@@ -169,6 +171,7 @@ function feedReducer(state: FeedState, action: FeedAction): FeedState {
                 likeCount: u.like_count,
                 dislikeCount: u.dislike_count,
                 replyCount: u.reply_count,
+                editedAt: u.edited_at,
                 isRemoved: u.is_removed ?? false,
                 removedAt: u.removed_at,
                 removedBy: u.removed_by,
@@ -240,6 +243,16 @@ function feedReducer(state: FeedState, action: FeedAction): FeedState {
         ),
       };
 
+    case 'EDIT_MESSAGE':
+      return {
+        ...state,
+        messages: state.messages.map((msg) =>
+          msg.id !== action.messageId
+            ? msg
+            : { ...msg, content: action.content, editedAt: new Date().toISOString() },
+        ),
+      };
+
     default:
       return state;
   }
@@ -272,6 +285,7 @@ export interface UseFeedReturn {
   hasMore: boolean;
   sendMessage: (content: string, imageUrls?: string[]) => Promise<void>;
   sendReply: (parentId: number, content: string, imageUrls?: string[]) => Promise<void>;
+  editMessage: (messageId: number, content: string) => Promise<void>;
   loadMore: () => Promise<void>;
   deleteMessage: (messageId: number) => Promise<void>;
   getMessageById: (id: number) => FeedMessage | undefined;
@@ -515,6 +529,20 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
     [send],
   );
 
+  const editMessage = useCallback(
+    async (messageId: number, content: string) => {
+      if (!userId) return;
+      const trimmed = content.trim();
+      if (!trimmed) return;
+      dispatch({ type: 'EDIT_MESSAGE', messageId, content: trimmed });
+      await supabaseRef.current
+        .from('chat_messages')
+        .update({ content: trimmed, edited_at: new Date().toISOString() })
+        .eq('id', messageId);
+    },
+    [userId],
+  );
+
   // --- Load more (messages only) ---
 
   const loadMore = useCallback(async () => {
@@ -580,6 +608,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
     hasMore: state.hasMoreMessages,
     sendMessage,
     sendReply,
+    editMessage,
     loadMore,
     deleteMessage,
     getMessageById,

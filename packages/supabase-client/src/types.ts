@@ -138,6 +138,7 @@ export type Database = {
           dislike_count: number;
           reply_count: number;
           repost_count: number;
+          edited_at: string | null;
           is_removed: boolean;
           removed_at: string | null;
           removed_by: string | null;
@@ -156,6 +157,7 @@ export type Database = {
           dislike_count?: number;
           reply_count?: number;
           repost_count?: number;
+          edited_at?: string | null;
           is_removed?: boolean;
           removed_at?: string | null;
           removed_by?: string | null;
@@ -174,6 +176,7 @@ export type Database = {
           dislike_count?: number;
           reply_count?: number;
           repost_count?: number;
+          edited_at?: string | null;
           is_removed?: boolean;
           removed_at?: string | null;
           removed_by?: string | null;
