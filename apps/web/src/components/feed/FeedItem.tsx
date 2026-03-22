@@ -14,6 +14,7 @@ interface FeedItemProps {
   isHighlighted?: boolean;
   isGrouped?: boolean;
   editingMessageId?: number | null;
+  adminIds?: string[];
   onDeleteMessage: (messageId: number) => void;
   onEditMessage: (messageId: number, content: string) => void;
   onStartEdit: (messageId: number | null) => void;
@@ -30,6 +31,7 @@ export const FeedItem = memo(function FeedItem({
   isHighlighted,
   isGrouped,
   editingMessageId,
+  adminIds,
   onDeleteMessage,
   onEditMessage,
   onStartEdit,
@@ -48,6 +50,7 @@ export const FeedItem = memo(function FeedItem({
           isHighlighted={isHighlighted}
           isGrouped={isGrouped}
           editing={editingMessageId === item.id}
+          isAdmin={adminIds?.includes(item.memberId ?? '') ?? false}
           onDelete={onDeleteMessage}
           onEdit={onEditMessage}
           onStartEdit={() => onStartEdit(item.id)}

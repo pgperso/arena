@@ -18,6 +18,7 @@ interface FeedMessageProps {
   isHighlighted?: boolean;
   isGrouped?: boolean;
   editing?: boolean;
+  isAdmin?: boolean;
   onDelete: (messageId: number) => void;
   onEdit: (messageId: number, content: string) => void;
   onStartEdit: () => void;
@@ -81,6 +82,7 @@ export const FeedMessage = memo(function FeedMessage({
   isHighlighted,
   isGrouped,
   editing,
+  isAdmin,
   onDelete,
   onEdit,
   onStartEdit,
@@ -90,7 +92,9 @@ export const FeedMessage = memo(function FeedMessage({
   getMessageById,
 }: FeedMessageProps) {
   const username = message.member?.username ?? 'Utilisateur supprimé';
-  const rank = getMemberRank(message.member?.messageCount ?? 0);
+  const rank = isAdmin
+    ? { label: 'Arbitre', color: 'text-red-500' }
+    : getMemberRank(message.member?.messageCount ?? 0);
   const time = formatTime(message.createdAt);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [editContent, setEditContent] = useState(message.content ?? '');

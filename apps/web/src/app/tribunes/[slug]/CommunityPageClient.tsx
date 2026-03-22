@@ -20,12 +20,14 @@ interface CommunityPageClientProps {
   canModerate: boolean;
   isMuted: boolean;
   userId: string | null;
+  adminIds: string[];
 }
 
 export function CommunityPageClient({
   community,
   isMember: initialIsMember,
   canModerate,
+  adminIds,
   isMuted,
   userId,
 }: CommunityPageClientProps) {
@@ -189,6 +191,7 @@ export function CommunityPageClient({
                 isMember={isMember}
                 isMuted={isMuted}
                 canModerate={canModerate}
+                adminIds={adminIds}
               />
             </div>
 

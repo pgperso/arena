@@ -90,6 +90,18 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
     isMuted = ((restrictions as { id: number }[] | null)?.length ?? 0) > 0;
   }
 
+  // Load admin/moderator member IDs for rank display
+  const { data: modRoles } = await supabase
+    .from('community_member_roles')
+    .select('member_id, roles(code)')
+    .eq('community_id', community.id);
+
+  const adminIds = new Set(
+    (modRoles as { member_id: string; roles: { code: string } | null }[] ?? [])
+      .filter((r) => r.roles?.code === 'admin' || r.roles?.code === 'moderator')
+      .map((r) => r.member_id),
+  );
+
   return (
     <CommunityPageClient
       community={community}
@@ -97,6 +109,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
       canModerate={canModerate}
       isMuted={isMuted}
       userId={user?.id ?? null}
+      adminIds={Array.from(adminIds)}
     />
   );
 }

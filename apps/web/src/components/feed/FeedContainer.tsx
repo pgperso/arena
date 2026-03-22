@@ -31,6 +31,7 @@ interface FeedContainerProps {
   isMember: boolean;
   isMuted: boolean;
   canModerate: boolean;
+  adminIds: string[];
 }
 
 export function FeedContainer({
@@ -40,6 +41,7 @@ export function FeedContainer({
   isMember,
   isMuted,
   canModerate,
+  adminIds,
 }: FeedContainerProps) {
   const router = useRouter();
   const { user, username, avatarUrl } = useAuth();
@@ -333,6 +335,7 @@ export function FeedContainer({
                             item={item}
                             userId={user?.id ?? null}
                             canModerate={canModerate}
+                            adminIds={adminIds}
                             communitySlug={communitySlug}
                             isHighlighted={item.feedType === 'message' && item.id === highlightedMessageId}
                             isGrouped={isGrouped}
