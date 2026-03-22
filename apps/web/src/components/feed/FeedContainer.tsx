@@ -63,6 +63,15 @@ export function FeedContainer({
   } = useFeed(communityId, user?.id ?? null);
   const { onlineMembers } = usePresence(communityId, user?.id ?? null, username, avatarUrl);
 
+  // Build a status map for quick lookup in messages
+  const onlineStatuses = useMemo(() => {
+    const map: Record<string, 'online' | 'idle'> = {};
+    for (const m of onlineMembers) {
+      map[m.memberId] = m.status;
+    }
+    return map;
+  }, [onlineMembers]);
+
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [atBottom, setAtBottom] = useState(true);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
@@ -358,6 +367,7 @@ export function FeedContainer({
                         onScrollToMessage={scrollToMessage}
                         getMessageById={getMessageById}
                         onRoleChanged={handleRoleChanged}
+                        onlineStatuses={onlineStatuses}
                       />
                     );
                   }}

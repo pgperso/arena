@@ -23,6 +23,7 @@ interface FeedItemProps {
   onScrollToMessage?: (messageId: number) => void;
   getMessageById: (id: number) => FeedMessageType | undefined;
   onRoleChanged?: (memberId: string, newRole: string | null) => void;
+  onlineStatuses?: Record<string, 'online' | 'idle'>;
 }
 
 export const FeedItem = memo(function FeedItem({
@@ -42,6 +43,7 @@ export const FeedItem = memo(function FeedItem({
   onScrollToMessage,
   getMessageById,
   onRoleChanged,
+  onlineStatuses,
 }: FeedItemProps) {
   switch (item.feedType) {
     case 'message':
@@ -64,6 +66,7 @@ export const FeedItem = memo(function FeedItem({
           onScrollToMessage={onScrollToMessage}
           getMessageById={getMessageById}
           onRoleChanged={onRoleChanged}
+          presenceStatus={onlineStatuses?.[item.memberId ?? '']}
         />
       );
     case 'article':

@@ -2,12 +2,20 @@
 
 import type { PresenceMember } from '@/hooks/usePresence';
 import { Avatar } from '@/components/ui/Avatar';
+import { StatusDot } from '@/components/ui/StatusDot';
 
 interface OnlineMembersProps {
   members: PresenceMember[];
 }
 
 export function OnlineMembers({ members }: OnlineMembersProps) {
+  // Sort: online first, then idle
+  const sorted = [...members].sort((a, b) => {
+    if (a.status === 'online' && b.status === 'idle') return -1;
+    if (a.status === 'idle' && b.status === 'online') return 1;
+    return 0;
+  });
+
   return (
     <div className="flex flex-col">
       <div className="border-b border-gray-200 px-4 py-3">
@@ -21,13 +29,15 @@ export function OnlineMembers({ members }: OnlineMembersProps) {
           <p className="text-center text-xs text-gray-400">Aucun membre en ligne</p>
         ) : (
           <ul className="space-y-1">
-            {members.map((member) => (
+            {sorted.map((member) => (
               <li key={member.memberId} className="flex items-center gap-2 rounded-lg px-2 py-1.5">
                 <div className="relative">
                   <Avatar url={member.avatarUrl} name={member.username} size="sm" />
-                  <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-green-500" />
+                  <StatusDot status={member.status} />
                 </div>
-                <span className="truncate text-sm text-gray-700">{member.username}</span>
+                <span className={`truncate text-sm ${member.status === 'idle' ? 'text-gray-400' : 'text-gray-700'}`}>
+                  {member.username}
+                </span>
               </li>
             ))}
           </ul>

@@ -10,6 +10,7 @@ import { FeedRichContent } from './FeedRichContent';
 import { FeedReplyContext } from './FeedReplyContext';
 import { Avatar } from '@/components/ui/Avatar';
 import { UserPopover } from '@/components/ui/UserPopover';
+import { StatusDot } from '@/components/ui/StatusDot';
 
 const STAFF_RANK_MAP: Record<string, { label: string; color: string }> = {
   owner: { label: 'Propriétaire', color: 'text-yellow-500' },
@@ -35,6 +36,7 @@ interface FeedMessageProps {
   onScrollToMessage?: (messageId: number) => void;
   getMessageById: (id: number) => FeedMessageType | undefined;
   onRoleChanged?: (memberId: string, newRole: string | null) => void;
+  presenceStatus?: 'online' | 'idle';
 }
 
 function MessageToolbar({
@@ -101,6 +103,7 @@ export const FeedMessage = memo(function FeedMessage({
   onScrollToMessage,
   getMessageById,
   onRoleChanged,
+  presenceStatus,
 }: FeedMessageProps) {
   const username = message.member?.username ?? 'Utilisateur supprimé';
   const rank: { label: string; color: string } =
@@ -268,7 +271,10 @@ export const FeedMessage = memo(function FeedMessage({
       {toolbar}
 
       <div className="flex gap-3">
-        <Avatar url={message.member?.avatarUrl} name={username} size="md" className="mt-0.5 flex-shrink-0" />
+        <div className="relative mt-0.5 flex-shrink-0">
+          <Avatar url={message.member?.avatarUrl} name={username} size="md" />
+          {presenceStatus && <StatusDot status={presenceStatus} />}
+        </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
