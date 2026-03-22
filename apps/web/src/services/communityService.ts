@@ -23,23 +23,27 @@ export async function joinCommunity(
     member_id: memberId,
   });
 
-  // Send bot announcement (fire-and-forget)
+  // Bot announcement in ALL active tribunes (fire-and-forget)
   if (!result.error) {
-    // Get username and community name for the announcement
-    const [{ data: member }, { data: community }] = await Promise.all([
+    const [{ data: member }, { data: community }, { data: allCommunities }] = await Promise.all([
       supabase.from('members').select('username').eq('id', memberId).single(),
       supabase.from('communities').select('name').eq('id', communityId).single(),
+      supabase.from('communities').select('id').eq('is_active', true),
     ]);
 
-    if (member && community) {
+    if (member && community && allCommunities) {
       const username = (member as { username: string }).username;
       const communityName = (community as { name: string }).name;
+      const message = `🏟️ ${username} a rejoint ${communityName} !`;
 
-      supabase.from('chat_messages').insert({
-        community_id: communityId,
+      // Insert one message per active tribune
+      const messages = (allCommunities as { id: number }[]).map((c) => ({
+        community_id: c.id,
         member_id: BOT_MEMBER_ID,
-        content: `🏟️ ${username} a rejoint ${communityName} !`,
-      });
+        content: message,
+      }));
+
+      supabase.from('chat_messages').insert(messages);
     }
   }
 
