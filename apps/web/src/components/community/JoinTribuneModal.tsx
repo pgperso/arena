@@ -51,12 +51,6 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
     ? communities.filter((c) => c.category_id === selectedCategory && !memberCommunityIds.includes(c.id))
     : [];
 
-  const sportIcons: Record<string, string> = {
-    hockey: '🏒',
-    baseball: '⚾',
-    football: '🏈',
-    soccer: '⚽',
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
@@ -111,16 +105,15 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
                     disabled={count === 0}
-                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition hover:bg-gray-50 disabled:opacity-40"
+                    className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-4 text-left transition hover:border-brand-blue hover:bg-brand-blue/5 disabled:opacity-30"
                   >
-                    <span className="text-2xl">{sportIcons[cat.slug] ?? '🏅'}</span>
-                    <div className="flex-1">
-                      <span className="text-sm font-semibold text-gray-900">{cat.name}</span>
-                      <p className="text-xs text-gray-400">
+                    <div>
+                      <span className="text-base font-bold text-gray-900">{cat.name}</span>
+                      <p className="text-xs text-gray-500">
                         {count > 0 ? `${count} tribune${count > 1 ? 's' : ''} disponible${count > 1 ? 's' : ''}` : 'Toutes rejointes'}
                       </p>
                     </div>
-                    <svg className="h-4 w-4 text-gray-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <svg className="h-5 w-5 text-brand-blue" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                     </svg>
                   </button>
@@ -142,16 +135,19 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                       onClose();
                       router.push(`/tribunes/${com.slug}`);
                     }}
-                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition hover:bg-gray-50"
+                    className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-4 text-left transition hover:border-brand-blue hover:bg-brand-blue/5"
                   >
-                    <Avatar url={com.logo_url} name={com.name} size="md" color={com.primary_color} />
+                    <Avatar url={com.logo_url} name={com.name} size="lg" color={com.primary_color} />
                     <div className="flex-1">
-                      <span className="text-sm font-semibold text-gray-900">{com.name}</span>
+                      <span className="text-sm font-bold text-gray-900">{com.name}</span>
                       {com.description && (
-                        <p className="text-xs text-gray-400 line-clamp-1">{com.description}</p>
+                        <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">{com.description}</p>
                       )}
+                      <p className="mt-0.5 text-xs text-gray-400">{com.member_count} membre{com.member_count !== 1 ? 's' : ''}</p>
                     </div>
-                    <span className="text-xs text-gray-400">{com.member_count} membres</span>
+                    <span className="rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-medium text-white">
+                      Rejoindre
+                    </span>
                   </button>
                 ))
               )}
