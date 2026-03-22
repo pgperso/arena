@@ -467,8 +467,6 @@ export type Database = {
           duration_seconds: number | null;
           published_by: string | null;
           cover_image_url: string | null;
-          youtube_video_id: string | null;
-          is_live: boolean;
           is_published: boolean;
           like_count: number;
           is_removed: boolean | null;
@@ -481,13 +479,11 @@ export type Database = {
           id?: number;
           community_id: number;
           title: string;
-          audio_url?: string;
+          audio_url: string;
           description?: string | null;
           duration_seconds?: number | null;
           published_by?: string | null;
           cover_image_url?: string | null;
-          youtube_video_id?: string | null;
-          is_live?: boolean;
           is_published?: boolean;
           like_count?: number;
           is_removed?: boolean | null;
@@ -505,8 +501,6 @@ export type Database = {
           duration_seconds?: number | null;
           published_by?: string | null;
           cover_image_url?: string | null;
-          youtube_video_id?: string | null;
-          is_live?: boolean;
           is_published?: boolean;
           like_count?: number;
           is_removed?: boolean | null;

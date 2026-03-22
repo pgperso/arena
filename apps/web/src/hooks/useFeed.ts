@@ -18,10 +18,7 @@ import type { Database } from '@arena/supabase-client';
 
 type ChatMessageRow = Database['public']['Tables']['chat_messages']['Row'];
 type ArticleRow = Database['public']['Tables']['articles']['Row'];
-type PodcastRow = Database['public']['Tables']['podcasts']['Row'] & {
-  youtube_video_id?: string | null;
-  is_live?: boolean | null;
-};
+type PodcastRow = Database['public']['Tables']['podcasts']['Row'];
 type MemberRow = Database['public']['Tables']['members']['Row'];
 
 const MAX_FEED_ITEMS = 500;
@@ -102,8 +99,8 @@ function podcastToFeedItem(row: PodcastRow): FeedPodcast {
     audioUrl: row.audio_url,
     coverImageUrl: row.cover_image_url,
     durationSeconds: row.duration_seconds,
-    youtubeVideoId: row.youtube_video_id ?? null,
-    isLive: row.is_live ?? false,
+    youtubeVideoId: row.youtube_video_id,
+    isLive: row.is_live,
     likeCount: row.like_count,
     createdAt: row.created_at,
     publisher: null,
@@ -392,7 +389,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
       });
 
       const podcasts = (podcastsRes.data ?? []).map((row) =>
-        podcastToFeedItem(row as unknown as PodcastRow),
+        podcastToFeedItem(row as PodcastRow),
       );
 
       dispatch({

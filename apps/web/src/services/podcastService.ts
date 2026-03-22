@@ -29,8 +29,7 @@ export async function createPodcast(
     isLive: data.isLive,
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- youtube_video_id/is_live require migration 00026
-  return (supabase.from('podcasts') as any).insert({
+  return supabase.from('podcasts').insert({
     community_id: data.communityId,
     published_by: data.publishedBy,
     title: validated.title,
@@ -59,8 +58,7 @@ export async function updatePodcast(
     isLive: data.isLive,
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- youtube_video_id/is_live require migration 00026
-  return (supabase.from('podcasts') as any).update({
+  return supabase.from('podcasts').update({
     title: validated.title,
     description: validated.description ?? null,
     audio_url: validated.audioUrl ?? '',
