@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Plus, X, SendHorizontal } from 'lucide-react';
 import Image from 'next/image';
 import { CHAT_MAX_MESSAGE_LENGTH, MAX_IMAGES_PER_MESSAGE } from '@arena/shared';
@@ -12,13 +12,19 @@ interface FeedInputProps {
   placeholder?: string;
   communityId: number;
   userId: string | null;
+  autoFocus?: boolean;
 }
 
-export function FeedInput({ onSend, disabled, placeholder, communityId, userId }: FeedInputProps) {
+export function FeedInput({ onSend, disabled, placeholder, communityId, userId, autoFocus }: FeedInputProps) {
   const [content, setContent] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { images, uploading, addImages, removeImage, clearImages, uploadAll } = useImageUpload();
+
+  // Auto-focus when reply mode activates
+  useEffect(() => {
+    if (autoFocus) textareaRef.current?.focus();
+  }, [autoFocus]);
 
   const handleSend = useCallback(async () => {
     const trimmed = content.trim();
