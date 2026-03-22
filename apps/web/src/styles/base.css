@@ -83,3 +83,17 @@
   0%, 15% { background-color: color-mix(in srgb, var(--color-brand-blue) 12%, transparent); }
   100% { background-color: transparent; }
 }
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.25s ease-out;
+}
+
+/* Safe area padding for mobile bottom sheet */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}

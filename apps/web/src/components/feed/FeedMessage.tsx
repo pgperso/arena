@@ -10,6 +10,7 @@ import { FeedRichContent } from './FeedRichContent';
 import { FeedReplyContext } from './FeedReplyContext';
 import { Avatar } from '@/components/ui/Avatar';
 import { UserPopover } from '@/components/ui/UserPopover';
+import { FeedMessageSheet } from './FeedMessageSheet';
 
 const STAFF_RANK_MAP: Record<string, { label: string; color: string }> = {
   owner: { label: 'Propriétaire', color: 'text-yellow-500' },
@@ -110,6 +111,17 @@ export const FeedMessage = memo(function FeedMessage({
   const [editContent, setEditContent] = useState(message.content ?? '');
   const editRef = useRef<HTMLTextAreaElement>(null);
   const [popoverRect, setPopoverRect] = useState<DOMRect | null>(null);
+  const [showSheet, setShowSheet] = useState(false);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const handleTouchStart = useCallback(() => {
+    if (message.isRemoved || editing) return;
+    longPressTimer.current = setTimeout(() => setShowSheet(true), 500);
+  }, [message.isRemoved, editing]);
+
+  const handleTouchEnd = useCallback(() => {
+    clearTimeout(longPressTimer.current);
+  }, []);
 
   useEffect(() => {
     if (editing && editRef.current) {
@@ -205,10 +217,26 @@ export const FeedMessage = memo(function FeedMessage({
     />
   ) : null;
 
+  const sheet = showSheet ? (
+    <FeedMessageSheet
+      isOwn={isOwn}
+      canModerate={canModerate}
+      onReply={() => onReply(message)}
+      onEdit={isOwn ? onStartEdit : undefined}
+      onDelete={() => onDelete(message.id)}
+      onClose={() => setShowSheet(false)}
+    />
+  ) : null;
+
   // Grouped message: compact, with subtle username
   if (isGrouped && !hasReplyContext) {
     return (
-      <div className={`group relative py-1.5 pl-[60px] pr-4 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}>
+      <div
+        className={`group relative py-1.5 pl-[60px] pr-4 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchMove={handleTouchEnd}
+      >
         <span className="absolute left-2 top-2 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100">
           {time}
         </span>
@@ -237,13 +265,19 @@ export const FeedMessage = memo(function FeedMessage({
           />
         )}
         {popover}
+        {sheet}
       </div>
     );
   }
 
   // Full message
   return (
-    <div className={`group relative px-4 pt-3 pb-1 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}>
+    <div
+      className={`group relative px-4 pt-3 pb-1 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchEnd}
+    >
       {hasReplyContext && (
         <div className="mb-0.5 flex items-end pl-4">
           <div className="reply-connector relative -top-0.5" />
@@ -294,6 +328,7 @@ export const FeedMessage = memo(function FeedMessage({
         </div>
       </div>
       {popover}
+      {sheet}
     </div>
   );
 });
