@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Heart, ThumbsDown, Flame } from 'lucide-react';
+import { Heart, Annoyed, Flame } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatTime } from '@arena/shared';
 
@@ -85,7 +85,7 @@ export function TrendingMessages({ popular, controversial }: TrendingMessagesPro
               {msg.likeCount}
             </span>
             <span className={`flex items-center gap-1 font-semibold ${!isPopular ? 'text-orange-400' : 'text-gray-600'}`}>
-              <ThumbsDown className="h-3.5 w-3.5" fill={!isPopular ? 'currentColor' : 'none'} strokeWidth={1.5} />
+              <Annoyed className="h-3.5 w-3.5" fill={!isPopular ? 'currentColor' : 'none'} strokeWidth={1.5} />
               {msg.dislikeCount}
             </span>
           </div>

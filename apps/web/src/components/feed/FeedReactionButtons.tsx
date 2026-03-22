@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useState } from 'react';
-import { Heart, ThumbsDown } from 'lucide-react';
+import { Heart, Annoyed } from 'lucide-react';
 import { useMessageReaction } from '@/hooks/useMessageReaction';
 
 interface FeedReactionButtonsProps {
@@ -65,7 +65,7 @@ export const FeedReactionButtons = memo(function FeedReactionButtons({
         }`}
         title={isDisliked ? 'Retirer le dislike' : 'Je n\'aime pas'}
       >
-        <ThumbsDown
+        <Annoyed
           className={`h-4 w-4 transition-transform ${dislikeAnim ? 'animate-reaction-shake' : ''}`}
           fill={isDisliked ? 'currentColor' : 'none'}
           strokeWidth={1.5}
