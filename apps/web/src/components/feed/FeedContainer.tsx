@@ -68,6 +68,9 @@ export function FeedContainer({
   // Reply state
   const [replyTarget, setReplyTarget] = useState<FeedMessageType | null>(null);
 
+  // Edit state — only one message at a time (Discord behavior)
+  const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
+
   // Virtualizer for feed items (~15-20 DOM nodes instead of 50+)
   const virtualizer = useVirtualizer({
     count: items.length,
@@ -354,6 +357,8 @@ export function FeedContainer({
                             isGrouped={isGrouped}
                             onDeleteMessage={deleteMessage}
                             onEditMessage={editMessage}
+                            editingMessageId={editingMessageId}
+                            onStartEdit={setEditingMessageId}
                             onReply={handleReply}
                             onScrollToMessage={scrollToMessage}
                             getMessageById={getMessageById}

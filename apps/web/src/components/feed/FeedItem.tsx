@@ -13,8 +13,10 @@ interface FeedItemProps {
   communitySlug: string;
   isHighlighted?: boolean;
   isGrouped?: boolean;
+  editingMessageId?: number | null;
   onDeleteMessage: (messageId: number) => void;
   onEditMessage: (messageId: number, content: string) => void;
+  onStartEdit: (messageId: number | null) => void;
   onReply: (message: FeedMessageType) => void;
   onScrollToMessage?: (messageId: number) => void;
   getMessageById: (id: number) => FeedMessageType | undefined;
@@ -27,8 +29,10 @@ export const FeedItem = memo(function FeedItem({
   communitySlug,
   isHighlighted,
   isGrouped,
+  editingMessageId,
   onDeleteMessage,
   onEditMessage,
+  onStartEdit,
   onReply,
   onScrollToMessage,
   getMessageById,
@@ -43,8 +47,11 @@ export const FeedItem = memo(function FeedItem({
           userId={userId}
           isHighlighted={isHighlighted}
           isGrouped={isGrouped}
+          editing={editingMessageId === item.id}
           onDelete={onDeleteMessage}
           onEdit={onEditMessage}
+          onStartEdit={() => onStartEdit(item.id)}
+          onCancelEdit={() => onStartEdit(null)}
           onReply={onReply}
           onScrollToMessage={onScrollToMessage}
           getMessageById={getMessageById}

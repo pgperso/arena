@@ -17,8 +17,11 @@ interface FeedMessageProps {
   userId: string | null;
   isHighlighted?: boolean;
   isGrouped?: boolean;
+  editing?: boolean;
   onDelete: (messageId: number) => void;
   onEdit: (messageId: number, content: string) => void;
+  onStartEdit: () => void;
+  onCancelEdit: () => void;
   onReply: (message: FeedMessageType) => void;
   onScrollToMessage?: (messageId: number) => void;
   getMessageById: (id: number) => FeedMessageType | undefined;
@@ -28,7 +31,6 @@ function MessageToolbar({
   isOwn,
   canModerate,
   confirmDelete,
-  editing,
   onStartEdit,
   onDelete,
   onConfirmDelete,
@@ -37,14 +39,11 @@ function MessageToolbar({
   isOwn: boolean;
   canModerate: boolean;
   confirmDelete: boolean;
-  editing: boolean;
   onStartEdit: () => void;
   onDelete: () => void;
   onConfirmDelete: () => void;
   onCancelDelete: () => void;
 }) {
-  if (editing) return null;
-
   return (
     <div className="absolute -top-3 right-4 z-10 flex items-center gap-0.5 rounded-md border border-gray-200 bg-white px-1 py-0.5 shadow-sm opacity-0 transition group-hover:opacity-100">
       {confirmDelete ? (
@@ -81,8 +80,11 @@ export const FeedMessage = memo(function FeedMessage({
   userId,
   isHighlighted,
   isGrouped,
+  editing,
   onDelete,
   onEdit,
+  onStartEdit,
+  onCancelEdit,
   onReply,
   onScrollToMessage,
   getMessageById,
@@ -90,16 +92,16 @@ export const FeedMessage = memo(function FeedMessage({
   const username = message.member?.username ?? 'Utilisateur supprimé';
   const time = formatTime(message.createdAt);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content ?? '');
   const editRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (editing && editRef.current) {
+      setEditContent(message.content ?? '');
       editRef.current.focus();
       editRef.current.selectionStart = editRef.current.value.length;
     }
-  }, [editing]);
+  }, [editing, message.content]);
 
   if (message.isRemoved) {
     return (
@@ -116,19 +118,14 @@ export const FeedMessage = memo(function FeedMessage({
       if (trimmed && trimmed !== message.content) {
         onEdit(message.id, trimmed);
       }
-      setEditing(false);
+      onCancelEdit();
     }
     if (e.key === 'Escape') {
-      setEditContent(message.content ?? '');
-      setEditing(false);
+      onCancelEdit();
     }
   }
 
-  const editedLabel = message.editedAt ? (
-    <span className="text-[10px] text-gray-400">(modifié)</span>
-  ) : null;
-
-  const showToolbar = isOwn || canModerate;
+  const showToolbar = (isOwn || canModerate) && !editing;
   const parentMessage = message.parentId ? getMessageById(message.parentId) : undefined;
   const hasReplyContext = !!(message.parentId && parentMessage);
 
@@ -137,8 +134,7 @@ export const FeedMessage = memo(function FeedMessage({
       isOwn={isOwn}
       canModerate={canModerate}
       confirmDelete={confirmDelete}
-      editing={editing}
-      onStartEdit={() => { setEditContent(message.content ?? ''); setEditing(true); }}
+      onStartEdit={onStartEdit}
       onDelete={() => setConfirmDelete(true)}
       onConfirmDelete={() => { onDelete(message.id); setConfirmDelete(false); }}
       onCancelDelete={() => setConfirmDelete(false)}
@@ -167,12 +163,7 @@ export const FeedMessage = memo(function FeedMessage({
     </div>
   ) : (
     <>
-      {message.content && (
-        <span>
-          <FeedRichContent content={message.content} />
-          {editedLabel && <> {editedLabel}</>}
-        </span>
-      )}
+      {message.content && <FeedRichContent content={message.content} />}
     </>
   );
 
