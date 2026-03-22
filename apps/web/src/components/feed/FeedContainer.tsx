@@ -234,7 +234,7 @@ export function FeedContainer({
   return (
     <div className="flex h-full flex-col lg:flex-row">
       {/* Feed area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="relative flex flex-1 flex-col overflow-hidden">
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3">
           <div>
@@ -393,6 +393,24 @@ export function FeedContainer({
             </BatchLikeProvider>
           )}
         </div>
+
+        {/* Jump to bottom — Discord-style */}
+        {!autoScroll && items.length > 0 && (
+          <div className="absolute bottom-20 left-1/2 z-10 -translate-x-1/2">
+            <button
+              onClick={() => {
+                virtualizer.scrollToIndex(items.length - 1, { align: 'end', behavior: 'smooth' });
+                setAutoScroll(true);
+              }}
+              className="flex items-center gap-1.5 rounded-full bg-brand-blue px-4 py-2 text-xs font-medium text-white shadow-lg transition hover:bg-brand-blue-dark"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3" />
+              </svg>
+              Messages récents
+            </button>
+          </div>
+        )}
 
         {/* Reply bar */}
         {replyTarget && (
