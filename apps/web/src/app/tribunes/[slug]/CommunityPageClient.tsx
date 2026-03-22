@@ -186,9 +186,9 @@ export function CommunityPageClient({
       {showLeaveConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-2 text-base font-bold text-gray-900">Quitter la tribune ?</h3>
+            <h3 className="mb-2 text-base font-bold text-gray-900">Quitter {community.name} ?</h3>
             <p className="mb-5 text-sm text-gray-500">
-              Tu ne verras plus les messages de cette tribune. Tu devras la rejoindre de nouveau pour y accéder.
+              Tu n&apos;auras plus accès à cette tribune tant que tu ne la rejoindras pas de nouveau. L&apos;historique des messages restera disponible si tu reviens.
             </p>
             <div className="flex gap-3">
               <button
