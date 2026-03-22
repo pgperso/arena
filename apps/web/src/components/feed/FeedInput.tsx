@@ -136,12 +136,12 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId }
             className="flex-1 resize-none bg-transparent px-1 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none disabled:text-gray-400"
           />
 
-          {/* Send button — mobile only (Enter works on desktop) */}
-          {!uploading && (content.trim() || images.length > 0) && (
+          {/* Send button — always visible on mobile, hidden on desktop */}
+          {!uploading && (
             <button
               onClick={handleSend}
-              disabled={disabled}
-              className="flex h-10 w-10 shrink-0 items-center justify-center text-brand-blue transition hover:text-brand-blue-dark disabled:opacity-50 md:hidden"
+              disabled={disabled || (!content.trim() && images.length === 0)}
+              className="flex h-10 w-10 shrink-0 items-center justify-center text-brand-blue transition hover:text-brand-blue-dark disabled:text-gray-300 md:hidden"
               title="Envoyer"
             >
               <SendHorizontal className="h-5 w-5" strokeWidth={2} />
