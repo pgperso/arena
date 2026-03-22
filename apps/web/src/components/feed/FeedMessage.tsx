@@ -56,7 +56,7 @@ function MessageToolbar({
   onCancelDelete: () => void;
 }) {
   return (
-    <div className="absolute -top-3 right-4 z-10 flex items-center gap-1 rounded-lg bg-red-600 px-1 py-0.5 shadow-md opacity-0 transition group-hover:opacity-100">
+    <div className="absolute -top-3 right-4 z-10 hidden items-center gap-1 rounded-lg bg-red-600 px-1 py-0.5 shadow-md opacity-0 transition group-hover:opacity-100 md:flex">
       {confirmDelete ? (
         <span className="flex items-center gap-2 px-2 py-1 text-xs">
           <button onClick={onConfirmDelete} className="font-bold text-white hover:text-red-200">
@@ -113,14 +113,33 @@ export const FeedMessage = memo(function FeedMessage({
   const [popoverRect, setPopoverRect] = useState<DOMRect | null>(null);
   const [showSheet, setShowSheet] = useState(false);
   const longPressTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
-  const handleTouchStart = useCallback(() => {
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (message.isRemoved || editing) return;
-    longPressTimer.current = setTimeout(() => setShowSheet(true), 500);
+    const touch = e.touches[0];
+    touchStart.current = { x: touch.clientX, y: touch.clientY };
+    longPressTimer.current = setTimeout(() => {
+      setShowSheet(true);
+      touchStart.current = null;
+    }, 500);
   }, [message.isRemoved, editing]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStart.current) return;
+    const touch = e.touches[0];
+    const dx = Math.abs(touch.clientX - touchStart.current.x);
+    const dy = Math.abs(touch.clientY - touchStart.current.y);
+    // Cancel if finger moved more than 10px (user is scrolling)
+    if (dx > 10 || dy > 10) {
+      clearTimeout(longPressTimer.current);
+      touchStart.current = null;
+    }
+  }, []);
 
   const handleTouchEnd = useCallback(() => {
     clearTimeout(longPressTimer.current);
+    touchStart.current = null;
   }, []);
 
   useEffect(() => {
@@ -235,7 +254,7 @@ export const FeedMessage = memo(function FeedMessage({
         className={`group relative py-1.5 pl-[60px] pr-4 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        onTouchMove={handleTouchEnd}
+        onTouchMove={handleTouchMove}
       >
         <span className="absolute left-2 top-2 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100">
           {time}
