@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@arena/supabase-client';
 import { articleSchema } from '@arena/shared';
+import { announceArticle } from './botService';
 
 export async function removeArticle(
   supabase: SupabaseClient<Database>,
@@ -38,7 +39,7 @@ export async function createArticle(
     coverImageUrl: data.coverImageUrl,
   });
 
-  return supabase.from('articles').insert({
+  const result = await supabase.from('articles').insert({
     community_id: data.communityId,
     author_id: data.authorId,
     title: validated.title,
@@ -49,6 +50,19 @@ export async function createArticle(
     is_published: data.isPublished ?? true,
     published_at: data.isPublished !== false ? new Date().toISOString() : null,
   });
+
+  // Bot announcement when published (fire-and-forget)
+  if (!result.error && data.isPublished !== false) {
+    const [{ data: author }, { data: community }] = await Promise.all([
+      supabase.from('members').select('username').eq('id', data.authorId).single(),
+      supabase.from('communities').select('name').eq('id', data.communityId).single(),
+    ]);
+    if (author && community) {
+      announceArticle(supabase, (author as { username: string }).username, (community as { name: string }).name, validated.title);
+    }
+  }
+
+  return result;
 }
 
 export async function updateArticle(

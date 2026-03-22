@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@arena/supabase-client';
 import { podcastSchema } from '@arena/shared';
+import { announcePodcast, announceLive } from './botService';
 
 interface PodcastData {
   communityId: number;
@@ -29,7 +30,7 @@ export async function createPodcast(
     isLive: data.isLive,
   });
 
-  return supabase.from('podcasts').insert({
+  const result = await supabase.from('podcasts').insert({
     community_id: data.communityId,
     published_by: data.publishedBy,
     title: validated.title,
@@ -41,6 +42,25 @@ export async function createPodcast(
     youtube_video_id: validated.youtubeVideoId ?? null,
     is_live: validated.isLive ?? false,
   });
+
+  // Bot announcements when published (fire-and-forget)
+  if (!result.error && data.isPublished !== false) {
+    const [{ data: publisher }, { data: community }] = await Promise.all([
+      supabase.from('members').select('username').eq('id', data.publishedBy).single(),
+      supabase.from('communities').select('name').eq('id', data.communityId).single(),
+    ]);
+    if (publisher && community) {
+      const username = (publisher as { username: string }).username;
+      const communityName = (community as { name: string }).name;
+      if (validated.isLive && validated.youtubeVideoId) {
+        announceLive(supabase, communityName, validated.title);
+      } else {
+        announcePodcast(supabase, username, communityName, validated.title);
+      }
+    }
+  }
+
+  return result;
 }
 
 export async function updatePodcast(
