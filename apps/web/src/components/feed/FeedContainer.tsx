@@ -95,18 +95,18 @@ export function FeedContainer({
     estimateSize: (index) => {
       const item = items[index];
 
-      if (item.feedType === 'article') return 380;
-      if (item.feedType === 'podcast') return 220;
+      if (item.feedType === 'article') return 350;
+      if (item.feedType === 'podcast') return 200;
       if (item.isRemoved) return 28;
 
       const isGrouped = index > 0 && isGroupedMessage(item, items[index - 1]);
-      let size = isGrouped ? 80 : 120;
+      let size = isGrouped ? 70 : 100;
 
-      if (item.parentId) size += 36;
+      if (item.parentId) size += 30;
 
       if (item.imageUrls.length > 0) {
         const count = item.imageUrls.length;
-        size += count === 1 ? 320 : count === 2 ? 220 : 290;
+        size += count === 1 ? 310 : count === 2 ? 210 : 270;
       }
 
       if ((index + 1) % FEED_AD_INTERVAL === 0) size += 300;
@@ -121,13 +121,14 @@ export function FeedContainer({
   const justSentRef = useRef(false);
   const initialScrollDone = useRef(false);
 
-  // Initial scroll: when loading finishes and items are available, jump to bottom
+  // Initial scroll: jump to bottom via native scrollTop (not virtualizer estimates)
   useEffect(() => {
     if (!loading && items.length > 0 && !initialScrollDone.current) {
       initialScrollDone.current = true;
-      virtualizer.scrollToIndex(items.length - 1, { align: 'end' });
+      const el = feedContainerRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
     }
-  }, [loading, items.length, virtualizer]);
+  }, [loading, items.length]);
 
   // Subsequent messages: smooth scroll to bottom if at bottom or own message
   useEffect(() => {
