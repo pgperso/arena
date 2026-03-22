@@ -1,6 +1,7 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useState } from 'react';
+import { Trash2 } from 'lucide-react';
 import { formatTime } from '@arena/shared';
 import type { FeedMessage as FeedMessageType } from '@arena/shared';
 import { FeedActions } from './FeedActions';
@@ -34,6 +35,7 @@ export const FeedMessage = memo(function FeedMessage({
 }: FeedMessageProps) {
   const username = message.member?.username ?? 'Utilisateur supprimé';
   const time = formatTime(message.createdAt);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   if (message.isRemoved) {
     return (
@@ -74,19 +76,43 @@ export const FeedMessage = memo(function FeedMessage({
 
         {/* Content */}
         <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-center gap-2">
             <span className={`text-sm font-semibold ${isOwn ? 'text-brand-blue' : 'text-gray-900'}`}>
               {username}
             </span>
             <span className="text-xs text-gray-400">{time}</span>
+
+            {/* Delete: two-step inline confirmation */}
             {(canModerate || isOwn) && (
-              <button
-                onClick={() => onDelete(message.id)}
-                className="ml-auto text-xs text-gray-400 opacity-0 transition hover:text-red-500 group-hover:opacity-100"
-                title="Supprimer le message"
-              >
-                Supprimer
-              </button>
+              <div className="ml-auto">
+                {confirmDelete ? (
+                  <span className="flex items-center gap-1.5 text-xs">
+                    <button
+                      onClick={() => {
+                        onDelete(message.id);
+                        setConfirmDelete(false);
+                      }}
+                      className="font-semibold text-red-500 transition hover:text-red-700"
+                    >
+                      Confirmer
+                    </button>
+                    <button
+                      onClick={() => setConfirmDelete(false)}
+                      className="text-gray-400 transition hover:text-gray-600"
+                    >
+                      Annuler
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDelete(true)}
+                    className="text-gray-400 opacity-0 transition hover:text-red-500 group-hover:opacity-100"
+                    title="Supprimer"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                  </button>
+                )}
+              </div>
             )}
           </div>
           {message.content && <FeedRichContent content={message.content} />}

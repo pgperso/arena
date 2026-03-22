@@ -132,7 +132,8 @@ type FeedAction =
   | { type: 'UPDATE_ARTICLE'; updated: ArticleRow }
   | { type: 'ADD_PODCAST'; podcast: FeedPodcast }
   | { type: 'UPDATE_PODCAST'; updated: PodcastRow }
-  | { type: 'SET_SENDING'; sending: boolean };
+  | { type: 'SET_SENDING'; sending: boolean }
+  | { type: 'REMOVE_MESSAGE'; messageId: number };
 
 function evict<T>(arr: T[]): T[] {
   if (arr.length > MAX_FEED_ITEMS) return arr.slice(arr.length - MAX_FEED_ITEMS);
@@ -228,6 +229,16 @@ function feedReducer(state: FeedState, action: FeedAction): FeedState {
 
     case 'SET_SENDING':
       return { ...state, sending: action.sending };
+
+    case 'REMOVE_MESSAGE':
+      return {
+        ...state,
+        messages: state.messages.map((msg) =>
+          msg.id !== action.messageId
+            ? msg
+            : { ...msg, content: null, imageUrls: [], isRemoved: true },
+        ),
+      };
 
     default:
       return state;
@@ -539,8 +550,8 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
   const deleteMessage = useCallback(
     async (messageId: number) => {
       if (!userId) return;
-      if (!window.confirm('Supprimer ce message ?')) return;
-      const { error } = await supabaseRef.current
+      dispatch({ type: 'REMOVE_MESSAGE', messageId });
+      await supabaseRef.current
         .from('chat_messages')
         .update({
           content: null,
@@ -550,9 +561,6 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           removed_by: userId,
         })
         .eq('id', messageId);
-      if (error) {
-        window.alert('Erreur lors de la suppression. Vérifiez vos permissions.');
-      }
     },
     [userId],
   );
