@@ -237,6 +237,12 @@
     "genericError": "Quelque chose s'est mal passé",
     "genericErrorMessage": "Une erreur est survenue lors du chargement de cette page."
   },
+  "creator": {
+    "creatorProfile": "Profil créateur",
+    "creatorProfileDesc": "Ce nom et cet avatar seront affichés sur vos articles et podcasts à la place de votre pseudo.",
+    "creatorDisplayName": "Nom complet",
+    "creatorNamePlaceholder": "Ex: Pascal Grenon"
+  },
   "account": {
     "dangerZone": "Zone dangereuse",
     "deleteAccount": "Supprimer mon compte",

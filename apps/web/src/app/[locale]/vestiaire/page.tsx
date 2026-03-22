@@ -27,7 +27,7 @@ export default async function VestiairePage({ params }: { params: Promise<{ loca
   // Fetch member profile
   const { data: member } = await supabase
     .from('members')
-    .select('id, username, avatar_url, description, created_at')
+    .select('id, username, avatar_url, description, creator_display_name, creator_avatar_url, created_at')
     .eq('id', user.id)
     .single();
 
@@ -59,6 +59,17 @@ export default async function VestiairePage({ params }: { params: Promise<{ loca
     .limit(1);
 
   const isOwner = ((ownerCheck as unknown[] | null)?.length ?? 0) > 0;
+
+  // Check if user can create content (owner, admin, or creator role anywhere)
+  const isContentCreator = isOwner || await (async () => {
+    const { data: creatorCheck } = await supabase
+      .from('community_member_roles')
+      .select('id, roles!inner(code)')
+      .eq('member_id', user.id)
+      .in('roles.code' as never, ['admin', 'creator'] as never)
+      .limit(1);
+    return ((creatorCheck as unknown[] | null)?.length ?? 0) > 0;
+  })();
 
   // Fetch per-community roles
   const { data: memberRoles } = await supabase
@@ -128,6 +139,7 @@ export default async function VestiairePage({ params }: { params: Promise<{ loca
           roleMap={Object.fromEntries(roleMap)}
           adminStats={adminStats}
           userEmail={user.email ?? ''}
+          isContentCreator={isContentCreator}
         />
       </div>
     </div>

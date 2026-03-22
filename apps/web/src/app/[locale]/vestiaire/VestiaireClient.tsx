@@ -17,6 +17,8 @@ interface MemberProfile {
   username: string;
   avatar_url: string | null;
   description: string | null;
+  creator_display_name: string | null;
+  creator_avatar_url: string | null;
   created_at: string;
 }
 
@@ -32,6 +34,7 @@ interface VestiaireClientProps {
   roleMap: Record<number, string>;
   adminStats: Record<number, AdminStats>;
   userEmail: string;
+  isContentCreator: boolean;
 }
 
 export function VestiaireClient({
@@ -39,12 +42,16 @@ export function VestiaireClient({
   communities,
   roleMap,
   adminStats,
+  isContentCreator,
   userEmail,
 }: VestiaireClientProps) {
   const router = useRouter();
   const t = useTranslations('account');
   const tc = useTranslations('common');
+  const tcr = useTranslations('creator');
   const [editing, setEditing] = useState(false);
+  const [creatorName, setCreatorName] = useState(member?.creator_display_name ?? '');
+  const [savingCreator, setSavingCreator] = useState(false);
   const [deleteStep, setDeleteStep] = useState<0 | 1 | 2 | 3>(0); // 0=hidden, 1=info, 2=password, 3=done
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState('');
@@ -201,6 +208,48 @@ export function VestiaireClient({
           )}
         </div>
       </div>
+
+      {/* Creator profile */}
+      {isContentCreator && member && (
+        <div className="mb-8 rounded-xl border border-purple-200 bg-purple-50 p-6">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-purple-900">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
+            </svg>
+            {tcr('creatorProfile')}
+          </h2>
+          <p className="mb-4 text-xs text-purple-700/70">{tcr('creatorProfileDesc')}</p>
+
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-purple-900">{tcr('creatorDisplayName')}</label>
+              <input
+                type="text"
+                value={creatorName}
+                onChange={(e) => setCreatorName(e.target.value)}
+                placeholder={tcr('creatorNamePlaceholder')}
+                className="w-full rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                maxLength={100}
+              />
+            </div>
+
+            <button
+              onClick={async () => {
+                setSavingCreator(true);
+                const supabase = createClient();
+                await supabase.from('members').update({
+                  creator_display_name: creatorName.trim() || null,
+                }).eq('id', member.id);
+                setSavingCreator(false);
+              }}
+              disabled={savingCreator}
+              className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-700 disabled:opacity-50"
+            >
+              {savingCreator ? tc('saving') : tc('save')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Communities */}
       <div>

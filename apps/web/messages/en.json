@@ -231,6 +231,12 @@
     "genericError": "Something went wrong",
     "genericErrorMessage": "An error occurred while loading this page."
   },
+  "creator": {
+    "creatorProfile": "Creator profile",
+    "creatorProfileDesc": "This name and avatar will be displayed on your articles and podcasts instead of your username.",
+    "creatorDisplayName": "Full name",
+    "creatorNamePlaceholder": "e.g. Pascal Grenon"
+  },
   "account": {
     "dangerZone": "Danger zone",
     "deleteAccount": "Delete my account",
