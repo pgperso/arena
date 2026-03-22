@@ -229,6 +229,27 @@
     "genericError": "Something went wrong",
     "genericErrorMessage": "An error occurred while loading this page."
   },
+  "account": {
+    "dangerZone": "Danger zone",
+    "deleteAccount": "Delete my account",
+    "deleteTitle": "Delete your account?",
+    "deleteWarning": "This action is permanent and irreversible. Here's what will happen:",
+    "deleteItem1": "Your messages will be anonymized",
+    "deleteItem2": "You will leave all your tribunes",
+    "deleteItem3": "Your articles and podcasts will be deleted",
+    "deleteItem4": "Your profile and avatar will be erased",
+    "understandContinue": "I understand, continue",
+    "confirmTitle": "Final confirmation",
+    "confirmSubtitle": "Enter your password to confirm the deletion",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Your password",
+    "deleteForever": "Permanently delete my account",
+    "deleting": "Deleting...",
+    "wrongPassword": "Incorrect password",
+    "deleteError": "Unable to delete account. Please try again.",
+    "deleted": "Your account has been deleted.",
+    "deletedDetail": "All your data has been erased. Redirecting..."
+  },
   "time": {
     "hours": "{count}h",
     "days": "{count}d",

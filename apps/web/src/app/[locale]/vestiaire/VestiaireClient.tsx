@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { Link } from '@/i18n/navigation';
 import Image from 'next/image';
@@ -41,7 +42,13 @@ export function VestiaireClient({
   userEmail,
 }: VestiaireClientProps) {
   const router = useRouter();
+  const t = useTranslations('account');
+  const tc = useTranslations('common');
   const [editing, setEditing] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<0 | 1 | 2 | 3>(0); // 0=hidden, 1=info, 2=password, 3=done
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const [description, setDescription] = useState(member?.description ?? '');
   const [saving, setSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(member?.avatar_url ?? null);
@@ -325,6 +332,144 @@ export function VestiaireClient({
                   </div>
                 );
               })}
+          </div>
+        </div>
+      )}
+
+      {/* Danger zone */}
+      <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-6">
+        <h2 className="mb-2 text-sm font-semibold text-red-700">{t('dangerZone')}</h2>
+        <p className="mb-4 text-xs text-red-600/70">
+          {t('deleteWarning')}
+        </p>
+        <button
+          onClick={() => setDeleteStep(1)}
+          className="rounded-lg border border-red-300 px-4 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100"
+        >
+          {t('deleteAccount')}
+        </button>
+      </div>
+
+      {/* Delete account modal — Step 1: Information */}
+      {deleteStep === 1 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="mb-3 text-lg font-bold text-gray-900">{t('deleteTitle')}</h3>
+            <p className="mb-4 text-sm text-gray-600">{t('deleteWarning')}</p>
+            <ul className="mb-6 space-y-2 text-sm text-gray-600">
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-red-500">•</span>
+                {t('deleteItem1')}
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-red-500">•</span>
+                {t('deleteItem2')}
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-red-500">•</span>
+                {t('deleteItem3')}
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-red-500">•</span>
+                {t('deleteItem4')}
+              </li>
+            </ul>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteStep(0)}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+              >
+                {tc('cancel')}
+              </button>
+              <button
+                onClick={() => { setDeleteStep(2); setDeleteError(''); setDeletePassword(''); }}
+                className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700"
+              >
+                {t('understandContinue')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete account modal — Step 2: Password confirmation */}
+      {deleteStep === 2 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="mb-2 text-lg font-bold text-gray-900">{t('confirmTitle')}</h3>
+            <p className="mb-4 text-sm text-gray-500">{t('confirmSubtitle')}</p>
+
+            {deleteError && (
+              <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+                {deleteError}
+              </div>
+            )}
+
+            <div className="mb-5">
+              <label className="mb-1 block text-sm font-medium text-gray-700">{t('passwordLabel')}</label>
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder={t('passwordPlaceholder')}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteStep(0)}
+                disabled={deleting}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
+              >
+                {tc('cancel')}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!deletePassword) return;
+                  setDeleting(true);
+                  setDeleteError('');
+                  try {
+                    const res = await fetch('/api/auth/delete-account', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ password: deletePassword }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                      setDeleteError(data.error === 'wrong_password' ? t('wrongPassword') : t('deleteError'));
+                      setDeleting(false);
+                      return;
+                    }
+                    setDeleteStep(3);
+                    setTimeout(() => router.push('/'), 2500);
+                  } catch {
+                    setDeleteError(t('deleteError'));
+                    setDeleting(false);
+                  }
+                }}
+                disabled={deleting || !deletePassword}
+                className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleting ? t('deleting') : t('deleteForever')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete account modal — Step 3: Success */}
+      {deleteStep === 3 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl text-center">
+            <div className="mb-4 flex justify-center">
+              <svg className="h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </div>
+            <h3 className="mb-2 text-lg font-bold text-gray-900">{t('deleted')}</h3>
+            <p className="text-sm text-gray-500">{t('deletedDetail')}</p>
           </div>
         </div>
       )}

@@ -235,6 +235,27 @@
     "genericError": "Quelque chose s'est mal passé",
     "genericErrorMessage": "Une erreur est survenue lors du chargement de cette page."
   },
+  "account": {
+    "dangerZone": "Zone dangereuse",
+    "deleteAccount": "Supprimer mon compte",
+    "deleteTitle": "Supprimer votre compte ?",
+    "deleteWarning": "Cette action est définitive et irréversible. Voici ce qui va se passer :",
+    "deleteItem1": "Vos messages seront anonymisés",
+    "deleteItem2": "Vous quitterez toutes vos tribunes",
+    "deleteItem3": "Vos articles et podcasts seront supprimés",
+    "deleteItem4": "Votre profil et avatar seront effacés",
+    "understandContinue": "Je comprends, continuer",
+    "confirmTitle": "Confirmation finale",
+    "confirmSubtitle": "Entrez votre mot de passe pour confirmer la suppression",
+    "passwordLabel": "Mot de passe",
+    "passwordPlaceholder": "Votre mot de passe",
+    "deleteForever": "Supprimer définitivement mon compte",
+    "deleting": "Suppression en cours...",
+    "wrongPassword": "Mot de passe incorrect",
+    "deleteError": "Impossible de supprimer le compte. Veuillez réessayer.",
+    "deleted": "Votre compte a été supprimé.",
+    "deletedDetail": "Toutes vos données ont été effacées. Redirection..."
+  },
   "time": {
     "hours": "{count}h",
     "days": "{count}j",
