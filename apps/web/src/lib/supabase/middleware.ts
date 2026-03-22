@@ -45,6 +45,8 @@ export async function updateSession(request: NextRequest, requestHeaders?: Heade
 
   // Redirect logged-in users away from auth pages
   const authPaths = ['/login', '/register', '/reset-password'];
+  // Don't redirect away from update-password — user needs to be logged in AND on this page
+  if (request.nextUrl.pathname.startsWith('/update-password')) return supabaseResponse;
   const isAuthPage = authPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path),
   );
