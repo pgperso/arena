@@ -11,6 +11,9 @@ interface FeedReactionButtonsProps {
   userId: string | null;
 }
 
+// Touch target: min 44x44px on mobile (Apple HIG / Material Design)
+const BTN = 'flex items-center gap-1 rounded-full px-2 py-1 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 justify-center text-xs transition disabled:cursor-not-allowed disabled:opacity-50';
+
 export const FeedReactionButtons = memo(function FeedReactionButtons({
   messageId,
   initialLikeCount,
@@ -40,7 +43,7 @@ export const FeedReactionButtons = memo(function FeedReactionButtons({
       <button
         onClick={handleLike}
         disabled={!userId || loading}
-        className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs transition disabled:cursor-not-allowed disabled:opacity-50 ${
+        className={`${BTN} ${
           isLiked
             ? 'text-red-500 hover:bg-red-50'
             : 'text-gray-400 hover:bg-gray-100 hover:text-red-400'
@@ -58,7 +61,7 @@ export const FeedReactionButtons = memo(function FeedReactionButtons({
       <button
         onClick={handleDislike}
         disabled={!userId || loading}
-        className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs transition disabled:cursor-not-allowed disabled:opacity-50 ${
+        className={`${BTN} ${
           isDisliked
             ? 'text-brand-blue hover:bg-blue-50'
             : 'text-gray-400 hover:bg-gray-100 hover:text-brand-blue'

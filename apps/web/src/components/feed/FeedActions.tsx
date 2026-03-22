@@ -17,6 +17,10 @@ interface FeedActionsProps {
   onDelete?: () => void;
 }
 
+// Touch target: min 44x44px on mobile (Apple HIG / Material Design)
+// Desktop: compact (px-2 py-1). Mobile: larger (px-3 py-2.5 = 44px+ height)
+const BTN = 'flex items-center gap-1 rounded-full px-2 py-1 md:px-2 md:py-1 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 justify-center text-xs transition';
+
 export const FeedActions = memo(function FeedActions({
   messageId,
   likeCount,
@@ -33,13 +37,13 @@ export const FeedActions = memo(function FeedActions({
   const showMobileDelete = (canModerate || isOwn) && onDelete;
 
   return (
-    <div className="mt-1 flex items-center gap-1">
+    <div className="mt-1 flex items-center gap-0.5">
       {/* Reply */}
       {!isOwn && (
         <button
           onClick={onReply}
           disabled={!userId}
-          className="flex items-center gap-1 rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-blue-50 hover:text-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className={`${BTN} text-gray-400 hover:bg-blue-50 hover:text-blue-500 disabled:cursor-not-allowed disabled:opacity-50`}
           title="Répondre"
         >
           <MessageCircle className="h-4 w-4" strokeWidth={1.5} />
@@ -68,23 +72,23 @@ export const FeedActions = memo(function FeedActions({
         </span>
       )}
 
-      {/* Mobile-only: edit + delete buttons (desktop uses hover toolbar) */}
+      {/* Mobile-only: edit + delete (desktop uses hover toolbar) */}
       {showMobileEdit && (
         <button
           onClick={onStartEdit}
-          className="flex items-center rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 md:hidden"
+          className={`${BTN} text-gray-400 hover:bg-gray-100 hover:text-gray-600 md:hidden`}
           title="Modifier"
         >
-          <Pencil className="h-3.5 w-3.5" strokeWidth={1.5} />
+          <Pencil className="h-4 w-4" strokeWidth={1.5} />
         </button>
       )}
       {showMobileDelete && (
         <button
           onClick={onDelete}
-          className="flex items-center rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-red-50 hover:text-red-500 md:hidden"
+          className={`${BTN} text-gray-400 hover:bg-red-50 hover:text-red-500 md:hidden`}
           title="Supprimer"
         >
-          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+          <Trash2 className="h-4 w-4" strokeWidth={1.5} />
         </button>
       )}
     </div>
