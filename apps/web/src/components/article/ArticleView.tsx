@@ -76,17 +76,23 @@ function splitHtmlAtParagraph(html: string, wordThreshold: number): [string, str
 }
 
 export function ArticleView({ article, communitySlug, userId }: ArticleViewProps) {
-  const sanitizedBody = useMemo(() => DOMPurify.sanitize(article.body, {
-    ALLOWED_TAGS: [
-      'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'a', 'strong', 'em', 'b', 'i', 'u', 's',
-      'ul', 'ol', 'li', 'blockquote', 'img', 'br', 'hr',
-      'code', 'pre', 'span', 'div', 'figure', 'figcaption',
-    ],
-    ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target', 'rel', 'id'],
-    ALLOWED_URI_REGEXP: /^(?:https?|mailto):/i,
-    ALLOW_DATA_ATTR: false,
-  }), [article.body]);
+  const sanitizedBody = useMemo(() => {
+    try {
+      return DOMPurify.sanitize(article.body ?? '', {
+        ALLOWED_TAGS: [
+          'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+          'a', 'strong', 'em', 'b', 'i', 'u', 's',
+          'ul', 'ol', 'li', 'blockquote', 'img', 'br', 'hr',
+          'code', 'pre', 'span', 'div', 'figure', 'figcaption',
+        ],
+        ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target', 'rel', 'id'],
+        ALLOWED_URI_REGEXP: /^(?:https?|mailto):/i,
+        ALLOW_DATA_ATTR: false,
+      });
+    } catch {
+      return article.body ?? '';
+    }
+  }, [article.body]);
   const bodyParts = useMemo(
     () => splitHtmlAtParagraph(sanitizedBody, ARTICLE_AD_WORD_THRESHOLD),
     [sanitizedBody],
