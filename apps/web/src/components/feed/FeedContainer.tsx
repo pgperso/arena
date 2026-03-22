@@ -248,7 +248,7 @@ export function FeedContainer({
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Chat
+            Tribune
           </button>
           <button
             onClick={() => setActiveTab('content')}

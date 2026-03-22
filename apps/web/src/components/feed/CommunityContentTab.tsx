@@ -6,6 +6,9 @@ import { formatTime, formatDuration } from '@arena/shared';
 import { Avatar } from '@/components/ui/Avatar';
 import Image from 'next/image';
 import Link from 'next/link';
+import { AdSlot } from '@/components/ads/AdSlot';
+
+const CONTENT_AD_INTERVAL = 5; // Ad every 5 items
 
 interface ContentItem {
   type: 'article' | 'podcast';
@@ -144,9 +147,15 @@ export function CommunityContentTab({ communityId, communitySlug }: CommunityCon
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {filtered.map((item) => (
+            {filtered.map((item, idx) => (
+              <div key={`${item.type}-${item.id}`}>
+              {idx > 0 && idx % CONTENT_AD_INTERVAL === 0 && (
+                <div className="border-y border-gray-100 bg-gray-50 px-4 py-3">
+                  <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-gray-400">Sponsorisé</p>
+                  <AdSlot slotId={`content-feed-${idx}`} format="in-feed" className="w-full" />
+                </div>
+              )}
               <Link
-                key={`${item.type}-${item.id}`}
                 href={
                   item.type === 'article'
                     ? `/tribunes/${communitySlug}/articles/${item.slug}`
@@ -207,6 +216,7 @@ export function CommunityContentTab({ communityId, communitySlug }: CommunityCon
                   </div>
                 </div>
               </Link>
+              </div>
             ))}
           </div>
         )}
