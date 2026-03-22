@@ -102,14 +102,28 @@ export function FeedContainer({
     overscan: 5,
   });
 
-  // Auto-scroll to bottom on new items
+  // Scroll to bottom on initial load (instant) and on new messages (smooth)
   const prevItemCountRef = useRef(items.length);
   const justSentRef = useRef(false);
+  const initialScrollDone = useRef(false);
+
+  // Initial scroll: when loading finishes and items are available, jump to bottom instantly
   useEffect(() => {
+    if (!loading && items.length > 0 && !initialScrollDone.current) {
+      initialScrollDone.current = true;
+      // Wait one frame for the virtualizer to measure the scroll element
+      requestAnimationFrame(() => {
+        virtualizer.scrollToIndex(items.length - 1, { align: 'end' });
+      });
+    }
+  }, [loading, items.length, virtualizer]);
+
+  // Subsequent messages: smooth scroll to bottom if at bottom or own message
+  useEffect(() => {
+    if (!initialScrollDone.current) return; // Skip until initial scroll is done
     const prevCount = prevItemCountRef.current;
     prevItemCountRef.current = items.length;
     if (items.length > prevCount && items.length > 0) {
-      // Always scroll if user just sent a message; otherwise only if already at bottom
       if (justSentRef.current || autoScroll) {
         virtualizer.scrollToIndex(items.length - 1, { align: 'end', behavior: 'smooth' });
         justSentRef.current = false;
