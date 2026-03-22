@@ -76,14 +76,42 @@ export async function removePodcast(
   podcastId: number,
   userId: string,
 ) {
-  return supabase
+  // Fetch audio + cover URLs before deleting
+  const { data: podcast } = await supabase
     .from('podcasts')
-    .update({
-      is_removed: true,
-      removed_at: new Date().toISOString(),
-      removed_by: userId,
-    })
+    .select('audio_url, cover_image_url')
+    .eq('id', podcastId)
+    .single();
+
+  // Hard delete the DB record
+  const result = await supabase
+    .from('podcasts')
+    .delete()
     .eq('id', podcastId);
+
+  // Clean up storage files (fire-and-forget, don't block on errors)
+  if (podcast) {
+    const audioPath = extractStoragePath(podcast.audio_url, 'podcast-audio');
+    const coverPath = extractStoragePath(podcast.cover_image_url, 'article-covers');
+
+    if (audioPath) {
+      supabase.storage.from('podcast-audio').remove([audioPath]);
+    }
+    if (coverPath) {
+      supabase.storage.from('article-covers').remove([coverPath]);
+    }
+  }
+
+  return result;
+}
+
+/** Extract the storage path from a Supabase public URL */
+function extractStoragePath(url: string | null, bucket: string): string | null {
+  if (!url) return null;
+  const marker = `/storage/v1/object/public/${bucket}/`;
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  return url.slice(idx + marker.length);
 }
 
 export async function fetchPodcastsByPublisher(

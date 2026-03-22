@@ -3,8 +3,8 @@
 import { useState, useCallback, useRef } from 'react';
 import { useSupabase } from './useSupabase';
 
-const ALLOWED_TYPES = ['audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg', 'audio/webm'];
-const MAX_SIZE = 100 * 1024 * 1024; // 100 MB
+const ALLOWED_TYPES = ['audio/mpeg', 'audio/mp4', 'audio/ogg', 'audio/webm'];
+const MAX_SIZE = 25 * 1024 * 1024; // 25 MB
 
 interface UseAudioUploadReturn {
   uploading: boolean;
@@ -43,10 +43,10 @@ export function useAudioUpload(): UseAudioUploadReturn {
 
   const validateFile = useCallback((file: File): string | null => {
     if (!ALLOWED_TYPES.includes(file.type)) {
-      return 'Format non supporté. Utilisez MP3, MP4, WAV, OGG ou WebM.';
+      return 'Format non supporté. Utilisez MP3, M4A, OGG ou WebM.';
     }
     if (file.size > MAX_SIZE) {
-      return 'Le fichier ne doit pas dépasser 100 Mo.';
+      return 'Le fichier ne doit pas dépasser 25 Mo.';
     }
     return null;
   }, []);
@@ -68,7 +68,6 @@ export function useAudioUpload(): UseAudioUploadReturn {
     const extMap: Record<string, string> = {
       'audio/mpeg': 'mp3',
       'audio/mp4': 'm4a',
-      'audio/wav': 'wav',
       'audio/ogg': 'ogg',
       'audio/webm': 'webm',
     };
