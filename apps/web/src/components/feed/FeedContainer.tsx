@@ -74,6 +74,20 @@ export function FeedContainer({
   // Edit state — only one message at a time (Discord behavior)
   const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
 
+  // Mutable staff roles (updated when owner changes a role via popover)
+  const [liveStaffRoles, setLiveStaffRoles] = useState(staffRoles);
+  const handleRoleChanged = useCallback((memberId: string, newRole: string | null) => {
+    setLiveStaffRoles((prev) => {
+      const next = { ...prev };
+      if (newRole) {
+        next[memberId] = newRole;
+      } else {
+        delete next[memberId];
+      }
+      return next;
+    });
+  }, []);
+
   // Virtualizer for feed items (~15-20 DOM nodes instead of 50+)
   const virtualizer = useVirtualizer({
     count: items.length,
@@ -335,7 +349,8 @@ export function FeedContainer({
                             item={item}
                             userId={user?.id ?? null}
                             canModerate={canModerate}
-                            staffRoles={staffRoles}
+                            communityId={communityId}
+                            staffRoles={liveStaffRoles}
                             communitySlug={communitySlug}
                             isHighlighted={item.feedType === 'message' && item.id === highlightedMessageId}
                             isGrouped={isGrouped}
@@ -346,6 +361,7 @@ export function FeedContainer({
                             onReply={handleReply}
                             onScrollToMessage={scrollToMessage}
                             getMessageById={getMessageById}
+                            onRoleChanged={handleRoleChanged}
                           />
                           {(index + 1) % FEED_AD_INTERVAL === 0 && (
                             <AdInFeed index={Math.floor(index / FEED_AD_INTERVAL)} />

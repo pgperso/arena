@@ -10,6 +10,7 @@ interface FeedItemProps {
   item: FeedItemType;
   userId: string | null;
   canModerate: boolean;
+  communityId: number;
   communitySlug: string;
   isHighlighted?: boolean;
   isGrouped?: boolean;
@@ -21,12 +22,14 @@ interface FeedItemProps {
   onReply: (message: FeedMessageType) => void;
   onScrollToMessage?: (messageId: number) => void;
   getMessageById: (id: number) => FeedMessageType | undefined;
+  onRoleChanged?: (memberId: string, newRole: string | null) => void;
 }
 
 export const FeedItem = memo(function FeedItem({
   item,
   userId,
   canModerate,
+  communityId,
   communitySlug,
   isHighlighted,
   isGrouped,
@@ -38,6 +41,7 @@ export const FeedItem = memo(function FeedItem({
   onReply,
   onScrollToMessage,
   getMessageById,
+  onRoleChanged,
 }: FeedItemProps) {
   switch (item.feedType) {
     case 'message':
@@ -47,6 +51,7 @@ export const FeedItem = memo(function FeedItem({
           isOwn={item.memberId === userId}
           canModerate={canModerate}
           userId={userId}
+          communityId={communityId}
           isHighlighted={isHighlighted}
           isGrouped={isGrouped}
           editing={editingMessageId === item.id}
@@ -58,6 +63,7 @@ export const FeedItem = memo(function FeedItem({
           onReply={onReply}
           onScrollToMessage={onScrollToMessage}
           getMessageById={getMessageById}
+          onRoleChanged={onRoleChanged}
         />
       );
     case 'article':

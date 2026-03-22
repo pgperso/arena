@@ -65,3 +65,59 @@ export async function fetchRestrictions(
     .order('created_at', { ascending: false })
     .limit(200);
 }
+
+// ── Role management ──
+
+export async function fetchMemberRoles(
+  supabase: SupabaseClient<Database>,
+  memberId: string,
+) {
+  return supabase
+    .from('community_member_roles')
+    .select('id, community_id, role_id, roles(code, name)')
+    .eq('member_id', memberId);
+}
+
+export async function assignRole(
+  supabase: SupabaseClient<Database>,
+  data: { communityId: number; memberId: string; roleCode: string },
+) {
+  // Look up role_id from code
+  const { data: role } = await supabase
+    .from('roles')
+    .select('id')
+    .eq('code', data.roleCode)
+    .single();
+
+  if (!role) return { error: { message: 'Rôle introuvable' } };
+
+  const roleId = (role as { id: number }).id;
+
+  // Remove existing roles for this member in this community, then insert the new one
+  await supabase
+    .from('community_member_roles')
+    .delete()
+    .eq('community_id', data.communityId)
+    .eq('member_id', data.memberId);
+
+  const { error } = await supabase
+    .from('community_member_roles')
+    .insert({
+      community_id: data.communityId,
+      member_id: data.memberId,
+      role_id: roleId,
+    });
+
+  return { error };
+}
+
+export async function removeRole(
+  supabase: SupabaseClient<Database>,
+  data: { communityId: number; memberId: string },
+) {
+  return supabase
+    .from('community_member_roles')
+    .delete()
+    .eq('community_id', data.communityId)
+    .eq('member_id', data.memberId);
+}

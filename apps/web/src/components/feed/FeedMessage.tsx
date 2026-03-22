@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useRef, useEffect } from 'react';
+import { memo, useState, useRef, useEffect, useCallback } from 'react';
 import { Trash2, Pencil } from 'lucide-react';
 import { formatTime, getMemberRank } from '@arena/shared';
 import type { FeedMessage as FeedMessageType } from '@arena/shared';
@@ -9,12 +9,14 @@ import { FeedImageGallery } from './FeedImageGallery';
 import { FeedRichContent } from './FeedRichContent';
 import { FeedReplyContext } from './FeedReplyContext';
 import { Avatar } from '@/components/ui/Avatar';
+import { UserPopover } from '@/components/ui/UserPopover';
 
 interface FeedMessageProps {
   message: FeedMessageType;
   isOwn: boolean;
   canModerate: boolean;
   userId: string | null;
+  communityId: number;
   isHighlighted?: boolean;
   isGrouped?: boolean;
   editing?: boolean;
@@ -26,6 +28,7 @@ interface FeedMessageProps {
   onReply: (message: FeedMessageType) => void;
   onScrollToMessage?: (messageId: number) => void;
   getMessageById: (id: number) => FeedMessageType | undefined;
+  onRoleChanged?: (memberId: string, newRole: string | null) => void;
 }
 
 function MessageToolbar({
@@ -79,6 +82,7 @@ export const FeedMessage = memo(function FeedMessage({
   isOwn,
   canModerate,
   userId,
+  communityId,
   isHighlighted,
   isGrouped,
   editing,
@@ -90,6 +94,7 @@ export const FeedMessage = memo(function FeedMessage({
   onReply,
   onScrollToMessage,
   getMessageById,
+  onRoleChanged,
 }: FeedMessageProps) {
   const username = message.member?.username ?? 'Utilisateur supprimé';
   const staffRankMap: Record<string, { label: string; color: string }> = {
@@ -103,6 +108,7 @@ export const FeedMessage = memo(function FeedMessage({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [editContent, setEditContent] = useState(message.content ?? '');
   const editRef = useRef<HTMLTextAreaElement>(null);
+  const [popoverRect, setPopoverRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
     if (editing && editRef.current) {
@@ -111,6 +117,11 @@ export const FeedMessage = memo(function FeedMessage({
       editRef.current.selectionStart = editRef.current.value.length;
     }
   }, [editing, message.content]);
+
+  const handleUsernameClick = useCallback((e: React.MouseEvent) => {
+    if (!message.memberId || isOwn) return;
+    setPopoverRect(e.currentTarget.getBoundingClientRect());
+  }, [message.memberId, isOwn]);
 
   if (message.isRemoved) {
     return (
@@ -176,6 +187,23 @@ export const FeedMessage = memo(function FeedMessage({
     </>
   );
 
+  const usernameClickable = !isOwn && !!message.memberId && canModerate;
+
+  const popover = popoverRect && message.memberId ? (
+    <UserPopover
+      memberId={message.memberId}
+      username={username}
+      avatarUrl={message.member?.avatarUrl}
+      messageCount={message.member?.messageCount ?? 0}
+      communityId={communityId}
+      currentRole={staffRole}
+      canManageRoles={canModerate}
+      anchorRect={popoverRect}
+      onClose={() => setPopoverRect(null)}
+      onRoleChanged={onRoleChanged}
+    />
+  ) : null;
+
   // Grouped message: compact, with subtle username
   if (isGrouped && !hasReplyContext) {
     return (
@@ -183,7 +211,12 @@ export const FeedMessage = memo(function FeedMessage({
         <span className="absolute left-2 top-2 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100">
           {time}
         </span>
-        <span className="text-[10px] font-medium text-gray-400">{username}</span>
+        <span
+          className={`text-[10px] font-medium text-gray-400 ${usernameClickable ? 'cursor-pointer hover:text-gray-600 hover:underline' : ''}`}
+          onClick={usernameClickable ? handleUsernameClick : undefined}
+        >
+          {username}
+        </span>
 
         {toolbar}
         {contentBlock}
@@ -202,6 +235,7 @@ export const FeedMessage = memo(function FeedMessage({
             onReply={() => onReply(message)}
           />
         )}
+        {popover}
       </div>
     );
   }
@@ -230,7 +264,10 @@ export const FeedMessage = memo(function FeedMessage({
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className={`text-sm font-semibold ${isOwn ? 'text-brand-blue' : 'text-gray-900'}`}>
+            <span
+              className={`text-sm font-semibold ${isOwn ? 'text-brand-blue' : 'text-gray-900'} ${usernameClickable ? 'cursor-pointer hover:underline' : ''}`}
+              onClick={usernameClickable ? handleUsernameClick : undefined}
+            >
               {username}
             </span>
             <span className={`text-[10px] font-bold ${rank.color}`}>{rank.label}</span>
@@ -255,6 +292,7 @@ export const FeedMessage = memo(function FeedMessage({
           )}
         </div>
       </div>
+      {popover}
     </div>
   );
 });

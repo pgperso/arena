@@ -1,4 +1,5 @@
 export const ROLES = {
+  OWNER: 'owner',
   ADMIN: 'admin',
   MODERATOR: 'moderator',
   MEMBER: 'member',
@@ -14,7 +15,8 @@ export const PERMISSIONS = {
 } as const;
 
 export const ROLE_DISPLAY_NAMES: Record<string, string> = {
-  admin: 'Administrateur',
-  moderator: 'Modérateur',
+  owner: 'Propriétaire',
+  admin: 'Arbitre',
+  moderator: 'Arbitre',
   member: 'Membre',
 };
