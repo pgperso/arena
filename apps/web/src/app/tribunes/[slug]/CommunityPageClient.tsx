@@ -39,6 +39,13 @@ export function CommunityPageClient({
   const [showJoinModal, setShowJoinModal] = useState(!initialIsMember);
   const [joinError, setJoinError] = useState<string | null>(null);
 
+  // React-recommended pattern: sync state from server props after router.refresh()
+  // See: https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  if (initialIsMember && !isMember) {
+    setIsMember(true);
+    setShowJoinModal(false);
+  }
+
   async function handleJoin() {
     if (!userId) {
       router.push('/login');
@@ -47,15 +54,17 @@ export function CommunityPageClient({
     setJoining(true);
     setJoinError(null);
     const { error } = await joinCommunity(supabase, community.id, userId);
-    if (!error) {
-      setIsMember(true);
-      setMemberCount((c) => c + 1);
-      setShowJoinModal(false);
-      router.refresh();
-    } else {
+    if (error) {
       setJoinError(error.message);
+      setJoining(false);
+      return;
     }
-    setJoining(false);
+    setMemberCount((c) => c + 1);
+    // Don't set isMember locally — let the server be the source of truth.
+    // router.refresh() re-fetches the server component which will pass
+    // initialIsMember=true. The prop sync above handles the state update.
+    // This guarantees the page renders from a clean server-validated state.
+    router.refresh();
   }
 
   async function handleLeave() {
@@ -105,7 +114,7 @@ export function CommunityPageClient({
                   disabled={joining}
                   className="w-full rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
                 >
-                  {joining ? 'En cours...' : 'Rejoindre cette tribune'}
+                  {joining ? 'Chargement de la tribune...' : 'Rejoindre cette tribune'}
                 </button>
                 {joinError && (
                   <p className="mt-2 text-center text-xs text-red-500">{joinError}</p>
