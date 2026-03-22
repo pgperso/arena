@@ -104,7 +104,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
             </div>
             <h3 className="text-sm font-semibold text-gray-900 line-clamp-1">{podcast.title}</h3>
             {podcast.description && (
-              <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">{podcast.description}</p>
+              <p className="mt-0.5 text-xs text-gray-400 line-clamp-1">{podcast.description}</p>
             )}
           </div>
         </div>
@@ -163,7 +163,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
   // Audio podcast (existing behavior)
   return (
     <div className="px-4 py-3">
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-orange-50 to-amber-50 p-4">
+      <div className="overflow-hidden rounded-xl bg-gray-950 p-4">
         {podcast.audioUrl && (
           <audio
             ref={audioRef}
@@ -177,7 +177,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
         <div className="flex gap-3">
           <button
             onClick={togglePlay}
-            className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-orange-200"
+            className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-800"
             aria-label={playing ? 'Mettre en pause' : 'Lire'}
           >
             {podcast.coverImageUrl ? (
@@ -190,7 +190,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
                 sizes="56px"
               />
             ) : (
-              <svg className="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
               </svg>
             )}
@@ -209,35 +209,35 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
 
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center gap-2">
-              <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+              <span className="rounded-full bg-brand-blue/20 px-2 py-0.5 text-xs font-medium text-brand-blue-light">
                 Podcast
               </span>
-              <span className="text-xs text-gray-400">{formatTime(podcast.createdAt)}</span>
+              <span className="text-xs text-gray-500">{formatTime(podcast.createdAt)}</span>
               {podcast.durationSeconds && (
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-gray-500">
                   {formatDuration(podcast.durationSeconds)}
                 </span>
               )}
             </div>
             <Link
               href={`/tribunes/${communitySlug}/podcasts/${podcast.id}`}
-              className="text-sm font-semibold text-gray-900 hover:text-orange-700 line-clamp-1"
+              className="text-sm font-semibold text-white hover:text-brand-blue-light line-clamp-1"
             >
               {podcast.title}
             </Link>
             {podcast.description && (
-              <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">{podcast.description}</p>
+              <p className="mt-0.5 text-xs text-gray-400 line-clamp-1">{podcast.description}</p>
             )}
           </div>
         </div>
 
         {podcast.audioUrl && (
           <div
-            className="mt-3 h-1.5 cursor-pointer rounded-full bg-orange-200"
+            className="mt-3 h-1.5 cursor-pointer rounded-full bg-gray-700"
             onClick={handleSeek}
           >
             <div
-              className="h-full rounded-full bg-orange-500 transition-all"
+              className="h-full rounded-full bg-brand-blue transition-all"
               style={{ width: `${progress}%` }}
             />
           </div>
