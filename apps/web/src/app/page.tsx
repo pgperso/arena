@@ -65,30 +65,37 @@ export default async function HomePage() {
   const controversial = mapTrending(controversialRes.data ?? []);
 
   return (
-    <div className="px-4 pb-12 pt-12">
-      <div className="mx-auto w-full max-w-7xl">
-        <div className="mb-10 text-center">
-          <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">
+    <div className="flex h-[calc(100dvh-4rem)] flex-col overflow-hidden px-4">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col overflow-hidden">
+        {/* Header — fixed height */}
+        <div className="shrink-0 pt-8 pb-6 text-center">
+          <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
             Ta tribune, ton équipe,{' '}
             <span className="text-red-600">ton opinion.</span>
           </h1>
-          <p className="mx-auto max-w-2xl text-lg text-gray-900">
+          <p className="text-sm text-gray-600 md:text-base">
             Tu veux jouer robuste ? On aime ça quand ça brasse.
           </p>
         </div>
 
-        <TrendingMessages popular={popular} controversial={controversial} />
+        {/* Trending — fixed height */}
+        <div className="shrink-0">
+          <TrendingMessages popular={popular} controversial={controversial} />
+        </div>
 
-        {communities.length > 0 ? (
-          <CommunityGrid communities={communities} />
-        ) : (
-          <p className="text-center text-gray-500">
-            Aucune tribune disponible pour le moment.
-          </p>
-        )}
+        {/* Tribunes — fills remaining space, internal scroll if needed */}
+        <div className="min-h-0 flex-1 overflow-y-auto pb-4">
+          {communities.length > 0 ? (
+            <CommunityGrid communities={communities} />
+          ) : (
+            <p className="text-center text-gray-500">
+              Aucune tribune disponible pour le moment.
+            </p>
+          )}
+        </div>
 
-        {/* Ad banner */}
-        <div className="mt-10">
+        {/* Ad banner — fixed at bottom */}
+        <div className="shrink-0 py-2">
           <AdBanner slotId="home-footer" />
         </div>
       </div>

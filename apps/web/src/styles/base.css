@@ -45,6 +45,12 @@ label[for] {
   animation: reaction-shake 0.4s ease-out;
 }
 
+/* Trending fade-in */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Reply connector line (Discord-style) */
 .reply-connector {
   position: absolute;
