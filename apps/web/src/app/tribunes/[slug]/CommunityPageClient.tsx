@@ -181,7 +181,7 @@ export function CommunityPageClient({
             <AdSidebar position="left" />
 
             {/* Central feed area */}
-            <div className="flex-1 overflow-hidden bg-white">
+            <div className="flex h-full flex-1 flex-col overflow-hidden bg-white">
               <FeedContainer
                 communityId={community.id}
                 communityName={community.name}
