@@ -212,7 +212,7 @@ export function FeedContainer({
     [items, virtualizer],
   );
 
-  const inputDisabled = !user || !isMember || isMuted || sending;
+  const inputDisabled = !user || !isMember || isMuted;
 
   // Collect IDs for batch like queries (3 queries instead of 50+)
   const { messageIds, articleIds, podcastIds } = useMemo(() => {

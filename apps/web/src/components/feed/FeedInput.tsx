@@ -34,8 +34,9 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId }
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
+    const textarea = textareaRef.current;
     await onSend(trimmed, imageUrls.length > 0 ? imageUrls : undefined);
-    textareaRef.current?.focus();
+    textarea?.focus();
   }, [content, disabled, uploading, images, userId, communityId, onSend, uploadAll, clearImages]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
