@@ -284,7 +284,7 @@ export const FeedMessage = memo(function FeedMessage({
             >
               {username}
             </span>
-            <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${rank.bg}`}>{rank.label}</span>
+            <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${rank.bg}`}>{rank.label}</span>
             <span className="text-xs text-gray-400">{time}</span>
           </div>
 
