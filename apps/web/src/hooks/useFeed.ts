@@ -348,6 +348,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           .from('chat_messages')
           .select(CHAT_MSG_SELECT)
           .eq('community_id', communityId)
+          .eq('is_removed', false)
           .order('created_at', { ascending: false })
           .limit(FEED_INITIAL_LIMIT),
         supabase
@@ -557,6 +558,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
       .from('chat_messages')
       .select(CHAT_MSG_SELECT)
       .eq('community_id', communityId)
+      .eq('is_removed', false)
       .lt('created_at', oldestMsg.createdAt)
       .order('created_at', { ascending: false })
       .limit(FEED_LOAD_MORE_LIMIT);
