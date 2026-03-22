@@ -16,6 +16,7 @@ interface FeedMessageProps {
   canModerate: boolean;
   userId: string | null;
   isHighlighted?: boolean;
+  isGrouped?: boolean;
   onDelete: (messageId: number) => void;
   onReply: (message: FeedMessageType) => void;
   onScrollToMessage?: (messageId: number) => void;
@@ -28,6 +29,7 @@ export const FeedMessage = memo(function FeedMessage({
   canModerate,
   userId,
   isHighlighted,
+  isGrouped,
   onDelete,
   onReply,
   onScrollToMessage,
@@ -39,7 +41,7 @@ export const FeedMessage = memo(function FeedMessage({
 
   if (message.isRemoved) {
     return (
-      <div className="px-4 py-2">
+      <div className="px-4 py-0.5">
         <p className="text-sm italic text-gray-400">[Message supprimé]</p>
       </div>
     );
@@ -48,8 +50,66 @@ export const FeedMessage = memo(function FeedMessage({
   const parentMessage = message.parentId ? getMessageById(message.parentId) : undefined;
   const hasReplyContext = !!(message.parentId && parentMessage);
 
+  // Grouped message: no avatar, no username, compact — like Discord
+  if (isGrouped && !hasReplyContext) {
+    return (
+      <div className={`group relative py-0.5 pl-[60px] pr-4 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}>
+        {/* Timestamp shown on hover, aligned with avatar column */}
+        <span className="absolute left-2 top-1 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100">
+          {time}
+        </span>
+
+        {message.content && <FeedRichContent content={message.content} />}
+        {message.imageUrls.length > 0 && (
+          <FeedImageGallery imageUrls={message.imageUrls} />
+        )}
+
+        <FeedActions
+          messageId={message.id}
+          likeCount={message.likeCount}
+          dislikeCount={message.dislikeCount}
+          replyCount={message.replyCount}
+          userId={userId}
+          isOwn={isOwn}
+          onReply={() => onReply(message)}
+        />
+
+        {/* Delete */}
+        {canModerate && (
+          <div className="absolute right-4 top-1">
+            {confirmDelete ? (
+              <span className="flex items-center gap-1.5 text-xs">
+                <button
+                  onClick={() => { onDelete(message.id); setConfirmDelete(false); }}
+                  className="font-semibold text-red-500 transition hover:text-red-700"
+                >
+                  Confirmer
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  className="text-gray-400 transition hover:text-gray-600"
+                >
+                  Annuler
+                </button>
+              </span>
+            ) : (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="text-gray-400 opacity-0 transition hover:text-red-500 group-hover:opacity-100"
+                title="Supprimer"
+              >
+                <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Full message: avatar + username + timestamp
   return (
-    <div className={`group relative px-4 py-2 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}>
+    <div className={`group relative px-4 pt-3 pb-1 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}>
       {/* Reply context with curved connector */}
       {hasReplyContext && (
         <div className="mb-0.5 flex items-end pl-4">
@@ -83,10 +143,7 @@ export const FeedMessage = memo(function FeedMessage({
                 {confirmDelete ? (
                   <span className="flex items-center gap-1.5 text-xs">
                     <button
-                      onClick={() => {
-                        onDelete(message.id);
-                        setConfirmDelete(false);
-                      }}
+                      onClick={() => { onDelete(message.id); setConfirmDelete(false); }}
                       className="font-semibold text-red-500 transition hover:text-red-700"
                     >
                       Confirmer

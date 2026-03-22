@@ -73,7 +73,15 @@ export function FeedContainer({
     getScrollElement: () => feedContainerRef.current,
     estimateSize: (index) => {
       const item = items[index];
-      let size = item.feedType === 'article' ? 220 : item.feedType === 'podcast' ? 160 : 80;
+      let size = item.feedType === 'article' ? 220 : item.feedType === 'podcast' ? 160 : 72;
+      // Grouped messages are more compact (no avatar/name)
+      if (item.feedType === 'message' && !item.parentId && index > 0) {
+        const prev = items[index - 1];
+        if (prev.feedType === 'message' && prev.memberId === item.memberId && !prev.isRemoved && !item.isRemoved) {
+          const gap = new Date(item.feedTimestamp).getTime() - new Date(prev.feedTimestamp).getTime();
+          if (gap < 5 * 60 * 1000) size = 32;
+        }
+      }
       if ((index + 1) % FEED_AD_INTERVAL === 0) size += 250;
       return size;
     },
@@ -307,6 +315,22 @@ export function FeedContainer({
                     {virtualizer.getVirtualItems().map((virtualRow) => {
                       const item = items[virtualRow.index];
                       const index = virtualRow.index;
+
+                      // Message grouping: same author, within 5 min, no reply context
+                      let isGrouped = false;
+                      if (item.feedType === 'message' && !item.parentId && index > 0) {
+                        const prev = items[index - 1];
+                        if (
+                          prev.feedType === 'message' &&
+                          prev.memberId === item.memberId &&
+                          !prev.isRemoved &&
+                          !item.isRemoved &&
+                          new Date(item.feedTimestamp).getTime() - new Date(prev.feedTimestamp).getTime() < 5 * 60 * 1000
+                        ) {
+                          isGrouped = true;
+                        }
+                      }
+
                       return (
                         <div
                           key={item.feedKey}
@@ -326,6 +350,7 @@ export function FeedContainer({
                             canModerate={canModerate}
                             communitySlug={communitySlug}
                             isHighlighted={item.feedType === 'message' && item.id === highlightedMessageId}
+                            isGrouped={isGrouped}
                             onDeleteMessage={deleteMessage}
                             onReply={handleReply}
                             onScrollToMessage={scrollToMessage}

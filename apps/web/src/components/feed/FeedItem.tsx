@@ -12,6 +12,7 @@ interface FeedItemProps {
   canModerate: boolean;
   communitySlug: string;
   isHighlighted?: boolean;
+  isGrouped?: boolean;
   onDeleteMessage: (messageId: number) => void;
   onReply: (message: FeedMessageType) => void;
   onScrollToMessage?: (messageId: number) => void;
@@ -24,6 +25,7 @@ export const FeedItem = memo(function FeedItem({
   canModerate,
   communitySlug,
   isHighlighted,
+  isGrouped,
   onDeleteMessage,
   onReply,
   onScrollToMessage,
@@ -38,6 +40,7 @@ export const FeedItem = memo(function FeedItem({
           canModerate={canModerate}
           userId={userId}
           isHighlighted={isHighlighted}
+          isGrouped={isGrouped}
           onDelete={onDeleteMessage}
           onReply={onReply}
           onScrollToMessage={onScrollToMessage}
