@@ -21,7 +21,6 @@ export const MEMBER_RANKS = [
   { min: 10, label: 'Régulier', color: 'text-blue-500' },
   { min: 50, label: 'Vétéran', color: 'text-purple-500' },
   { min: 200, label: 'Légende', color: 'text-brand-orange' },
-  { min: 500, label: 'Élite', color: 'text-red-500' },
 ] as const;
 
 export function getMemberRank(messageCount: number) {
