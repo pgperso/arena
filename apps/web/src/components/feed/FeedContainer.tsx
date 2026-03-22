@@ -228,7 +228,7 @@ export function FeedContainer({
   }, [items]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+    <div className="flex h-full flex-col lg:flex-row">
       {/* Feed area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
@@ -294,15 +294,11 @@ export function FeedContainer({
           </div>
         </div>
 
-        {/* Feed items - virtualized
-             relative+absolute pattern ensures the scroll container has explicit
-             dimensions immediately, even before flex layout is fully computed.
-             This is the same pattern Discord/Slack use for their message areas. */}
-        <div className="relative min-h-0 flex-1">
+        {/* Feed items - virtualized */}
         <div
           ref={feedContainerRef}
           onScroll={handleScrollThrottled}
-          className="absolute inset-0 flex flex-col overflow-y-auto"
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto"
         >
           {loading ? (
             <FeedSkeleton />
@@ -392,7 +388,6 @@ export function FeedContainer({
               )}
             </BatchLikeProvider>
           )}
-        </div>
         </div>
 
         {/* Reply bar */}

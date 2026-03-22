@@ -68,7 +68,7 @@ export function CommunityPageClient({
   }
 
   return (
-    <div className="flex h-[calc(100dvh-4rem)] flex-col overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden">
       {/* Join / Login modal */}
       {showJoinModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -184,7 +184,7 @@ export function CommunityPageClient({
             <AdSidebar position="left" />
 
             {/* Central feed area */}
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
+            <div className="flex-1 overflow-hidden bg-white">
               <FeedContainer
                 communityId={community.id}
                 communityName={community.name}
