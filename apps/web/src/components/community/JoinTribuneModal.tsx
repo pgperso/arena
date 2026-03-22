@@ -104,18 +104,23 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
             // Step 1: Pick a category
             <div className="space-y-2">
               {categories.map((cat) => {
-                const count = communities.filter((c) => c.category_id === cat.id && !memberCommunityIds.includes(c.id)).length;
+                const totalInCategory = communities.filter((c) => c.category_id === cat.id).length;
+                const availableCount = communities.filter((c) => c.category_id === cat.id && !memberCommunityIds.includes(c.id)).length;
                 return (
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    disabled={count === 0}
+                    disabled={availableCount === 0}
                     className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-4 text-left transition hover:border-brand-blue hover:bg-brand-blue/5 disabled:opacity-30"
                   >
                     <div>
                       <span className="text-base font-bold text-gray-900">{cat.name}</span>
                       <p className="text-xs text-gray-500">
-                        {count > 0 ? `${count} tribune${count > 1 ? 's' : ''} disponible${count > 1 ? 's' : ''}` : 'Toutes rejointes'}
+                        {totalInCategory === 0
+                          ? 'Bientôt disponible'
+                          : availableCount > 0
+                            ? `${availableCount} tribune${availableCount > 1 ? 's' : ''} disponible${availableCount > 1 ? 's' : ''}`
+                            : 'Toutes rejointes'}
                       </p>
                     </div>
                     <svg className="h-5 w-5 text-brand-blue" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
