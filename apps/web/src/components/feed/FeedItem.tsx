@@ -5,6 +5,7 @@ import type { FeedItem as FeedItemType, FeedMessage as FeedMessageType } from '@
 import { FeedMessage } from './FeedMessage';
 import { FeedArticleCard } from './FeedArticleCard';
 import { FeedPodcastCard } from './FeedPodcastCard';
+import { FeedBotMessage, BOT_MEMBER_ID } from './FeedBotMessage';
 
 interface FeedItemProps {
   item: FeedItemType;
@@ -47,6 +48,10 @@ export const FeedItem = memo(function FeedItem({
 }: FeedItemProps) {
   switch (item.feedType) {
     case 'message':
+      // Bot messages get special dark card rendering
+      if (item.memberId === BOT_MEMBER_ID) {
+        return <FeedBotMessage message={item} />;
+      }
       return (
         <FeedMessage
           message={item}
