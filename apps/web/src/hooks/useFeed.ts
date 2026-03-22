@@ -562,7 +562,8 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
   const deleteMessage = useCallback(
     async (messageId: number) => {
       if (!userId) return;
-      await supabaseRef.current
+      if (!window.confirm('Supprimer ce message ?')) return;
+      const { error } = await supabaseRef.current
         .from('chat_messages')
         .update({
           content: null,
@@ -572,6 +573,9 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           removed_by: userId,
         })
         .eq('id', messageId);
+      if (error) {
+        window.alert('Erreur lors de la suppression. Vérifiez vos permissions.');
+      }
     },
     [userId],
   );
