@@ -1,13 +1,12 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslations, useLocale } from 'next-intl';
-import { usePathname } from 'next/navigation';
 import { MobileNav } from './MobileNav';
 
 export function Header() {
@@ -20,7 +19,7 @@ export function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const otherLocale = locale === 'fr' ? 'en' : 'fr';
-  const switchLocalePath = pathname.replace(`/${locale}`, `/${otherLocale}`);
+  const switchLocalePath = `/${otherLocale}${pathname}`;
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   async function handleLogout() {
@@ -60,12 +59,12 @@ export function Header() {
 
         {/* Language + Desktop auth */}
         <div className="hidden items-center gap-3 md:flex">
-          <Link
+          <a
             href={switchLocalePath}
             className="rounded-md px-2 py-1 text-xs font-bold text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
           >
             {otherLocale.toUpperCase()}
-          </Link>
+          </a>
           <div className="h-4 w-px bg-gray-200" />
           {loading ? (
             <div className="h-8 w-24 animate-pulse rounded-lg bg-gray-200" />

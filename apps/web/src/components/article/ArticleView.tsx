@@ -8,7 +8,7 @@ import { AdSlot } from '@/components/ads/AdSlot';
 import { AdInArticle } from '@/components/ads/AdInArticle';
 import { Avatar } from '@/components/ui/Avatar';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 interface ArticleViewProps {
   article: {

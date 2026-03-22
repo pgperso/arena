@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { FeedContainer } from '@/components/feed/FeedContainer';
 import { AdSidebar } from '@/components/ads/AdSidebar';
@@ -10,7 +10,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { useSupabase } from '@/hooks/useSupabase';
 import { joinCommunity, leaveCommunity } from '@/services/communityService';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import type { Database } from '@arena/supabase-client';
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'];

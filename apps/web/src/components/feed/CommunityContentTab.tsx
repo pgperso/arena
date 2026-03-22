@@ -6,7 +6,7 @@ import { useSupabase } from '@/hooks/useSupabase';
 import { formatTime, formatDuration } from '@arena/shared';
 import { Avatar } from '@/components/ui/Avatar';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { removePodcast } from '@/services/podcastService';
 import { Trash2, EyeOff } from 'lucide-react';

@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import type { User } from '@supabase/supabase-js';
 import { useTranslations } from 'next-intl';
 

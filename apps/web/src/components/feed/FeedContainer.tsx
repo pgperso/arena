@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { isGroupedMessage } from '@/lib/feedUtils';
 import { useFeed } from '@/hooks/useFeed';
@@ -19,7 +19,7 @@ import { OnlineMembers } from '@/components/chat/OnlineMembers';
 import { AdInFeed } from '@/components/ads/AdInFeed';
 import { FEED_AD_INTERVAL } from '@arena/shared';
 import { CommunityContentTab } from './CommunityContentTab';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 const ArticleEditor = dynamic(() => import('@/components/article/ArticleEditor').then((m) => m.ArticleEditor), { ssr: false });
 const ArticleList = dynamic(() => import('@/components/article/ArticleList').then((m) => m.ArticleList), { ssr: false });

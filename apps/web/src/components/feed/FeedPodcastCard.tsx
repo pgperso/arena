@@ -9,7 +9,7 @@ import { FeedLivePlayer } from './FeedLivePlayer';
 import { useSupabase } from '@/hooks/useSupabase';
 import { removePodcast } from '@/services/podcastService';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 interface FeedPodcastCardProps {
   podcast: FeedPodcast;

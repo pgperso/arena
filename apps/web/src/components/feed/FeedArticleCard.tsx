@@ -8,7 +8,7 @@ import { FeedLikeButton } from './FeedLikeButton';
 import { Avatar } from '@/components/ui/Avatar';
 import { useSupabase } from '@/hooks/useSupabase';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 interface FeedArticleCardProps {
   article: FeedArticle;

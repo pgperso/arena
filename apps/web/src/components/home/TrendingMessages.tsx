@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { Heart, Annoyed, Flame } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
