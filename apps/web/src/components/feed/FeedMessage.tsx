@@ -14,8 +14,8 @@ import { StatusDot } from '@/components/ui/StatusDot';
 
 const STAFF_RANK_MAP: Record<string, { label: string; color: string; bg: string }> = {
   owner: { label: 'Propriétaire', color: 'text-brand-blue', bg: 'bg-brand-blue text-white' },
-  admin: { label: 'Arbitre', color: 'text-red-600', bg: 'bg-red-100 text-red-700' },
-  moderator: { label: 'Arbitre', color: 'text-red-600', bg: 'bg-red-100 text-red-700' },
+  admin: { label: 'Arbitre', color: 'text-red-600', bg: 'bg-red-600 text-white' },
+  moderator: { label: 'Arbitre', color: 'text-red-600', bg: 'bg-red-600 text-white' },
 };
 
 interface FeedMessageProps {
