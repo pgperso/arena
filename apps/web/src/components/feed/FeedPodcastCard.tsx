@@ -61,14 +61,16 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
   }
 
   async function handleEndLive() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- is_live requires migration 00026
-    await (supabase.from('podcasts') as any).update({ is_live: false }).eq('id', podcast.id);
-    // Force reload to update the feed
+    await supabase.from('podcasts').update({ is_live: false }).eq('id', podcast.id);
     window.location.reload();
   }
 
   async function handleDelete() {
-    await removePodcast(supabase, podcast.id);
+    const { error } = await removePodcast(supabase, podcast.id);
+    if (error) {
+      console.error('Delete podcast failed:', error);
+      return;
+    }
     setRemoved(true);
   }
 
