@@ -18,7 +18,10 @@ import type { Database } from '@arena/supabase-client';
 
 type ChatMessageRow = Database['public']['Tables']['chat_messages']['Row'];
 type ArticleRow = Database['public']['Tables']['articles']['Row'];
-type PodcastRow = Database['public']['Tables']['podcasts']['Row'];
+type PodcastRow = Database['public']['Tables']['podcasts']['Row'] & {
+  youtube_video_id?: string | null;
+  is_live?: boolean | null;
+};
 type MemberRow = Database['public']['Tables']['members']['Row'];
 
 const MAX_FEED_ITEMS = 500;
@@ -27,6 +30,7 @@ const REALTIME_DEBOUNCE_MS = 100;
 // Explicit column selections (avoid select('*') to exclude large columns like body)
 const CHAT_MSG_SELECT = 'id, community_id, member_id, content, image_urls, created_at, is_removed, removed_at, removed_by, like_count, dislike_count, reply_count, parent_id, members:members!chat_messages_member_id_fkey(id, username, avatar_url, message_count)';
 const ARTICLE_SELECT = 'id, community_id, author_id, title, slug, excerpt, cover_image_url, like_count, view_count, published_at, is_published, is_removed, created_at, members:members!articles_author_id_fkey(id, username, avatar_url, message_count)';
+// Note: youtube_video_id and is_live require migration 00026_youtube_live.sql
 const PODCAST_SELECT = 'id, community_id, published_by, title, description, audio_url, cover_image_url, duration_seconds, like_count, is_published, is_removed, created_at';
 
 // --- Row to FeedItem converters ---
@@ -99,6 +103,8 @@ function podcastToFeedItem(row: PodcastRow): FeedPodcast {
     audioUrl: row.audio_url,
     coverImageUrl: row.cover_image_url,
     durationSeconds: row.duration_seconds,
+    youtubeVideoId: row.youtube_video_id ?? null,
+    isLive: row.is_live ?? false,
     likeCount: row.like_count,
     createdAt: row.created_at,
     publisher: null,

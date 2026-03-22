@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { formatTime, formatDuration } from '@arena/shared';
 import type { FeedPodcast } from '@arena/shared';
 import { FeedLikeButton } from './FeedLikeButton';
+import { FeedLivePlayer } from './FeedLivePlayer';
 import { useSupabase } from '@/hooks/useSupabase';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -24,6 +25,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
 
   const isOwn = !!(userId && podcast.publisher?.id === userId);
   const canRemove = isOwn || !!canModerate;
+  const isYouTube = !!podcast.youtubeVideoId;
 
   function togglePlay() {
     const audio = audioRef.current;
@@ -66,19 +68,74 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
 
   if (removed) return null;
 
+  // YouTube Live / Replay
+  if (isYouTube) {
+    return (
+      <div className="px-4 py-3">
+        <div className="overflow-hidden rounded-xl border border-gray-200">
+          <FeedLivePlayer videoId={podcast.youtubeVideoId!} isLive={podcast.isLive} />
+
+          <div className="bg-white p-3">
+            <div className="mb-1 flex items-center gap-2">
+              {podcast.isLive ? (
+                <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
+                  EN DIRECT
+                </span>
+              ) : (
+                <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">
+                  Replay
+                </span>
+              )}
+              <span className="text-xs text-gray-400">{formatTime(podcast.createdAt)}</span>
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900 line-clamp-1">{podcast.title}</h3>
+            {podcast.description && (
+              <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">{podcast.description}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="mt-1 flex items-center gap-1 pl-1">
+          {!isOwn && (
+            <FeedLikeButton
+              targetType="podcast"
+              targetId={podcast.id}
+              initialLikeCount={podcast.likeCount}
+              userId={userId}
+            />
+          )}
+          {isOwn && podcast.likeCount > 0 && (
+            <span className="px-2 py-1 text-xs text-gray-300">{podcast.likeCount} ♥</span>
+          )}
+          {canRemove && (
+            <button
+              onClick={handleRemoveFromFeed}
+              className="ml-auto rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+            >
+              Retirer du chat
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Audio podcast (existing behavior)
   return (
     <div className="px-4 py-3">
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-orange-50 to-amber-50 p-4">
-        <audio
-          ref={audioRef}
-          src={podcast.audioUrl}
-          onTimeUpdate={handleTimeUpdate}
-          onEnded={handleEnded}
-          preload="none"
-        />
+        {podcast.audioUrl && (
+          <audio
+            ref={audioRef}
+            src={podcast.audioUrl}
+            onTimeUpdate={handleTimeUpdate}
+            onEnded={handleEnded}
+            preload="none"
+          />
+        )}
 
         <div className="flex gap-3">
-          {/* Cover / Play button */}
           <button
             onClick={togglePlay}
             className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-orange-200"
@@ -111,7 +168,6 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
             </div>
           </button>
 
-          {/* Info */}
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center gap-2">
               <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
@@ -136,19 +192,19 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
           </div>
         </div>
 
-        {/* Progress bar */}
-        <div
-          className="mt-3 h-1.5 cursor-pointer rounded-full bg-orange-200"
-          onClick={handleSeek}
-        >
+        {podcast.audioUrl && (
           <div
-            className="h-full rounded-full bg-orange-500 transition-all"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+            className="mt-3 h-1.5 cursor-pointer rounded-full bg-orange-200"
+            onClick={handleSeek}
+          >
+            <div
+              className="h-full rounded-full bg-orange-500 transition-all"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Actions: like (not own) + remove from feed */}
       <div className="mt-1 flex items-center gap-1 pl-1">
         {!isOwn && (
           <FeedLikeButton

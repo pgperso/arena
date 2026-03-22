@@ -50,9 +50,11 @@ export interface FeedPodcast extends FeedItemBase {
   id: number;
   title: string;
   description: string | null;
-  audioUrl: string;
+  audioUrl: string | null;
   coverImageUrl: string | null;
   durationSeconds: number | null;
+  youtubeVideoId: string | null;
+  isLive: boolean;
   likeCount: number;
   createdAt: string;
   publisher: FeedMember | null;

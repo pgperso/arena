@@ -16,6 +16,7 @@ import { FeedReplyBar } from './FeedReplyBar';
 import dynamic from 'next/dynamic';
 import { OnlineMembers } from '@/components/chat/OnlineMembers';
 import { AdInFeed } from '@/components/ads/AdInFeed';
+import { FeedLivePlayer } from './FeedLivePlayer';
 import { FEED_AD_INTERVAL } from '@arena/shared';
 import Link from 'next/link';
 
@@ -102,6 +103,13 @@ export function FeedContainer({
       }
     });
     return result;
+  }, [items]);
+
+  // Find active live podcast for sticky player
+  const activeLive = useMemo(() => {
+    return items.find(
+      (item) => item.feedType === 'podcast' && item.isLive && item.youtubeVideoId,
+    ) as (FeedItemType & { feedType: 'podcast'; youtubeVideoId: string }) | undefined;
   }, [items]);
 
   function getInputPlaceholder(): string {
@@ -228,6 +236,13 @@ export function FeedContainer({
             </button>
           </div>
         </div>
+
+        {/* Sticky live player — stays visible above the chat */}
+        {activeLive && (
+          <div className="shrink-0 border-b border-gray-200">
+            <FeedLivePlayer videoId={activeLive.youtubeVideoId} isLive />
+          </div>
+        )}
 
         {/* Feed items — react-virtuoso handles measurement, scroll, and positioning */}
         <div className="min-h-0 flex-1">

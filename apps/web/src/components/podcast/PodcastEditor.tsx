@@ -10,11 +10,15 @@ interface ExistingPodcast {
   id: number;
   title: string;
   description: string | null;
-  audio_url: string;
+  audio_url: string | null;
   cover_image_url: string | null;
   duration_seconds: number | null;
   is_published: boolean;
+  youtube_video_id?: string | null;
+  is_live?: boolean;
 }
+
+type PodcastMode = 'audio' | 'youtube';
 
 interface PodcastEditorProps {
   communityId: number;
@@ -35,11 +39,16 @@ export function PodcastEditor({
   const supabase = useSupabase();
   const { uploading, progress, error: uploadError, upload, validateFile } = useAudioUpload();
 
+  const initialMode: PodcastMode = existingPodcast?.youtube_video_id ? 'youtube' : 'audio';
+
+  const [mode, setMode] = useState<PodcastMode>(initialMode);
   const [title, setTitle] = useState(existingPodcast?.title ?? '');
   const [description, setDescription] = useState(existingPodcast?.description ?? '');
   const [audioUrl, setAudioUrl] = useState(existingPodcast?.audio_url ?? '');
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [durationSeconds, setDurationSeconds] = useState<number | null>(existingPodcast?.duration_seconds ?? null);
+  const [youtubeVideoId, setYoutubeVideoId] = useState(existingPodcast?.youtube_video_id ?? '');
+  const [isLive, setIsLive] = useState(existingPodcast?.is_live ?? false);
   const { coverPreview, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
     supabase, communityId, existingPodcast?.cover_image_url ?? null, '-pod',
   );
@@ -65,16 +74,63 @@ export function PodcastEditor({
     if (err) setError(err);
   }
 
+  /** Extract YouTube video ID from URL or raw ID */
+  function parseYoutubeId(input: string): string {
+    const trimmed = input.trim();
+    // Already a bare ID (11 chars, alphanumeric + dash/underscore)
+    if (/^[\w-]{11}$/.test(trimmed)) return trimmed;
+    // Full URL patterns
+    const match = trimmed.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|live\/)|youtu\.be\/)([\w-]{11})/);
+    return match?.[1] ?? trimmed;
+  }
+
   const handleSave = useCallback(async (publish: boolean) => {
     if (!title.trim()) {
       setError('Le titre est requis');
       return;
     }
 
+    if (mode === 'youtube') {
+      const vid = parseYoutubeId(youtubeVideoId);
+      if (!vid) {
+        setError('L\'ID ou URL YouTube est requis');
+        return;
+      }
+      setSaving(true);
+      setError(null);
+      const coverImageUrl = await uploadCover();
+
+      const data = {
+        communityId,
+        publishedBy: userId,
+        title: title.trim(),
+        description: description.trim() || null,
+        audioUrl: null,
+        coverImageUrl,
+        durationSeconds: null,
+        youtubeVideoId: vid,
+        isLive,
+        isPublished: publish,
+      };
+
+      const { error: err } = isEditMode
+        ? await updatePodcast(supabase, existingPodcast.id, data)
+        : await createPodcast(supabase, data);
+
+      if (err) {
+        setError(err.message);
+        setSaving(false);
+        return;
+      }
+      setSaving(false);
+      onSaved();
+      return;
+    }
+
+    // Audio mode
     setSaving(true);
     setError(null);
 
-    // Upload audio file if provided
     let finalAudioUrl = audioUrl;
     let finalDuration = durationSeconds;
     if (audioFile) {
@@ -95,41 +151,32 @@ export function PodcastEditor({
 
     const coverImageUrl = await uploadCover();
 
-    if (isEditMode) {
-      const { error: updateErr } = await updatePodcast(supabase, existingPodcast.id, {
-        title: title.trim(),
-        description: description.trim() || null,
-        audioUrl: finalAudioUrl,
-        coverImageUrl,
-        durationSeconds: finalDuration,
-        isPublished: publish,
-      });
-      if (updateErr) {
-        setError(updateErr.message);
-        setSaving(false);
-        return;
-      }
-    } else {
-      const { error: insertErr } = await createPodcast(supabase, {
-        communityId,
-        publishedBy: userId,
-        title: title.trim(),
-        description: description.trim() || null,
-        audioUrl: finalAudioUrl,
-        coverImageUrl,
-        durationSeconds: finalDuration,
-        isPublished: publish,
-      });
-      if (insertErr) {
-        setError(insertErr.message);
-        setSaving(false);
-        return;
-      }
+    const data = {
+      communityId,
+      publishedBy: userId,
+      title: title.trim(),
+      description: description.trim() || null,
+      audioUrl: finalAudioUrl,
+      coverImageUrl,
+      durationSeconds: finalDuration,
+      youtubeVideoId: null,
+      isLive: false,
+      isPublished: publish,
+    };
+
+    const { error: err } = isEditMode
+      ? await updatePodcast(supabase, existingPodcast.id, data)
+      : await createPodcast(supabase, data);
+
+    if (err) {
+      setError(err.message);
+      setSaving(false);
+      return;
     }
 
     setSaving(false);
     onSaved();
-  }, [title, description, audioUrl, audioFile, durationSeconds, uploadCover, communityId, userId, supabase, upload, isEditMode, existingPodcast, onSaved]);
+  }, [title, description, mode, audioUrl, audioFile, durationSeconds, youtubeVideoId, isLive, uploadCover, communityId, userId, supabase, upload, isEditMode, existingPodcast, onSaved]);
 
   const isBusy = saving || uploading;
 
@@ -169,6 +216,29 @@ export function PodcastEditor({
         </div>
       )}
 
+      {/* Mode toggle: Audio vs YouTube */}
+      <div className="mb-4">
+        <label className="mb-2 block text-sm font-medium text-gray-700">Type</label>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setMode('audio')}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+              mode === 'audio' ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Podcast audio
+          </button>
+          <button
+            onClick={() => setMode('youtube')}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+              mode === 'youtube' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            YouTube Live / Vidéo
+          </button>
+        </div>
+      </div>
+
       {/* Title */}
       <div className="mb-4">
         <label className="mb-1 block text-sm font-medium text-gray-700">Titre</label>
@@ -176,7 +246,7 @@ export function PodcastEditor({
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Titre du podcast"
+          placeholder={mode === 'youtube' ? 'Titre du live' : 'Titre du podcast'}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
           maxLength={500}
         />
@@ -188,88 +258,138 @@ export function PodcastEditor({
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Décrivez votre podcast..."
+          placeholder="Décrivez votre contenu..."
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
           rows={3}
           maxLength={5000}
         />
       </div>
 
-      {/* Audio source toggle */}
-      <div className="mb-4">
-        <label className="mb-2 block text-sm font-medium text-gray-700">Source audio</label>
-        <div className="mb-3 flex gap-2">
-          <button
-            onClick={() => setUseExternalUrl(false)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-              !useExternalUrl ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Fichier audio
-          </button>
-          <button
-            onClick={() => setUseExternalUrl(true)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-              useExternalUrl ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            URL externe
-          </button>
-        </div>
-
-        {useExternalUrl ? (
-          <input
-            type="url"
-            value={audioUrl}
-            onChange={(e) => setAudioUrl(e.target.value)}
-            placeholder="https://example.com/podcast.mp3"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
-          />
-        ) : (
+      {/* YouTube mode */}
+      {mode === 'youtube' && (
+        <div className="mb-4 space-y-4">
           <div>
-            {audioFile ? (
-              <div className="flex items-center gap-3 rounded-lg border border-gray-200 px-4 py-3">
-                <svg className="h-5 w-5 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
-                <span className="min-w-0 flex-1 truncate text-sm text-gray-700">{audioFile.name}</span>
-                <button
-                  onClick={() => setAudioFile(null)}
-                  className="text-xs text-gray-400 hover:text-gray-600"
-                >
-                  Changer
-                </button>
-              </div>
-            ) : (
-              <label className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 px-4 py-6 transition hover:border-gray-400">
-                <div className="text-center text-sm text-gray-400">
-                  <svg className="mx-auto mb-1 h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
-                  </svg>
-                  Sélectionner un fichier audio (MP3, WAV, OGG, max 100 Mo)
-                </div>
-                <input
-                  type="file"
-                  accept="audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/webm"
-                  className="hidden"
-                  onChange={handleAudioFileChange}
-                />
-              </label>
-            )}
-            {uploading && (
-              <div className="mt-2">
-                <div className="h-1.5 overflow-hidden rounded-full bg-gray-200">
-                  <div
-                    className="h-full rounded-full bg-brand-blue transition-all"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <p className="mt-1 text-xs text-gray-400">Upload en cours... {progress}%</p>
-              </div>
-            )}
+            <label className="mb-1 block text-sm font-medium text-gray-700">URL ou ID YouTube</label>
+            <input
+              type="text"
+              value={youtubeVideoId}
+              onChange={(e) => setYoutubeVideoId(e.target.value)}
+              placeholder="https://youtube.com/watch?v=... ou ID vidéo"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
+            />
+            <p className="mt-1 text-xs text-gray-400">
+              Collez l&apos;URL YouTube ou l&apos;ID de la vidéo (ex: dQw4w9WgXcQ)
+            </p>
           </div>
-        )}
-      </div>
+
+          {/* Live toggle */}
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={isLive}
+              onChange={(e) => setIsLive(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+            />
+            <div>
+              <span className="text-sm font-medium text-gray-700">EN DIRECT</span>
+              <p className="text-xs text-gray-400">Affiche le badge LIVE rouge et le player en haut du chat</p>
+            </div>
+          </label>
+
+          {/* Preview */}
+          {youtubeVideoId && (
+            <div className="overflow-hidden rounded-xl border border-gray-200">
+              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                <iframe
+                  className="absolute inset-0 h-full w-full"
+                  src={`https://www.youtube.com/embed/${parseYoutubeId(youtubeVideoId)}?rel=0`}
+                  title="Aperçu"
+                  allow="encrypted-media"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Audio mode */}
+      {mode === 'audio' && (
+        <div className="mb-4">
+          <label className="mb-2 block text-sm font-medium text-gray-700">Source audio</label>
+          <div className="mb-3 flex gap-2">
+            <button
+              onClick={() => setUseExternalUrl(false)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                !useExternalUrl ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Fichier audio
+            </button>
+            <button
+              onClick={() => setUseExternalUrl(true)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                useExternalUrl ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              URL externe
+            </button>
+          </div>
+
+          {useExternalUrl ? (
+            <input
+              type="url"
+              value={audioUrl}
+              onChange={(e) => setAudioUrl(e.target.value)}
+              placeholder="https://example.com/podcast.mp3"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
+            />
+          ) : (
+            <div>
+              {audioFile ? (
+                <div className="flex items-center gap-3 rounded-lg border border-gray-200 px-4 py-3">
+                  <svg className="h-5 w-5 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                  <span className="min-w-0 flex-1 truncate text-sm text-gray-700">{audioFile.name}</span>
+                  <button
+                    onClick={() => setAudioFile(null)}
+                    className="text-xs text-gray-400 hover:text-gray-600"
+                  >
+                    Changer
+                  </button>
+                </div>
+              ) : (
+                <label className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 px-4 py-6 transition hover:border-gray-400">
+                  <div className="text-center text-sm text-gray-400">
+                    <svg className="mx-auto mb-1 h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
+                    </svg>
+                    Sélectionner un fichier audio (MP3, M4A, OGG, max 25 Mo)
+                  </div>
+                  <input
+                    type="file"
+                    accept="audio/mpeg,audio/mp4,audio/ogg,audio/webm"
+                    className="hidden"
+                    onChange={handleAudioFileChange}
+                  />
+                </label>
+              )}
+              {uploading && (
+                <div className="mt-2">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-gray-200">
+                    <div
+                      className="h-full rounded-full bg-brand-blue transition-all"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-400">Upload en cours... {progress}%</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Cover image */}
       <div className="mb-4">
