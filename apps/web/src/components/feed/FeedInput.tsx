@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import { Plus } from 'lucide-react';
 import { CHAT_MAX_MESSAGE_LENGTH } from '@arena/shared';
 import { FeedImagePicker } from './FeedImagePicker';
 import { useImageUpload } from '@/hooks/useImageUpload';
@@ -49,14 +50,15 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId }
     }
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
     }
   }
 
   return (
-    <div className="border-t border-gray-200 bg-white p-3">
+    <div className="shrink-0 px-4 pb-4 pt-2">
+      {/* Image previews above the input bar */}
       {images.length > 0 && (
-        <div className="mb-2">
+        <div className="mb-2 rounded-t-lg bg-gray-100 p-3">
           <FeedImagePicker
             images={images}
             onAdd={addImages}
@@ -66,16 +68,18 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId }
         </div>
       )}
 
-      <div className="flex items-end gap-2">
-        {images.length === 0 && (
-          <FeedImagePicker
-            images={[]}
-            onAdd={addImages}
-            onRemove={removeImage}
-            disabled={disabled}
-          />
-        )}
+      {/* Input bar */}
+      <div className="flex items-end gap-0 rounded-lg bg-gray-100">
+        {/* + button */}
+        <FeedImagePicker
+          images={[]}
+          onAdd={addImages}
+          onRemove={removeImage}
+          disabled={disabled}
+          buttonOnly
+        />
 
+        {/* Textarea */}
         <textarea
           ref={textareaRef}
           value={content}
@@ -84,23 +88,18 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId }
           disabled={disabled || uploading}
           placeholder={uploading ? 'Envoi des images...' : (placeholder ?? 'Écrire un message...')}
           rows={1}
-          className="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none disabled:bg-gray-100 disabled:text-gray-400"
+          className="flex-1 resize-none bg-transparent px-1 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none disabled:text-gray-400"
         />
-        <button
-          onClick={handleSend}
-          disabled={disabled || uploading || (!content.trim() && images.length === 0)}
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-blue text-white transition hover:bg-brand-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
-          title="Envoyer"
-        >
-          {uploading ? (
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-          ) : (
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-            </svg>
-          )}
-        </button>
+
+        {/* Upload spinner */}
+        {uploading && (
+          <div className="flex items-center px-3 py-2.5">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+          </div>
+        )}
       </div>
+
+      {/* Character counter */}
       {content.length > CHAT_MAX_MESSAGE_LENGTH * 0.8 && (
         <p className="mt-1 text-right text-xs text-gray-400">
           {content.length}/{CHAT_MAX_MESSAGE_LENGTH}

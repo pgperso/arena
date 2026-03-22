@@ -21,7 +21,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200">
+    <header className="shrink-0 border-b border-gray-200">
       <div className="flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">

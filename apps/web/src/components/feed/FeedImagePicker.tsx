@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import { Plus } from 'lucide-react';
 import Image from 'next/image';
 import { MAX_IMAGES_PER_MESSAGE } from '@arena/shared';
 
@@ -14,9 +15,10 @@ interface FeedImagePickerProps {
   onAdd: (files: FileList) => void;
   onRemove: (id: string) => void;
   disabled?: boolean;
+  buttonOnly?: boolean;
 }
 
-export function FeedImagePicker({ images, onAdd, onRemove, disabled }: FeedImagePickerProps) {
+export function FeedImagePicker({ images, onAdd, onRemove, disabled, buttonOnly }: FeedImagePickerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   function handleClick() {
@@ -26,16 +28,39 @@ export function FeedImagePicker({ images, onAdd, onRemove, disabled }: FeedImage
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
       onAdd(e.target.files);
-      // Reset input so same file can be re-selected
       e.target.value = '';
     }
   }
 
+  // Button-only mode: just the + trigger inside the input bar
+  if (buttonOnly) {
+    return (
+      <>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          multiple
+          onChange={handleChange}
+          className="hidden"
+        />
+        <button
+          onClick={handleClick}
+          disabled={disabled}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-l-lg text-gray-400 transition hover:text-gray-600 disabled:opacity-50"
+          title="Ajouter des images"
+        >
+          <Plus className="h-5 w-5" strokeWidth={2} />
+        </button>
+      </>
+    );
+  }
+
+  // Preview mode: show image thumbnails
   return (
     <div>
-      {/* Image previews */}
       {images.length > 0 && (
-        <div className="mb-2 flex gap-2 overflow-x-auto">
+        <div className="flex gap-2 overflow-x-auto">
           {images.map((img) => (
             <div key={img.id} className="relative flex-shrink-0">
               <Image
@@ -56,8 +81,7 @@ export function FeedImagePicker({ images, onAdd, onRemove, disabled }: FeedImage
         </div>
       )}
 
-      {/* Add button */}
-      {images.length < MAX_IMAGES_PER_MESSAGE && (
+      {images.length < MAX_IMAGES_PER_MESSAGE && images.length > 0 && (
         <>
           <input
             ref={inputRef}
@@ -70,22 +94,10 @@ export function FeedImagePicker({ images, onAdd, onRemove, disabled }: FeedImage
           <button
             onClick={handleClick}
             disabled={disabled}
-            className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
-            title="Ajouter des images"
+            className="mt-2 flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-200 hover:text-gray-600 disabled:opacity-50"
+            title="Ajouter plus d'images"
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Zm16.5-13.5h.008v.008h-.008V7.5Zm0 0a1.125 1.125 0 1 0-2.25 0 1.125 1.125 0 0 0 2.25 0Z"
-              />
-            </svg>
+            <Plus className="h-4 w-4" strokeWidth={2} />
           </button>
         </>
       )}

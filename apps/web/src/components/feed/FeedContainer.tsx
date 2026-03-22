@@ -189,7 +189,7 @@ export function FeedContainer({
       {/* Feed area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3">
           <div>
             <h2 className="text-base font-semibold text-gray-900">{communityName}</h2>
             <p className="text-xs text-gray-500">{onlineMembers.length} en ligne</p>
@@ -341,7 +341,6 @@ export function FeedContainer({
         {replyTarget && (
           <FeedReplyBar
             username={replyTarget.member?.username ?? 'utilisateur'}
-            mode="reply"
             preview={replyTarget.content}
             onCancel={() => setReplyTarget(null)}
           />

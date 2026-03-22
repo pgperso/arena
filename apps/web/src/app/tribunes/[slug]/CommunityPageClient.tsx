@@ -65,7 +65,7 @@ export function CommunityPageClient({
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col">
+    <div className="flex h-full flex-col overflow-hidden">
       {/* Join / Login modal */}
       {showJoinModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -137,7 +137,7 @@ export function CommunityPageClient({
 
       {/* Community bar */}
       <div
-        className="flex items-center justify-between bg-gray-100 px-4 py-2"
+        className="flex shrink-0 items-center justify-between bg-gray-100 px-4 py-2"
       >
         <div className="flex items-center gap-3">
           <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
