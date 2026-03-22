@@ -111,7 +111,7 @@ export const FeedMessage = memo(function FeedMessage({
             {(canModerate || isOwn) && (
               <button
                 onClick={() => onDelete(message.id)}
-                className="ml-auto hidden text-xs text-gray-400 transition hover:text-red-500 group-hover:inline-block"
+                className="ml-auto text-xs text-gray-400 opacity-0 transition hover:text-red-500 group-hover:opacity-100"
                 title="Supprimer le message"
               >
                 Supprimer
