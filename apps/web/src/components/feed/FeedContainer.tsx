@@ -113,9 +113,7 @@ export function FeedContainer({
 
       return size;
     },
-    // Measure all initial items (FEED_INITIAL_LIMIT=50) so there's no
-    // unmeasured items with wrong estimates on first render
-    overscan: 50,
+    overscan: 10,
   });
 
   // Scroll to bottom on initial load (instant) and on new messages (smooth)
