@@ -94,20 +94,29 @@ export function FeedContainer({
     getScrollElement: () => feedContainerRef.current,
     estimateSize: (index) => {
       const item = items[index];
+
+      // Articles and podcasts — fixed-size cards
+      if (item.feedType === 'article') return 350;
+      if (item.feedType === 'podcast') return 200;
+
+      // Removed messages — minimal height
+      if (item.isRemoved) return 28;
+
       const isGrouped = index > 0 && isGroupedMessage(item, items[index - 1]);
+      let size = isGrouped ? 64 : 100;
 
-      let size: number;
-      if (item.feedType === 'article') size = 220;
-      else if (item.feedType === 'podcast') size = 160;
-      else size = isGrouped ? 80 : 100;
+      // Reply context adds ~30px (connector + parent preview)
+      if (item.parentId) size += 30;
 
-      // Add image height
-      if (item.feedType === 'message' && item.imageUrls.length > 0) {
-        const imgCount = item.imageUrls.length;
-        size += imgCount === 1 ? 300 : imgCount === 2 ? 200 : 260;
+      // Images add container height
+      if (item.imageUrls.length > 0) {
+        const count = item.imageUrls.length;
+        size += count === 1 ? 270 : count === 2 ? 210 : 270;
       }
 
-      if ((index + 1) % FEED_AD_INTERVAL === 0) size += 250;
+      // In-feed ad after this item
+      if ((index + 1) % FEED_AD_INTERVAL === 0) size += 300;
+
       return size;
     },
     overscan: 5,
