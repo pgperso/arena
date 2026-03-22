@@ -486,6 +486,44 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
     };
   }, [communityId, userId]);
 
+  // --- Reconnect on tab visibility (mobile backgrounding kills WebSocket) ---
+
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState !== 'visible') return;
+
+      // Reload latest messages when tab becomes visible again
+      const supabase = supabaseRef.current;
+      supabase
+        .from('chat_messages')
+        .select(CHAT_MSG_SELECT)
+        .eq('community_id', communityId)
+        .eq('is_removed', false)
+        .order('created_at', { ascending: false })
+        .limit(FEED_INITIAL_LIMIT)
+        .then(({ data }) => {
+          if (!data) return;
+          const messages = data
+            .reverse()
+            .map((row) => {
+              const typed = row as unknown as ChatMessageWithJoin;
+              if (typed.members) memberCacheRef.current.set(typed.members.id, typed.members);
+              return messageToFeedItem(typed);
+            });
+          dispatch({
+            type: 'INITIAL_LOAD',
+            messages,
+            articles: state.articles,
+            podcasts: state.podcasts,
+            hasMore: data.length === FEED_INITIAL_LIMIT,
+          });
+        });
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [communityId, state.articles, state.podcasts]);
+
   // --- Send messages ---
 
   const send = useCallback(
