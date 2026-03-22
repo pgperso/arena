@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { CommunityCard } from './CommunityCard';
@@ -49,11 +50,19 @@ export function CommunityGrid({ communities }: CommunityGridProps) {
   }, [user]);
 
   const joined = communities.filter((c) => joinedIds.has(c.id));
-  const isLoggedIn = !!user;
+  const router = useRouter();
+
+  function handleJoinClick() {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    setShowJoinModal(true);
+  }
 
   return (
     <div>
-      {/* Mes tribunes (logged in only) */}
+      {/* Mes tribunes */}
       {joined.length > 0 && (
         <div className="mb-8">
           <h2 className="mb-4 text-lg font-bold text-gray-900">Mes tribunes</h2>
@@ -72,39 +81,18 @@ export function CommunityGrid({ communities }: CommunityGridProps) {
         </div>
       )}
 
-      {/* Not logged in: show all tribunes to attract visitors */}
-      {!isLoggedIn && (
-        <div className="mb-8">
-          <h2 className="mb-4 text-lg font-bold text-gray-900">Nos tribunes</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {communities.map((community) => (
-              <CommunityCard
-                key={community.id}
-                name={community.name}
-                slug={community.slug}
-                description={community.description}
-                memberCount={community.member_count}
-                logoUrl={community.logo_url}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Rejoindre une tribune (logged in only) */}
-      {isLoggedIn && (
-        <div className="flex justify-center">
-          <button
-            onClick={() => setShowJoinModal(true)}
-            className="flex items-center gap-2 rounded-xl bg-brand-blue px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-blue-dark"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Rejoindre une tribune
-          </button>
-        </div>
-      )}
+      {/* Rejoindre une tribune — redirects to login if not connected */}
+      <div className="flex justify-center">
+        <button
+          onClick={handleJoinClick}
+          className="flex items-center gap-2 rounded-xl bg-brand-blue px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-blue-dark"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Rejoindre une tribune
+        </button>
+      </div>
 
       {showJoinModal && (
         <JoinTribuneModal
