@@ -148,17 +148,13 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                     }}
                     className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-4 text-left transition hover:border-brand-blue hover:bg-brand-blue/5"
                   >
-                    {com.logo_url ? (
-                      <Image
-                        src={com.logo_url}
-                        alt={com.name}
-                        width={40}
-                        height={40}
-                        className="h-10 w-10 shrink-0 object-contain"
-                      />
-                    ) : (
-                      <Avatar url={null} name={com.name} size="lg" color={com.primary_color} />
-                    )}
+                    <Image
+                      src={com.logo_url || '/images/fanstribune.webp'}
+                      alt={com.name}
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 shrink-0 object-contain"
+                    />
                     <div className="flex-1">
                       <span className="text-sm font-bold text-gray-900">{com.name}</span>
                       {com.description && (
