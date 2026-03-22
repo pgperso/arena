@@ -23,7 +23,7 @@ export interface CommunityMembership {
   joinedAt: string;
 }
 
-export type MemberRole = 'admin' | 'moderator' | 'member';
+export type MemberRole = 'owner' | 'admin' | 'moderator' | 'member';
 
 export interface MemberRestriction {
   id: number;

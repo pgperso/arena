@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Heart, Annoyed, Flame } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
@@ -24,10 +24,10 @@ interface TrendingMessagesProps {
 }
 
 export function TrendingMessages({ popular, controversial }: TrendingMessagesProps) {
-  const allMessages = [
+  const allMessages = useMemo(() => [
     ...popular.map((msg) => ({ ...msg, variant: 'popular' as const })),
     ...controversial.map((msg) => ({ ...msg, variant: 'controversial' as const })),
-  ];
+  ], [popular, controversial]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
 

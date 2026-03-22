@@ -22,23 +22,26 @@ export function useAuth(): AuthState {
     const supabase = createClient();
 
     async function getUser() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (cancelled) return;
-      setUser(user);
-
-      if (user) {
-        const { data: member } = await supabase
-          .from('members')
-          .select('username, avatar_url')
-          .eq('id', user.id)
-          .single();
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (cancelled) return;
-        setUsername(member?.username ?? null);
-        setAvatarUrl(member?.avatar_url ?? null);
+        setUser(user);
+
+        if (user) {
+          const { data: member } = await supabase
+            .from('members')
+            .select('username, avatar_url')
+            .eq('id', user.id)
+            .single();
+          if (cancelled) return;
+          setUsername(member?.username ?? null);
+          setAvatarUrl(member?.avatar_url ?? null);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      setLoading(false);
     }
 
     getUser();

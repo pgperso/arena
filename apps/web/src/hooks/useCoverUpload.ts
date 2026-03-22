@@ -6,7 +6,6 @@ import imageCompression from 'browser-image-compression';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
-const SAFE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
 interface UseCoverUploadReturn {
   coverPreview: string | null;

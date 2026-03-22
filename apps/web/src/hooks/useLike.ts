@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useEffect, useState, useCallback } from 'react';
+import { useSupabase } from '@/hooks/useSupabase';
+import type { createClient } from '@/lib/supabase/client';
 
 type LikeTargetType = 'message' | 'article' | 'podcast';
 
@@ -103,7 +104,7 @@ export function useLike(
   const [isLiked, setIsLiked] = useState(batchIsLiked ?? false);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [loading, setLoading] = useState(false);
-  const supabaseRef = useRef(createClient());
+  const supabase = useSupabase();
 
   // Sync from batch context when it updates
   useEffect(() => {
@@ -116,7 +117,7 @@ export function useLike(
     if (!userId) return;
     let cancelled = false;
 
-    checkIfLiked(supabaseRef.current, targetType, targetId, userId).then((liked) => {
+    checkIfLiked(supabase, targetType, targetId, userId).then((liked) => {
       if (!cancelled) setIsLiked(liked);
     });
 
@@ -138,21 +139,27 @@ export function useLike(
     setIsLiked(!wasLiked);
     setLikeCount((prev) => prev + (wasLiked ? -1 : 1));
 
-    if (wasLiked) {
-      const { error } = await deleteLike(supabaseRef.current, targetType, targetId, userId);
-      if (error) {
-        setIsLiked(true);
-        setLikeCount((prev) => prev + 1);
+    try {
+      if (wasLiked) {
+        const { error } = await deleteLike(supabase, targetType, targetId, userId);
+        if (error) {
+          setIsLiked(true);
+          setLikeCount((prev) => prev + 1);
+        }
+      } else {
+        const { error } = await insertLike(supabase, targetType, targetId, userId);
+        if (error) {
+          setIsLiked(false);
+          setLikeCount((prev) => prev - 1);
+        }
       }
-    } else {
-      const { error } = await insertLike(supabaseRef.current, targetType, targetId, userId);
-      if (error) {
-        setIsLiked(false);
-        setLikeCount((prev) => prev - 1);
-      }
+    } catch {
+      // Rollback on network error
+      setIsLiked(wasLiked);
+      setLikeCount((prev) => prev + (wasLiked ? 1 : -1));
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }, [userId, loading, isLiked, targetType, targetId]);
 
   return { isLiked, likeCount, toggleLike, loading };

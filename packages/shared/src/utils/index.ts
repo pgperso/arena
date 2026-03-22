@@ -1,2 +1,2 @@
-export { timeAgo, formatDate, formatTime, formatDuration } from './date';
-export { slugify, truncate, stripHtml } from './text';
+export { formatTime, formatDuration } from './date';
+export { slugify } from './text';

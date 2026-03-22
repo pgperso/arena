@@ -11,6 +11,12 @@ import { FeedReplyContext } from './FeedReplyContext';
 import { Avatar } from '@/components/ui/Avatar';
 import { UserPopover } from '@/components/ui/UserPopover';
 
+const STAFF_RANK_MAP: Record<string, { label: string; color: string }> = {
+  owner: { label: 'Propriétaire', color: 'text-yellow-500' },
+  admin: { label: 'Arbitre', color: 'text-red-500' },
+  moderator: { label: 'Arbitre', color: 'text-red-500' },
+};
+
 interface FeedMessageProps {
   message: FeedMessageType;
   isOwn: boolean;
@@ -97,13 +103,8 @@ export const FeedMessage = memo(function FeedMessage({
   onRoleChanged,
 }: FeedMessageProps) {
   const username = message.member?.username ?? 'Utilisateur supprimé';
-  const staffRankMap: Record<string, { label: string; color: string }> = {
-    owner: { label: 'Propriétaire', color: 'text-yellow-500' },
-    admin: { label: 'Arbitre', color: 'text-red-500' },
-    moderator: { label: 'Arbitre', color: 'text-red-500' },
-  };
   const rank: { label: string; color: string } =
-    (staffRole ? staffRankMap[staffRole] : undefined) ?? getMemberRank(message.member?.messageCount ?? 0);
+    (staffRole ? STAFF_RANK_MAP[staffRole] : undefined) ?? getMemberRank(message.member?.messageCount ?? 0);
   const time = formatTime(message.createdAt);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [editContent, setEditContent] = useState(message.content ?? '');

@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
-import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface PresenceMember {
   memberId: string;
@@ -22,7 +21,6 @@ export function usePresence(
   avatarUrl: string | null = null,
 ): UsePresenceReturn {
   const [onlineMembers, setOnlineMembers] = useState<PresenceMember[]>([]);
-  const channelRef = useRef<RealtimeChannel | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const supabase = useSupabase();
 
@@ -65,8 +63,6 @@ export function usePresence(
           });
         }
       });
-
-    channelRef.current = channel;
 
     return () => {
       clearTimeout(debounceRef.current);

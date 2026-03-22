@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useSupabase } from '@/hooks/useSupabase';
 
 type LikeTargetType = 'message' | 'article' | 'podcast';
 
@@ -50,7 +50,7 @@ export function BatchLikeProvider({
     likes: { messages: new Set(), articles: new Set(), podcasts: new Set() },
     dislikes: { messages: new Set() },
   });
-  const supabaseRef = useRef(createClient());
+  const supabase = useSupabase();
   const fetchedRef = useRef(false);
 
   useEffect(() => {
@@ -62,28 +62,28 @@ export function BatchLikeProvider({
 
     Promise.all([
       messageIds.length > 0
-        ? supabaseRef.current
+        ? supabase
             .from('message_likes')
             .select('message_id')
             .eq('member_id', userId)
             .in('message_id', messageIds)
         : { data: [] },
       articleIds.length > 0
-        ? supabaseRef.current
+        ? supabase
             .from('article_likes')
             .select('article_id')
             .eq('member_id', userId)
             .in('article_id', articleIds)
         : { data: [] },
       podcastIds.length > 0
-        ? supabaseRef.current
+        ? supabase
             .from('podcast_likes')
             .select('podcast_id')
             .eq('member_id', userId)
             .in('podcast_id', podcastIds)
         : { data: [] },
       messageIds.length > 0
-        ? supabaseRef.current
+        ? supabase
             .from('message_dislikes')
             .select('message_id')
             .eq('member_id', userId)

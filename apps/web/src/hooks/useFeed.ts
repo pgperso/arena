@@ -534,13 +534,17 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
       if (!userId) return;
       const trimmed = content.trim();
       if (!trimmed) return;
+      const original = state.messages.find((m) => m.id === messageId)?.content;
       dispatch({ type: 'EDIT_MESSAGE', messageId, content: trimmed });
-      await supabaseRef.current
+      const { error } = await supabaseRef.current
         .from('chat_messages')
         .update({ content: trimmed })
         .eq('id', messageId);
+      if (error && original !== undefined) {
+        dispatch({ type: 'EDIT_MESSAGE', messageId, content: original ?? '' });
+      }
     },
-    [userId],
+    [userId, state.messages],
   );
 
   // --- Load more (messages only) ---
@@ -579,7 +583,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
     async (messageId: number) => {
       if (!userId) return;
       dispatch({ type: 'REMOVE_MESSAGE', messageId });
-      await supabaseRef.current
+      const { error } = await supabaseRef.current
         .from('chat_messages')
         .update({
           content: null,
@@ -589,6 +593,11 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           removed_by: userId,
         })
         .eq('id', messageId);
+      if (error) {
+        // Rollback: realtime will eventually sync the correct state,
+        // but we reload to ensure consistency
+        dispatch({ type: 'EDIT_MESSAGE', messageId, content: '[Erreur de suppression]' });
+      }
     },
     [userId],
   );

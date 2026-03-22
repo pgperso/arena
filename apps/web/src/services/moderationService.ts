@@ -22,7 +22,7 @@ export async function checkCommunityMembership(
     .select('id')
     .eq('community_id', communityId)
     .eq('member_id', memberId)
-    .single();
+    .maybeSingle();
 }
 
 export async function applyRestriction(

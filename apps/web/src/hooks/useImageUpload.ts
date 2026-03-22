@@ -87,37 +87,39 @@ export function useImageUpload(): UseImageUploadReturn {
       if (images.length === 0) return [];
 
       setUploading(true);
-      const urls: string[] = [];
+      try {
+        const urls: string[] = [];
 
-      for (const img of images) {
-        // Compress image
-        const compressed = await imageCompression(img.file, {
-          maxSizeMB: 0.2,
-          maxWidthOrHeight: 1920,
-          useWebWorker: true,
-          fileType: 'image/webp',
-        });
-
-        const timestamp = Date.now();
-        const path = `${communityId}/${memberId}/${timestamp}_${img.id}.webp`;
-
-        const { error } = await supabase.storage
-          .from('chat-images')
-          .upload(path, compressed, {
-            contentType: 'image/webp',
-            cacheControl: '31536000',
+        for (const img of images) {
+          const compressed = await imageCompression(img.file, {
+            maxSizeMB: 0.2,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+            fileType: 'image/webp',
           });
 
-        if (!error) {
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from('chat-images').getPublicUrl(path);
-          urls.push(publicUrl);
-        }
-      }
+          const timestamp = Date.now();
+          const path = `${communityId}/${memberId}/${timestamp}_${img.id}.webp`;
 
-      setUploading(false);
-      return urls;
+          const { error } = await supabase.storage
+            .from('chat-images')
+            .upload(path, compressed, {
+              contentType: 'image/webp',
+              cacheControl: '31536000',
+            });
+
+          if (!error) {
+            const {
+              data: { publicUrl },
+            } = supabase.storage.from('chat-images').getPublicUrl(path);
+            urls.push(publicUrl);
+          }
+        }
+
+        return urls;
+      } finally {
+        setUploading(false);
+      }
     },
     [images],
   );

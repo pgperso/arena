@@ -23,10 +23,11 @@ export function FeedPodcastCard({ podcast, communitySlug, userId }: FeedPodcastC
     if (!audio) return;
     if (playing) {
       audio.pause();
+      setPlaying(false);
     } else {
-      audio.play();
+      audio.play().catch(() => setPlaying(false));
+      setPlaying(true);
     }
-    setPlaying(!playing);
   }
 
   function handleTimeUpdate() {
