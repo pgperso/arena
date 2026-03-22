@@ -58,6 +58,7 @@ export function FeedContainer({
   const { onlineMembers } = usePresence(communityId, user?.id ?? null, username, avatarUrl);
   const feedContainerRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
   const [showMembers, setShowMembers] = useState(false);
   const [showArticleEditor, setShowArticleEditor] = useState(false);
   const [showModeration, setShowModeration] = useState(false);
@@ -174,6 +175,19 @@ export function FeedContainer({
     setReplyTarget(null);
     setQuoteTarget(message);
   }, []);
+
+  const scrollToMessage = useCallback(
+    (messageId: number) => {
+      const index = items.findIndex(
+        (item) => item.feedType === 'message' && item.id === messageId,
+      );
+      if (index === -1) return;
+      virtualizer.scrollToIndex(index, { align: 'center', behavior: 'smooth' });
+      setHighlightedMessageId(messageId);
+      setTimeout(() => setHighlightedMessageId(null), 1500);
+    },
+    [items, virtualizer],
+  );
 
   const inputDisabled = !user || !isMember || isMuted || sending;
 
@@ -324,10 +338,12 @@ export function FeedContainer({
                             userId={user?.id ?? null}
                             canModerate={canModerate}
                             communitySlug={communitySlug}
+                            isHighlighted={item.feedType === 'message' && item.id === highlightedMessageId}
                             onDeleteMessage={deleteMessage}
                             onReply={handleReply}
                             onRepost={handleRepost}
                             onQuote={handleQuote}
+                            onScrollToMessage={scrollToMessage}
                             getMessageById={getMessageById}
                           />
                           {(index + 1) % FEED_AD_INTERVAL === 0 && (

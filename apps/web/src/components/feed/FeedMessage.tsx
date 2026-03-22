@@ -16,10 +16,12 @@ interface FeedMessageProps {
   isOwn: boolean;
   canModerate: boolean;
   userId: string | null;
+  isHighlighted?: boolean;
   onDelete: (messageId: number) => void;
   onReply: (message: FeedMessageType) => void;
   onRepost: (messageId: number) => void;
   onQuote: (message: FeedMessageType) => void;
+  onScrollToMessage?: (messageId: number) => void;
   getMessageById: (id: number) => FeedMessageType | undefined;
 }
 
@@ -28,10 +30,12 @@ export const FeedMessage = memo(function FeedMessage({
   isOwn,
   canModerate,
   userId,
+  isHighlighted,
   onDelete,
   onReply,
   onRepost,
   onQuote,
+  onScrollToMessage,
   getMessageById,
 }: FeedMessageProps) {
   const username = message.member?.username ?? 'Utilisateur supprimé';
@@ -60,6 +64,7 @@ export const FeedMessage = memo(function FeedMessage({
           onReply={onReply}
           onRepost={onRepost}
           onQuote={onQuote}
+          onScrollToMessage={onScrollToMessage}
           getMessageById={getMessageById}
         />
       </div>
@@ -68,66 +73,81 @@ export const FeedMessage = memo(function FeedMessage({
 
   const parentMessage = message.parentId ? getMessageById(message.parentId) : undefined;
   const quotedMessage = message.quoteOfId ? getMessageById(message.quoteOfId) : undefined;
+  const hasReplyContext = !!(message.parentId && parentMessage);
 
   return (
-    <div className="group flex gap-3 px-4 py-2 hover:bg-gray-50">
-      {/* Avatar */}
-      <Avatar url={message.member?.avatarUrl} name={username} size="md" className="mt-0.5 flex-shrink-0" />
+    <div className={`group relative px-4 py-2 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}>
+      {/* Connector line from reply context to avatar */}
+      {hasReplyContext && (
+        <div
+          className="reply-connector"
+          style={{ top: 6, height: 24 }}
+        />
+      )}
 
-      {/* Content */}
-      <div className="min-w-0 flex-1">
-        {/* Reply context */}
-        {message.parentId && parentMessage && (
+      {/* Reply context */}
+      {hasReplyContext && (
+        <div className="ml-6 mb-0.5">
           <FeedReplyContext
             parentUsername={parentMessage.member?.username ?? 'Utilisateur supprimé'}
+            parentAvatarUrl={parentMessage.member?.avatarUrl}
             parentContent={parentMessage.content}
+            onClick={onScrollToMessage ? () => onScrollToMessage(parentMessage.id) : undefined}
           />
-        )}
-
-        <div className="flex items-baseline gap-2">
-          <span className={`text-sm font-semibold ${isOwn ? 'text-brand-blue' : 'text-gray-900'}`}>
-            {username}
-          </span>
-          <span className="text-xs text-gray-400">{time}</span>
-          {(canModerate || isOwn) && (
-            <button
-              onClick={() => onDelete(message.id)}
-              className="ml-auto hidden text-xs text-gray-400 transition hover:text-red-500 group-hover:inline-block"
-              title="Supprimer le message"
-            >
-              Supprimer
-            </button>
-          )}
         </div>
-        {message.content && <FeedRichContent content={message.content} />}
-        {message.imageUrls.length > 0 && (
-          <FeedImageGallery imageUrls={message.imageUrls} />
-        )}
+      )}
 
-        {/* Quoted message */}
-        {message.quoteOfId && quotedMessage && (
-          <FeedQuotedMessage
-            message={{
-              content: quotedMessage.content,
-              username: quotedMessage.member?.username ?? 'Utilisateur supprimé',
-              avatarUrl: quotedMessage.member?.avatarUrl ?? null,
-              createdAt: quotedMessage.createdAt,
-            }}
+      <div className="flex gap-3">
+        {/* Avatar */}
+        <Avatar url={message.member?.avatarUrl} name={username} size="md" className="mt-0.5 flex-shrink-0" />
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline gap-2">
+            <span className={`text-sm font-semibold ${isOwn ? 'text-brand-blue' : 'text-gray-900'}`}>
+              {username}
+            </span>
+            <span className="text-xs text-gray-400">{time}</span>
+            {(canModerate || isOwn) && (
+              <button
+                onClick={() => onDelete(message.id)}
+                className="ml-auto hidden text-xs text-gray-400 transition hover:text-red-500 group-hover:inline-block"
+                title="Supprimer le message"
+              >
+                Supprimer
+              </button>
+            )}
+          </div>
+          {message.content && <FeedRichContent content={message.content} />}
+          {message.imageUrls.length > 0 && (
+            <FeedImageGallery imageUrls={message.imageUrls} />
+          )}
+
+          {/* Quoted message */}
+          {message.quoteOfId && quotedMessage && (
+            <FeedQuotedMessage
+              message={{
+                content: quotedMessage.content,
+                username: quotedMessage.member?.username ?? 'Utilisateur supprimé',
+                avatarUrl: quotedMessage.member?.avatarUrl ?? null,
+                createdAt: quotedMessage.createdAt,
+              }}
+            />
+          )}
+
+          {/* Actions bar */}
+          <FeedActions
+            messageId={message.id}
+            likeCount={message.likeCount}
+            dislikeCount={message.dislikeCount}
+            replyCount={message.replyCount}
+            repostCount={message.repostCount}
+            userId={userId}
+            onReply={() => onReply(message)}
+            onRepost={() => onRepost(message.id)}
+            onQuote={() => onQuote(message)}
           />
-        )}
-
-        {/* Actions bar */}
-        <FeedActions
-          messageId={message.id}
-          likeCount={message.likeCount}
-          dislikeCount={message.dislikeCount}
-          replyCount={message.replyCount}
-          repostCount={message.repostCount}
-          userId={userId}
-          onReply={() => onReply(message)}
-          onRepost={() => onRepost(message.id)}
-          onQuote={() => onQuote(message)}
-        />
+        </div>
       </div>
     </div>
   );

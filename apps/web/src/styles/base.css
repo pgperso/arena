@@ -45,6 +45,25 @@ label[for] {
   animation: reaction-shake 0.4s ease-out;
 }
 
+/* Reply connector line (Discord-style) */
+.reply-connector {
+  position: absolute;
+  left: 36px;
+  width: 2px;
+  background-color: var(--color-gray-300);
+  border-radius: 1px;
+}
+
+/* Scroll-to-message highlight flash */
+.message-highlight {
+  animation: message-flash 1.5s ease-out;
+}
+
+@keyframes message-flash {
+  0%, 15% { background-color: color-mix(in srgb, var(--color-brand-blue) 12%, transparent); }
+  100% { background-color: transparent; }
+}
+
 /* Propagate height through Next.js App Router wrapper divs */
 main > * {
   height: 100%;
