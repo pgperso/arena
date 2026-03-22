@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Plus } from 'lucide-react';
-import { CHAT_MAX_MESSAGE_LENGTH } from '@arena/shared';
-import { FeedImagePicker } from './FeedImagePicker';
+import { Plus, X } from 'lucide-react';
+import Image from 'next/image';
+import { CHAT_MAX_MESSAGE_LENGTH, MAX_IMAGES_PER_MESSAGE } from '@arena/shared';
 import { useImageUpload } from '@/hooks/useImageUpload';
 
 interface FeedInputProps {
@@ -17,6 +17,7 @@ interface FeedInputProps {
 export function FeedInput({ onSend, disabled, placeholder, communityId, userId }: FeedInputProps) {
   const [content, setContent] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { images, uploading, addImages, removeImage, clearImages, uploadAll } = useImageUpload();
 
   const handleSend = useCallback(async () => {
@@ -54,49 +55,93 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId }
     }
   }
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files.length > 0) {
+      addImages(e.target.files);
+      e.target.value = '';
+    }
+  }
+
+  const canAddMoreImages = images.length < MAX_IMAGES_PER_MESSAGE;
+
   return (
     <div className="shrink-0 px-4 pb-4 pt-2">
-      {/* Image previews above the input bar */}
-      {images.length > 0 && (
-        <div className="mb-2 rounded-t-lg bg-gray-100 p-3">
-          <FeedImagePicker
-            images={images}
-            onAdd={addImages}
-            onRemove={removeImage}
-            disabled={disabled}
-          />
-        </div>
-      )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        multiple
+        onChange={handleFileChange}
+        className="hidden"
+      />
 
-      {/* Input bar */}
-      <div className="flex items-end gap-0 rounded-lg bg-gray-100">
-        {/* + button */}
-        <FeedImagePicker
-          images={[]}
-          onAdd={addImages}
-          onRemove={removeImage}
-          disabled={disabled}
-          buttonOnly
-        />
-
-        {/* Textarea */}
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={handleInput}
-          onKeyDown={handleKeyDown}
-          disabled={disabled || uploading}
-          placeholder={uploading ? 'Envoi des images...' : (placeholder ?? 'Écrire un message...')}
-          rows={1}
-          className="flex-1 resize-none bg-transparent px-1 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none disabled:text-gray-400"
-        />
-
-        {/* Upload spinner */}
-        {uploading && (
-          <div className="flex items-center px-3 py-2.5">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+      {/* Single unified container */}
+      <div className="overflow-hidden rounded-lg bg-gray-100">
+        {/* Image previews inside the bar */}
+        {images.length > 0 && (
+          <div className="flex gap-2 border-b border-gray-200 p-3">
+            {images.map((img) => (
+              <div key={img.id} className="relative flex-shrink-0">
+                <Image
+                  src={img.previewUrl}
+                  alt="Aperçu"
+                  width={80}
+                  height={80}
+                  className="h-16 w-16 rounded-lg object-cover"
+                />
+                <button
+                  onClick={() => removeImage(img.id)}
+                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gray-800 text-xs text-white transition hover:bg-red-600"
+                >
+                  <X className="h-3 w-3" strokeWidth={2.5} />
+                </button>
+              </div>
+            ))}
+            {/* Add more button inline with previews */}
+            {canAddMoreImages && (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={disabled}
+                className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-400 transition hover:border-gray-400 hover:text-gray-500 disabled:opacity-50"
+                title="Ajouter plus d'images"
+              >
+                <Plus className="h-5 w-5" strokeWidth={2} />
+              </button>
+            )}
           </div>
         )}
+
+        {/* Input row */}
+        <div className="flex items-end">
+          {/* + button */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled || !canAddMoreImages}
+            className="flex h-10 w-10 shrink-0 items-center justify-center text-gray-400 transition hover:text-gray-600 disabled:opacity-50"
+            title="Ajouter des images"
+          >
+            <Plus className="h-5 w-5" strokeWidth={2} />
+          </button>
+
+          {/* Textarea */}
+          <textarea
+            ref={textareaRef}
+            value={content}
+            onChange={handleInput}
+            onKeyDown={handleKeyDown}
+            disabled={disabled || uploading}
+            placeholder={uploading ? 'Envoi des images...' : (placeholder ?? 'Écrire un message...')}
+            rows={1}
+            className="flex-1 resize-none bg-transparent px-1 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none disabled:text-gray-400"
+          />
+
+          {/* Upload spinner */}
+          {uploading && (
+            <div className="flex items-center px-3 py-2.5">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Character counter */}
