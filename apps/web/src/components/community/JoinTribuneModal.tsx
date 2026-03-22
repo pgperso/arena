@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSupabase } from '@/hooks/useSupabase';
 import { Avatar } from '@/components/ui/Avatar';
+import Image from 'next/image';
 import type { Database } from '@arena/supabase-client';
 
 type CategoryRow = Database['public']['Tables']['categories']['Row'];
@@ -147,7 +148,17 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                     }}
                     className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-4 text-left transition hover:border-brand-blue hover:bg-brand-blue/5"
                   >
-                    <Avatar url={com.logo_url} name={com.name} size="lg" color={com.primary_color} />
+                    {com.logo_url ? (
+                      <Image
+                        src={com.logo_url}
+                        alt={com.name}
+                        width={40}
+                        height={40}
+                        className="h-10 w-10 shrink-0 object-contain"
+                      />
+                    ) : (
+                      <Avatar url={null} name={com.name} size="lg" color={com.primary_color} />
+                    )}
                     <div className="flex-1">
                       <span className="text-sm font-bold text-gray-900">{com.name}</span>
                       {com.description && (
