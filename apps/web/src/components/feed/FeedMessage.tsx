@@ -45,6 +45,7 @@ function MessageToolbar({
   isOwn,
   canModerate,
   confirmDelete,
+  mobileToolbar,
   onStartEdit,
   onDelete,
   onConfirmDelete,
@@ -53,6 +54,7 @@ function MessageToolbar({
   isOwn: boolean;
   canModerate: boolean;
   confirmDelete: boolean;
+  mobileToolbar: boolean;
   onStartEdit: () => void;
   onDelete: () => void;
   onConfirmDelete: () => void;
@@ -163,6 +165,7 @@ export const FeedMessage = memo(function FeedMessage({
       isOwn={isOwn}
       canModerate={canModerate}
       confirmDelete={confirmDelete}
+      mobileToolbar={mobileToolbar}
       onStartEdit={onStartEdit}
       onDelete={() => setConfirmDelete(true)}
       onConfirmDelete={() => { onDelete(message.id); setConfirmDelete(false); }}
