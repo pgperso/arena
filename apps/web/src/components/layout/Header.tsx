@@ -44,17 +44,18 @@ export function Header() {
 
   return (
     <header className="shrink-0 border-b border-gray-200">
-      <div className="flex h-16 items-center justify-between px-4">
+      <div className="flex h-12 items-center justify-between px-3 sm:h-14 sm:px-4 md:h-16">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
           <Image
             src="/images/fanstribune.webp"
             alt="La tribune des fans"
             width={36}
             height={36}
             priority
+            className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9"
           />
-          <span className="text-xl font-bold text-gray-900">{t('brand.name')}</span>
+          <span className="text-base font-bold text-gray-900 sm:text-lg md:text-xl">{t('brand.name')}</span>
         </Link>
 
         {/* Language + Desktop auth */}

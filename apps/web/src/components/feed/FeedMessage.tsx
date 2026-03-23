@@ -214,7 +214,7 @@ export const FeedMessage = memo(function FeedMessage({
   if (isGrouped && !hasReplyContext) {
     return (
       <div
-        className={`group relative py-1.5 pl-[60px] pr-4 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}
+        className={`group relative py-1.5 pl-[52px] pr-3 transition-colors sm:pl-[60px] sm:pr-4 ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}
       >
         <span className="absolute left-2 top-2 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100">
           {time}

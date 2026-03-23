@@ -4,7 +4,7 @@
    making it impossible for Tailwind classes to override these rules. */
 @layer base {
   html, body {
-    height: 100vh;
+    height: 100dvh;
   }
 
   body {

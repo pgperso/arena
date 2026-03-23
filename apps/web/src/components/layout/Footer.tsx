@@ -9,28 +9,29 @@ export function Footer() {
 
   return (
     <footer className="border-t border-gray-200 bg-white">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2">
-        <div className="flex items-center gap-2">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-1.5 sm:gap-4 sm:px-4 sm:py-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <Image
             src="/images/fanstribune.webp"
             alt="La tribune des fans"
-            width={28}
-            height={28}
+            width={20}
+            height={20}
+            className="h-5 w-5 sm:h-7 sm:w-7"
           />
-          <span className="text-sm font-semibold text-gray-700">La tribune des fans</span>
+          <span className="hidden text-sm font-semibold text-gray-700 sm:inline">La tribune des fans</span>
         </div>
 
-        <nav className="flex gap-6">
+        <nav>
           <Link
             href="/politique-confidentialite"
-            className="text-xs text-gray-500 transition hover:text-gray-700"
+            className="text-[10px] text-gray-500 transition hover:text-gray-700 sm:text-xs"
           >
             {t('footer.privacy')}
           </Link>
         </nav>
 
-        <p className="text-xs text-gray-400">
-          &copy; {new Date().getFullYear()} La tribune des fans. {t('footer.rights')}
+        <p className="text-[10px] text-gray-400 sm:text-xs">
+          &copy; {new Date().getFullYear()} {t('footer.rights')}
         </p>
       </div>
     </footer>
