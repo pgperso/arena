@@ -50,9 +50,9 @@ export default async function LocaleLayout({
       </head>
       <body className="font-sans antialiased">
         <NextIntlClientProvider messages={messages}>
-          <div className="flex h-screen flex-col">
+          <div className="flex h-screen flex-col overflow-hidden">
             <Header />
-            <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
+            <main className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</main>
             <Footer />
           </div>
         </NextIntlClientProvider>
