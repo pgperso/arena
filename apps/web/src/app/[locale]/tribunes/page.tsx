@@ -16,7 +16,7 @@ export default async function TribunesPage({ params }: { params: Promise<{ local
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect({ href: '/login', locale });
+  if (!user) return redirect({ href: '/login', locale });
 
   // Fetch user's joined communities
   const { data: memberships } = await supabase
