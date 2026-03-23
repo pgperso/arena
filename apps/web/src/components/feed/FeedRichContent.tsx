@@ -101,7 +101,7 @@ export const FeedRichContent = memo(function FeedRichContent({ content }: FeedRi
   }, [content]);
 
   return (
-    <div className="break-words text-sm text-gray-700">
+    <div className="overflow-hidden break-words text-sm text-gray-700">
       {parsed}
     </div>
   );

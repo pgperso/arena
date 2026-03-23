@@ -317,7 +317,7 @@ export function FeedContainer({
         )}
 
         {/* Feed items — react-virtuoso handles measurement, scroll, and positioning */}
-        <div className="min-h-0 flex-1">
+        <div className="min-h-0 flex-1 overflow-x-hidden">
           {loading ? (
             <FeedSkeleton />
           ) : (
