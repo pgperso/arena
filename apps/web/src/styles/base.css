@@ -7,16 +7,20 @@
     height: 100vh;
   }
 
-  body > div {
-    height: 100%;
-  }
-
   body {
+    display: flex;
+    flex-direction: column;
     background: var(--color-gray-50);
     color: var(--color-gray-900);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  body > div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
 
   /* Pointer cursor on all interactive elements */
