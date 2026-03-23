@@ -60,9 +60,12 @@
     "title": "Ta tribune, ton équipe,",
     "titleAccent": "ton opinion.",
     "subtitle": "Du sport, ben du sport et plein d'autres affaires...",
-    "joinTribune": "Rejoindre une tribune",
+    "accessTribunes": "Accéder à mes tribunes",
     "myTribunes": "Mes tribunes",
     "noTribunes": "Aucune tribune disponible pour le moment.",
+    "joinNewTribune": "Rejoindre une nouvelle tribune",
+    "noTribunesYet": "Tu n'as rejoint aucune tribune.",
+    "discoverTribunes": "Découvre les tribunes disponibles !",
     "popular": "Populaire",
     "controversial": "Controversé",
     "rightNow": "En ce moment"

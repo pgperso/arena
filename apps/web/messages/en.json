@@ -60,9 +60,12 @@
     "title": "Your tribune, your team,",
     "titleAccent": "your voice.",
     "subtitle": "Sports, more sports, and everything in between...",
-    "joinTribune": "Join a tribune",
+    "accessTribunes": "Access my tribunes",
     "myTribunes": "My tribunes",
     "noTribunes": "No tribunes available at the moment.",
+    "joinNewTribune": "Join a new tribune",
+    "noTribunesYet": "You haven't joined any tribune yet.",
+    "discoverTribunes": "Discover the available tribunes!",
     "popular": "Popular",
     "controversial": "Controversial",
     "rightNow": "Right now"

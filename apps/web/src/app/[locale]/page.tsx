@@ -1,13 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
-import { CommunityGrid } from '@/components/community/CommunityGrid';
 import { TrendingMessages } from '@/components/home/TrendingMessages';
-import { AdBanner } from '@/components/ads/AdBanner';
-import type { Database } from '@arena/supabase-client';
+import { HomeCTA } from '@/components/home/HomeCTA';
 
 export const revalidate = 60;
-
-type CommunityRow = Database['public']['Tables']['communities']['Row'];
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -17,13 +13,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [communitiesRes, popularRes, controversialRes] = await Promise.all([
-    supabase
-      .from('communities')
-      .select('id, name, slug, description, member_count, primary_color, logo_url')
-      .eq('is_active', true)
-      .order('member_count', { ascending: false })
-      .limit(100),
+  const [popularRes, controversialRes] = await Promise.all([
     supabase
       .from('chat_messages')
       .select('id, content, like_count, dislike_count, created_at, members!chat_messages_member_id_fkey(username, avatar_url), communities!chat_messages_community_id_fkey(name, slug)')
@@ -45,8 +35,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       .order('dislike_count', { ascending: false })
       .limit(5),
   ]);
-
-  const communities = (communitiesRes.data ?? []) as CommunityRow[];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function mapTrending(rows: any[]) {
@@ -70,37 +58,22 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <div className="flex flex-1 min-h-0 flex-col px-4">
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col overflow-hidden">
-        {/* Header — fixed height */}
-        <div className="shrink-0 pt-4 pb-3 text-center md:pt-8 md:pb-6">
-          <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col">
+        {/* Hero */}
+        <div className="shrink-0 pt-6 pb-4 text-center md:pt-12 md:pb-8">
+          <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-900 md:text-5xl">
             {t('title')}{' '}
             <span className="text-red-600">{t('titleAccent')}</span>
           </h1>
-          <p className="text-sm text-gray-600 md:text-base">
+          <p className="mb-6 text-sm text-gray-600 md:mb-8 md:text-lg">
             {t('subtitle')}
           </p>
+          <HomeCTA />
         </div>
 
-        {/* Trending — fixed height */}
-        <div className="shrink-0">
+        {/* Trending */}
+        <div className="min-h-0 flex-1">
           <TrendingMessages popular={popular} controversial={controversial} />
-        </div>
-
-        {/* Tribunes — scrollable */}
-        <div className="min-h-0 flex-1 overflow-y-auto pb-2">
-          {communities.length > 0 ? (
-            <CommunityGrid communities={communities} />
-          ) : (
-            <p className="text-center text-gray-500">
-              Aucune tribune disponible pour le moment.
-            </p>
-          )}
-        </div>
-
-        {/* Ad banner — compact on small screens, hidden on very small */}
-        <div className="hidden shrink-0 py-1 sm:block">
-          <AdBanner slotId="home-footer" />
         </div>
       </div>
     </div>
