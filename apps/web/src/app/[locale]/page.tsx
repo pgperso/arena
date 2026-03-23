@@ -72,7 +72,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
 
         {/* Trending */}
-        <div className="min-h-0 flex-1">
+        <div>
           <TrendingMessages popular={popular} controversial={controversial} />
         </div>
       </div>
