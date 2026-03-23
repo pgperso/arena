@@ -58,7 +58,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
       const [{ data: articles }, { data: podcasts }] = await Promise.all([
         supabase
           .from('articles')
-          .select('id, author_id, title, slug, excerpt, cover_image_url, like_count, view_count, published_at, members:members!articles_author_id_fkey(username, avatar_url)')
+          .select('id, author_id, title, slug, excerpt, cover_image_url, like_count, view_count, published_at, members:members!articles_author_id_fkey(username, avatar_url, creator_display_name, creator_avatar_url)')
           .eq('community_id', communityId)
           .eq('is_published', true)
           .eq('is_removed', false)
@@ -66,7 +66,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
           .limit(50),
         supabase
           .from('podcasts')
-          .select('id, published_by, title, description, cover_image_url, like_count, duration_seconds, created_at, members:members!podcasts_published_by_fkey(username, avatar_url)')
+          .select('id, published_by, title, description, cover_image_url, like_count, duration_seconds, created_at, members:members!podcasts_published_by_fkey(username, avatar_url, creator_display_name, creator_avatar_url)')
           .eq('community_id', communityId)
           .eq('is_published', true)
           .or('is_removed.eq.false,is_removed.is.null')
@@ -78,7 +78,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
 
       const mapped: ContentItem[] = [];
 
-      for (const a of (articles ?? []) as { id: number; author_id: string; title: string; slug: string; excerpt: string | null; cover_image_url: string | null; like_count: number; view_count: number; published_at: string; members: { username: string; avatar_url: string | null } | null }[]) {
+      for (const a of (articles ?? []) as { id: number; author_id: string; title: string; slug: string; excerpt: string | null; cover_image_url: string | null; like_count: number; view_count: number; published_at: string; members: { username: string; avatar_url: string | null; creator_display_name: string | null; creator_avatar_url: string | null } | null }[]) {
         mapped.push({
           type: 'article',
           id: a.id,
@@ -90,12 +90,12 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
           viewCount: a.view_count,
           publishedAt: a.published_at,
           authorId: a.author_id,
-          authorName: a.members?.username ?? 'Inconnu',
-          authorAvatarUrl: a.members?.avatar_url ?? null,
+          authorName: a.members?.creator_display_name || a.members?.username || 'Inconnu',
+          authorAvatarUrl: a.members?.creator_avatar_url || a.members?.avatar_url || null,
         });
       }
 
-      for (const p of (podcasts ?? []) as { id: number; published_by: string | null; title: string; description: string | null; cover_image_url: string | null; like_count: number; duration_seconds: number | null; created_at: string; members: { username: string; avatar_url: string | null } | null }[]) {
+      for (const p of (podcasts ?? []) as { id: number; published_by: string | null; title: string; description: string | null; cover_image_url: string | null; like_count: number; duration_seconds: number | null; created_at: string; members: { username: string; avatar_url: string | null; creator_display_name: string | null; creator_avatar_url: string | null } | null }[]) {
         mapped.push({
           type: 'podcast',
           id: p.id,
@@ -106,8 +106,8 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
           durationSeconds: p.duration_seconds,
           publishedAt: p.created_at,
           authorId: p.published_by ?? '',
-          authorName: p.members?.username ?? 'Inconnu',
-          authorAvatarUrl: p.members?.avatar_url ?? null,
+          authorName: p.members?.creator_display_name || p.members?.username || 'Inconnu',
+          authorAvatarUrl: p.members?.creator_avatar_url || p.members?.avatar_url || null,
         });
       }
 
