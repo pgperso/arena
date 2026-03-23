@@ -58,14 +58,16 @@ export async function createArticle(
     const authorName = data.authorNameOverride?.trim();
     const [{ data: author }, { data: community }] = await Promise.all([
       authorName ? Promise.resolve({ data: null }) : supabase.from('members').select('username, creator_display_name').eq('id', data.authorId).single(),
-      supabase.from('communities').select('name').eq('id', data.communityId).single(),
+      supabase.from('communities').select('name, slug').eq('id', data.communityId).single(),
     ]);
     const displayName = authorName
       || (author as { creator_display_name: string | null; username: string } | null)?.creator_display_name
       || (author as { username: string } | null)?.username
       || 'Inconnu';
     if (community) {
-      announceArticle(supabase, displayName, (community as { name: string }).name, validated.title);
+      const communitySlug = (community as { slug: string }).slug;
+      const articleUrl = `https://fanstribune.com/fr/tribunes/${communitySlug}/articles/${validated.slug}`;
+      announceArticle(supabase, displayName, (community as { name: string }).name, validated.title, articleUrl);
     }
   }
 

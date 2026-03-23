@@ -25,21 +25,21 @@ const JOIN_ANNOUNCEMENTS = [
 // ── Article announcements ──
 
 const ARTICLE_ANNOUNCEMENTS = [
-  (u: string, c: string, t: string) => `📰 Nouvel article dans ${c} : "${t}" par ${u}. À lire !`,
-  (u: string, c: string, t: string) => `✍️ ${u} vient de publier "${t}" dans ${c}. Ça vaut le détour !`,
-  (u: string, c: string, t: string) => `📝 "${t}" — nouvel article de ${u} dans ${c}. Allez voir ça !`,
-  (u: string, c: string, t: string) => `🗞️ ${u} a écrit quelque chose dans ${c} : "${t}". Check ça !`,
-  (u: string, c: string, t: string) => `💡 Nouvel article signé ${u} dans ${c} : "${t}"`,
+  (u: string, c: string, t: string, url: string) => `📰 Nouvel article dans ${c} : "${t}" par ${u}. À lire ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `✍️ ${u} vient de publier "${t}" dans ${c}. Ça vaut le détour ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `📝 "${t}" — nouvel article de ${u} dans ${c}. Allez voir ça ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `🗞️ ${u} a écrit quelque chose dans ${c} : "${t}". Check ça ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `💡 Nouvel article signé ${u} dans ${c} : "${t}" ${url}`,
 ];
 
 // ── Podcast announcements ──
 
 const PODCAST_ANNOUNCEMENTS = [
-  (u: string, c: string, t: string) => `🎙️ Nouveau podcast dans ${c} : "${t}" par ${u}. Bonne écoute !`,
-  (u: string, c: string, t: string) => `🎧 ${u} a sorti un nouveau podcast dans ${c} : "${t}"`,
-  (u: string, c: string, t: string) => `🔊 "${t}" — nouveau podcast de ${u} dans ${c}. Montez le son !`,
-  (u: string, c: string, t: string) => `📻 ${u} est au micro dans ${c} : "${t}". Écoutez ça !`,
-  (u: string, c: string, t: string) => `🎤 Nouveau épisode dans ${c} ! "${t}" par ${u}`,
+  (u: string, c: string, t: string, url: string) => `🎙️ Nouveau podcast dans ${c} : "${t}" par ${u}. Bonne écoute ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `🎧 ${u} a sorti un nouveau podcast dans ${c} : "${t}" ${url}`,
+  (u: string, c: string, t: string, url: string) => `🔊 "${t}" — nouveau podcast de ${u} dans ${c}. Montez le son ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `📻 ${u} est au micro dans ${c} : "${t}". Écoutez ça ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `🎤 Nouveau épisode dans ${c} ! "${t}" par ${u} ${url}`,
 ];
 
 // ── Live announcements ──
@@ -120,8 +120,9 @@ export async function announceArticle(
   username: string,
   communityName: string,
   articleTitle: string,
+  articleUrl: string,
 ) {
-  const message = pick(ARTICLE_ANNOUNCEMENTS)(username, communityName, articleTitle);
+  const message = pick(ARTICLE_ANNOUNCEMENTS)(username, communityName, articleTitle, articleUrl);
   await broadcastBot(supabase, message);
 }
 
@@ -131,8 +132,9 @@ export async function announcePodcast(
   username: string,
   communityName: string,
   podcastTitle: string,
+  podcastUrl: string,
 ) {
-  const message = pick(PODCAST_ANNOUNCEMENTS)(username, communityName, podcastTitle);
+  const message = pick(PODCAST_ANNOUNCEMENTS)(username, communityName, podcastTitle, podcastUrl);
   await broadcastBot(supabase, message);
 }
 

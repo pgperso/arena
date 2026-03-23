@@ -47,15 +47,17 @@ export async function createPodcast(
   if (!result.error && data.isPublished !== false) {
     const [{ data: publisher }, { data: community }] = await Promise.all([
       supabase.from('members').select('username').eq('id', data.publishedBy).single(),
-      supabase.from('communities').select('name').eq('id', data.communityId).single(),
+      supabase.from('communities').select('name, slug').eq('id', data.communityId).single(),
     ]);
     if (publisher && community) {
       const username = (publisher as { username: string }).username;
       const communityName = (community as { name: string }).name;
+      const communitySlug = (community as { slug: string }).slug;
       if (validated.isLive && validated.youtubeVideoId) {
         announceLive(supabase, communityName, validated.title);
       } else {
-        announcePodcast(supabase, username, communityName, validated.title);
+        const podcastUrl = `https://fanstribune.com/fr/tribunes/${communitySlug}/podcasts/${result.data ? (result.data as unknown as { id: number }).id : ''}`;
+        announcePodcast(supabase, username, communityName, validated.title, podcastUrl);
       }
     }
   }
