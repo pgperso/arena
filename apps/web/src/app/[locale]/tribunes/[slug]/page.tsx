@@ -15,22 +15,36 @@ export async function generateMetadata({ params }: CommunityPageProps) {
   const supabase = await createClient();
   const { data: community } = await supabase
     .from('communities')
-    .select('name, description')
+    .select('name, description, logo_url')
     .eq('slug', slug)
     .single();
 
   if (!community) return { title: 'Tribune introuvable' };
 
-  const name = (community as { name: string }).name;
-  const description = (community as { description: string | null }).description;
+  const { name, description, logo_url } = community as { name: string; description: string | null; logo_url: string | null };
+  const desc = description ?? `Rejoignez la tribune ${name} sur La tribune des fans — chat en direct, articles et podcasts.`;
 
   return {
     title: name,
-    description,
+    description: desc,
     openGraph: {
       title: `${name} | La tribune des fans`,
-      description: description ?? `Rejoignez la tribune ${name} sur La tribune des fans`,
+      description: desc,
       type: 'website',
+      images: logo_url ? [{ url: logo_url, alt: name }] : undefined,
+    },
+    twitter: {
+      card: 'summary',
+      title: `${name} | La tribune des fans`,
+      description: desc,
+      images: logo_url ? [logo_url] : undefined,
+    },
+    alternates: {
+      canonical: `https://fanstribune.com/fr/tribunes/${slug}`,
+      languages: {
+        'fr-CA': `https://fanstribune.com/fr/tribunes/${slug}`,
+        'en-CA': `https://fanstribune.com/en/tribunes/${slug}`,
+      },
     },
   };
 }

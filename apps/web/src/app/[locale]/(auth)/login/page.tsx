@@ -4,6 +4,8 @@ import { LoginForm } from '@/components/auth/LoginForm';
 
 export const metadata: Metadata = {
   title: 'Connexion',
+  description: 'Connectez-vous à La tribune des fans pour rejoindre vos tribunes sportives.',
+  robots: { index: false, follow: false },
 };
 
 export default async function LoginPage({ params }: { params: Promise<{ locale: string }> }) {

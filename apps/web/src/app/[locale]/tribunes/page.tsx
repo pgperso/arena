@@ -8,6 +8,8 @@ type CommunityRow = Database['public']['Tables']['communities']['Row'];
 
 export const metadata = {
   title: 'Mes tribunes',
+  description: 'Accédez à vos tribunes sportives et rejoignez de nouvelles communautés.',
+  robots: { index: false, follow: false },
 };
 
 export default async function TribunesPage({ params }: { params: Promise<{ locale: string }> }) {

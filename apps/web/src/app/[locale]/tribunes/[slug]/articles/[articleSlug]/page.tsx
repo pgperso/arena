@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 
   const { data: article } = await supabase
     .from('articles')
-    .select('title, excerpt')
+    .select('title, excerpt, cover_image_url, published_at')
     .eq('community_id', (community as { id: number }).id)
     .eq('slug', articleSlug)
     .eq('is_published', true)
@@ -32,16 +32,31 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 
   if (!article) return { title: 'Article introuvable' };
 
-  const title = (article as { title: string }).title;
-  const excerpt = (article as { excerpt: string | null }).excerpt;
+  const { title, excerpt, cover_image_url, published_at } = article as { title: string; excerpt: string | null; cover_image_url: string | null; published_at: string | null };
+  const desc = excerpt ?? title;
 
   return {
     title,
-    description: excerpt,
+    description: desc,
     openGraph: {
       title: `${title} | La tribune des fans`,
-      description: excerpt ?? title,
+      description: desc,
       type: 'article',
+      publishedTime: published_at ?? undefined,
+      images: cover_image_url ? [{ url: cover_image_url, alt: title }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} | La tribune des fans`,
+      description: desc,
+      images: cover_image_url ? [cover_image_url] : undefined,
+    },
+    alternates: {
+      canonical: `https://fanstribune.com/fr/tribunes/${slug}/articles/${articleSlug}`,
+      languages: {
+        'fr-CA': `https://fanstribune.com/fr/tribunes/${slug}/articles/${articleSlug}`,
+        'en-CA': `https://fanstribune.com/en/tribunes/${slug}/articles/${articleSlug}`,
+      },
     },
   };
 }

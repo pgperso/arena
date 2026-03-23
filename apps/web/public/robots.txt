@@ -1,7 +1,47 @@
+# Search engines
 User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /vestiaire/
 Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /reset-password
+Disallow: /update-password
 
 Sitemap: https://fanstribune.com/sitemap.xml
+
+# AI retrieval bots (allowed — needed for AI search citations)
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+# AI training bots (blocked — protect content from training datasets)
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /

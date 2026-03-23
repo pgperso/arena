@@ -3,6 +3,7 @@ import { setRequestLocale } from 'next-intl/server';
 
 export const metadata: Metadata = {
   title: 'Politique de confidentialité',
+  description: 'Politique de confidentialité de La tribune des fans — comment nous protégeons vos données.',
 };
 
 export default async function PolitiqueConfidentialite({ params }: { params: Promise<{ locale: string }> }) {

@@ -1,0 +1,31 @@
+# La tribune des fans
+
+> La tribune des fans (fanstribune.com) est une plateforme communautaire sportive en direct. Les fans rejoignent des tribunes dédiées à leurs équipes favorites pour chatter en temps réel, lire et publier des articles, écouter des podcasts et participer à des diffusions YouTube Live. La plateforme est bilingue (français/anglais) et basée au Canada.
+
+## Fonctionnalités principales
+- Chat en temps réel dans des tribunes sportives thématiques
+- Publication d'articles par les créateurs de contenu
+- Podcasts audio et YouTube Live intégrés
+- Système de rôles : Recrue, Régulier, Vétéran, Légende, Créateur, Arbitre, Propriétaire
+- Réactions (likes/dislikes), réponses, images dans le chat
+- Profil créateur avec avatar et nom distinct
+- Modération intégrée (mute, ban)
+- Publicités Google AdSense intégrées
+
+## Stack technique
+- Next.js 16 App Router (React Server Components)
+- Supabase (PostgreSQL, Realtime, Storage, Auth)
+- Tailwind CSS v4
+- TypeScript
+- react-virtuoso pour le chat virtualisé
+- next-intl pour l'internationalisation
+
+## URLs importantes
+- Site principal : https://fanstribune.com
+- Tribunes : https://fanstribune.com/fr/tribunes/
+- Articles : https://fanstribune.com/fr/tribunes/{slug}/articles/{articleSlug}
+- Podcasts : https://fanstribune.com/fr/tribunes/{slug}/podcasts/{podcastId}
+
+## Contact
+- Site : https://fanstribune.com
+- Politique de confidentialité : https://fanstribune.com/fr/politique-confidentialite

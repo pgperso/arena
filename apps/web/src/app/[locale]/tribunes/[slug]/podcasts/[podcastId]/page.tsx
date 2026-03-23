@@ -18,24 +18,38 @@ export async function generateMetadata({ params }: PodcastPageProps) {
 
   const { data: podcast } = await supabase
     .from('podcasts')
-    .select('title, description, audio_url')
+    .select('title, description, audio_url, cover_image_url')
     .eq('id', id)
     .eq('is_published', true)
     .single();
 
   if (!podcast) return { title: 'Podcast introuvable' };
 
-  const title = (podcast as { title: string }).title;
-  const description = (podcast as { description: string | null }).description;
+  const { title, description, audio_url, cover_image_url } = podcast as { title: string; description: string | null; audio_url: string; cover_image_url: string | null };
+  const desc = description ?? title;
 
   return {
     title,
-    description,
+    description: desc,
     openGraph: {
       title: `${title} | La tribune des fans`,
-      description: description ?? title,
+      description: desc,
       type: 'music.song',
-      audio: (podcast as { audio_url: string }).audio_url,
+      audio: audio_url,
+      images: cover_image_url ? [{ url: cover_image_url, alt: title }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} | La tribune des fans`,
+      description: desc,
+      images: cover_image_url ? [cover_image_url] : undefined,
+    },
+    alternates: {
+      canonical: `https://fanstribune.com/fr/tribunes/${(await params).slug}/podcasts/${podcastId}`,
+      languages: {
+        'fr-CA': `https://fanstribune.com/fr/tribunes/${(await params).slug}/podcasts/${podcastId}`,
+        'en-CA': `https://fanstribune.com/en/tribunes/${(await params).slug}/podcasts/${podcastId}`,
+      },
     },
   };
 }
@@ -90,8 +104,27 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const podcastJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'PodcastEpisode',
+    name: podcast.title,
+    description: podcast.description ?? undefined,
+    url: `https://fanstribune.com/fr/tribunes/${slug}/podcasts/${podcast.id}`,
+    datePublished: podcast.created_at,
+    associatedMedia: {
+      '@type': 'MediaObject',
+      contentUrl: podcast.audio_url,
+    },
+    image: podcast.cover_image_url ?? undefined,
+    author: publisher ? { '@type': 'Person', name: publisher.username } : undefined,
+  };
+
   return (
     <div className="overflow-y-auto bg-white" style={{ height: 'calc(100dvh - 4rem)' }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(podcastJsonLd).replace(/</g, '\\u003c') }}
+      />
       <PodcastPlayer
         podcast={{ ...podcast, publisher }}
         communitySlug={slug}

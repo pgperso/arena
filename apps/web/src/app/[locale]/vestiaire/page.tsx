@@ -7,6 +7,8 @@ import type { Database } from '@arena/supabase-client';
 
 export const metadata: Metadata = {
   title: 'Mon vestiaire',
+  description: 'Gérez votre profil, vos tribunes et vos publications.',
+  robots: { index: false, follow: false },
 };
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'];

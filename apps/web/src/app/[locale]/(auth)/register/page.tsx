@@ -4,6 +4,8 @@ import { RegisterForm } from '@/components/auth/RegisterForm';
 
 export const metadata: Metadata = {
   title: 'Inscription',
+  description: 'Créez votre compte sur La tribune des fans et rejoignez la communauté sportive.',
+  robots: { index: false, follow: false },
 };
 
 export default async function RegisterPage({ params }: { params: Promise<{ locale: string }> }) {
