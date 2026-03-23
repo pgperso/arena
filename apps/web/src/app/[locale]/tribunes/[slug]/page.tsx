@@ -133,13 +133,12 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
       .eq('roles.code', 'owner'),
   ]);
 
-  const modRoles = [
-    ...(localStaff ?? []),
-    ...(globalOwners ?? []),
-  ] as { member_id: string; roles: { code: string } | null }[];
-
+  // Global owners first, then local roles override
   const staffRoles: Record<string, string> = {};
-  for (const r of (modRoles as { member_id: string; roles: { code: string } | null }[] ?? [])) {
+  for (const r of (globalOwners ?? []) as { member_id: string; roles: { code: string } | null }[]) {
+    if (r.roles?.code) staffRoles[r.member_id] = r.roles.code;
+  }
+  for (const r of (localStaff ?? []) as { member_id: string; roles: { code: string } | null }[]) {
     if (r.roles?.code) staffRoles[r.member_id] = r.roles.code;
   }
 
