@@ -134,32 +134,32 @@ export function CommunityPageClient({
         </div>
       )}
 
-      {/* Community bar */}
+      {/* Community bar — single bar combining back, name, actions */}
       <div
-        className="flex shrink-0 items-center justify-between bg-gray-100 px-4 py-2"
+        className="flex shrink-0 items-center justify-between bg-gray-100 px-3 py-1.5 sm:px-4 sm:py-2"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <Link
             href="/tribunes"
-            className="flex items-center gap-1.5 rounded-lg bg-brand-blue px-2.5 py-1.5 text-xs font-medium text-white transition hover:bg-brand-blue-dark sm:px-3"
+            className="flex items-center gap-1 rounded-lg bg-brand-blue px-2 py-1.5 text-xs font-medium text-white transition hover:bg-brand-blue-dark sm:gap-1.5 sm:px-3"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
             </svg>
             <span className="hidden sm:inline">{t('community.backToTribunes')}</span>
           </Link>
-          <span className="font-semibold text-gray-900">{community.name}</span>
+          <span className="text-sm font-semibold text-gray-900 sm:text-base">{community.name}</span>
           <span className="hidden text-sm text-gray-500 sm:inline">
             {t('common.members', { count: memberCount })}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           {userId && (
             isMember ? (
               <button
                 onClick={() => setShowLeaveConfirm(true)}
-                className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-red-300 hover:text-red-600"
+                className="rounded-lg border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 transition hover:border-red-300 hover:text-red-600 sm:px-3 sm:py-1.5"
               >
                 <span className="sm:hidden">{t('community.leave')}</span>
                 <span className="hidden sm:inline">{t('community.leaveTribune')}</span>
@@ -168,7 +168,7 @@ export function CommunityPageClient({
               <button
                 onClick={handleJoin}
                 disabled={joining}
-                className="rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
+                className="rounded-lg bg-brand-blue px-2 py-1 text-xs font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50 sm:px-3 sm:py-1.5"
               >
                 {joining ? t('common.loading') : t('community.join')}
               </button>
