@@ -241,7 +241,10 @@
     "creatorProfile": "Profil créateur",
     "creatorProfileDesc": "Ce nom et cet avatar seront affichés sur vos articles et podcasts à la place de votre pseudo.",
     "creatorDisplayName": "Nom complet",
-    "creatorNamePlaceholder": "Ex: Pascal Grenon"
+    "creatorNamePlaceholder": "Votre nom complet",
+    "creatorAvatar": "Avatar créateur",
+    "creatorAvatarDesc": "Cet avatar sera affiché sur vos articles et podcasts",
+    "saved": "Sauvegardé !"
   },
   "account": {
     "dangerZone": "Zone dangereuse",

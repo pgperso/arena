@@ -235,7 +235,10 @@
     "creatorProfile": "Creator profile",
     "creatorProfileDesc": "This name and avatar will be displayed on your articles and podcasts instead of your username.",
     "creatorDisplayName": "Full name",
-    "creatorNamePlaceholder": "e.g. Pascal Grenon"
+    "creatorNamePlaceholder": "Your full name",
+    "creatorAvatar": "Creator avatar",
+    "creatorAvatarDesc": "This avatar will be displayed on your articles and podcasts",
+    "saved": "Saved!"
   },
   "account": {
     "dangerZone": "Danger zone",

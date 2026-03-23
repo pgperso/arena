@@ -51,7 +51,10 @@ export function VestiaireClient({
   const tcr = useTranslations('creator');
   const [editing, setEditing] = useState(false);
   const [creatorName, setCreatorName] = useState(member?.creator_display_name ?? '');
+  const [creatorAvatarUrl, setCreatorAvatarUrl] = useState(member?.creator_avatar_url ?? null);
   const [savingCreator, setSavingCreator] = useState(false);
+  const [creatorSaved, setCreatorSaved] = useState(false);
+  const creatorFileRef = useRef<HTMLInputElement>(null);
   const [deleteStep, setDeleteStep] = useState<0 | 1 | 2 | 3>(0); // 0=hidden, 1=info, 2=password, 3=done
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState('');
@@ -221,6 +224,55 @@ export function VestiaireClient({
           <p className="mb-4 text-xs text-purple-700/70">{tcr('creatorProfileDesc')}</p>
 
           <div className="space-y-4">
+            {/* Creator avatar */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-purple-900">{tcr('creatorAvatar')}</label>
+              <p className="mb-2 text-xs text-purple-700/60">{tcr('creatorAvatarDesc')}</p>
+              <div className="flex items-center gap-4">
+                {creatorAvatarUrl ? (
+                  <Image
+                    src={creatorAvatarUrl}
+                    alt="Creator avatar"
+                    width={64}
+                    height={64}
+                    className="h-16 w-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-purple-200 text-lg font-bold text-purple-600">
+                    {(creatorName || member.username)[0]?.toUpperCase() ?? '?'}
+                  </div>
+                )}
+                <input
+                  ref={creatorFileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const supabase = createClient();
+                    const path = `creator-avatars/${member.id}/${Date.now()}.webp`;
+                    const { error } = await supabase.storage.from('avatars').upload(path, file, {
+                      contentType: file.type,
+                      upsert: true,
+                    });
+                    if (!error) {
+                      const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+                      setCreatorAvatarUrl(data.publicUrl);
+                    }
+                    e.target.value = '';
+                  }}
+                />
+                <button
+                  onClick={() => creatorFileRef.current?.click()}
+                  className="rounded-lg border border-purple-300 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100"
+                >
+                  {creatorAvatarUrl ? tc('edit') : tcr('creatorAvatar')}
+                </button>
+              </div>
+            </div>
+
+            {/* Creator display name */}
             <div>
               <label className="mb-1 block text-sm font-medium text-purple-900">{tcr('creatorDisplayName')}</label>
               <input
@@ -233,20 +285,29 @@ export function VestiaireClient({
               />
             </div>
 
-            <button
-              onClick={async () => {
-                setSavingCreator(true);
-                const supabase = createClient();
-                await supabase.from('members').update({
-                  creator_display_name: creatorName.trim() || null,
-                }).eq('id', member.id);
-                setSavingCreator(false);
-              }}
-              disabled={savingCreator}
-              className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-700 disabled:opacity-50"
-            >
-              {savingCreator ? tc('saving') : tc('save')}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={async () => {
+                  setSavingCreator(true);
+                  setCreatorSaved(false);
+                  const supabase = createClient();
+                  await supabase.from('members').update({
+                    creator_display_name: creatorName.trim() || null,
+                    creator_avatar_url: creatorAvatarUrl,
+                  }).eq('id', member.id);
+                  setSavingCreator(false);
+                  setCreatorSaved(true);
+                  setTimeout(() => setCreatorSaved(false), 2000);
+                }}
+                disabled={savingCreator}
+                className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-700 disabled:opacity-50"
+              >
+                {savingCreator ? tc('saving') : tc('save')}
+              </button>
+              {creatorSaved && (
+                <span className="text-xs font-medium text-green-600">{tcr('saved')}</span>
+              )}
+            </div>
           </div>
         </div>
       )}
