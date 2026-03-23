@@ -49,8 +49,9 @@ export function VestiaireClient({
   const router = useRouter();
   const t = useTranslations('account');
   const tc = useTranslations('common');
+  const ta = useTranslations('auth');
   const tcr = useTranslations('creator');
-  const [editing, setEditing] = useState(false);
+  const [savedDescription, setSavedDescription] = useState(member?.description ?? '');
   const initialCreatorName = member?.creator_display_name ?? '';
   const initialCreatorAvatarUrl = member?.creator_avatar_url ?? null;
   const [creatorName, setCreatorName] = useState(initialCreatorName);
@@ -80,8 +81,8 @@ export function VestiaireClient({
       .from('members')
       .update({ description })
       .eq('id', member.id);
+    setSavedDescription(description);
     setSaving(false);
-    setEditing(false);
     router.refresh();
   }
 
@@ -178,55 +179,42 @@ export function VestiaireClient({
           </div>
           <button
             onClick={handleLogout}
-            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:border-red-300 hover:text-red-600"
+            className="shrink-0 rounded-lg border border-gray-200 p-2 text-gray-600 transition hover:border-red-300 hover:text-red-600 sm:px-4 sm:text-sm sm:font-medium"
+            title={ta('logout')}
           >
-            Déconnexion
+            <svg className="h-4 w-4 sm:hidden" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+            </svg>
+            <span className="hidden sm:inline">{ta('logout')}</span>
           </button>
         </div>
 
-        {/* Bio */}
-        <div className="mt-4">
-          {editing ? (
-            <div className="space-y-2">
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-                rows={3}
-                placeholder="Parlez-nous de vous..."
-                maxLength={500}
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSaveDescription}
-                  disabled={saving}
-                  className="rounded-lg bg-brand-blue px-4 py-1.5 text-sm font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
-                >
-                  {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-                </button>
-                <button
-                  onClick={() => {
-                    setEditing(false);
-                    setDescription(member.description ?? '');
-                  }}
-                  className="rounded-lg border border-gray-200 px-4 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
-                >
-                  Annuler
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div
-              onClick={() => setEditing(true)}
-              className="cursor-pointer rounded-lg p-2 text-sm text-gray-600 transition hover:bg-gray-50"
+        {/* Bio — always visible */}
+        <div className="mt-4 space-y-2">
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 transition focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+            rows={3}
+            placeholder={tcr('creatorNamePlaceholder') === tcr('creatorNamePlaceholder') ? 'Parlez-nous de vous...' : ''}
+            maxLength={500}
+          />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSaveDescription}
+              disabled={saving || description === savedDescription}
+              className="rounded-lg bg-brand-blue px-4 py-1.5 text-sm font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
             >
-              {member.description || (
-                <span className="italic text-gray-400">
-                  Cliquez pour ajouter une description...
-                </span>
-              )}
-            </div>
-          )}
+              {saving ? tc('saving') : tc('save')}
+            </button>
+            <button
+              onClick={() => setDescription(savedDescription)}
+              disabled={description === savedDescription}
+              className="rounded-lg border border-gray-200 px-4 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
+            >
+              {tc('cancel')}
+            </button>
+          </div>
         </div>
       </div>
 
