@@ -70,7 +70,7 @@ function pick<T>(arr: T[]): T {
 
 // ── Public API ──
 
-/** Send bot message to ALL active tribunes */
+/** Send bot message to ALL active tribunes via SECURITY DEFINER RPC */
 async function broadcastBot(
   supabase: SupabaseClient<Database>,
   content: string,
@@ -82,26 +82,26 @@ async function broadcastBot(
 
   if (!allCommunities) return;
 
-  const messages = (allCommunities as { id: number }[]).map((c) => ({
-    community_id: c.id,
-    member_id: BOT_MEMBER_ID,
-    content,
-  }));
-
-  await supabase.from('chat_messages').insert(messages);
+  await Promise.all(
+    (allCommunities as { id: number }[]).map((c) =>
+      supabase.rpc('send_bot_message' as never, {
+        p_community_id: c.id,
+        p_content: content,
+      } as never)
+    )
+  );
 }
 
-/** Send bot message to a SINGLE tribune */
+/** Send bot message to a SINGLE tribune via SECURITY DEFINER RPC */
 async function sendBotToTribune(
   supabase: SupabaseClient<Database>,
   communityId: number,
   content: string,
 ) {
-  await supabase.from('chat_messages').insert({
-    community_id: communityId,
-    member_id: BOT_MEMBER_ID,
-    content,
-  });
+  await supabase.rpc('send_bot_message' as never, {
+    p_community_id: communityId,
+    p_content: content,
+  } as never);
 }
 
 /** Announce a new member joined (broadcasts to ALL tribunes) */
