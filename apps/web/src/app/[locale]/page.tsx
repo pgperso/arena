@@ -72,7 +72,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     <div className="flex flex-1 min-h-0 flex-col px-4">
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col overflow-hidden">
         {/* Header — fixed height */}
-        <div className="shrink-0 pt-8 pb-6 text-center">
+        <div className="shrink-0 pt-4 pb-3 text-center md:pt-8 md:pb-6">
           <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
             {t('title')}{' '}
             <span className="text-red-600">{t('titleAccent')}</span>
@@ -87,8 +87,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <TrendingMessages popular={popular} controversial={controversial} />
         </div>
 
-        {/* Tribunes — centered in remaining space */}
-        <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto pb-4">
+        {/* Tribunes — scrollable */}
+        <div className="min-h-0 flex-1 overflow-y-auto pb-2">
           {communities.length > 0 ? (
             <CommunityGrid communities={communities} />
           ) : (
@@ -98,8 +98,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           )}
         </div>
 
-        {/* Ad banner — fixed at bottom */}
-        <div className="shrink-0 py-2">
+        {/* Ad banner — compact on small screens, hidden on very small */}
+        <div className="hidden shrink-0 py-1 sm:block">
           <AdBanner slotId="home-footer" />
         </div>
       </div>

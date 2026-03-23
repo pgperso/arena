@@ -9,7 +9,7 @@ export function Footer() {
 
   return (
     <footer className="border-t border-gray-200 bg-white">
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 md:flex-row">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2">
         <div className="flex items-center gap-2">
           <Image
             src="/images/fanstribune.webp"

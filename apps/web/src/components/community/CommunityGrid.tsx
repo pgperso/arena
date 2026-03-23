@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
@@ -53,6 +53,22 @@ export function CommunityGrid({ communities }: CommunityGridProps) {
 
   const joined = communities.filter((c) => joinedIds.has(c.id));
   const router = useRouter();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateArrows = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }, []);
+
+  useEffect(() => {
+    updateArrows();
+    window.addEventListener('resize', updateArrows);
+    return () => window.removeEventListener('resize', updateArrows);
+  }, [updateArrows, joined.length]);
 
   function handleJoinClick() {
     if (!user) {
@@ -64,23 +80,21 @@ export function CommunityGrid({ communities }: CommunityGridProps) {
 
   return (
     <div>
-      {/* Mes tribunes */}
+      {/* Mes tribunes — horizontal scroll */}
       {joined.length > 0 && (
-        <div className="mb-8">
-          <h2 className="mb-4 text-lg font-bold text-gray-900">{t('myTribunes')}</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {joined.map((community) => (
+        <ScrollSection title={t('myTribunes')} scrollRef={scrollRef} onScroll={updateArrows} canScrollLeft={canScrollLeft} canScrollRight={canScrollRight}>
+          {joined.map((community) => (
+            <div key={community.id} className="w-64 shrink-0">
               <CommunityCard
-                key={community.id}
                 name={community.name}
                 slug={community.slug}
                 description={community.description}
                 memberCount={community.member_count}
                 logoUrl={community.logo_url}
               />
-            ))}
-          </div>
-        </div>
+            </div>
+          ))}
+        </ScrollSection>
       )}
 
       {/* Rejoindre une tribune — redirects to login if not connected */}
@@ -103,6 +117,63 @@ export function CommunityGrid({ communities }: CommunityGridProps) {
           onClose={() => setShowJoinModal(false)}
         />
       )}
+    </div>
+  );
+}
+
+function ScrollSection({
+  title,
+  scrollRef,
+  onScroll,
+  canScrollLeft,
+  canScrollRight,
+  children,
+}: {
+  title: string;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
+  onScroll: () => void;
+  canScrollLeft: boolean;
+  canScrollRight: boolean;
+  children: React.ReactNode;
+}) {
+  const scroll = (dir: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir === 'left' ? -280 : 280, behavior: 'smooth' });
+  };
+
+  return (
+    <div className="mb-6">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+        <div className="flex gap-1">
+          <button
+            onClick={() => scroll('left')}
+            disabled={!canScrollLeft}
+            className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 disabled:opacity-0"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+          </button>
+          <button
+            onClick={() => scroll('right')}
+            disabled={!canScrollRight}
+            className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 disabled:opacity-0"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div
+        ref={scrollRef}
+        onScroll={onScroll}
+        className="flex gap-4 overflow-x-auto scroll-smooth scrollbar-none"
+      >
+        {children}
+      </div>
     </div>
   );
 }
