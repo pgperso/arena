@@ -294,7 +294,7 @@ export function VestiaireClient({
                       fileType: 'image/webp',
                     });
                     const supabase = createClient();
-                    const dir = `creator-avatars/${member.id}`;
+                    const dir = `${member.id}/creator`;
                     const { data: existing } = await supabase.storage.from('avatars').list(dir);
                     if (existing && existing.length > 0) {
                       await supabase.storage.from('avatars').remove(existing.map((f) => `${dir}/${f.name}`));
