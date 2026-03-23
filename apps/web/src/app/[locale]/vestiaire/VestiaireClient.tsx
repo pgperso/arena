@@ -118,6 +118,17 @@ export function VestiaireClient({
 
   return (
     <div className="space-y-8">
+      {/* Back button — mobile */}
+      <button
+        onClick={() => router.back()}
+        className="flex items-center gap-1.5 text-sm font-medium text-gray-500 transition hover:text-gray-700 md:hidden"
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+        </svg>
+        {tc('back')}
+      </button>
+
       {/* Profile header */}
       <div className="rounded-xl border border-gray-200 bg-white p-6">
         <div className="flex items-start gap-4">

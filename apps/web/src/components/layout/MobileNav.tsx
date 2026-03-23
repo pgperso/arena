@@ -35,7 +35,7 @@ export function MobileNav({ isOpen, onClose, user, username, onLogout }: MobileN
               className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
               onClick={onClose}
             >
-              {username ?? 'Mon profil'}
+              {t('vestiaire.title')}
             </Link>
             <button
               onClick={() => {
