@@ -188,9 +188,9 @@ export function FeedContainer({
     <div className="flex h-full flex-col lg:flex-row">
       {/* Feed area */}
       <div className="relative flex flex-1 flex-col overflow-hidden">
-        {/* Header — hidden on mobile (community bar above already shows name) */}
-        <div className="hidden shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3 md:flex">
-          <div>
+        {/* Header — compact on mobile (no name, just actions), full on desktop */}
+        <div className="flex shrink-0 items-center justify-end border-b border-gray-200 px-3 py-1.5 md:justify-between md:px-4 md:py-3">
+          <div className="hidden md:block">
             <h2 className="text-base font-semibold text-gray-900">{communityName}</h2>
             <p className="text-xs text-gray-500">{t('online', { count: onlineMembers.length })}</p>
           </div>
