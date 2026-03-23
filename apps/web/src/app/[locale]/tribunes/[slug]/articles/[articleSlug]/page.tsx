@@ -89,7 +89,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   if (!articleData) notFound();
 
-  const article = articleData as {
+  const article = articleData as unknown as {
     id: number;
     title: string;
     body: string;
