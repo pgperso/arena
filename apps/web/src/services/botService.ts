@@ -80,7 +80,7 @@ const PODCAST_PROMOS = [
   (t: string) => `🎤 "${t}" — un podcast à (re)découvrir !`,
 ];
 
-const PROMO_CHANCE = 0.25; // 25% chance after a join
+const PROMO_CHANCE = 1; // always promote after a join
 
 const MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
 
