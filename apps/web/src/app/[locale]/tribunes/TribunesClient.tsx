@@ -22,9 +22,9 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
 
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-y-auto">
-      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-8">
+      <div className="mx-auto w-full max-w-5xl px-4">
         {/* Header — sticky on mobile */}
-        <div className="sticky top-0 z-10 -mx-4 mb-4 flex items-center justify-between bg-gray-50 px-4 py-3 sm:static sm:mx-0 sm:mb-8 sm:bg-transparent sm:px-0 sm:py-0">
+        <div className="sticky top-0 z-10 -mx-4 mb-4 flex items-center justify-between bg-gray-50/95 px-4 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:mb-8 sm:mt-8 sm:bg-transparent sm:px-0 sm:py-0">
           <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">{t('myTribunes')}</h1>
           <button
             onClick={() => setShowJoinModal(true)}
