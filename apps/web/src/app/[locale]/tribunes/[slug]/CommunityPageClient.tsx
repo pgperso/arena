@@ -8,7 +8,7 @@ import { AdSidebar } from '@/components/ads/AdSidebar';
 import { AdAnchor } from '@/components/ads/AdAnchor';
 import { Avatar } from '@/components/ui/Avatar';
 import { useSupabase } from '@/hooks/useSupabase';
-import { joinCommunity, leaveCommunity } from '@/services/communityService';
+import { joinCommunity } from '@/services/communityService';
 import { useTribune } from '@/contexts/TribuneContext';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
@@ -44,7 +44,6 @@ export function CommunityPageClient({
   const [memberCount, setMemberCount] = useState(community.member_count);
   const [showJoinModal, setShowJoinModal] = useState(!initialIsMember);
   const [joinError, setJoinError] = useState<string | null>(null);
-  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   // Tell the Header we're in a tribune
   useEffect(() => {
@@ -72,13 +71,6 @@ export function CommunityPageClient({
     router.refresh();
   }
 
-  async function handleLeave() {
-    if (!userId) return;
-    const { error } = await leaveCommunity(supabase, community.id, userId);
-    if (!error) {
-      router.push('/');
-    }
-  }
 
   return (
     <div className="flex flex-1 min-h-0 flex-col">
@@ -163,52 +155,17 @@ export function CommunityPageClient({
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          {userId && (
-            isMember ? (
-              <button
-                onClick={() => setShowLeaveConfirm(true)}
-                className="hidden rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-red-300 hover:text-red-600 sm:inline-flex"
-              >
-                {t('community.leaveTribune')}
-              </button>
-            ) : (
-              <button
-                onClick={handleJoin}
-                disabled={joining}
-                className="rounded-lg bg-brand-blue px-2 py-1 text-xs font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50 sm:px-3 sm:py-1.5"
-              >
-                {joining ? t('common.loading') : t('community.join')}
-              </button>
-            )
+          {userId && !isMember && (
+            <button
+              onClick={handleJoin}
+              disabled={joining}
+              className="rounded-lg bg-brand-blue px-2 py-1 text-xs font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50 sm:px-3 sm:py-1.5"
+            >
+              {joining ? t('common.loading') : t('community.join')}
+            </button>
           )}
         </div>
       </div>
-
-      {/* Leave confirmation modal */}
-      {showLeaveConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-2 text-base font-bold text-gray-900">{t('community.leaveTitle', { name: community.name })}</h3>
-            <p className="mb-5 text-sm text-gray-500">
-              {t('community.leaveMessage')}
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowLeaveConfirm(false)}
-                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={() => { setShowLeaveConfirm(false); handleLeave(); }}
-                className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700"
-              >
-                {t('community.leave')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {isMember ? (
         <>
@@ -228,7 +185,6 @@ export function CommunityPageClient({
                 canModerate={canModerate}
                 canCreateContent={canCreateContent}
                 staffRoles={staffRoles}
-                onLeave={() => setShowLeaveConfirm(true)}
               />
             </div>
 

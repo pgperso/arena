@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/navigation';
+import { useRouter, Link } from '@/i18n/navigation';
 import Image from 'next/image';
+import { useSupabase } from '@/hooks/useSupabase';
+import { leaveCommunity } from '@/services/communityService';
 import { JoinTribuneModal } from '@/components/community/JoinTribuneModal';
 import type { Database } from '@arena/supabase-client';
 
@@ -18,7 +20,22 @@ interface TribunesClientProps {
 export function TribunesClient({ communities, userId, memberCommunityIds }: TribunesClientProps) {
   const t = useTranslations('home');
   const tc = useTranslations('community');
+  const tco = useTranslations('common');
+  const router = useRouter();
+  const supabase = useSupabase();
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [leaveConfirm, setLeaveConfirm] = useState<CommunityRow | null>(null);
+  const [leaving, setLeaving] = useState(false);
+
+  async function handleLeave(community: CommunityRow) {
+    setLeaving(true);
+    const { error } = await leaveCommunity(supabase, community.id, userId);
+    if (!error) {
+      router.refresh();
+    }
+    setLeaving(false);
+    setLeaveConfirm(null);
+  }
 
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-y-auto">
@@ -41,39 +58,50 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
         {communities.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {communities.map((community) => (
-              <Link
+              <div
                 key={community.id}
-                href={`/tribunes/${community.slug}`}
-                className="group flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 transition hover:border-brand-blue/30 hover:shadow-md sm:p-5"
+                className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5"
               >
-                <Image
-                  src={community.logo_url || '/images/fanstribune.webp'}
-                  alt={community.name}
-                  width={48}
-                  height={48}
-                  className="h-12 w-12 shrink-0 rounded-lg object-contain"
-                />
-                <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-sm font-semibold text-gray-900 group-hover:text-brand-blue sm:text-base">
-                    {community.name}
-                  </h3>
-                  <p className="text-xs text-gray-500 sm:text-sm">
-                    {community.member_count} membre{community.member_count !== 1 ? 's' : ''}
-                  </p>
-                  {community.description && (
-                    <p className="mt-1 line-clamp-1 text-xs text-gray-400">{community.description}</p>
-                  )}
+                <div className="mb-3 flex items-center gap-3">
+                  <Image
+                    src={community.logo_url || '/images/fanstribune.webp'}
+                    alt={community.name}
+                    width={48}
+                    height={48}
+                    className="h-12 w-12 shrink-0 rounded-lg object-contain"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-sm font-semibold text-gray-900 sm:text-base">
+                      {community.name}
+                    </h3>
+                    <p className="text-xs text-gray-500 sm:text-sm">
+                      {community.member_count} membre{community.member_count !== 1 ? 's' : ''}
+                    </p>
+                  </div>
                 </div>
-                <svg
-                  className="h-5 w-5 shrink-0 text-gray-300 transition group-hover:text-brand-blue"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                </svg>
-              </Link>
+                {community.description && (
+                  <p className="mb-3 line-clamp-2 text-xs text-gray-400">{community.description}</p>
+                )}
+                <div className="flex gap-2">
+                  <Link
+                    href={`/tribunes/${community.slug}`}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand-blue px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-blue-dark"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                    {tc('join')}
+                  </Link>
+                  <button
+                    onClick={() => setLeaveConfirm(community)}
+                    className="flex items-center justify-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-500 transition hover:border-red-300 hover:text-red-600"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.181 8.68a4.503 4.503 0 0 1 1.903 6.405m-9.768-2.782L3.56 14.06a4.5 4.5 0 0 0 6.364 6.365l3.129-3.129m5.614-5.615 1.757-1.757a4.5 4.5 0 0 0-6.364-6.365l-3.129 3.129m0 5.657-3.182-3.182" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         ) : (
@@ -103,6 +131,36 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
           memberCommunityIds={memberCommunityIds}
           onClose={() => setShowJoinModal(false)}
         />
+      )}
+
+      {/* Leave confirmation modal */}
+      {leaveConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="mb-2 text-base font-bold text-gray-900">
+              {tc('leaveTitle', { name: leaveConfirm.name })}
+            </h3>
+            <p className="mb-5 text-sm text-gray-500">
+              {tc('leaveMessage')}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setLeaveConfirm(null)}
+                disabled={leaving}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
+              >
+                {tco('cancel')}
+              </button>
+              <button
+                onClick={() => handleLeave(leaveConfirm)}
+                disabled={leaving}
+                className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {leaving ? tco('loading') : tc('leave')}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
