@@ -3,6 +3,14 @@
    unlayered CSS beats all layered CSS in the Cascade Layers spec,
    making it impossible for Tailwind classes to override these rules. */
 @layer base {
+  html, body {
+    height: 100vh;
+  }
+
+  body > div {
+    height: 100%;
+  }
+
   body {
     background: var(--color-gray-50);
     color: var(--color-gray-900);
