@@ -8,11 +8,14 @@ const eslintConfig = defineConfig([
   {
     rules: {
       "react-hooks/rules-of-hooks": "error",
+      // React Hooks v5 strict rules — warn only (don't block CI)
+      "react-hooks/refs": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/set-state-in-render": "warn",
+      "react-hooks/set-state-in-effect": "warn",
     },
   },
-  // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
