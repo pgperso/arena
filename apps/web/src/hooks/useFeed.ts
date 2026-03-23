@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useReducer, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useReducer, useCallback, useRef, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { FEED_INITIAL_LIMIT, FEED_LOAD_MORE_LIMIT, messageSchema } from '@arena/shared';
 import type {
@@ -312,6 +312,10 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
   const realtimeBufferRef = useRef<FeedAction[]>([]);
   const flushTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  // Reconnect counter — incrementing forces Realtime effect to re-run
+  const [reconnectCount, setReconnectCount] = useState(0);
+  const channelRef = useRef<ReturnType<typeof supabaseRef.current.channel> | null>(null);
+
   function bufferAndFlush(action: FeedAction) {
     realtimeBufferRef.current.push(action);
     clearTimeout(flushTimerRef.current);
@@ -423,7 +427,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
     const supabase = supabaseRef.current;
 
     const feedChannel = supabase
-      .channel(`feed:${communityId}`)
+      .channel(`feed:${communityId}:${reconnectCount}`)
       // chat_messages INSERT
       .on(
         'postgres_changes',
@@ -487,18 +491,24 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
       )
       .subscribe();
 
+    channelRef.current = feedChannel;
+
     return () => {
       cancelled = true;
       clearTimeout(flushTimerRef.current);
       supabase.removeChannel(feedChannel);
+      channelRef.current = null;
     };
-  }, [communityId, userId]);
+  }, [communityId, userId, reconnectCount]);
 
   // --- Reconnect on tab visibility (mobile backgrounding kills WebSocket) ---
 
   useEffect(() => {
     function handleVisibility() {
       if (document.visibilityState !== 'visible') return;
+
+      // Force Realtime reconnection — the WebSocket likely died while hidden
+      setReconnectCount((c) => c + 1);
 
       // Reload latest messages when tab becomes visible again
       const supabase = supabaseRef.current;
