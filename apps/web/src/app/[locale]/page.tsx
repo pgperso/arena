@@ -58,7 +58,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <div className="flex flex-1 min-h-0 flex-col px-4">
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center">
         {/* Hero */}
         <div className="shrink-0 pt-6 pb-4 text-center md:pt-12 md:pb-8">
           <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-900 md:text-5xl">
