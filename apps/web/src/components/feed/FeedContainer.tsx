@@ -195,23 +195,24 @@ export function FeedContainer({
             <p className="text-xs text-gray-500">{t('online', { count: onlineMembers.length })}</p>
           </div>
           <div className="flex items-center gap-2">
+            {/* Desktop: full buttons */}
             {canModerate && user && (
               <button
                 onClick={() => setShowModeration(true)}
-                  className="flex items-center gap-1 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100"
-                  title={t('moderate')}
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-                  </svg>
-                  {t('moderate')}
-                </button>
+                className="hidden items-center gap-1 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 md:flex"
+                title={t('moderate')}
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                </svg>
+                {t('moderate')}
+              </button>
             )}
             {canCreateContent && user && (
               <>
                 <button
                   onClick={() => setShowArticleEditor(true)}
-                  className="flex items-center gap-1 rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100"
+                  className="hidden items-center gap-1 rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100 md:flex"
                   title={t('article')}
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -221,7 +222,7 @@ export function FeedContainer({
                 </button>
                 <button
                   onClick={() => setShowArticleList(true)}
-                  className="flex items-center gap-1 rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-100"
+                  className="hidden items-center gap-1 rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-100 md:flex"
                   title={t('myArticles')}
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -231,7 +232,7 @@ export function FeedContainer({
                 </button>
                 <button
                   onClick={() => setShowPodcastEditor(true)}
-                  className="flex items-center gap-1 rounded-lg bg-orange-50 px-3 py-1.5 text-xs font-medium text-orange-700 transition hover:bg-orange-100"
+                  className="hidden items-center gap-1 rounded-lg bg-orange-50 px-3 py-1.5 text-xs font-medium text-orange-700 transition hover:bg-orange-100 md:flex"
                   title={t('podcast')}
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -240,6 +241,17 @@ export function FeedContainer({
                   {t('podcast')}
                 </button>
               </>
+            )}
+            {/* Mobile: ⋯ menu for admin/creator actions */}
+            {(canModerate || canCreateContent) && user && (
+              <AdminMenu
+                canModerate={canModerate}
+                canCreateContent={canCreateContent}
+                onModerate={() => setShowModeration(true)}
+                onArticle={() => setShowArticleEditor(true)}
+                onMyArticles={() => setShowArticleList(true)}
+                onPodcast={() => setShowPodcastEditor(true)}
+              />
             )}
             <button
               onClick={() => setShowMembers(!showMembers)}
@@ -498,6 +510,89 @@ export function FeedContainer({
           communityId={communityId}
           onClose={() => setShowModeration(false)}
         />
+      )}
+    </div>
+  );
+}
+
+// ── Mobile admin/creator menu ──
+
+function AdminMenu({
+  canModerate,
+  canCreateContent,
+  onModerate,
+  onArticle,
+  onMyArticles,
+  onPodcast,
+}: {
+  canModerate: boolean;
+  canCreateContent: boolean;
+  onModerate: () => void;
+  onArticle: () => void;
+  onMyArticles: () => void;
+  onPodcast: () => void;
+}) {
+  const t = useTranslations('tribune');
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative md:hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+      >
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+        </svg>
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+            {canModerate && (
+              <button
+                onClick={() => { setOpen(false); onModerate(); }}
+                className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-700 transition hover:bg-red-50"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                </svg>
+                {t('moderate')}
+              </button>
+            )}
+            {canCreateContent && (
+              <>
+                <button
+                  onClick={() => { setOpen(false); onArticle(); }}
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-purple-700 transition hover:bg-purple-50"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                  </svg>
+                  {t('article')}
+                </button>
+                <button
+                  onClick={() => { setOpen(false); onMyArticles(); }}
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-gray-50"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                  </svg>
+                  {t('myArticles')}
+                </button>
+                <button
+                  onClick={() => { setOpen(false); onPodcast(); }}
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-orange-700 transition hover:bg-orange-50"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                  </svg>
+                  {t('podcast')}
+                </button>
+              </>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
