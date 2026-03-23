@@ -21,7 +21,13 @@ export function Footer() {
           <span className="hidden text-sm font-semibold text-gray-700 sm:inline">La tribune des fans</span>
         </div>
 
-        <nav>
+        <nav className="flex gap-3 sm:gap-4">
+          <a
+            href="mailto:info@fanstribune.com"
+            className="text-[10px] text-gray-500 transition hover:text-gray-700 sm:text-xs"
+          >
+            {t('footer.contact')}
+          </a>
           <Link
             href="/politique-confidentialite"
             className="text-[10px] text-gray-500 transition hover:text-gray-700 sm:text-xs"
