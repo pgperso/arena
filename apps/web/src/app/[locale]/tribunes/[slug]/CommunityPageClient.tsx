@@ -73,7 +73,7 @@ export function CommunityPageClient({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex h-[calc(100dvh-4rem)] flex-col overflow-hidden">
       {/* Join / Login modal */}
       {showJoinModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -206,12 +206,12 @@ export function CommunityPageClient({
       {isMember ? (
         <>
           {/* 3-column layout: [Ad left] | [Feed] | [Ad right] */}
-          <div className="flex min-h-0 flex-1 border-t border-gray-200">
+          <div className="flex flex-1 overflow-hidden border-t border-gray-200">
             {/* Left ad sidebar - xl+ only */}
             <AdSidebar position="left" />
 
             {/* Central feed area */}
-            <div className="min-h-0 flex-1 bg-white">
+            <div className="flex-1 overflow-hidden bg-white">
               <FeedContainer
                 communityId={community.id}
                 communityName={community.name}

@@ -123,7 +123,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
   const filtered = filter === 'all' ? items : items.filter((i) => i.type === (filter === 'articles' ? 'article' : 'podcast'));
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex h-full flex-col">
       {/* Filter tabs */}
       <div className="flex shrink-0 gap-1 border-b border-gray-200 px-4 py-2">
         {(['all', 'articles', 'podcasts'] as FilterType[]).map((f) => (
