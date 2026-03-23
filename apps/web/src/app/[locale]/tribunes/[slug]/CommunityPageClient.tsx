@@ -140,7 +140,7 @@ export function CommunityPageClient({
       >
         <div className="flex items-center gap-2">
           <Link
-            href="/"
+            href="/tribunes"
             className="flex items-center gap-1.5 rounded-lg bg-brand-blue px-2.5 py-1.5 text-xs font-medium text-white transition hover:bg-brand-blue-dark sm:px-3"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
