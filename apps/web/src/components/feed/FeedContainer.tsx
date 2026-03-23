@@ -185,9 +185,9 @@ export function FeedContainer({
   }, [items]);
 
   return (
-    <div className="flex h-full flex-col lg:flex-row">
+    <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
       {/* Feed area */}
-      <div className="relative flex flex-1 flex-col overflow-hidden">
+      <div className="relative flex min-h-0 flex-1 flex-col">
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3">
           <div>

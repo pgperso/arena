@@ -26,20 +26,6 @@
     cursor: pointer;
   }
 
-  /* During Suspense transitions (client-side navigation), React can
-     briefly render both fallback AND page content as siblings inside
-     <main>. Using flex:1 would split the space between them, causing
-     the page to show at partial height. height:100% ensures each
-     child claims the full parent height regardless of siblings.
-     display:flex makes this element a flex container so page components
-     can use either flex-1 or h-full inside it. */
-  main > * {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-
   /* Reply connector — curved L-shape from reply context down to avatar */
   .reply-connector {
     position: absolute;

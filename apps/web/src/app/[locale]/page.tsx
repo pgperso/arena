@@ -69,8 +69,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const controversial = mapTrending(controversialRes.data ?? []);
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden px-4">
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col px-4">
+      <div className="mx-auto flex w-full max-w-7xl min-h-0 flex-1 flex-col">
         {/* Header — fixed height */}
         <div className="shrink-0 pt-8 pb-6 text-center">
           <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
