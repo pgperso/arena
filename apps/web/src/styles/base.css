@@ -26,13 +26,6 @@
     cursor: pointer;
   }
 
-  /* Propagate height through Next.js App Router wrapper for pages
-     that use height:100% (login, register, vestiaire). Tribune pages
-     override this with explicit dvh height via Tailwind utility. */
-  main > * {
-    height: 100%;
-  }
-
   /* Reply connector — curved L-shape from reply context down to avatar */
   .reply-connector {
     position: absolute;
