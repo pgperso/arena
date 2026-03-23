@@ -154,7 +154,7 @@ export function CommunityPageClient({
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
             </svg>
-            <span className="hidden sm:inline">{t('community.backToTribunes')}</span>
+            <span className="hidden sm:inline">{t('community.exitTribune')}</span>
           </Link>
           <span className="text-sm font-semibold text-gray-900 sm:text-base">{community.name}</span>
           <span className="hidden text-sm text-gray-500 sm:inline">
