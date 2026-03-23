@@ -3,7 +3,7 @@
 import { memo, useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { Trash2, Pencil } from 'lucide-react';
-import { formatTime, getMemberRank } from '@arena/shared';
+import { formatTime, getMemberRank, BOT_MEMBER_ID } from '@arena/shared';
 import type { FeedMessage as FeedMessageType } from '@arena/shared';
 import { FeedActions } from './FeedActions';
 import { FeedImageGallery } from './FeedImageGallery';
@@ -274,8 +274,18 @@ export const FeedMessage = memo(function FeedMessage({
 
       <div className="flex gap-3">
         <div className="relative mt-0.5 h-8 w-8 flex-shrink-0">
-          <Avatar url={message.member?.avatarUrl} name={username} size="md" />
-          {presenceStatus && <StatusDot status={presenceStatus} size="md" />}
+          {message.memberId === BOT_MEMBER_ID ? (
+            <img
+              src="/images/fanstribune.webp"
+              alt={username}
+              className="h-8 w-8 rounded-lg object-contain"
+            />
+          ) : (
+            <>
+              <Avatar url={message.member?.avatarUrl} name={username} size="md" />
+              {presenceStatus && <StatusDot status={presenceStatus} size="md" />}
+            </>
+          )}
         </div>
 
         <div className="min-w-0 flex-1">
