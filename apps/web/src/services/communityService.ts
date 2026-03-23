@@ -22,7 +22,8 @@ export async function joinCommunity(
     member_id: memberId,
   });
 
-  // Bot announcements (fire-and-forget)
+  // Bot announcements — must await before returning so router.refresh()
+  // doesn't kill the connection before the RPC calls complete
   if (!result.error) {
     const [{ data: member }, { data: community }] = await Promise.all([
       supabase.from('members').select('username').eq('id', memberId).single(),
@@ -32,8 +33,10 @@ export async function joinCommunity(
     if (member && community) {
       const username = (member as { username: string }).username;
       const communityName = (community as { name: string }).name;
-      announceJoin(supabase, username, communityName);
-      checkMilestone(supabase, communityId, communityName);
+      await Promise.all([
+        announceJoin(supabase, username, communityName),
+        checkMilestone(supabase, communityId, communityName),
+      ]);
     }
   }
 
