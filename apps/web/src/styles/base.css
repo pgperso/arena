@@ -26,10 +26,14 @@
     cursor: pointer;
   }
 
-  /* Ensure page components fill <main> via flexbox — not height:100%
-     which breaks when content exceeds parent. Tailwind utilities
-     override this since @layer base < @layer utilities. */
+  /* Next.js App Router inserts wrapper divs between <main> and page
+     components during client-side navigation. This rule makes those
+     wrappers flex containers that fill <main>, so page components
+     with flex-1 or h-full work on both refresh and client-side nav.
+     @layer base ensures Tailwind utilities can override these. */
   main > * {
+    display: flex;
+    flex-direction: column;
     flex: 1 1 0%;
     min-height: 0;
   }
