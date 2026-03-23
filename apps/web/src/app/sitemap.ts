@@ -5,12 +5,25 @@ export const revalidate = 3600;
 
 const BASE_URL = 'https://fanstribune.com';
 
+function withAlternates(path: string) {
+  return {
+    url: `${BASE_URL}${path}`,
+    alternates: {
+      languages: {
+        'fr-CA': `${BASE_URL}/fr${path}`,
+        'en-CA': `${BASE_URL}/en${path}`,
+      },
+    },
+  };
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
 
   const entries: MetadataRoute.Sitemap = [
-    { url: BASE_URL, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
-    { url: `${BASE_URL}/tribunes`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { ...withAlternates('/'), lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
+    { ...withAlternates('/tribunes'), lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { ...withAlternates('/politique-confidentialite'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
   ];
 
   // Communities
@@ -23,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (communities) {
     for (const c of communities) {
       entries.push({
-        url: `${BASE_URL}/tribunes/${c.slug}`,
+        ...withAlternates(`/tribunes/${c.slug}`),
         lastModified: c.updated_at ? new Date(c.updated_at) : new Date(),
         changeFrequency: 'daily',
         priority: 0.8,
@@ -44,7 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const communitySlug = (a as Record<string, unknown>).communities as { slug: string } | null;
       if (communitySlug) {
         entries.push({
-          url: `${BASE_URL}/tribunes/${communitySlug.slug}/articles/${a.slug}`,
+          ...withAlternates(`/tribunes/${communitySlug.slug}/articles/${a.slug}`),
           lastModified: a.updated_at ? new Date(a.updated_at) : new Date(),
           changeFrequency: 'weekly',
           priority: 0.7,
@@ -65,7 +78,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const communitySlug = (p as Record<string, unknown>).communities as { slug: string } | null;
       if (communitySlug) {
         entries.push({
-          url: `${BASE_URL}/tribunes/${communitySlug.slug}/podcasts/${p.id}`,
+          ...withAlternates(`/tribunes/${communitySlug.slug}/podcasts/${p.id}`),
           lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
           changeFrequency: 'monthly',
           priority: 0.6,

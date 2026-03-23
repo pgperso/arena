@@ -82,6 +82,11 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <head>
+        <link rel="alternate" type="application/rss+xml" title="La tribune des fans" href="/feed.xml" />
+        <link rel="preconnect" href="https://fjcgfjgqzkswdmazkvlx.supabase.co" />
+        <link rel="dns-prefetch" href="https://fjcgfjgqzkswdmazkvlx.supabase.co" />
+        <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+        <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
         <Script
           async
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}

@@ -104,20 +104,32 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const podcastJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'PodcastEpisode',
-    name: podcast.title,
-    description: podcast.description ?? undefined,
-    url: `https://fanstribune.com/fr/tribunes/${slug}/podcasts/${podcast.id}`,
-    datePublished: podcast.created_at,
-    associatedMedia: {
-      '@type': 'MediaObject',
-      contentUrl: podcast.audio_url,
+  const podcastJsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'PodcastEpisode',
+      name: podcast.title,
+      description: podcast.description ?? undefined,
+      url: `https://fanstribune.com/fr/tribunes/${slug}/podcasts/${podcast.id}`,
+      datePublished: podcast.created_at,
+      associatedMedia: {
+        '@type': 'MediaObject',
+        contentUrl: podcast.audio_url,
+      },
+      image: podcast.cover_image_url ?? undefined,
+      author: publisher ? { '@type': 'Person', name: publisher.username } : undefined,
     },
-    image: podcast.cover_image_url ?? undefined,
-    author: publisher ? { '@type': 'Person', name: publisher.username } : undefined,
-  };
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Accueil', item: 'https://fanstribune.com' },
+        { '@type': 'ListItem', position: 2, name: 'Tribunes', item: 'https://fanstribune.com/fr/tribunes' },
+        { '@type': 'ListItem', position: 3, name: community.slug, item: `https://fanstribune.com/fr/tribunes/${slug}` },
+        { '@type': 'ListItem', position: 4, name: podcast.title },
+      ],
+    },
+  ];
 
   return (
     <div className="overflow-y-auto bg-white" style={{ height: 'calc(100dvh - 4rem)' }}>

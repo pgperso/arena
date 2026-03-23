@@ -110,18 +110,32 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   // Increment view count (fire and forget)
   void (async () => { try { await supabase.rpc('increment_article_views' as never, { p_article_id: article.id } as never); } catch { /* ignore */ } })();
 
-  const articleJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: article.title,
-    description: article.excerpt ?? undefined,
-    image: article.cover_image_url ?? undefined,
-    datePublished: article.published_at ?? article.created_at,
-    author: {
-      '@type': 'Person',
-      name: article.members?.username ?? 'Inconnu',
+  const articleJsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: article.title,
+      description: article.excerpt ?? undefined,
+      image: article.cover_image_url ?? undefined,
+      datePublished: article.published_at ?? article.created_at,
+      url: `https://fanstribune.com/fr/tribunes/${slug}/articles/${articleSlug}`,
+      publisher: { '@type': 'Organization', name: 'La tribune des fans', logo: { '@type': 'ImageObject', url: 'https://fanstribune.com/images/fanstribune.webp' } },
+      author: {
+        '@type': 'Person',
+        name: article.members?.creator_display_name || article.members?.username || 'Inconnu',
+      },
     },
-  };
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Accueil', item: 'https://fanstribune.com' },
+        { '@type': 'ListItem', position: 2, name: 'Tribunes', item: 'https://fanstribune.com/fr/tribunes' },
+        { '@type': 'ListItem', position: 3, name: community.slug, item: `https://fanstribune.com/fr/tribunes/${slug}` },
+        { '@type': 'ListItem', position: 4, name: article.title },
+      ],
+    },
+  ];
 
   return (
     <div className="mx-auto max-w-5xl overflow-y-auto bg-white" style={{ height: 'calc(100dvh - 4rem)' }}>

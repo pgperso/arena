@@ -1,4 +1,10 @@
+import type { Metadata } from 'next';
 import { Link } from '@/i18n/navigation';
+
+export const metadata: Metadata = {
+  title: 'Page introuvable',
+  robots: { index: false, follow: false },
+};
 
 export default function NotFound() {
   return (
