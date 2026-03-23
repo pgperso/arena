@@ -10,6 +10,7 @@ import { Link } from '@/i18n/navigation';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { removePodcast } from '@/services/podcastService';
 import { Trash2, EyeOff } from 'lucide-react';
+import { getContentAuthor } from '@/lib/contentAuthors';
 
 const CONTENT_AD_INTERVAL = 5; // Ad every 5 items
 
@@ -274,7 +275,14 @@ function ContentRow({
           <h3 className="text-sm font-semibold text-gray-900 line-clamp-1 hover:text-brand-blue">{item.title}</h3>
         </Link>
         <div className="mt-0.5 flex items-center gap-2">
-          <Avatar url={item.authorAvatarUrl} name={item.authorName} size="xs" />
+          {(() => {
+            const ca = getContentAuthor(item.authorName);
+            return ca ? (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full text-[8px] font-bold text-white" style={{ backgroundColor: ca.color }}>{ca.initials}</span>
+            ) : (
+              <Avatar url={item.authorAvatarUrl} name={item.authorName} size="xs" />
+            );
+          })()}
           <span className="text-xs text-gray-500">{item.authorName}</span>
           {item.likeCount > 0 && (
             <span className="text-xs text-gray-400">{item.likeCount} ♥</span>

@@ -10,6 +10,12 @@ import { useSupabase } from '@/hooks/useSupabase';
 import { useCoverUpload } from '@/hooks/useCoverUpload';
 import { createArticle, updateArticle } from '@/services/articleService';
 import { slugify } from '@/lib/slugify';
+import { CONTENT_AUTHORS as AUTHORS } from '@/lib/contentAuthors';
+
+const AUTHOR_OPTIONS = [
+  { name: 'Mon profil', initials: '✓', color: '#0B4870' },
+  ...AUTHORS,
+];
 
 interface ExistingArticle {
   id: number;
@@ -215,17 +221,31 @@ export function ArticleEditor({
         maxLength={300}
       />
 
-      {/* Author name override */}
-      <div className="mb-4 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-        <span className="shrink-0 text-xs font-medium text-gray-500">Publier en tant que :</span>
-        <input
-          type="text"
-          value={authorNameOverride}
-          onChange={(e) => setAuthorNameOverride(e.target.value)}
-          placeholder="Votre profil créateur (défaut)"
-          className="flex-1 border-none bg-transparent text-sm text-gray-900 placeholder-gray-400 focus:ring-0 focus:outline-none"
-          maxLength={100}
-        />
+      {/* Publish as selector */}
+      <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
+        <p className="mb-2 text-xs font-medium text-gray-500">Publier en tant que :</p>
+        <div className="flex flex-wrap gap-2">
+          {AUTHOR_OPTIONS.map((author) => (
+            <button
+              key={author.name}
+              type="button"
+              onClick={() => setAuthorNameOverride(author.name === 'Mon profil' ? '' : author.name)}
+              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
+                (authorNameOverride === '' && author.name === 'Mon profil') || authorNameOverride === author.name
+                  ? 'border-brand-blue bg-brand-blue/5 font-medium text-brand-blue'
+                  : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-white'
+              }`}
+            >
+              <span
+                className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                style={{ backgroundColor: author.color }}
+              >
+                {author.initials}
+              </span>
+              {author.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Toolbar */}

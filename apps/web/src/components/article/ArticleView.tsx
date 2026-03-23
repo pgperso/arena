@@ -7,6 +7,7 @@ import { FeedLikeButton } from '@/components/feed/FeedLikeButton';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { AdInArticle } from '@/components/ads/AdInArticle';
 import { Avatar } from '@/components/ui/Avatar';
+import { getContentAuthor } from '@/lib/contentAuthors';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 
@@ -132,7 +133,14 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
 
         {/* Author & meta */}
         <div className="mb-6 flex items-center gap-3 border-b border-gray-100 pb-4">
-          <Avatar url={article.author.avatar_url} name={article.author.username} size="lg" />
+          {(() => {
+            const ca = getContentAuthor(article.author.username);
+            return ca ? (
+              <span className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white" style={{ backgroundColor: ca.color }}>{ca.initials}</span>
+            ) : (
+              <Avatar url={article.author.avatar_url} name={article.author.username} size="lg" />
+            );
+          })()}
           <div>
             <p className="text-sm font-semibold text-gray-900">{article.author.username}</p>
             <p className="text-xs text-gray-400">
