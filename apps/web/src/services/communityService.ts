@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@arena/supabase-client';
 import { MAX_COMMUNITIES_PER_USER } from '@arena/shared';
-import { announceJoin, checkMilestone, promoteContent } from './botService';
+import { announceJoin, checkMilestone } from './botService';
 
 export async function joinCommunity(
   supabase: SupabaseClient<Database>,
@@ -34,7 +34,6 @@ export async function joinCommunity(
       const communityName = (community as { name: string }).name;
       announceJoin(supabase, username, communityName);
       checkMilestone(supabase, communityId, communityName);
-      promoteContent(supabase, communityId);
     }
   }
 

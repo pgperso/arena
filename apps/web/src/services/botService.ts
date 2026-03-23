@@ -62,26 +62,6 @@ const MILESTONE_ANNOUNCEMENTS = [
   (c: string, n: number) => `💪 ${c} vient de passer le cap des ${n} membres !`,
 ];
 
-// ── Content promotions (existing articles/podcasts) ──
-
-const ARTICLE_PROMOS = [
-  (t: string) => `📖 T'as lu "${t}" ? C'est dans l'onglet Contenu. Check ça !`,
-  (t: string) => `💡 Petit rappel : l'article "${t}" est dispo. Bonne lecture !`,
-  (t: string) => `📰 Si t'as manqué "${t}", c'est encore là ! Va voir ça.`,
-  (t: string) => `✍️ "${t}" — un article à (re)découvrir dans le contenu.`,
-  (t: string) => `🗞️ Savais-tu qu'on a "${t}" dans nos articles ? Jette un oeil !`,
-];
-
-const PODCAST_PROMOS = [
-  (t: string) => `🎧 T'as écouté "${t}" ? C'est dans les podcasts. Bonne écoute !`,
-  (t: string) => `🎙️ Le podcast "${t}" est dispo. Monte le son !`,
-  (t: string) => `🔊 Petit rappel : "${t}" est dans les podcasts. À écouter !`,
-  (t: string) => `📻 Si t'as manqué "${t}", c'est encore là ! Va l'écouter.`,
-  (t: string) => `🎤 "${t}" — un podcast à (re)découvrir !`,
-];
-
-const PROMO_CHANCE = 1; // always promote after a join
-
 const MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
 
 function pick<T>(arr: T[]): T {
@@ -164,49 +144,6 @@ export async function announceLive(
 ) {
   const message = pick(LIVE_ANNOUNCEMENTS)(communityName, liveTitle);
   await broadcastBot(supabase, message);
-}
-
-/** Occasionally promote a random article or podcast from the community */
-export async function promoteContent(
-  supabase: SupabaseClient<Database>,
-  communityId: number,
-) {
-  if (Math.random() > PROMO_CHANCE) return;
-
-  // Pick randomly between article and podcast
-  const type = Math.random() < 0.5 ? 'article' : 'podcast';
-
-  if (type === 'article') {
-    const { data } = await supabase
-      .from('articles')
-      .select('title')
-      .eq('community_id', communityId)
-      .eq('is_published', true)
-      .eq('is_removed', false)
-      .limit(20);
-
-    const articles = data as { title: string }[] | null;
-    if (articles && articles.length > 0) {
-      const article = pick(articles);
-      const message = pick(ARTICLE_PROMOS)(article.title);
-      await sendBotToTribune(supabase, communityId, message);
-    }
-  } else {
-    const { data } = await supabase
-      .from('podcasts')
-      .select('title')
-      .eq('community_id', communityId)
-      .eq('is_published', true)
-      .or('is_removed.eq.false,is_removed.is.null')
-      .limit(20);
-
-    const podcasts = data as { title: string }[] | null;
-    if (podcasts && podcasts.length > 0) {
-      const podcast = pick(podcasts);
-      const message = pick(PODCAST_PROMOS)(podcast.title);
-      await sendBotToTribune(supabase, communityId, message);
-    }
-  }
 }
 
 /** Check and announce member milestone for a community */
