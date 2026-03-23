@@ -91,7 +91,7 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
   } = await supabase.auth.getUser();
 
   return (
-    <div className="overflow-y-auto bg-white" style={{ height: 'calc(100dvh - 4rem)' }}>
+    <div className="h-full overflow-y-auto bg-white">
       <PodcastPlayer
         podcast={{ ...podcast, publisher }}
         communitySlug={slug}
