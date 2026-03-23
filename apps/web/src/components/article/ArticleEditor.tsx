@@ -25,6 +25,7 @@ interface ExistingArticle {
   body: string;
   cover_image_url: string | null;
   is_published: boolean;
+  author_name_override?: string | null;
 }
 
 interface ArticleEditorProps {
@@ -49,7 +50,7 @@ export function ArticleEditor({
   const [excerpt, setExcerpt] = useState(existingArticle?.excerpt ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [authorNameOverride, setAuthorNameOverride] = useState('');
+  const [authorNameOverride, setAuthorNameOverride] = useState(existingArticle?.author_name_override ?? '');
   const supabase = useSupabase();
   const { coverPreview, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
     supabase, communityId, existingArticle?.cover_image_url ?? null,
@@ -107,6 +108,7 @@ export function ArticleEditor({
         body,
         coverImageUrl,
         isPublished: publish,
+        authorNameOverride: authorNameOverride.trim() || null,
       });
 
       if (updateError) {

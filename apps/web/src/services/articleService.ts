@@ -77,6 +77,7 @@ export async function updateArticle(
     body: string;
     coverImageUrl: string | null;
     isPublished?: boolean;
+    authorNameOverride?: string | null;
   },
 ) {
   const validated = articleSchema.parse({
@@ -93,6 +94,7 @@ export async function updateArticle(
     excerpt: validated.excerpt ?? null,
     body: validated.body,
     cover_image_url: validated.coverImageUrl ?? null,
+    author_name_override: data.authorNameOverride?.trim() || null,
     updated_at: new Date().toISOString(),
   };
 
@@ -112,7 +114,7 @@ export async function fetchArticle(
 ) {
   return supabase
     .from('articles')
-    .select('id, community_id, author_id, title, slug, excerpt, body, cover_image_url, like_count, view_count, published_at, is_published, is_removed, created_at, updated_at')
+    .select('id, community_id, author_id, title, slug, excerpt, body, cover_image_url, like_count, view_count, published_at, is_published, is_removed, created_at, updated_at, author_name_override')
     .eq('id', articleId)
     .single();
 }
