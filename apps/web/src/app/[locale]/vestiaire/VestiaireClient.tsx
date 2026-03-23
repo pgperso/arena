@@ -117,7 +117,7 @@ export function VestiaireClient({
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 overflow-x-hidden">
       {/* Back button — mobile */}
       <button
         onClick={() => router.back()}
