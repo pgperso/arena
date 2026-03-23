@@ -39,6 +39,7 @@ interface FeedContainerProps {
   canModerate: boolean;
   canCreateContent: boolean;
   staffRoles: Record<string, string>;
+  onLeave?: () => void;
 }
 
 export function FeedContainer({
@@ -50,6 +51,7 @@ export function FeedContainer({
   canModerate,
   canCreateContent,
   staffRoles,
+  onLeave,
 }: FeedContainerProps) {
   const router = useRouter();
   const t = useTranslations('tribune');
@@ -242,8 +244,8 @@ export function FeedContainer({
                 </button>
               </>
             )}
-            {/* Mobile: ⋯ menu for admin/creator actions */}
-            {(canModerate || canCreateContent) && user && (
+            {/* Mobile: ⋯ menu for admin/creator actions + leave */}
+            {user && (
               <AdminMenu
                 canModerate={canModerate}
                 canCreateContent={canCreateContent}
@@ -251,6 +253,7 @@ export function FeedContainer({
                 onArticle={() => setShowArticleEditor(true)}
                 onMyArticles={() => setShowArticleList(true)}
                 onPodcast={() => setShowPodcastEditor(true)}
+                onLeave={onLeave}
               />
             )}
             <button
@@ -524,6 +527,7 @@ function AdminMenu({
   onArticle,
   onMyArticles,
   onPodcast,
+  onLeave,
 }: {
   canModerate: boolean;
   canCreateContent: boolean;
@@ -531,8 +535,10 @@ function AdminMenu({
   onArticle: () => void;
   onMyArticles: () => void;
   onPodcast: () => void;
+  onLeave?: () => void;
 }) {
   const t = useTranslations('tribune');
+  const tc = useTranslations('community');
   const [open, setOpen] = useState(false);
 
   return (
@@ -588,6 +594,20 @@ function AdminMenu({
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
                   </svg>
                   {t('podcast')}
+                </button>
+              </>
+            )}
+            {onLeave && (
+              <>
+                <div className="my-1 border-t border-gray-100" />
+                <button
+                  onClick={() => { setOpen(false); onLeave(); }}
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 transition hover:bg-red-50"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                  </svg>
+                  {tc('leaveTribune')}
                 </button>
               </>
             )}

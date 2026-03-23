@@ -159,10 +159,9 @@ export function CommunityPageClient({
             isMember ? (
               <button
                 onClick={() => setShowLeaveConfirm(true)}
-                className="rounded-lg border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 transition hover:border-red-300 hover:text-red-600 sm:px-3 sm:py-1.5"
+                className="hidden rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-red-300 hover:text-red-600 sm:inline-flex"
               >
-                <span className="sm:hidden">{t('community.leave')}</span>
-                <span className="hidden sm:inline">{t('community.leaveTribune')}</span>
+                {t('community.leaveTribune')}
               </button>
             ) : (
               <button
@@ -221,6 +220,7 @@ export function CommunityPageClient({
                 canModerate={canModerate}
                 canCreateContent={canCreateContent}
                 staffRoles={staffRoles}
+                onLeave={() => setShowLeaveConfirm(true)}
               />
             </div>
 
