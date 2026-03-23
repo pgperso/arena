@@ -233,82 +233,87 @@ export function VestiaireClient({
             {/* Creator avatar */}
             <div>
               <label className="mb-2 block text-sm font-medium text-purple-900">{tcr('creatorAvatar')}</label>
-              <p className="mb-2 text-xs text-purple-700/60">{tcr('creatorAvatarDesc')}</p>
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  {creatorAvatarUrl ? (
-                    <Image
-                      src={creatorAvatarUrl}
-                      alt="Creator avatar"
-                      width={64}
-                      height={64}
-                      className="h-16 w-16 rounded-full object-cover"
-                    />
-                  ) : avatarUrl ? (
-                    <Image
-                      src={avatarUrl}
-                      alt={creatorName || member.username}
-                      width={64}
-                      height={64}
-                      className="h-16 w-16 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-blue text-lg font-bold text-white">
-                      {(creatorName || member.username)[0]?.toUpperCase() ?? '?'}
-                    </div>
-                  )}
-                  {uploadingCreator && (
-                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    </div>
-                  )}
+              <p className="mb-3 text-xs text-purple-700/60">{tcr('creatorAvatarDesc')}</p>
+
+              {creatorAvatarUrl ? (
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Avatar url={creatorAvatarUrl} name={creatorName || member.username} size="xl" />
+                    {uploadingCreator && (
+                      <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <button
+                      onClick={() => creatorFileRef.current?.click()}
+                      disabled={uploadingCreator}
+                      className="rounded-lg border border-purple-300 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100 disabled:opacity-50"
+                    >
+                      {uploadingCreator ? tc('loading') : tc('edit')}
+                    </button>
+                    <button
+                      onClick={() => setCreatorAvatarUrl(null)}
+                      className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-500 transition hover:bg-gray-50"
+                    >
+                      {tc('remove')}
+                    </button>
+                  </div>
                 </div>
-                <input
-                  ref={creatorFileRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setUploadingCreator(true);
-                    try {
-                      const compressed = await imageCompression(file, {
-                        maxSizeMB: 0.5,
-                        maxWidthOrHeight: 512,
-                        useWebWorker: true,
-                        fileType: 'image/webp',
-                      });
-                      const supabase = createClient();
-                      const dir = `creator-avatars/${member.id}`;
-                      // Clean up old creator avatars
-                      const { data: existing } = await supabase.storage.from('avatars').list(dir);
-                      if (existing && existing.length > 0) {
-                        await supabase.storage.from('avatars').remove(existing.map((f) => `${dir}/${f.name}`));
-                      }
-                      const path = `${dir}/${Date.now()}.webp`;
-                      const { error } = await supabase.storage.from('avatars').upload(path, compressed, {
-                        contentType: 'image/webp',
-                        cacheControl: '31536000',
-                      });
-                      if (!error) {
-                        const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-                        setCreatorAvatarUrl(data.publicUrl);
-                      }
-                    } finally {
-                      setUploadingCreator(false);
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Avatar url={avatarUrl} name={member.username} size="xl" />
+                  <div className="flex flex-col gap-1.5">
+                    <p className="text-xs text-purple-700/60">Même avatar que le chat</p>
+                    <button
+                      onClick={() => creatorFileRef.current?.click()}
+                      disabled={uploadingCreator}
+                      className="rounded-lg border border-purple-300 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100 disabled:opacity-50"
+                    >
+                      {uploadingCreator ? tc('loading') : 'Utiliser un avatar différent'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <input
+                ref={creatorFileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setUploadingCreator(true);
+                  try {
+                    const compressed = await imageCompression(file, {
+                      maxSizeMB: 0.5,
+                      maxWidthOrHeight: 512,
+                      useWebWorker: true,
+                      fileType: 'image/webp',
+                    });
+                    const supabase = createClient();
+                    const dir = `creator-avatars/${member.id}`;
+                    const { data: existing } = await supabase.storage.from('avatars').list(dir);
+                    if (existing && existing.length > 0) {
+                      await supabase.storage.from('avatars').remove(existing.map((f) => `${dir}/${f.name}`));
                     }
-                    e.target.value = '';
-                  }}
-                />
-                <button
-                  onClick={() => creatorFileRef.current?.click()}
-                  disabled={uploadingCreator}
-                  className="rounded-lg border border-purple-300 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100 disabled:opacity-50"
-                >
-                  {uploadingCreator ? tc('loading') : creatorAvatarUrl ? tc('edit') : tcr('creatorAvatar')}
-                </button>
-              </div>
+                    const path = `${dir}/${Date.now()}.webp`;
+                    const { error } = await supabase.storage.from('avatars').upload(path, compressed, {
+                      contentType: 'image/webp',
+                      cacheControl: '31536000',
+                    });
+                    if (!error) {
+                      const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+                      setCreatorAvatarUrl(data.publicUrl);
+                    }
+                  } finally {
+                    setUploadingCreator(false);
+                  }
+                  e.target.value = '';
+                }}
+              />
             </div>
 
             {/* Creator display name */}
