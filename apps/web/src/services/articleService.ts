@@ -122,14 +122,19 @@ export async function fetchArticle(
 export async function fetchArticlesByAuthor(
   supabase: SupabaseClient<Database>,
   authorId: string,
-  communityId: number,
+  communityId?: number,
 ) {
-  return supabase
+  let query = supabase
     .from('articles')
-    .select('id, title, slug, excerpt, cover_image_url, is_published, published_at, created_at, updated_at, like_count, view_count, is_removed')
+    .select('id, title, slug, excerpt, cover_image_url, is_published, published_at, created_at, updated_at, like_count, view_count, is_removed, author_name_override, community_id, communities!inner(name, slug)')
     .eq('author_id', authorId)
-    .eq('community_id', communityId)
     .eq('is_removed', false)
     .order('created_at', { ascending: false })
     .limit(100);
+
+  if (communityId) {
+    query = query.eq('community_id', communityId);
+  }
+
+  return query;
 }

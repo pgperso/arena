@@ -18,6 +18,9 @@ interface ArticleRow {
   like_count: number;
   view_count: number;
   is_removed: boolean;
+  author_name_override: string | null;
+  community_id: number;
+  communities: { name: string; slug: string };
 }
 
 interface ArticleListProps {
@@ -39,22 +42,25 @@ export function ArticleList({ communityId, communitySlug, userId, onClose }: Art
     body: string;
     cover_image_url: string | null;
     is_published: boolean;
+    author_name_override?: string | null;
+    communityId: number;
+    communitySlug: string;
   } | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
 
   const loadArticles = useCallback(async () => {
-    const { data } = await fetchArticlesByAuthor(supabase, userId, communityId);
-    if (data) setArticles(data as ArticleRow[]);
+    const { data } = await fetchArticlesByAuthor(supabase, userId);
+    if (data) setArticles(data as unknown as ArticleRow[]);
     setLoading(false);
-  }, [supabase, userId, communityId]);
+  }, [supabase, userId]);
 
   useEffect(() => {
     loadArticles();
   }, [loadArticles]);
 
-  const handleEdit = useCallback(async (articleId: number) => {
-    const { data } = await fetchArticle(supabase, articleId);
-    const art = data as { id: number; title: string; slug: string; excerpt: string | null; body: string; cover_image_url: string | null; is_published: boolean } | null;
+  const handleEdit = useCallback(async (article: ArticleRow) => {
+    const { data } = await fetchArticle(supabase, article.id);
+    const art = data as unknown as { id: number; title: string; slug: string; excerpt: string | null; body: string; cover_image_url: string | null; is_published: boolean; author_name_override: string | null } | null;
     if (art) {
       setEditingArticle({
         id: art.id,
@@ -64,6 +70,9 @@ export function ArticleList({ communityId, communitySlug, userId, onClose }: Art
         body: art.body,
         cover_image_url: art.cover_image_url,
         is_published: art.is_published,
+        author_name_override: art.author_name_override,
+        communityId: article.community_id,
+        communitySlug: article.communities.slug,
       });
     }
   }, [supabase]);
@@ -79,8 +88,8 @@ export function ArticleList({ communityId, communitySlug, userId, onClose }: Art
   if (editingArticle) {
     return (
       <ArticleEditor
-        communityId={communityId}
-        communitySlug={communitySlug}
+        communityId={editingArticle.communityId}
+        communitySlug={editingArticle.communitySlug}
         userId={userId}
         existingArticle={editingArticle}
         onPublished={() => {
@@ -133,16 +142,21 @@ export function ArticleList({ communityId, communitySlug, userId, onClose }: Art
                   </span>
                 </div>
                 <p className="mt-0.5 text-xs text-gray-400">
+                  <span className="font-medium text-gray-500">{article.communities.name}</span>
+                  {' · '}
                   {article.is_published && article.published_at
                     ? `Publié le ${new Date(article.published_at).toLocaleDateString('fr-FR')}`
                     : `Créé le ${new Date(article.created_at).toLocaleDateString('fr-FR')}`}
                   {' · '}
                   {article.view_count} vues · {article.like_count} likes
+                  {article.author_name_override && (
+                    <> · par {article.author_name_override}</>
+                  )}
                 </p>
               </div>
               <div className="ml-4 flex shrink-0 gap-2">
                 <button
-                  onClick={() => handleEdit(article.id)}
+                  onClick={() => handleEdit(article)}
                   className="rounded-lg px-3 py-1.5 text-xs font-medium text-brand-blue transition hover:bg-blue-50"
                 >
                   Modifier

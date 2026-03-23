@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import LinkExtension from '@tiptap/extension-link';
@@ -47,14 +47,33 @@ export function ArticleEditor({
 }: ArticleEditorProps) {
   const isEditMode = !!existingArticle;
   const [title, setTitle] = useState(existingArticle?.title ?? '');
+  const [selectedCommunityId, setSelectedCommunityId] = useState(communityId);
+  const [selectedCommunitySlug, setSelectedCommunitySlug] = useState(communitySlug);
+  const [communities, setCommunities] = useState<{ id: number; name: string; slug: string }[]>([]);
   const [excerpt, setExcerpt] = useState(existingArticle?.excerpt ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [authorNameOverride, setAuthorNameOverride] = useState(existingArticle?.author_name_override ?? '');
   const supabase = useSupabase();
   const { coverPreview, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
-    supabase, communityId, existingArticle?.cover_image_url ?? null,
+    supabase, selectedCommunityId, existingArticle?.cover_image_url ?? null,
   );
+
+  // Load communities for tribune selector (new articles only)
+  useEffect(() => {
+    if (isEditMode) return;
+    supabase
+      .from('community_members')
+      .select('community_id, communities!inner(id, name, slug)')
+      .eq('member_id', userId)
+      .then(({ data }) => {
+        if (data) {
+          const comms = (data as unknown as { communities: { id: number; name: string; slug: string } }[])
+            .map((d) => d.communities);
+          setCommunities(comms);
+        }
+      });
+  }, [supabase, userId, isEditMode]);
 
   const editor = useEditor({
     extensions: [
@@ -118,7 +137,7 @@ export function ArticleEditor({
       }
     } else {
       const { error: insertError } = await createArticle(supabase, {
-        communityId,
+        communityId: selectedCommunityId,
         authorId: userId,
         title: title.trim(),
         slug,
@@ -212,6 +231,27 @@ export function ArticleEditor({
         className="mb-2 w-full border-none text-2xl font-bold text-gray-900 placeholder-gray-300 focus:ring-0 focus:outline-none"
         maxLength={200}
       />
+
+      {/* Tribune selector (new articles only) */}
+      {!isEditMode && communities.length > 1 && (
+        <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
+          <p className="mb-2 text-xs font-medium text-gray-500">Publier dans :</p>
+          <select
+            value={selectedCommunityId}
+            onChange={(e) => {
+              const id = Number(e.target.value);
+              setSelectedCommunityId(id);
+              const comm = communities.find((c) => c.id === id);
+              if (comm) setSelectedCommunitySlug(comm.slug);
+            }}
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+          >
+            {communities.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Excerpt */}
       <input
