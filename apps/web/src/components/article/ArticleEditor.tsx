@@ -43,6 +43,7 @@ export function ArticleEditor({
   const [excerpt, setExcerpt] = useState(existingArticle?.excerpt ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [authorNameOverride, setAuthorNameOverride] = useState('');
   const supabase = useSupabase();
   const { coverPreview, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
     supabase, communityId, existingArticle?.cover_image_url ?? null,
@@ -117,6 +118,7 @@ export function ArticleEditor({
         body,
         coverImageUrl,
         isPublished: publish,
+        authorNameOverride: authorNameOverride.trim() || null,
       });
 
       if (insertError) {
@@ -212,6 +214,19 @@ export function ArticleEditor({
         className="mb-4 w-full border-none text-sm text-gray-500 placeholder-gray-300 focus:ring-0 focus:outline-none"
         maxLength={300}
       />
+
+      {/* Author name override */}
+      <div className="mb-4 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+        <span className="shrink-0 text-xs font-medium text-gray-500">Publier en tant que :</span>
+        <input
+          type="text"
+          value={authorNameOverride}
+          onChange={(e) => setAuthorNameOverride(e.target.value)}
+          placeholder="Votre profil créateur (défaut)"
+          className="flex-1 border-none bg-transparent text-sm text-gray-900 placeholder-gray-400 focus:ring-0 focus:outline-none"
+          maxLength={100}
+        />
+      </div>
 
       {/* Toolbar */}
       {editor && (

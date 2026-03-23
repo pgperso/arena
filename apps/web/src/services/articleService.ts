@@ -29,6 +29,7 @@ export async function createArticle(
     body: string;
     coverImageUrl: string | null;
     isPublished?: boolean;
+    authorNameOverride?: string | null;
   },
 ) {
   const validated = articleSchema.parse({
@@ -49,6 +50,7 @@ export async function createArticle(
     cover_image_url: validated.coverImageUrl ?? null,
     is_published: data.isPublished ?? true,
     published_at: data.isPublished !== false ? new Date().toISOString() : null,
+    author_name_override: data.authorNameOverride?.trim() || null,
   });
 
   // Bot announcement when published (fire-and-forget)

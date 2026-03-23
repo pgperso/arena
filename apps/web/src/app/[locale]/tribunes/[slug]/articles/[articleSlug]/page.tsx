@@ -80,7 +80,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   // Load article with author
   const { data: articleData } = await supabase
     .from('articles')
-    .select('id, title, body, excerpt, cover_image_url, like_count, view_count, published_at, created_at, members:members!articles_author_id_fkey(id, username, avatar_url, creator_display_name, creator_avatar_url)')
+    .select('id, title, body, excerpt, cover_image_url, like_count, view_count, published_at, created_at, author_name_override, members:members!articles_author_id_fkey(id, username, avatar_url, creator_display_name, creator_avatar_url)')
     .eq('community_id', community.id)
     .eq('slug', articleSlug)
     .eq('is_published', true)
@@ -99,6 +99,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     view_count: number;
     published_at: string | null;
     created_at: string;
+    author_name_override: string | null;
     members: { id: string; username: string; avatar_url: string | null; creator_display_name: string | null; creator_avatar_url: string | null } | null;
   };
 
@@ -148,9 +149,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           ...article,
           author: article.members ? {
             id: article.members.id,
-            username: article.members.creator_display_name || article.members.username,
-            avatar_url: article.members.creator_avatar_url || article.members.avatar_url,
-          } : { id: '', username: 'Inconnu', avatar_url: null },
+            username: article.author_name_override || article.members.creator_display_name || article.members.username,
+            avatar_url: article.author_name_override ? null : (article.members.creator_avatar_url || article.members.avatar_url),
+          } : { id: '', username: article.author_name_override || 'Inconnu', avatar_url: null },
         }}
         communitySlug={slug}
         userId={user?.id ?? null}
