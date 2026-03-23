@@ -60,7 +60,7 @@ function MessageToolbar({
 }) {
   const t = useTranslations('common');
   return (
-    <div className="absolute -top-3 right-4 z-10 hidden items-center gap-1 rounded-lg bg-red-600 px-1 py-0.5 shadow-md opacity-0 transition group-hover:opacity-100 md:flex">
+    <div className={`absolute -top-3 right-4 z-10 items-center gap-1 rounded-lg bg-red-600 px-1 py-0.5 shadow-md transition ${mobileToolbar ? 'flex' : 'hidden'} md:flex md:opacity-0 md:group-hover:opacity-100`}>
       {confirmDelete ? (
         <span className="flex items-center gap-2 px-2 py-1 text-xs">
           <button onClick={onConfirmDelete} className="font-bold text-white hover:text-red-200">
@@ -117,6 +117,7 @@ export const FeedMessage = memo(function FeedMessage({
   const [editContent, setEditContent] = useState(message.content ?? '');
   const editRef = useRef<HTMLTextAreaElement>(null);
   const [popoverRect, setPopoverRect] = useState<DOMRect | null>(null);
+  const [mobileToolbar, setMobileToolbar] = useState(false);
 
   useEffect(() => {
     if (editing && editRef.current) {
@@ -215,6 +216,7 @@ export const FeedMessage = memo(function FeedMessage({
     return (
       <div
         className={`group relative py-1.5 pl-[52px] pr-3 transition-colors sm:pl-[60px] sm:pr-4 ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}
+        onClick={() => showToolbar && setMobileToolbar((v) => !v)}
       >
         <span className="absolute left-2 top-2 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100">
           {time}
@@ -255,6 +257,7 @@ export const FeedMessage = memo(function FeedMessage({
   return (
     <div
       className={`group relative px-4 pt-3 pb-1 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}
+      onClick={() => showToolbar && setMobileToolbar((v) => !v)}
     >
       {hasReplyContext && (
         <div className="mb-0.5 flex items-end pl-4">
