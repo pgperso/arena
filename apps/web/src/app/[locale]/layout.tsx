@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { TribuneProvider } from '@/contexts/TribuneContext';
 import { ADSENSE_CLIENT_ID } from '@arena/shared';
 import { routing } from '@/i18n/routing';
 
@@ -50,11 +51,13 @@ export default async function LocaleLayout({
       </head>
       <body className="font-sans antialiased">
         <NextIntlClientProvider messages={messages}>
-          <div className="flex flex-1 min-h-dvh flex-col">
-            <Header />
-            <main className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</main>
-            <Footer />
-          </div>
+          <TribuneProvider>
+            <div className="flex flex-1 min-h-dvh flex-col">
+              <Header />
+              <main className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</main>
+              <Footer />
+            </div>
+          </TribuneProvider>
         </NextIntlClientProvider>
       </body>
     </html>

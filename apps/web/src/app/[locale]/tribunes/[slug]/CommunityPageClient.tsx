@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { FeedContainer } from '@/components/feed/FeedContainer';
@@ -9,6 +9,7 @@ import { AdAnchor } from '@/components/ads/AdAnchor';
 import { Avatar } from '@/components/ui/Avatar';
 import { useSupabase } from '@/hooks/useSupabase';
 import { joinCommunity, leaveCommunity } from '@/services/communityService';
+import { useTribune } from '@/contexts/TribuneContext';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import type { Database } from '@arena/supabase-client';
@@ -37,12 +38,19 @@ export function CommunityPageClient({
   const router = useRouter();
   const supabase = useSupabase();
   const t = useTranslations();
+  const { setTribune } = useTribune();
   const [isMember, setIsMember] = useState(initialIsMember);
   const [joining, setJoining] = useState(false);
   const [memberCount, setMemberCount] = useState(community.member_count);
   const [showJoinModal, setShowJoinModal] = useState(!initialIsMember);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
+  // Tell the Header we're in a tribune
+  useEffect(() => {
+    setTribune({ name: community.name, slug: community.slug });
+    return () => setTribune(null);
+  }, [community.name, community.slug, setTribune]);
 
   async function handleJoin() {
     if (!userId) {
@@ -134,9 +142,9 @@ export function CommunityPageClient({
         </div>
       )}
 
-      {/* Community bar — single bar combining back, name, actions */}
+      {/* Community bar — hidden on mobile (Header shows back + name instead) */}
       <div
-        className="flex shrink-0 items-center justify-between bg-gray-100 px-3 py-1.5 sm:px-4 sm:py-2"
+        className="hidden shrink-0 items-center justify-between bg-gray-100 px-4 py-2 md:flex"
       >
         <div className="flex items-center gap-1.5 sm:gap-2">
           <Link

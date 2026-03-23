@@ -7,6 +7,7 @@ import { useRouter, usePathname } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslations, useLocale } from 'next-intl';
+import { useTribune } from '@/contexts/TribuneContext';
 import { MobileNav } from './MobileNav';
 
 export function Header() {
@@ -15,6 +16,7 @@ export function Header() {
   const t = useTranslations();
   const locale = useLocale();
   const pathname = usePathname();
+  const { tribune } = useTribune();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -45,18 +47,37 @@ export function Header() {
   return (
     <header className="shrink-0 border-b border-gray-200">
       <div className="flex h-12 items-center justify-between px-3 sm:h-14 sm:px-4 md:h-16">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
-          <Image
-            src="/images/fanstribune.webp"
-            alt="La tribune des fans"
-            width={36}
-            height={36}
-            priority
-            className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9"
-          />
-          <span className="text-base font-bold text-gray-900 sm:text-lg md:text-xl">{t('brand.name')}</span>
-        </Link>
+        {/* Logo — on mobile in tribune: back arrow + tribune name */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {tribune && (
+            <Link
+              href="/tribunes"
+              className="flex items-center rounded-lg p-1 text-gray-600 transition hover:bg-gray-100 md:hidden"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+            </Link>
+          )}
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
+            <Image
+              src="/images/fanstribune.webp"
+              alt="La tribune des fans"
+              width={36}
+              height={36}
+              priority
+              className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9"
+            />
+            {tribune ? (
+              <>
+                <span className="text-base font-bold text-gray-900 md:hidden">{tribune.name}</span>
+                <span className="hidden text-lg font-bold text-gray-900 md:inline md:text-xl">{t('brand.name')}</span>
+              </>
+            ) : (
+              <span className="text-base font-bold text-gray-900 sm:text-lg md:text-xl">{t('brand.name')}</span>
+            )}
+          </Link>
+        </div>
 
         {/* Language + Desktop auth */}
         <div className="hidden items-center gap-3 md:flex">
