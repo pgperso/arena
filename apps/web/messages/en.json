@@ -117,7 +117,7 @@
     "leaveTitle": "Unsubscribe from {name}?",
     "leaveMessage": "You will be unsubscribed from this tribune and won't have access until you rejoin. Message history will remain available if you come back.",
     "backToTribunes": "Tribunes",
-    "exitTribune": "Exit tribune",
+    "exitTribune": "Exit",
     "joinToAccess": "Join this tribune to access the content.",
     "allJoinedMessage": "You've already joined all tribunes in this category."
   },

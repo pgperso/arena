@@ -123,7 +123,7 @@
     "leaveTitle": "Se désabonner de {name} ?",
     "leaveMessage": "Tu seras désinscrit de cette tribune et tu n'y auras plus accès tant que tu ne la rejoindras pas de nouveau. L'historique des messages restera disponible si tu reviens.",
     "backToTribunes": "Tribunes",
-    "exitTribune": "Quitter la tribune",
+    "exitTribune": "Sortir",
     "joinToAccess": "Rejoignez cette tribune pour accéder au contenu.",
     "allJoinedMessage": "Tu as déjà rejoint toutes les tribunes de cette catégorie."
   },
