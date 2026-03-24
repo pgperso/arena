@@ -85,6 +85,7 @@ export async function updateArticle(
     coverImageUrl: string | null;
     isPublished?: boolean;
     authorNameOverride?: string | null;
+    communityId?: number;
   },
 ) {
   const validated = articleSchema.parse({
@@ -102,6 +103,7 @@ export async function updateArticle(
     body: validated.body,
     cover_image_url: validated.coverImageUrl ?? null,
     author_name_override: data.authorNameOverride?.trim() || null,
+    ...(data.communityId ? { community_id: data.communityId } : {}),
     updated_at: new Date().toISOString(),
   };
 

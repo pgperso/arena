@@ -63,7 +63,6 @@ export function ArticleEditor({
 
   // Load communities for tribune selector (new articles only)
   useEffect(() => {
-    if (isEditMode) return;
     supabase
       .from('community_members')
       .select('community_id, communities!inner(id, name, slug)')
@@ -130,6 +129,7 @@ export function ArticleEditor({
         coverImageUrl,
         isPublished: publish,
         authorNameOverride: authorNameOverride.trim() || null,
+        communityId: selectedCommunityId,
       });
 
       if (updateError) {
@@ -261,8 +261,8 @@ export function ArticleEditor({
         </div>
       </div>
 
-      {/* Tribune selector (new articles only) */}
-      {!isEditMode && communities.length > 1 && (
+      {/* Tribune selector */}
+      {communities.length > 1 && (
         <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
           <p className="mb-2 text-xs font-medium text-gray-500">Publier dans :</p>
           <select
