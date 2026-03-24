@@ -71,7 +71,7 @@ interface ArticleWithJoin extends ArticleRow {
 
 function articleToFeedItem(row: ArticleWithJoin & { author_name_override?: string | null }): FeedArticle {
   const m = row.members;
-  const override = (row as Record<string, unknown>).author_name_override as string | null;
+  const override = (row as unknown as Record<string, unknown>).author_name_override as string | null;
   const author = m ? {
     id: m.id,
     username: override || m.creator_display_name || m.username,
