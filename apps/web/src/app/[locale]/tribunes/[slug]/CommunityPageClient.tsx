@@ -52,7 +52,7 @@ export function CommunityPageClient({
   }, [community.name, community.slug, setTribune]);
 
   // Load user's communities for prev/next navigation
-  const [userCommunities, setUserCommunities] = useState<{ id: number; slug: string; name: string }[]>([]);
+  const [userCommunities, setUserCommunities] = useState<{ id: number; slug: string; name: string }[] | null>(null);
   useEffect(() => {
     if (!userId) return;
     supabase
@@ -69,11 +69,13 @@ export function CommunityPageClient({
       });
   }, [supabase, userId]);
 
-  const { prevCommunity, nextCommunity } = useMemo(() => {
+  const { prevCommunity, nextCommunity, hasMultiple } = useMemo(() => {
+    if (!userCommunities) return { prevCommunity: null, nextCommunity: null, hasMultiple: false };
     const idx = userCommunities.findIndex((c) => c.id === community.id);
     return {
       prevCommunity: idx > 0 ? userCommunities[idx - 1] : null,
       nextCommunity: idx < userCommunities.length - 1 ? userCommunities[idx + 1] : null,
+      hasMultiple: userCommunities.length > 1,
     };
   }, [userCommunities, community.id]);
 
@@ -175,7 +177,7 @@ export function CommunityPageClient({
             <span className="hidden sm:inline">{t('community.exitTribune')}</span>
           </Link>
           {/* Prev/Next tribune navigation + name */}
-          {userCommunities.length > 1 && (
+          {(hasMultiple || userCommunities === null) && (
             <Link
               href={prevCommunity ? `/tribunes/${prevCommunity.slug}` : '#'}
               className={`rounded-lg p-1 transition ${prevCommunity ? 'text-gray-600 hover:bg-gray-200 hover:text-gray-900' : 'pointer-events-none text-gray-300'}`}
@@ -187,7 +189,7 @@ export function CommunityPageClient({
             </Link>
           )}
           <span className="text-sm font-semibold text-gray-900 sm:text-base">{community.name}</span>
-          {userCommunities.length > 1 && (
+          {(hasMultiple || userCommunities === null) && (
             <Link
               href={nextCommunity ? `/tribunes/${nextCommunity.slug}` : '#'}
               className={`rounded-lg p-1 transition ${nextCommunity ? 'text-gray-600 hover:bg-gray-200 hover:text-gray-900' : 'pointer-events-none text-gray-300'}`}
