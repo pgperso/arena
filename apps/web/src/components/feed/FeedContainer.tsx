@@ -469,9 +469,9 @@ export function FeedContainer({
               communityId={communityId}
               communitySlug={communitySlug}
               userId={user.id}
-              onPublished={(slug) => {
+              onPublished={(slug, targetSlug) => {
                 setShowArticleEditor(false);
-                router.push(`/tribunes/${communitySlug}/articles/${slug}`);
+                router.push(`/tribunes/${targetSlug}/articles/${slug}`);
               }}
               onCancel={() => setShowArticleEditor(false)}
             />

@@ -92,7 +92,7 @@ export function ArticleList({ communityId, communitySlug, userId, onClose }: Art
         communitySlug={editingArticle.communitySlug}
         userId={userId}
         existingArticle={editingArticle}
-        onPublished={() => {
+        onPublished={(_slug, _communitySlug) => {
           setEditingArticle(null);
           loadArticles();
         }}

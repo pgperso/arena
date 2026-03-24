@@ -33,7 +33,7 @@ interface ArticleEditorProps {
   communitySlug: string;
   userId: string;
   existingArticle?: ExistingArticle;
-  onPublished: (slug: string) => void;
+  onPublished: (slug: string, communitySlug: string) => void;
   onCancel: () => void;
 }
 
@@ -158,7 +158,7 @@ export function ArticleEditor({
     }
 
     setSaving(false);
-    onPublished(slug);
+    onPublished(slug, selectedCommunitySlug);
   }, [title, excerpt, editor, uploadCover, communityId, userId, supabase, onPublished, isEditMode, existingArticle]);
 
   return (
