@@ -66,7 +66,7 @@ export function Header() {
               width={36}
               height={36}
               priority
-              className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9"
+              className="h-7 w-7 object-contain sm:h-8 sm:w-8 md:h-9 md:w-9"
             />
             {tribune ? (
               <>
