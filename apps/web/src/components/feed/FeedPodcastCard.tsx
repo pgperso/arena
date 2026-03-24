@@ -90,7 +90,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
   if (isYouTube) {
     return (
       <div className="px-4 py-3">
-        <div className="overflow-hidden rounded-xl border border-gray-200">
+        <div className="max-w-md overflow-hidden rounded-xl border border-gray-200">
           <FeedLivePlayer videoId={podcast.youtubeVideoId!} isLive={podcast.isLive} />
 
           <div className="bg-white p-3">
@@ -167,7 +167,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
   // Audio podcast (existing behavior)
   return (
     <div className="px-4 py-3">
-      <div className="overflow-hidden rounded-xl bg-gray-950 p-4">
+      <div className="max-w-md overflow-hidden rounded-xl bg-gray-950 p-4">
         {podcast.audioUrl && (
           <audio
             ref={audioRef}
