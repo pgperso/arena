@@ -51,7 +51,7 @@ export async function createArticle(
     is_published: data.isPublished ?? true,
     published_at: data.isPublished !== false ? new Date().toISOString() : null,
     author_name_override: data.authorNameOverride?.trim() || null,
-  });
+  } as never);
 
   // Bot announcement when published (fire-and-forget)
   if (!result.error && data.isPublished !== false) {
@@ -112,7 +112,7 @@ export async function updateArticle(
     }
   }
 
-  return supabase.from('articles').update(update).eq('id', articleId);
+  return supabase.from('articles').update(update as never).eq('id', articleId);
 }
 
 export async function fetchArticle(
