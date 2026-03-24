@@ -33,30 +33,47 @@ export async function generateMetadata({ params }: ArticlePageProps) {
   if (!article) return { title: 'Article introuvable' };
 
   const { title, excerpt, cover_image_url, published_at } = article as { title: string; excerpt: string | null; cover_image_url: string | null; published_at: string | null };
-  const desc = excerpt ?? title;
+  const desc = excerpt ?? `${title} — Article sportif sur La tribune des fans. Opinions, analyses et débats.`;
+  const url = `https://fanstribune.com/fr/tribunes/${slug}/articles/${articleSlug}`;
+  const communityName = (await supabase.from('communities').select('name').eq('slug', slug).single()).data as { name: string } | null;
 
   return {
-    title,
+    title: `${title} | ${communityName?.name ?? 'Tribune'}`,
     description: desc,
+    keywords: [title, communityName?.name, 'article sportif', 'opinion sport', 'La tribune des fans', 'hockey', 'sports'].filter(Boolean) as string[],
     openGraph: {
       title: `${title} | La tribune des fans`,
       description: desc,
       type: 'article',
       publishedTime: published_at ?? undefined,
-      images: cover_image_url ? [{ url: cover_image_url, alt: title }] : undefined,
+      section: 'Sports',
+      tags: [communityName?.name ?? 'Sports', 'Opinion', 'Tribune'],
+      url,
+      siteName: 'La tribune des fans',
+      locale: 'fr_CA',
+      images: cover_image_url
+        ? [{ url: cover_image_url, alt: title, width: 1200, height: 630 }]
+        : [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 }],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${title} | La tribune des fans`,
       description: desc,
-      images: cover_image_url ? [cover_image_url] : undefined,
+      images: cover_image_url ? [cover_image_url] : ['https://fanstribune.com/images/fanstribune.webp'],
+      site: '@fanstribune',
     },
     alternates: {
-      canonical: `https://fanstribune.com/fr/tribunes/${slug}/articles/${articleSlug}`,
+      canonical: url,
       languages: {
         'fr-CA': `https://fanstribune.com/fr/tribunes/${slug}/articles/${articleSlug}`,
         'en-CA': `https://fanstribune.com/en/tribunes/${slug}/articles/${articleSlug}`,
       },
+    },
+    robots: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
     },
   };
 }
@@ -111,20 +128,40 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   // Increment view count (fire and forget)
   void (async () => { try { await supabase.rpc('increment_article_views' as never, { p_article_id: article.id } as never); } catch { /* ignore */ } })();
 
+  const authorDisplayName = article.author_name_override || article.members?.creator_display_name || article.members?.username || 'Inconnu';
+  const articleUrl = `https://fanstribune.com/fr/tribunes/${slug}/articles/${articleSlug}`;
+  const wordCount = article.body.replace(/<[^>]*>/g, '').split(/\s+/).length;
+
   const articleJsonLd = [
     {
       '@context': 'https://schema.org',
       '@type': 'Article',
+      '@id': articleUrl,
       headline: article.title,
-      description: article.excerpt ?? undefined,
-      image: article.cover_image_url ?? undefined,
+      description: article.excerpt ?? `${article.title} — article sportif sur La tribune des fans`,
+      image: article.cover_image_url ?? 'https://fanstribune.com/images/fanstribune.webp',
       datePublished: article.published_at ?? article.created_at,
-      url: `https://fanstribune.com/fr/tribunes/${slug}/articles/${articleSlug}`,
-      publisher: { '@type': 'Organization', name: 'La tribune des fans', logo: { '@type': 'ImageObject', url: 'https://fanstribune.com/images/fanstribune.webp' } },
+      dateModified: article.created_at,
+      url: articleUrl,
+      mainEntityOfPage: { '@type': 'WebPage', '@id': articleUrl },
+      wordCount,
+      articleSection: 'Sports',
+      inLanguage: 'fr-CA',
+      publisher: {
+        '@type': 'Organization',
+        name: 'La tribune des fans',
+        url: 'https://fanstribune.com',
+        logo: { '@type': 'ImageObject', url: 'https://fanstribune.com/images/fanstribune.webp', width: 512, height: 512 },
+      },
       author: {
         '@type': 'Person',
-        name: article.members?.creator_display_name || article.members?.username || 'Inconnu',
+        name: authorDisplayName,
       },
+      isAccessibleForFree: true,
+      interactionStatistic: [
+        { '@type': 'InteractionCounter', interactionType: 'https://schema.org/LikeAction', userInteractionCount: article.like_count },
+        { '@type': 'InteractionCounter', interactionType: 'https://schema.org/ReadAction', userInteractionCount: article.view_count },
+      ],
     },
     {
       '@context': 'https://schema.org',

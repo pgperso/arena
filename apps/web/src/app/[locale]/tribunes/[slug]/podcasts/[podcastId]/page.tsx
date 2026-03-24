@@ -26,30 +26,45 @@ export async function generateMetadata({ params }: PodcastPageProps) {
   if (!podcast) return { title: 'Podcast introuvable' };
 
   const { title, description, audio_url, cover_image_url } = podcast as { title: string; description: string | null; audio_url: string; cover_image_url: string | null };
-  const desc = description ?? title;
+  const { slug } = await params;
+  const desc = description ?? `${title} — Podcast sportif sur La tribune des fans. Écoutez maintenant !`;
+  const url = `https://fanstribune.com/fr/tribunes/${slug}/podcasts/${podcastId}`;
 
   return {
-    title,
+    title: `${title} | La tribune des fans`,
     description: desc,
+    keywords: [title, 'podcast sportif', 'La tribune des fans', 'hockey', 'sports', 'audio'],
     openGraph: {
       title: `${title} | La tribune des fans`,
       description: desc,
       type: 'music.song',
       audio: audio_url,
-      images: cover_image_url ? [{ url: cover_image_url, alt: title }] : undefined,
+      url,
+      siteName: 'La tribune des fans',
+      locale: 'fr_CA',
+      images: cover_image_url
+        ? [{ url: cover_image_url, alt: title, width: 1200, height: 630 }]
+        : [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 }],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${title} | La tribune des fans`,
       description: desc,
-      images: cover_image_url ? [cover_image_url] : undefined,
+      images: cover_image_url ? [cover_image_url] : ['https://fanstribune.com/images/fanstribune.webp'],
+      site: '@fanstribune',
     },
     alternates: {
-      canonical: `https://fanstribune.com/fr/tribunes/${(await params).slug}/podcasts/${podcastId}`,
+      canonical: url,
       languages: {
-        'fr-CA': `https://fanstribune.com/fr/tribunes/${(await params).slug}/podcasts/${podcastId}`,
-        'en-CA': `https://fanstribune.com/en/tribunes/${(await params).slug}/podcasts/${podcastId}`,
+        'fr-CA': `https://fanstribune.com/fr/tribunes/${slug}/podcasts/${podcastId}`,
+        'en-CA': `https://fanstribune.com/en/tribunes/${slug}/podcasts/${podcastId}`,
       },
+    },
+    robots: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
     },
   };
 }
@@ -104,20 +119,43 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const podcastUrl = `https://fanstribune.com/fr/tribunes/${slug}/podcasts/${podcast.id}`;
+
   const podcastJsonLd = [
     {
       '@context': 'https://schema.org',
       '@type': 'PodcastEpisode',
+      '@id': podcastUrl,
       name: podcast.title,
-      description: podcast.description ?? undefined,
-      url: `https://fanstribune.com/fr/tribunes/${slug}/podcasts/${podcast.id}`,
+      description: podcast.description ?? `${podcast.title} — Podcast sportif sur La tribune des fans`,
+      url: podcastUrl,
       datePublished: podcast.created_at,
+      inLanguage: 'fr-CA',
+      duration: podcast.duration_seconds ? `PT${Math.floor(podcast.duration_seconds / 60)}M${podcast.duration_seconds % 60}S` : undefined,
       associatedMedia: {
         '@type': 'MediaObject',
         contentUrl: podcast.audio_url,
+        encodingFormat: 'audio/mpeg',
       },
-      image: podcast.cover_image_url ?? undefined,
+      image: podcast.cover_image_url ?? 'https://fanstribune.com/images/fanstribune.webp',
       author: publisher ? { '@type': 'Person', name: publisher.username } : undefined,
+      partOfSeries: {
+        '@type': 'PodcastSeries',
+        name: 'La tribune des fans',
+        url: 'https://fanstribune.com',
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'La tribune des fans',
+        url: 'https://fanstribune.com',
+        logo: { '@type': 'ImageObject', url: 'https://fanstribune.com/images/fanstribune.webp' },
+      },
+      isAccessibleForFree: true,
+      interactionStatistic: {
+        '@type': 'InteractionCounter',
+        interactionType: 'https://schema.org/LikeAction',
+        userInteractionCount: podcast.like_count,
+      },
     },
     {
       '@context': 'https://schema.org',
