@@ -14,8 +14,16 @@ export const metadata: Metadata = {
     template: '%s | La tribune des fans',
   },
   description:
-    'Plateforme communautaire sportive en direct. Rejoignez la tribune de votre équipe, chattez en temps réel, lisez des articles et écoutez des podcasts.',
-  keywords: ['sport', 'tribune', 'chat en direct', 'hockey', 'baseball', 'football', 'podcast sportif', 'articles sportifs', 'communauté sportive', 'fans', 'La tribune des fans'],
+    'Rejoignez la tribune de votre équipe sportive. Chat en direct entre fans, articles d\'opinion, podcasts et débats. Hockey, baseball, football et plus.',
+  keywords: [
+    'tribune sportive', 'chat sport en direct', 'communauté fans hockey',
+    'forum hockey', 'forum baseball', 'forum football',
+    'Canadiens de Montréal fans', 'Blue Jays fans', 'CF Montréal fans',
+    'opinion sportive', 'chronique sport', 'podcast sport québec',
+    'article hockey', 'débat sportif', 'chat fans sport',
+    'La tribune des fans', 'fanstribune',
+    'sports community', 'live sports chat', 'sports fan forum',
+  ],
   authors: [{ name: 'La tribune des fans', url: 'https://fanstribune.com' }],
   creator: 'La tribune des fans',
   publisher: 'La tribune des fans',

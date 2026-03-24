@@ -40,7 +40,14 @@ export async function generateMetadata({ params }: ArticlePageProps) {
   return {
     title: `${title} | ${communityName?.name ?? 'Tribune'}`,
     description: desc,
-    keywords: [title, communityName?.name, 'article sportif', 'opinion sport', 'La tribune des fans', 'hockey', 'sports'].filter(Boolean) as string[],
+    keywords: [
+      title,
+      communityName?.name,
+      `${communityName?.name ?? ''} fans`,
+      'article sportif', 'chronique sport', 'opinion sport',
+      'tribune sportive', 'La tribune des fans', 'fanstribune',
+      'analyse sport', 'débat sportif',
+    ].filter(Boolean) as string[],
     openGraph: {
       title: `${title} | La tribune des fans`,
       description: desc,

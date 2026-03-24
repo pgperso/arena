@@ -253,15 +253,23 @@ export function ArticleEditor({
         </div>
       )}
 
-      {/* Excerpt */}
-      <input
-        type="text"
-        value={excerpt}
-        onChange={(e) => setExcerpt(e.target.value)}
-        placeholder="Résumé court (optionnel)"
-        className="mb-4 w-full border-none text-sm text-gray-500 placeholder-gray-300 focus:ring-0 focus:outline-none"
-        maxLength={300}
-      />
+      {/* Excerpt — critical for SEO (meta description) */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-gray-400">Résumé SEO <span className="text-orange-500">— recommandé pour le référencement</span></label>
+          <span className={`text-[10px] ${excerpt.length > 0 ? (excerpt.length <= 155 ? 'text-green-500' : 'text-orange-500') : 'text-gray-300'}`}>
+            {excerpt.length}/155
+          </span>
+        </div>
+        <input
+          type="text"
+          value={excerpt}
+          onChange={(e) => setExcerpt(e.target.value)}
+          placeholder="120-155 caractères idéal. Ex: Analyse sans filtre des Canadiens — séries, deadline, gardien..."
+          className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-300 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
+          maxLength={200}
+        />
+      </div>
 
       {/* Publish as selector */}
       <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
