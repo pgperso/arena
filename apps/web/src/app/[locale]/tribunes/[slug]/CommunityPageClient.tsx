@@ -174,7 +174,30 @@ export function CommunityPageClient({
             </svg>
             <span className="hidden sm:inline">{t('community.exitTribune')}</span>
           </Link>
+          {/* Prev/Next tribune navigation + name */}
+          {userCommunities.length > 1 && (
+            <Link
+              href={prevCommunity ? `/tribunes/${prevCommunity.slug}` : '#'}
+              className={`rounded-lg p-1 transition ${prevCommunity ? 'text-gray-600 hover:bg-gray-200 hover:text-gray-900' : 'pointer-events-none text-gray-300'}`}
+              title={prevCommunity?.name}
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+            </Link>
+          )}
           <span className="text-sm font-semibold text-gray-900 sm:text-base">{community.name}</span>
+          {userCommunities.length > 1 && (
+            <Link
+              href={nextCommunity ? `/tribunes/${nextCommunity.slug}` : '#'}
+              className={`rounded-lg p-1 transition ${nextCommunity ? 'text-gray-600 hover:bg-gray-200 hover:text-gray-900' : 'pointer-events-none text-gray-300'}`}
+              title={nextCommunity?.name}
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              </svg>
+            </Link>
+          )}
           <span className="hidden text-sm text-gray-500 sm:inline">
             {t('common.members', { count: memberCount })}
           </span>
@@ -189,29 +212,6 @@ export function CommunityPageClient({
             >
               {joining ? t('common.loading') : t('community.join')}
             </button>
-          )}
-          {/* Prev/Next tribune navigation */}
-          {userCommunities.length > 1 && (
-            <div className="flex items-center gap-0.5">
-              <Link
-                href={prevCommunity ? `/tribunes/${prevCommunity.slug}` : '#'}
-                className={`rounded-lg p-1.5 transition ${prevCommunity ? 'text-gray-500 hover:bg-gray-200 hover:text-gray-700' : 'pointer-events-none text-gray-300'}`}
-                title={prevCommunity?.name}
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                </svg>
-              </Link>
-              <Link
-                href={nextCommunity ? `/tribunes/${nextCommunity.slug}` : '#'}
-                className={`rounded-lg p-1.5 transition ${nextCommunity ? 'text-gray-500 hover:bg-gray-200 hover:text-gray-700' : 'pointer-events-none text-gray-300'}`}
-                title={nextCommunity?.name}
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
-              </Link>
-            </div>
           )}
         </div>
       </div>
