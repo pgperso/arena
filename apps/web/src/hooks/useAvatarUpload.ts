@@ -32,14 +32,16 @@ export function useAvatarUpload(): UseAvatarUploadReturn {
 
       const path = `${memberId}/${Date.now()}.webp`;
 
-      // Delete old avatars
+      // Delete old avatars (only files at root, not subfolders like /creator)
       const { data: existing } = await supabase.storage
         .from('avatars')
         .list(memberId);
 
       if (existing && existing.length > 0) {
-        const paths = existing.map((f) => `${memberId}/${f.name}`);
-        await supabase.storage.from('avatars').remove(paths);
+        const files = existing.filter((f) => f.name.includes('.'));
+        if (files.length > 0) {
+          await supabase.storage.from('avatars').remove(files.map((f) => `${memberId}/${f.name}`));
+        }
       }
 
       // Upload new avatar
