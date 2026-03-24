@@ -56,6 +56,7 @@ export function ArticleEditor({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [authorNameOverride, setAuthorNameOverride] = useState(existingArticle?.author_name_override ?? '');
+  const [showConfirm, setShowConfirm] = useState(false);
   const supabase = useSupabase();
   const { coverPreview, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
     supabase, selectedCommunityId, existingArticle?.cover_image_url ?? null,
@@ -129,7 +130,6 @@ export function ArticleEditor({
         coverImageUrl,
         isPublished: publish,
         authorNameOverride: authorNameOverride.trim() || null,
-        communityId: selectedCommunityId,
       });
 
       if (updateError) {
@@ -182,11 +182,11 @@ export function ArticleEditor({
             {saving ? 'Enregistrement...' : 'Brouillon'}
           </button>
           <button
-            onClick={() => handleSave(true)}
+            onClick={() => setShowConfirm(true)}
             disabled={saving}
             className="rounded-lg bg-brand-blue px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
           >
-            {saving ? 'Publication...' : isEditMode ? 'Mettre à jour' : 'Publier'}
+            {isEditMode ? 'Mettre à jour' : 'Publier'}
           </button>
         </div>
       </div>
@@ -261,8 +261,8 @@ export function ArticleEditor({
         </div>
       </div>
 
-      {/* Tribune selector */}
-      {communities.length > 1 && (
+      {/* Tribune selector (new articles only — can't change after publish) */}
+      {!isEditMode && communities.length > 1 && (
         <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
           <p className="mb-2 text-xs font-medium text-gray-500">Publier dans :</p>
           <select
@@ -395,6 +395,52 @@ export function ArticleEditor({
       {/* Editor */}
       <div className="rounded-b-lg border border-gray-200">
         <EditorContent editor={editor} />
+      </div>
+
+      {/* Publish confirmation modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-bold text-gray-900">Confirmer la publication</h3>
+            <div className="mb-5 space-y-2.5">
+              <CheckItem label="Titre" value={title.trim()} ok={!!title.trim()} />
+              <CheckItem label="Tribune" value={communities.find((c) => c.id === selectedCommunityId)?.name ?? communitySlug} ok={true} />
+              <CheckItem label="Auteur" value={authorNameOverride || 'Mon profil créateur'} ok={true} />
+              <CheckItem label="Résumé SEO" value={excerpt.trim() ? `${excerpt.trim().length} caractères` : 'Aucun'} ok={!!excerpt.trim()} warn={!excerpt.trim()} />
+              <CheckItem label="Slug URL" value={customSlug || slugify(title).slice(0, 60)} ok={!!(customSlug || title)} />
+              <CheckItem label="Image de couverture" value={coverPreview ? 'Oui' : 'Aucune'} ok={!!coverPreview} warn={!coverPreview} />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+              >
+                Modifier
+              </button>
+              <button
+                onClick={() => { setShowConfirm(false); handleSave(true); }}
+                disabled={saving || !title.trim()}
+                className="flex-1 rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
+              >
+                {saving ? 'Publication...' : 'Confirmer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CheckItem({ label, value, ok, warn }: { label: string; value: string; ok: boolean; warn?: boolean }) {
+  return (
+    <div className="flex items-start gap-2.5 text-sm">
+      <span className={`mt-0.5 shrink-0 ${ok && !warn ? 'text-green-500' : warn ? 'text-orange-400' : 'text-red-500'}`}>
+        {ok && !warn ? '✓' : warn ? '⚠' : '✗'}
+      </span>
+      <div>
+        <span className="font-medium text-gray-700">{label} : </span>
+        <span className="text-gray-500">{value}</span>
       </div>
     </div>
   );
