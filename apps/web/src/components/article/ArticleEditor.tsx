@@ -47,6 +47,8 @@ export function ArticleEditor({
 }: ArticleEditorProps) {
   const isEditMode = !!existingArticle;
   const [title, setTitle] = useState(existingArticle?.title ?? '');
+  const [customSlug, setCustomSlug] = useState(existingArticle?.slug ?? '');
+  const [slugTouched, setSlugTouched] = useState(isEditMode);
   const [selectedCommunityId, setSelectedCommunityId] = useState(communityId);
   const [selectedCommunitySlug, setSelectedCommunitySlug] = useState(communitySlug);
   const [communities, setCommunities] = useState<{ id: number; name: string; slug: string }[]>([]);
@@ -116,7 +118,7 @@ export function ArticleEditor({
     setError(null);
 
     const coverImageUrl = await uploadCover();
-    const slug = slugify(title) || `article-${Date.now()}`;
+    const slug = (customSlug.trim() || slugify(title)).slice(0, 60) || `article-${Date.now()}`;
     const body = editor?.getHTML() ?? '';
 
     if (isEditMode) {
@@ -226,11 +228,38 @@ export function ArticleEditor({
       <input
         type="text"
         value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        onChange={(e) => {
+          setTitle(e.target.value);
+          if (!slugTouched) setCustomSlug(slugify(e.target.value).slice(0, 60));
+        }}
         placeholder="Titre de l'article"
         className="mb-2 w-full border-none text-2xl font-bold text-gray-900 placeholder-gray-300 focus:ring-0 focus:outline-none"
         maxLength={200}
       />
+
+      {/* Slug */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-gray-400">URL de l&apos;article</label>
+          <span className={`text-[10px] ${customSlug.length <= 60 ? 'text-green-500' : 'text-red-500'}`}>
+            {customSlug.length}/60
+          </span>
+        </div>
+        <div className="mt-1 flex items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5">
+          <span className="shrink-0 text-xs text-gray-400">…/articles/</span>
+          <input
+            type="text"
+            value={customSlug}
+            onChange={(e) => {
+              setSlugTouched(true);
+              setCustomSlug(slugify(e.target.value).slice(0, 60));
+            }}
+            className="flex-1 border-none bg-transparent text-xs text-gray-700 focus:ring-0 focus:outline-none"
+            placeholder="slug-auto-genere"
+            maxLength={60}
+          />
+        </div>
+      </div>
 
       {/* Tribune selector (new articles only) */}
       {!isEditMode && communities.length > 1 && (
