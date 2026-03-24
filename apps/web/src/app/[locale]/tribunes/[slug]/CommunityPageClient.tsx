@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { FeedContainer } from '@/components/feed/FeedContainer';
@@ -50,6 +50,32 @@ export function CommunityPageClient({
     setTribune({ name: community.name, slug: community.slug });
     return () => setTribune(null);
   }, [community.name, community.slug, setTribune]);
+
+  // Load user's communities for prev/next navigation
+  const [userCommunities, setUserCommunities] = useState<{ id: number; slug: string; name: string }[]>([]);
+  useEffect(() => {
+    if (!userId) return;
+    supabase
+      .from('community_members')
+      .select('community_id, communities!inner(id, name, slug)')
+      .eq('member_id', userId)
+      .then(({ data }) => {
+        if (data) {
+          const comms = (data as unknown as { communities: { id: number; name: string; slug: string } }[])
+            .map((d) => d.communities)
+            .sort((a, b) => a.name.localeCompare(b.name));
+          setUserCommunities(comms);
+        }
+      });
+  }, [supabase, userId]);
+
+  const { prevCommunity, nextCommunity } = useMemo(() => {
+    const idx = userCommunities.findIndex((c) => c.id === community.id);
+    return {
+      prevCommunity: idx > 0 ? userCommunities[idx - 1] : null,
+      nextCommunity: idx < userCommunities.length - 1 ? userCommunities[idx + 1] : null,
+    };
+  }, [userCommunities, community.id]);
 
   async function handleJoin() {
     if (!userId) {
@@ -163,6 +189,29 @@ export function CommunityPageClient({
             >
               {joining ? t('common.loading') : t('community.join')}
             </button>
+          )}
+          {/* Prev/Next tribune navigation */}
+          {userCommunities.length > 1 && (
+            <div className="flex items-center gap-0.5">
+              <Link
+                href={prevCommunity ? `/tribunes/${prevCommunity.slug}` : '#'}
+                className={`rounded-lg p-1.5 transition ${prevCommunity ? 'text-gray-500 hover:bg-gray-200 hover:text-gray-700' : 'pointer-events-none text-gray-300'}`}
+                title={prevCommunity?.name}
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
+              </Link>
+              <Link
+                href={nextCommunity ? `/tribunes/${nextCommunity.slug}` : '#'}
+                className={`rounded-lg p-1.5 transition ${nextCommunity ? 'text-gray-500 hover:bg-gray-200 hover:text-gray-700' : 'pointer-events-none text-gray-300'}`}
+                title={nextCommunity?.name}
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                </svg>
+              </Link>
+            </div>
           )}
         </div>
       </div>
