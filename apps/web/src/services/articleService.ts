@@ -1,14 +1,21 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@arena/supabase-client';
 import { articleSchema } from '@arena/shared';
-import { announceArticle } from './botService';
+import { announceArticle, cleanupArticleBotMessages } from './botService';
 
 export async function removeArticle(
   supabase: SupabaseClient<Database>,
   articleId: number,
   userId: string,
 ) {
-  return supabase
+  // Fetch slug before removing so we can clean up bot messages
+  const { data: article } = await supabase
+    .from('articles')
+    .select('slug')
+    .eq('id', articleId)
+    .single();
+
+  const result = await supabase
     .from('articles')
     .update({
       is_removed: true,
@@ -16,6 +23,13 @@ export async function removeArticle(
       removed_by: userId,
     })
     .eq('id', articleId);
+
+  // Clean up bot announcement messages (fire-and-forget)
+  if (article) {
+    void cleanupArticleBotMessages(supabase, (article as { slug: string }).slug);
+  }
+
+  return result;
 }
 
 export async function createArticle(

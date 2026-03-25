@@ -148,6 +148,18 @@ export async function announceLive(
   await broadcastBot(supabase, message);
 }
 
+/** Delete bot announcement messages for a removed article (all tribunes) */
+export async function cleanupArticleBotMessages(
+  supabase: SupabaseClient<Database>,
+  articleSlug: string,
+) {
+  await supabase
+    .from('chat_messages')
+    .delete()
+    .eq('member_id', BOT_MEMBER_ID)
+    .like('content', `%/articles/${articleSlug}%`);
+}
+
 /** Check and announce member milestone for a community */
 export async function checkMilestone(
   supabase: SupabaseClient<Database>,
