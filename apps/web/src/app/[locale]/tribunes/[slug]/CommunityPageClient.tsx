@@ -180,10 +180,10 @@ export function CommunityPageClient({
           {(hasMultiple || userCommunities === null) && (
             <Link
               href={prevCommunity ? `/tribunes/${prevCommunity.slug}` : '#'}
-              className={`rounded-lg p-1 transition ${prevCommunity ? 'text-gray-600 hover:bg-gray-200 hover:text-gray-900' : 'pointer-events-none text-gray-300'}`}
+              className={`flex items-center rounded-lg px-2 py-1.5 transition ${prevCommunity ? 'bg-brand-blue text-white hover:bg-brand-blue-dark' : 'pointer-events-none bg-gray-200 text-gray-400'}`}
               title={prevCommunity?.name}
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
               </svg>
             </Link>
@@ -192,10 +192,10 @@ export function CommunityPageClient({
           {(hasMultiple || userCommunities === null) && (
             <Link
               href={nextCommunity ? `/tribunes/${nextCommunity.slug}` : '#'}
-              className={`rounded-lg p-1 transition ${nextCommunity ? 'text-gray-600 hover:bg-gray-200 hover:text-gray-900' : 'pointer-events-none text-gray-300'}`}
+              className={`flex items-center rounded-lg px-2 py-1.5 transition ${nextCommunity ? 'bg-brand-blue text-white hover:bg-brand-blue-dark' : 'pointer-events-none bg-gray-200 text-gray-400'}`}
               title={nextCommunity?.name}
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
               </svg>
             </Link>
