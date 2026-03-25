@@ -8,7 +8,7 @@ export function Footer() {
   const t = useTranslations();
 
   return (
-    <footer className="border-t border-gray-200 bg-white">
+    <footer className="border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-1.5 sm:gap-4 sm:px-4 sm:py-2">
         <div className="flex items-center gap-1.5 sm:gap-2">
           <Image

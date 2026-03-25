@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslations, useLocale } from 'next-intl';
 import { useTribune } from '@/contexts/TribuneContext';
+import { useDarkMode } from '@/hooks/useDarkMode';
 import { MobileNav } from './MobileNav';
 
 export function Header() {
@@ -17,6 +18,7 @@ export function Header() {
   const locale = useLocale();
   const pathname = usePathname();
   const { tribune } = useTribune();
+  const { dark, toggle: toggleDark } = useDarkMode();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -45,7 +47,7 @@ export function Header() {
   }, [dropdownOpen]);
 
   return (
-    <header className="shrink-0 border-b border-gray-200">
+    <header className="shrink-0 border-b border-gray-200 dark:border-gray-800 dark:bg-gray-950">
       <div className="flex h-12 items-center justify-between px-3 sm:h-14 sm:px-4 md:h-16">
         {/* Logo — on mobile in tribune: back arrow + tribune name */}
         <div className="flex items-center gap-1.5 sm:gap-2">
@@ -81,13 +83,28 @@ export function Header() {
 
         {/* Language + Desktop auth */}
         <div className="hidden items-center gap-3 md:flex">
+          <button
+            onClick={toggleDark}
+            className="rounded-md p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+            title={dark ? 'Mode clair' : 'Mode sombre'}
+          >
+            {dark ? (
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+              </svg>
+            )}
+          </button>
           <a
             href={switchLocalePath}
-            className="rounded-md px-2 py-1 text-xs font-bold text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+            className="rounded-md px-2 py-1 text-xs font-bold text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
           >
             {otherLocale.toUpperCase()}
           </a>
-          <div className="h-4 w-px bg-gray-200" />
+          <div className="h-4 w-px bg-gray-200 dark:bg-gray-700" />
           {loading ? (
             <div className="h-8 w-24 animate-pulse rounded-lg bg-gray-200" />
           ) : user ? (
@@ -157,9 +174,23 @@ export function Header() {
           )}
         </div>
 
-        {/* Mobile menu button */}
+        {/* Mobile: dark mode + menu */}
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            onClick={toggleDark}
+            className="rounded-md p-1.5 text-gray-500 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+          >
+            {dark ? (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+              </svg>
+            )}
+          </button>
         <button
-          className="md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Menu"
         >
@@ -181,6 +212,7 @@ export function Header() {
             )}
           </svg>
         </button>
+        </div>
       </div>
 
       {/* Mobile nav */}

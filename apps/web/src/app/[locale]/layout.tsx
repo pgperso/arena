@@ -100,7 +100,7 @@ export default async function LocaleLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
         />
       </head>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased bg-gray-50 text-gray-900 dark:bg-[#0a0a0a] dark:text-gray-100">
         <NextIntlClientProvider messages={messages}>
           <TribuneProvider>
             <div className="flex flex-1 min-h-dvh flex-col">
