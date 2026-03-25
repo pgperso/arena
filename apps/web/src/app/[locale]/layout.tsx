@@ -17,7 +17,7 @@ const jsonLd = [
     logo: 'https://fanstribune.com/images/fanstribune.webp',
     description: 'Plateforme communautaire sportive en direct : chat, articles et podcasts pour les fans de hockey, baseball, football et plus.',
     sameAs: [],
-    sport: ['Hockey', 'Baseball', 'Football', 'Basketball', 'Soccer'],
+    sport: ['Hockey', 'Baseball', 'Football', 'Basketball', 'Soccer', 'Golf'],
   },
   {
     '@context': 'https://schema.org',

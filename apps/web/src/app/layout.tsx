@@ -14,10 +14,10 @@ export const metadata: Metadata = {
     template: '%s | La tribune des fans',
   },
   description:
-    'Rejoignez la tribune de votre équipe sportive. Chat en direct entre fans, articles d\'opinion, podcasts et débats. Hockey, baseball, football et plus.',
+    'Rejoignez la tribune de votre équipe sportive. Chat en direct entre fans, articles d\'opinion, podcasts et débats. Hockey, baseball, football, golf et plus.',
   keywords: [
     'tribune sportive', 'chat sport en direct', 'communauté fans hockey',
-    'forum hockey', 'forum baseball', 'forum football',
+    'forum hockey', 'forum baseball', 'forum football', 'forum golf', 'PGA Tour fans',
     'Canadiens de Montréal fans', 'Blue Jays fans', 'CF Montréal fans',
     'opinion sportive', 'chronique sport', 'podcast sport québec',
     'article hockey', 'débat sportif', 'chat fans sport',

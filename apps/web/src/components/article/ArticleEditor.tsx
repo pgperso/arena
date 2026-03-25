@@ -159,7 +159,7 @@ export function ArticleEditor({
 
     setSaving(false);
     onPublished(slug, selectedCommunitySlug);
-  }, [title, excerpt, editor, uploadCover, communityId, userId, supabase, onPublished, isEditMode, existingArticle]);
+  }, [title, excerpt, editor, uploadCover, communityId, selectedCommunityId, selectedCommunitySlug, customSlug, authorNameOverride, userId, supabase, onPublished, isEditMode, existingArticle]);
 
   return (
     <div className="mx-auto max-w-3xl">
