@@ -4,10 +4,12 @@ import { NEWS_FEEDS, MAX_NEWS_PER_TRIBUNE, NEWS_EMOJI } from '@/lib/newsFeeds';
 
 const BOT_ID = '00000000-0000-0000-0000-000000000001';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+}
 
 interface RSSItem {
   title: string;
@@ -53,8 +55,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const supabase = getSupabaseAdmin();
+
   // Get community IDs by slug
-  const { data: communities } = await supabaseAdmin
+  const { data: communities } = await supabase
     .from('communities')
     .select('id, slug')
     .eq('is_active', true);
@@ -70,7 +74,7 @@ export async function GET(request: Request) {
 
   // Get recent bot news messages to avoid duplicates (last 24h)
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const { data: recentMessages } = await supabaseAdmin
+  const { data: recentMessages } = await supabase
     .from('chat_messages')
     .select('content')
     .eq('member_id', BOT_ID)
@@ -106,7 +110,7 @@ export async function GET(request: Request) {
 
         const content = `${NEWS_EMOJI} ${item.title} ${item.link}`;
 
-        await supabaseAdmin.from('chat_messages').insert({
+        await supabase.from('chat_messages').insert({
           community_id: communityId,
           member_id: BOT_ID,
           content,
