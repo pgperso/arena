@@ -15,13 +15,19 @@ export async function removeArticle(
     .eq('id', articleId)
     .single();
 
+  // Suffix slug to free it for reuse (unique constraint: community_id + slug)
+  const freedSlug = article
+    ? `${(article as { slug: string }).slug}-deleted-${Date.now()}`
+    : undefined;
+
   const result = await supabase
     .from('articles')
     .update({
       is_removed: true,
       removed_at: new Date().toISOString(),
       removed_by: userId,
-    })
+      ...(freedSlug ? { slug: freedSlug } : {}),
+    } as never)
     .eq('id', articleId);
 
   // Clean up bot announcement messages (fire-and-forget)
