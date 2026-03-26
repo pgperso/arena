@@ -108,33 +108,53 @@ export function Nordiquometre() {
             draggable={false}
           />
 
-          {/* Aiguille — positionnée en % relatif à l'image */}
-          <img
-            src="/images/aiguille.png"
-            alt="Aiguille"
-            draggable={false}
+          {/* Aiguille CSS — forme d'aiguille d'horloge, couleur noir→bleu */}
+          <div
             className="pointer-events-none absolute"
             style={{
               left: `${CONFIG.pivotX}%`,
               top: `${CONFIG.pivotY}%`,
               width: `${CONFIG.needleLength}%`,
+              height: 0,
               transformOrigin: '0% 50%',
-              transform: `translateY(-50%) rotate(${needleAngle}deg)`,
-              transition: 'transform 1s ease-out',
-              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+              transform: `rotate(${needleAngle}deg)`,
+              transition: 'transform 1s ease-out, filter 0.5s',
             }}
-          />
+          >
+            {/* Triangle pointu (forme d'aiguille) */}
+            <svg
+              viewBox="0 0 100 12"
+              className="h-full w-full"
+              style={{
+                filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.4))',
+                overflow: 'visible',
+              }}
+            >
+              <polygon
+                points="0,6 100,2 100,10"
+                fill={`color-mix(in srgb, #000000 ${100 - average}%, #0B4870 ${average}%)`}
+              />
+              {/* Pointe fine */}
+              <polygon
+                points="85,4 100,5.5 100,6.5 85,8"
+                fill={`color-mix(in srgb, #111111 ${100 - average}%, #1969B4 ${average}%)`}
+              />
+            </svg>
+          </div>
 
           {/* Point central du pivot */}
           <div
-            className="pointer-events-none absolute rounded-full bg-white shadow-lg"
+            className="pointer-events-none absolute"
             style={{
               left: `${CONFIG.pivotX}%`,
               top: `${CONFIG.pivotY}%`,
-              width: '2.5%',
-              height: '2.5%',
+              width: '3%',
+              height: '3%',
               transform: 'translate(-50%, -50%)',
-              border: '2px solid #333',
+              borderRadius: '50%',
+              background: `color-mix(in srgb, #000000 ${100 - average}%, #0B4870 ${average}%)`,
+              border: '2px solid rgba(255,255,255,0.8)',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
             }}
           />
 
