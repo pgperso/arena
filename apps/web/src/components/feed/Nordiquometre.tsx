@@ -8,7 +8,7 @@ const CONFIG = {
   pivotX: 40,
   pivotY: 48.5,
   needleLength: 25,
-  angleMin: 13,
+  angleMin: 10,
   angleMax: 360,
 };
 
