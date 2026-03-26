@@ -17,9 +17,9 @@ const CONFIG = {
   // Angles de rotation (en degrés, CSS: 0°=droite, positif=horaire)
   // 0% = 3h20 (bas-droite) = 30°
   // 50% = 9h (gauche) = 180°
-  // 100% = 3h15 (bas-droite, autre côté) = 330°
+  // 100% = 3h00 (droite) = 360°
   angleMin: 30,     // angle quand 0%
-  angleMax: 330,    // angle quand 100%
+  angleMax: 360,    // angle quand 100%
 };
 
 export function Nordiquometre() {
