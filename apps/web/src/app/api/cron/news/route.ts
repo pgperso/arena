@@ -49,10 +49,13 @@ function matchesKeywords(text: string, keywords: string[]): boolean {
 }
 
 export async function GET(request: Request) {
-  // Verify cron secret
-  const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // Verify cron secret (skip if not set)
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const authHeader = request.headers.get('authorization');
+    if (authHeader !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
   }
 
   const supabase = getSupabaseAdmin();
