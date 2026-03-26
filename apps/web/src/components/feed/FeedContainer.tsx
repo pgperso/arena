@@ -224,7 +224,7 @@ export function FeedContainer({
                 </button>
                 <button
                   onClick={() => setShowArticleList(true)}
-                  className="hidden items-center gap-1 rounded-lg bg-gray-50 dark:bg-gray-950 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 md:flex"
+                  className="hidden items-center gap-1 rounded-lg bg-gray-50 dark:bg-[#1e1e1e] px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 md:flex"
                   title={t('myArticles')}
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -274,7 +274,7 @@ export function FeedContainer({
             onClick={() => setActiveTab('chat')}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
               activeTab === 'chat'
-                ? 'bg-white dark:bg-gray-900 text-brand-blue shadow-sm'
+                ? 'bg-white dark:bg-[#272525] text-brand-blue shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
             }`}
           >
@@ -287,7 +287,7 @@ export function FeedContainer({
             onClick={() => setActiveTab('content')}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
               activeTab === 'content'
-                ? 'bg-white dark:bg-gray-900 text-brand-blue shadow-sm'
+                ? 'bg-white dark:bg-[#272525] text-brand-blue shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
             }`}
           >
@@ -435,7 +435,7 @@ export function FeedContainer({
             autoFocus={!!replyTarget}
           />
         ) : (
-          <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-4 py-3 text-center">
+          <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-4 py-3 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400">
               <Link href="/login" className="font-medium text-brand-blue hover:underline">
                 {t('loginToChat')}
@@ -463,7 +463,7 @@ export function FeedContainer({
 
       {/* Article editor overlay */}
       {showArticleEditor && user && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-gray-900">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-[#272525]">
           <div className="p-4">
             <ArticleEditor
               communityId={communityId}
@@ -481,7 +481,7 @@ export function FeedContainer({
 
       {/* Podcast editor overlay */}
       {showPodcastEditor && user && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-gray-900">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-[#272525]">
           <div className="p-4">
             <PodcastEditor
               communityId={communityId}
@@ -495,7 +495,7 @@ export function FeedContainer({
 
       {/* Article list overlay */}
       {showArticleList && user && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-gray-900">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-[#272525]">
           <div className="p-4">
             <ArticleList
               communityId={communityId}
@@ -554,7 +554,7 @@ function AdminMenu({
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 py-1 shadow-lg">
+          <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] py-1 shadow-lg">
             {canModerate && (
               <button
                 onClick={() => { setOpen(false); onModerate(); }}
@@ -579,7 +579,7 @@ function AdminMenu({
                 </button>
                 <button
                   onClick={() => { setOpen(false); onMyArticles(); }}
-                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e]"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />

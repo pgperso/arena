@@ -93,7 +93,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
         <div className="max-w-md overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
           <FeedLivePlayer videoId={podcast.youtubeVideoId!} isLive={podcast.isLive} />
 
-          <div className="bg-white dark:bg-gray-900 p-3">
+          <div className="bg-white dark:bg-[#272525] p-3">
             <div className="mb-1 flex items-center gap-2">
               {podcast.isLive ? (
                 <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">

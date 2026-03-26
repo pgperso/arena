@@ -105,7 +105,7 @@ export function CommunityPageClient({
       {/* Join / Login modal */}
       {showJoinModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#272525] p-6 shadow-xl">
             <div className="mb-4 flex flex-col items-center gap-3 text-center">
               <Image
                 src={community.logo_url || '/images/fanstribune.webp'}
@@ -226,7 +226,7 @@ export function CommunityPageClient({
             <AdSidebar position="left" />
 
             {/* Central feed area */}
-            <div className="flex-1 overflow-hidden bg-white dark:bg-gray-900">
+            <div className="flex-1 overflow-hidden bg-white dark:bg-[#272525]">
               <FeedContainer
                 communityId={community.id}
                 communityName={community.name}
@@ -247,7 +247,7 @@ export function CommunityPageClient({
           <AdAnchor />
         </>
       ) : (
-        <div className="flex flex-1 items-center justify-center border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950">
+        <div className="flex flex-1 items-center justify-center border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e]">
           <p className="text-sm text-gray-400">
             {t('community.joinToAccess')}
           </p>

@@ -41,7 +41,7 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
     <div className="flex flex-1 min-h-0 flex-col overflow-y-auto">
       <div className="mx-auto w-full max-w-5xl px-4">
         {/* Header — sticky on mobile */}
-        <div className="sticky top-0 z-10 -mx-4 mb-4 flex items-center justify-between bg-gray-50 dark:bg-gray-950/95 px-4 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:mb-8 sm:mt-8 sm:bg-transparent sm:px-0 sm:py-0">
+        <div className="sticky top-0 z-10 -mx-4 mb-4 flex items-center justify-between bg-gray-50 dark:bg-[#1e1e1e]/95 px-4 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:mb-8 sm:mt-8 sm:bg-transparent sm:px-0 sm:py-0">
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 sm:text-2xl">{t('myTribunes')}</h1>
           <button
             onClick={() => setShowJoinModal(true)}
@@ -60,7 +60,7 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
             {communities.map((community) => (
               <div
                 key={community.id}
-                className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 sm:p-5"
+                className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] p-4 sm:p-5"
               >
                 <div className="mb-3 flex items-center gap-3">
                   <Image
@@ -137,7 +137,7 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
       {/* Leave confirmation modal */}
       {leaveConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#272525] p-6 shadow-xl">
             <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-gray-100">
               {tc('leaveTitle', { name: leaveConfirm.name })}
             </h3>
@@ -148,7 +148,7 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
               <button
                 onClick={() => setLeaveConfirm(null)}
                 disabled={leaving}
-                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 disabled:opacity-50"
+                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e] disabled:opacity-50"
               >
                 {tco('cancel')}
               </button>

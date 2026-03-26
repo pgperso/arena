@@ -162,7 +162,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
             {filtered.map((item, idx) => (
               <div key={`${item.type}-${item.id}`}>
               {idx > 0 && idx % CONTENT_AD_INTERVAL === 0 && (
-                <div className="border-y border-gray-100 bg-gray-50 dark:bg-gray-950 px-4 py-3">
+                <div className="border-y border-gray-100 bg-gray-50 dark:bg-[#1e1e1e] px-4 py-3">
                   <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-gray-400">{tt('sponsored')}</p>
                   <AdSlot slotId={`content-feed-${idx}`} format="in-feed" className="w-full" />
                 </div>
@@ -228,7 +228,7 @@ function ContentRow({
   }
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950">
+    <div className="flex items-center gap-3 px-4 py-3 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e]">
       {/* Thumbnail */}
       <Link href={href} className="shrink-0">
         {item.coverImageUrl ? (

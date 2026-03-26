@@ -92,7 +92,7 @@ function AdSlotLive({ slotId, format = 'rectangle', className = '', layoutKey }:
   return (
     <div
       ref={containerRef}
-      className={`flex items-center justify-center overflow-hidden rounded-lg border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-950 ${className}`}
+      className={`flex items-center justify-center overflow-hidden rounded-lg border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-[#1e1e1e] ${className}`}
       style={isFluid ? { minHeight: '100px' } : { minWidth: size.width, minHeight: size.height, maxWidth: '100%' }}
     >
       {visible ? (

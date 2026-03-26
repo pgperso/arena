@@ -47,7 +47,7 @@ export function Header() {
   }, [dropdownOpen]);
 
   return (
-    <header className="shrink-0 border-b border-gray-200 dark:border-gray-700 dark:border-gray-800 dark:bg-gray-950">
+    <header className="shrink-0 border-b border-gray-200 dark:border-gray-700 dark:border-gray-800 dark:bg-[#1e1e1e]">
       <div className="flex h-12 items-center justify-between px-3 sm:h-14 sm:px-4 md:h-16">
         {/* Logo — on mobile in tribune: back arrow + tribune name */}
         <div className="flex items-center gap-1.5 sm:gap-2">
@@ -133,11 +133,11 @@ export function Header() {
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-1 w-48 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg">
+                <div className="absolute right-0 top-full mt-1 w-48 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] shadow-lg">
                   <Link
                     href="/vestiaire"
                     onClick={() => setDropdownOpen(false)}
-                    className="flex w-full items-center gap-2 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
+                    className="flex w-full items-center gap-2 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e]"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />

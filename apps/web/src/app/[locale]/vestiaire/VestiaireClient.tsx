@@ -131,7 +131,7 @@ export function VestiaireClient({
       </button>
 
       {/* Profile header */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] p-6">
         <div className="flex items-start gap-4">
           <button
             type="button"
@@ -210,7 +210,7 @@ export function VestiaireClient({
             <button
               onClick={() => setDescription(savedDescription)}
               disabled={description === savedDescription}
-              className="rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 disabled:opacity-50"
+              className="rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e] disabled:opacity-50"
             >
               {tc('cancel')}
             </button>
@@ -255,7 +255,7 @@ export function VestiaireClient({
                     </button>
                     <button
                       onClick={() => setCreatorAvatarUrl(null)}
-                      className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
+                      className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e]"
                     >
                       {tc('remove')}
                     </button>
@@ -324,7 +324,7 @@ export function VestiaireClient({
                 value={creatorName}
                 onChange={(e) => setCreatorName(e.target.value)}
                 placeholder={tcr('creatorNamePlaceholder')}
-                className="w-full rounded-lg border border-purple-200 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                className="w-full rounded-lg border border-purple-200 bg-white dark:bg-[#272525] px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
                 maxLength={100}
               />
             </div>
@@ -372,7 +372,7 @@ export function VestiaireClient({
                 <Link
                   key={community.id}
                   href={`/tribunes/${community.slug}`}
-                  className="group flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 transition hover:border-gray-300 dark:border-gray-600 hover:shadow-sm"
+                  className="group flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] p-4 transition hover:border-gray-300 dark:border-gray-600 hover:shadow-sm"
                 >
                   <Image
                     src={community.logo_url || '/images/fanstribune.webp'}
@@ -419,7 +419,7 @@ export function VestiaireClient({
             })}
           </div>
         ) : (
-          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-8 text-center">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] p-8 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Vous n&apos;avez rejoint aucune tribune.
             </p>
@@ -448,7 +448,7 @@ export function VestiaireClient({
                 return (
                   <div
                     key={`admin-${community.id}`}
-                    className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4"
+                    className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] p-4"
                   >
                     <div className="mb-3 flex items-center gap-2">
                       <Image
@@ -510,7 +510,7 @@ export function VestiaireClient({
       {/* Delete account modal — Step 1: Information */}
       {deleteStep === 1 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl">
+          <div className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-[#272525] p-6 shadow-xl">
             <h3 className="mb-3 text-lg font-bold text-gray-900 dark:text-gray-100">{t('deleteTitle')}</h3>
             <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">{t('deleteWarning')}</p>
             <ul className="mb-6 space-y-2 text-sm text-gray-600 dark:text-gray-400">
@@ -534,7 +534,7 @@ export function VestiaireClient({
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteStep(0)}
-                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
+                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e]"
               >
                 {tc('cancel')}
               </button>
@@ -552,7 +552,7 @@ export function VestiaireClient({
       {/* Delete account modal — Step 2: Password confirmation */}
       {deleteStep === 2 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl">
+          <div className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-[#272525] p-6 shadow-xl">
             <h3 className="mb-2 text-lg font-bold text-gray-900 dark:text-gray-100">{t('confirmTitle')}</h3>
             <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">{t('confirmSubtitle')}</p>
 
@@ -578,7 +578,7 @@ export function VestiaireClient({
               <button
                 onClick={() => setDeleteStep(0)}
                 disabled={deleting}
-                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 disabled:opacity-50"
+                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e] disabled:opacity-50"
               >
                 {tc('cancel')}
               </button>
@@ -619,7 +619,7 @@ export function VestiaireClient({
       {/* Delete account modal — Step 3: Success */}
       {deleteStep === 3 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl text-center">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#272525] p-6 shadow-xl text-center">
             <div className="mb-4 flex justify-center">
               <svg className="h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />

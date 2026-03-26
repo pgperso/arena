@@ -183,7 +183,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl overflow-y-auto bg-white dark:bg-gray-900" style={{ height: 'calc(100dvh - 4rem)' }}>
+    <div className="mx-auto max-w-5xl overflow-y-auto bg-white dark:bg-[#272525]" style={{ height: 'calc(100dvh - 4rem)' }}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, '\\u003c') }}

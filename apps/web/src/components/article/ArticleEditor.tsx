@@ -170,14 +170,14 @@ export function ArticleEditor({
         <div className="flex gap-2">
           <button
             onClick={onCancel}
-            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e]"
           >
             Annuler
           </button>
           <button
             onClick={() => handleSave(false)}
             disabled={saving}
-            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 disabled:opacity-50"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e] disabled:opacity-50"
           >
             {saving ? 'Enregistrement...' : 'Brouillon'}
           </button>
@@ -245,7 +245,7 @@ export function ArticleEditor({
             {customSlug.length}/60
           </span>
         </div>
-        <div className="mt-1 flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-1.5">
+        <div className="mt-1 flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-3 py-1.5">
           <span className="shrink-0 text-xs text-gray-400">…/articles/</span>
           <input
             type="text"
@@ -263,7 +263,7 @@ export function ArticleEditor({
 
       {/* Tribune selector (new articles only — can't change after publish) */}
       {!isEditMode && communities.length > 1 && (
-        <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-3">
+        <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-3 py-3">
           <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">Publier dans :</p>
           <select
             value={selectedCommunityId}
@@ -273,7 +273,7 @@ export function ArticleEditor({
               const comm = communities.find((c) => c.id === id);
               if (comm) setSelectedCommunitySlug(comm.slug);
             }}
-            className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+            className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
           >
             {communities.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
@@ -301,7 +301,7 @@ export function ArticleEditor({
       </div>
 
       {/* Publish as selector */}
-      <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-3">
+      <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-3 py-3">
         <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">Publier en tant que :</p>
         <div className="flex flex-wrap gap-2">
           {AUTHOR_OPTIONS.map((author) => (
@@ -312,7 +312,7 @@ export function ArticleEditor({
               className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
                 (authorNameOverride === '' && author.name === 'Mon profil') || authorNameOverride === author.name
                   ? 'border-brand-blue bg-brand-blue/5 font-medium text-brand-blue'
-                  : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:border-gray-600 hover:bg-white dark:bg-gray-900'
+                  : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:border-gray-600 hover:bg-white dark:bg-[#272525]'
               }`}
             >
               <span
@@ -329,7 +329,7 @@ export function ArticleEditor({
 
       {/* Toolbar */}
       {editor && (
-        <div className="mb-1 flex flex-wrap gap-1 rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-2 py-1.5">
+        <div className="mb-1 flex flex-wrap gap-1 rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-2 py-1.5">
           <ToolbarButton
             active={editor.isActive('bold')}
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -400,7 +400,7 @@ export function ArticleEditor({
       {/* Publish confirmation modal */}
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl">
+          <div className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-[#272525] p-6 shadow-xl">
             <h3 className="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Confirmer la publication</h3>
             <div className="mb-5 space-y-2.5">
               <CheckItem label="Titre" value={title.trim()} ok={!!title.trim()} />
@@ -413,7 +413,7 @@ export function ArticleEditor({
             <div className="flex gap-3">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
+                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e]"
               >
                 Modifier
               </button>

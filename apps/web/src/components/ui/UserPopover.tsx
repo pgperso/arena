@@ -92,7 +92,7 @@ export function UserPopover({
   return createPortal(
     <div
       ref={popoverRef}
-      className="fixed z-50 w-[200px] overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-xl"
+      className="fixed z-50 w-[200px] overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] shadow-xl"
       style={{ top, left }}
     >
       {/* Title */}
@@ -117,7 +117,7 @@ export function UserPopover({
               className={`flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left transition ${
                 isActive
                   ? 'bg-brand-blue/10 text-brand-blue'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e]'
               } disabled:opacity-50`}
             >
               <div>

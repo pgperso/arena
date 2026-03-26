@@ -18,7 +18,7 @@ export function MobileNav({ isOpen, onClose, user, username, onLogout }: MobileN
   if (!isOpen) return null;
 
   return (
-    <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 md:hidden">
+    <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] md:hidden">
       <nav className="flex flex-col px-4 py-3">
         <Link
           href="/"

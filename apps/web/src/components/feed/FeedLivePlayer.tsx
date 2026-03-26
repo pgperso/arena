@@ -15,7 +15,7 @@ export function FeedLivePlayer({ videoId, isLive }: FeedLivePlayerProps) {
       <div className="absolute left-3 top-3 z-10">
         {isLive ? (
           <span className="flex items-center gap-1.5 rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-white dark:bg-gray-900" />
+            <span className="h-2 w-2 animate-pulse rounded-full bg-white dark:bg-[#272525]" />
             {t('liveNow')}
           </span>
         ) : (

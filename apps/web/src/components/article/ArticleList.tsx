@@ -107,7 +107,7 @@ export function ArticleList({ communityId, communitySlug, userId, onClose }: Art
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Mes articles</h2>
         <button
           onClick={onClose}
-          className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
+          className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e]"
         >
           Retour
         </button>

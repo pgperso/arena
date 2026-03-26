@@ -197,7 +197,7 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
         {/* Playback rate */}
         <button
           onClick={cyclePlaybackRate}
-          className="rounded-lg border border-gray-200 dark:border-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
+          className="rounded-lg border border-gray-200 dark:border-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e]"
         >
           {playbackRate}x
         </button>
@@ -221,7 +221,7 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
 
       {/* Description */}
       {podcast.description && (
-        <div className="mb-6 rounded-xl bg-gray-50 dark:bg-gray-950 p-4">
+        <div className="mb-6 rounded-xl bg-gray-50 dark:bg-[#1e1e1e] p-4">
           <h3 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Description</h3>
           <p className="whitespace-pre-wrap text-sm text-gray-600 dark:text-gray-400">{podcast.description}</p>
         </div>
