@@ -237,7 +237,7 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
       </div>
 
       {/* BLOC 2 : Badge résultat — taille fixe, même largeur que le cadran */}
-      <div className="shrink-0 flex justify-center px-2">
+      <div className="shrink-0 flex justify-center px-2 pb-3">
         <div className="w-full rounded-xl bg-black/75 px-4 py-2 text-center backdrop-blur-sm" style={{ maxWidth: 600 }}>
           <div className="text-lg font-bold text-white sm:text-xl">
             {current.average}% <span className="text-xs text-gray-300 sm:text-sm">({current.totalVotes} vote{current.totalVotes !== 1 ? 's' : ''} · {horizonLabel(activeHorizon)})</span>
@@ -249,7 +249,7 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
       {/* BLOC 3 : Vote + partage — prend le restant, jamais de scroll */}
       <div className="relative z-10 flex min-h-0 flex-1 flex-col justify-center border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3">
         {/* Onglets horizons */}
-        <div className="mx-auto mb-3 flex max-w-md gap-2">
+        <div className="mb-3 flex gap-2">
           {HORIZONS.map((h) => (
             <button
               key={h.key}
