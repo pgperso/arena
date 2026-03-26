@@ -250,7 +250,7 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
               onClick={() => setActiveHorizon(h.key)}
               className={`flex flex-1 items-center justify-center rounded-lg py-1.5 text-xs font-semibold transition ${
                 activeHorizon === h.key
-                  ? 'bg-brand-blue text-white shadow-sm'
+                  ? 'bg-red-600 text-white shadow-sm'
                   : 'bg-gray-100 dark:bg-[#272525] text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
