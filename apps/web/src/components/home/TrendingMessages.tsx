@@ -97,10 +97,10 @@ export function TrendingMessages({ popular, controversial }: TrendingMessagesPro
         {allMessages.length > 1 && (
           <div className="flex gap-1 px-5 pb-4">
             {allMessages.map((_, i) => (
-              <div key={i} className="h-0.5 flex-1 overflow-hidden rounded-full bg-white dark:bg-[#272525]/5">
+              <div key={i} className="h-0.5 flex-1 overflow-hidden rounded-full bg-white dark:bg-[#1e1e1e]/5">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
-                    i === currentIndex ? 'w-full bg-brand-orange' : i < currentIndex ? 'w-full bg-white dark:bg-[#272525]/10' : 'w-0'
+                    i === currentIndex ? 'w-full bg-brand-orange' : i < currentIndex ? 'w-full bg-white dark:bg-[#1e1e1e]/10' : 'w-0'
                   }`}
                 />
               </div>

@@ -274,7 +274,7 @@ export function FeedContainer({
             onClick={() => setActiveTab('chat')}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
               activeTab === 'chat'
-                ? 'bg-white dark:bg-[#272525] text-brand-blue shadow-sm'
+                ? 'bg-white dark:bg-[#1e1e1e] text-brand-blue shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
             }`}
           >
@@ -287,7 +287,7 @@ export function FeedContainer({
             onClick={() => setActiveTab('content')}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
               activeTab === 'content'
-                ? 'bg-white dark:bg-[#272525] text-brand-blue shadow-sm'
+                ? 'bg-white dark:bg-[#1e1e1e] text-brand-blue shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
             }`}
           >
@@ -463,7 +463,7 @@ export function FeedContainer({
 
       {/* Article editor overlay */}
       {showArticleEditor && user && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-[#272525]">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-[#1e1e1e]">
           <div className="p-4">
             <ArticleEditor
               communityId={communityId}
@@ -481,7 +481,7 @@ export function FeedContainer({
 
       {/* Podcast editor overlay */}
       {showPodcastEditor && user && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-[#272525]">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-[#1e1e1e]">
           <div className="p-4">
             <PodcastEditor
               communityId={communityId}
@@ -495,7 +495,7 @@ export function FeedContainer({
 
       {/* Article list overlay */}
       {showArticleList && user && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-[#272525]">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-[#1e1e1e]">
           <div className="p-4">
             <ArticleList
               communityId={communityId}
@@ -554,7 +554,7 @@ function AdminMenu({
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] py-1 shadow-lg">
+          <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] py-1 shadow-lg">
             {canModerate && (
               <button
                 onClick={() => { setOpen(false); onModerate(); }}

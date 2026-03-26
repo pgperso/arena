@@ -92,7 +92,7 @@ export function UserPopover({
   return createPortal(
     <div
       ref={popoverRef}
-      className="fixed z-50 w-[200px] overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] shadow-xl"
+      className="fixed z-50 w-[200px] overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] shadow-xl"
       style={{ top, left }}
     >
       {/* Title */}

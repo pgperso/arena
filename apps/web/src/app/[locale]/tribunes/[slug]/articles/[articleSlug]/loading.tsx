@@ -1,6 +1,6 @@
 export default function ArticleLoading() {
   return (
-    <div className="min-h-screen bg-white dark:bg-[#272525]">
+    <div className="min-h-screen bg-white dark:bg-[#1e1e1e]">
       <div className="mx-auto max-w-3xl px-4 py-8">
         {/* Cover skeleton */}
         <div className="mb-6 h-64 animate-pulse rounded-xl bg-gray-200" />

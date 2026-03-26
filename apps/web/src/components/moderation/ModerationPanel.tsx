@@ -155,7 +155,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="mx-4 w-full max-w-lg rounded-2xl bg-white dark:bg-[#272525] shadow-2xl">
+      <div className="mx-4 w-full max-w-lg rounded-2xl bg-white dark:bg-[#1e1e1e] shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-5 py-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('title')}</h2>

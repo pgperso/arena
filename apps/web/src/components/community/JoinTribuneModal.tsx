@@ -58,7 +58,7 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div
-        className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-[#272525] shadow-xl"
+        className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-[#1e1e1e] shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -114,7 +114,7 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
                     disabled={availableCount === 0}
-                    className="flex w-full items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] px-4 py-4 text-left transition hover:border-brand-blue hover:bg-brand-blue/5 disabled:opacity-30"
+                    className="flex w-full items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-4 text-left transition hover:border-brand-blue hover:bg-brand-blue/5 disabled:opacity-30"
                   >
                     <div>
                       <span className="text-base font-bold text-gray-900 dark:text-gray-100">{cat.name}</span>
@@ -148,7 +148,7 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                       onClose();
                       router.push(`/tribunes/${com.slug}`);
                     }}
-                    className="flex w-full items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] px-4 py-4 text-left transition hover:border-brand-blue hover:bg-brand-blue/5"
+                    className="flex w-full items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-4 text-left transition hover:border-brand-blue hover:bg-brand-blue/5"
                   >
                     <Image
                       src={com.logo_url || '/images/fanstribune.webp'}

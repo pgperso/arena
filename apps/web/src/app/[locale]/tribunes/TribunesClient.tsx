@@ -60,7 +60,7 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
             {communities.map((community) => (
               <div
                 key={community.id}
-                className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] p-4 sm:p-5"
+                className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-4 sm:p-5"
               >
                 <div className="mb-3 flex items-center gap-3">
                   <Image
@@ -137,7 +137,7 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
       {/* Leave confirmation modal */}
       {leaveConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#272525] p-6 shadow-xl">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#1e1e1e] p-6 shadow-xl">
             <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-gray-100">
               {tc('leaveTitle', { name: leaveConfirm.name })}
             </h3>
