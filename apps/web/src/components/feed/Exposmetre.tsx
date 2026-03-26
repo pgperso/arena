@@ -281,7 +281,7 @@ export function Exposmetre({ canModerate }: ExposmetreProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-[#1e1e1e] p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Voter au Exposmètre</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">{locale === 'fr' ? 'Voter à l\'Exposmètre' : 'Vote on the Exposmeter'}</h3>
               <button onClick={() => setShowVoteModal(false)} className="rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
               </button>
