@@ -50,6 +50,7 @@ export function ArticleList({ communityId, communitySlug, userId, onClose }: Art
   const [filterTribune, setFilterTribune] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'date' | 'views' | 'likes'>('date');
+  const [filterAuthor, setFilterAuthor] = useState<string>('all');
 
   const loadArticles = useCallback(async () => {
     const { data } = await fetchArticlesByAuthor(supabase, userId);
@@ -93,16 +94,25 @@ export function ArticleList({ communityId, communitySlug, userId, onClose }: Art
     return Array.from(names).sort();
   }, [articles]);
 
+  const authorNames = useMemo(() => {
+    const names = new Set(articles.map((a) => a.author_name_override || 'Mon profil').filter(Boolean));
+    return Array.from(names).sort();
+  }, [articles]);
+
   const filtered = useMemo(() => {
     let list = [...articles];
     if (filterTribune !== 'all') list = list.filter((a) => a.communities.name === filterTribune);
     if (filterStatus === 'published') list = list.filter((a) => a.is_published);
     if (filterStatus === 'draft') list = list.filter((a) => !a.is_published);
+    if (filterAuthor !== 'all') {
+      if (filterAuthor === 'Mon profil') list = list.filter((a) => !a.author_name_override);
+      else list = list.filter((a) => a.author_name_override === filterAuthor);
+    }
     if (sortBy === 'views') list.sort((a, b) => b.view_count - a.view_count);
     else if (sortBy === 'likes') list.sort((a, b) => b.like_count - a.like_count);
     else list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     return list;
-  }, [articles, filterTribune, filterStatus, sortBy]);
+  }, [articles, filterTribune, filterStatus, filterAuthor, sortBy]);
 
   if (editingArticle) {
     return (
@@ -162,6 +172,16 @@ export function ArticleList({ communityId, communitySlug, userId, onClose }: Art
               <option value="all">Tous les statuts</option>
               <option value="published">Publiés</option>
               <option value="draft">Brouillons</option>
+            </select>
+            <select
+              value={filterAuthor}
+              onChange={(e) => setFilterAuthor(e.target.value)}
+              className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300"
+            >
+              <option value="all">Tous les créateurs</option>
+              {authorNames.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
             </select>
             <select
               value={sortBy}
