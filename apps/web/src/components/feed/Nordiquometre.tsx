@@ -111,7 +111,7 @@ export function Nordiquometre() {
           {/* Aiguille CSS — forme d'aiguille d'horloge, couleur noir→bleu */}
           <svg
             className="pointer-events-none absolute"
-            viewBox="0 0 100 12"
+            viewBox="0 0 100 24"
             style={{
               left: `${CONFIG.pivotX}%`,
               top: `${CONFIG.pivotY}%`,
@@ -124,14 +124,14 @@ export function Nordiquometre() {
               overflow: 'visible',
             }}
           >
-            {/* Corps de l'aiguille — triangle épais au pivot, fin à la pointe */}
+            {/* Corps de l'aiguille — épais au pivot, fin à la pointe */}
             <polygon
-              points="0,3 0,9 95,5.5 95,6.5"
+              points="0,5 0,19 95,11 95,13"
               fill={`color-mix(in srgb, #000000 ${100 - average}%, #0B4870 ${average}%)`}
             />
             {/* Pointe */}
             <polygon
-              points="90,5 100,6 90,7"
+              points="90,10 100,12 90,14"
               fill={`color-mix(in srgb, #111111 ${100 - average}%, #1969B4 ${average}%)`}
             />
           </svg>
