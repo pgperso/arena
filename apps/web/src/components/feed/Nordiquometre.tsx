@@ -66,6 +66,9 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
   const [sliderValue, setSliderValue] = useState(50);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [resetStep, setResetStep] = useState(0); // 0=hidden, 1=confirm, 2=type RESET
+  const [resetInput, setResetInput] = useState('');
+  const [resetting, setResetting] = useState(false);
 
   const loadData = useCallback(async () => {
     // Charger TOUS les votes (toutes périodes)
@@ -317,6 +320,78 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
               </a>
             </div>
           </div>
+        )}
+
+        {/* Admin: reset all votes */}
+        {canModerate && (
+          <>
+            {resetStep === 0 && (
+              <button
+                onClick={() => setResetStep(1)}
+                className="mx-auto mt-4 block text-[10px] text-gray-400 transition hover:text-red-500"
+              >
+                Remettre les votes à zéro
+              </button>
+            )}
+
+            {resetStep === 1 && (
+              <div className="mx-auto mt-4 max-w-sm rounded-lg border border-red-300 bg-red-50 dark:bg-red-950 dark:border-red-800 p-3 text-center">
+                <p className="mb-2 text-sm font-semibold text-red-700 dark:text-red-400">Supprimer tous les votes ?</p>
+                <p className="mb-3 text-[10px] text-red-600 dark:text-red-400">Cette action est irréversible. Tous les votes de toutes les périodes seront supprimés.</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setResetStep(0)}
+                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={() => { setResetStep(2); setResetInput(''); }}
+                    className="flex-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-700"
+                  >
+                    Continuer
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {resetStep === 2 && (
+              <div className="mx-auto mt-4 max-w-sm rounded-lg border border-red-300 bg-red-50 dark:bg-red-950 dark:border-red-800 p-3 text-center">
+                <p className="mb-2 text-sm font-semibold text-red-700 dark:text-red-400">Tapez RESET pour confirmer</p>
+                <input
+                  type="text"
+                  value={resetInput}
+                  onChange={(e) => setResetInput(e.target.value)}
+                  placeholder="RESET"
+                  className="mb-3 w-full rounded-lg border border-red-300 dark:border-red-700 bg-white dark:bg-[#1e1e1e] px-3 py-1.5 text-center text-sm font-bold text-red-600 placeholder-red-300 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setResetStep(0); setResetInput(''); }}
+                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (resetInput !== 'RESET') return;
+                      setResetting(true);
+                      await supabase.from('nordiquometre_votes').delete().neq('id', 0);
+                      setResetStep(0);
+                      setResetInput('');
+                      setResetting(false);
+                      loadData();
+                    }}
+                    disabled={resetInput !== 'RESET' || resetting}
+                    className="flex-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+                  >
+                    {resetting ? 'Suppression...' : 'Supprimer tous les votes'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
