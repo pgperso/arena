@@ -316,7 +316,7 @@ export function FeedContainer({
         </div>
 
         {activeTab === 'nordiquometre' ? (
-          <Nordiquometre />
+          <Nordiquometre canModerate={canModerate} />
         ) : activeTab === 'content' ? (
           <CommunityContentTab communityId={communityId} communitySlug={communitySlug} userId={user?.id ?? null} canModerate={canModerate} />
         ) : (
