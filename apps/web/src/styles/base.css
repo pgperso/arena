@@ -44,6 +44,47 @@
   }
 
 
+  /* Modern thin scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-gray-300) transparent;
+  }
+
+  .dark * {
+    scrollbar-color: #3a3a3a transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: var(--color-gray-300);
+    border-radius: 3px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--color-gray-400);
+  }
+
+  .dark *::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+  }
+
+  .dark *::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  /* Hide scrollbar arrows (WebKit) */
+  *::-webkit-scrollbar-button {
+    display: none;
+  }
+
   /* Reply connector — curved L-shape from reply context down to avatar */
   .reply-connector {
     position: absolute;
