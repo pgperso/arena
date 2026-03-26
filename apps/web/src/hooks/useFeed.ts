@@ -149,6 +149,7 @@ interface FeedState {
 
 type FeedAction =
   | { type: 'INITIAL_LOAD'; messages: FeedMessage[]; articles: FeedArticle[]; podcasts: FeedPodcast[]; hasMore: boolean }
+  | { type: 'RELOAD_MESSAGES'; messages: FeedMessage[]; hasMore: boolean }
   | { type: 'ADD_MESSAGE'; message: FeedMessage }
   | { type: 'UPDATE_MESSAGE'; updated: ChatMessageRow }
   | { type: 'PREPEND_MESSAGES'; messages: FeedMessage[]; hasMore: boolean }
@@ -177,8 +178,18 @@ function feedReducer(state: FeedState, action: FeedAction): FeedState {
         hasMoreMessages: action.hasMore,
       };
 
-    case 'ADD_MESSAGE':
+    case 'RELOAD_MESSAGES':
+      return {
+        ...state,
+        messages: action.messages,
+        hasMoreMessages: action.hasMore,
+      };
+
+    case 'ADD_MESSAGE': {
+      // Deduplicate: skip if message already exists (optimistic send + Realtime race)
+      if (state.messages.some((m) => m.id === action.message.id)) return state;
       return { ...state, messages: evict([...state.messages, action.message]) };
+    }
 
     case 'UPDATE_MESSAGE': {
       const u = action.updated;
@@ -514,57 +525,68 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
     };
   }, [communityId, userId, reconnectCount]);
 
+  // Helper: reload latest messages from DB (used by reconnection handlers)
+  const reloadMessages = useCallback(() => {
+    supabaseRef.current
+      .from('chat_messages')
+      .select(CHAT_MSG_SELECT)
+      .eq('community_id', communityId)
+      .eq('is_removed', false)
+      .order('created_at', { ascending: false })
+      .limit(FEED_INITIAL_LIMIT)
+      .then(({ data }) => {
+        if (!data) return;
+        const messages = data
+          .reverse()
+          .map((row) => {
+            const typed = row as unknown as ChatMessageWithJoin;
+            if (typed.members) memberCacheRef.current.set(typed.members.id, typed.members);
+            return messageToFeedItem(typed);
+          });
+        dispatch({
+          type: 'RELOAD_MESSAGES',
+          messages,
+          hasMore: data.length === FEED_INITIAL_LIMIT,
+        });
+      });
+  }, [communityId]);
+
   // --- Heartbeat: check connection every 30s, reconnect if dead ---
   useEffect(() => {
     const interval = setInterval(() => {
       const ch = channelRef.current;
-      if (ch && (ch as unknown as { state: string }).state !== 'joined') {
+      if (!ch) return;
+      const chState = (ch as unknown as { state: string }).state;
+      if (chState !== 'joined') {
         setReconnectCount((c) => c + 1);
+        reloadMessages();
       }
     }, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [reloadMessages]);
 
-  // --- Reconnect on tab visibility (mobile backgrounding kills WebSocket) ---
+  // --- Reconnect on tab visibility + network online ---
 
   useEffect(() => {
     function handleVisibility() {
       if (document.visibilityState !== 'visible') return;
-
-      // Force Realtime reconnection — the WebSocket likely died while hidden
       setReconnectCount((c) => c + 1);
+      reloadMessages();
+    }
 
-      // Reload latest messages when tab becomes visible again
-      const supabase = supabaseRef.current;
-      supabase
-        .from('chat_messages')
-        .select(CHAT_MSG_SELECT)
-        .eq('community_id', communityId)
-        .eq('is_removed', false)
-        .order('created_at', { ascending: false })
-        .limit(FEED_INITIAL_LIMIT)
-        .then(({ data }) => {
-          if (!data) return;
-          const messages = data
-            .reverse()
-            .map((row) => {
-              const typed = row as unknown as ChatMessageWithJoin;
-              if (typed.members) memberCacheRef.current.set(typed.members.id, typed.members);
-              return messageToFeedItem(typed);
-            });
-          dispatch({
-            type: 'INITIAL_LOAD',
-            messages,
-            articles: state.articles,
-            podcasts: state.podcasts,
-            hasMore: data.length === FEED_INITIAL_LIMIT,
-          });
-        });
+    function handleOnline() {
+      // Browser regained network — force reconnect + reload
+      setReconnectCount((c) => c + 1);
+      reloadMessages();
     }
 
     document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [communityId, state.articles, state.podcasts]);
+    window.addEventListener('online', handleOnline);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [reloadMessages]);
 
   // --- Send messages ---
 
@@ -586,13 +608,24 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
 
       dispatch({ type: 'SET_SENDING', sending: true });
       try {
-        await supabaseRef.current.from('chat_messages').insert({
-          community_id: communityId,
-          member_id: userId,
-          content: hasContent ? options.content!.trim() : null,
-          image_urls: options.imageUrls ?? [],
-          parent_id: options.parentId ?? null,
-        });
+        const { data } = await supabaseRef.current
+          .from('chat_messages')
+          .insert({
+            community_id: communityId,
+            member_id: userId,
+            content: hasContent ? options.content!.trim() : null,
+            image_urls: options.imageUrls ?? [],
+            parent_id: options.parentId ?? null,
+          })
+          .select(CHAT_MSG_SELECT)
+          .single();
+
+        // Optimistic: show the message immediately (don't wait for Realtime)
+        if (data) {
+          const typed = data as unknown as ChatMessageWithJoin;
+          if (typed.members) memberCacheRef.current.set(typed.members.id, typed.members);
+          dispatch({ type: 'ADD_MESSAGE', message: messageToFeedItem(typed) });
+        }
       } finally {
         dispatch({ type: 'SET_SENDING', sending: false });
       }

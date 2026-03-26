@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
 
 export type PresenceStatus = 'online' | 'idle';
@@ -28,13 +28,11 @@ export function usePresence(
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const supabase = useSupabase();
 
-  // Track visibility for idle detection
-  const updateStatus = useCallback(() => {
-    const channel = channelRef.current;
-    if (!channel || !userId || !username) return;
-    const status: PresenceStatus = document.visibilityState === 'visible' ? 'online' : 'idle';
-    channel.track({ memberId: userId, username, avatarUrl, status });
-  }, [userId, username, avatarUrl]);
+  // Use refs for values that change but should NOT trigger re-subscription
+  const avatarUrlRef = useRef(avatarUrl);
+  avatarUrlRef.current = avatarUrl;
+  const usernameRef = useRef(username);
+  usernameRef.current = username;
 
   useEffect(() => {
     if (!userId || !username) return;
@@ -44,49 +42,64 @@ export function usePresence(
     });
     channelRef.current = channel;
 
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => {
-          const state = channel.presenceState<{
-            memberId: string;
-            username: string;
-            avatarUrl: string | null;
-            status?: PresenceStatus;
-          }>();
-          const members: PresenceMember[] = [];
-          for (const key in state) {
-            const presences = state[key];
-            if (presences && presences.length > 0) {
-              members.push({
-                memberId: presences[0].memberId,
-                username: presences[0].username,
-                avatarUrl: presences[0].avatarUrl,
-                status: presences[0].status ?? 'online',
-              });
-            }
+    function syncPresence() {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        const state = channel.presenceState<{
+          memberId: string;
+          username: string;
+          avatarUrl: string | null;
+          status?: PresenceStatus;
+        }>();
+        const members: PresenceMember[] = [];
+        for (const key in state) {
+          const presences = state[key];
+          if (presences && presences.length > 0) {
+            members.push({
+              memberId: presences[0].memberId,
+              username: presences[0].username,
+              avatarUrl: presences[0].avatarUrl,
+              status: presences[0].status ?? 'online',
+            });
           }
-          setOnlineMembers(members);
-        }, 500);
-      })
+        }
+        setOnlineMembers(members);
+      }, 500);
+    }
+
+    function trackStatus() {
+      if (!channelRef.current) return;
+      const status: PresenceStatus = document.visibilityState === 'visible' ? 'online' : 'idle';
+      channelRef.current.track({
+        memberId: userId,
+        username: usernameRef.current,
+        avatarUrl: avatarUrlRef.current,
+        status,
+      });
+    }
+
+    channel
+      .on('presence', { event: 'sync' }, syncPresence)
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          const presenceStatus: PresenceStatus = document.visibilityState === 'visible' ? 'online' : 'idle';
-          await channel.track({ memberId: userId, username, avatarUrl, status: presenceStatus });
+          await trackStatus();
         }
       });
 
     // Listen to visibility changes for idle detection
-    document.addEventListener('visibilitychange', updateStatus);
+    document.addEventListener('visibilitychange', trackStatus);
 
     return () => {
       clearTimeout(debounceRef.current);
-      document.removeEventListener('visibilitychange', updateStatus);
+      document.removeEventListener('visibilitychange', trackStatus);
       channel.untrack();
       supabase.removeChannel(channel);
       channelRef.current = null;
     };
-  }, [communityId, userId, username, avatarUrl, supabase, updateStatus]);
+    // Only re-subscribe when community or user identity changes
+    // avatarUrl changes are picked up via ref (no teardown needed)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [communityId, userId, username, supabase]);
 
   return {
     onlineMembers,
