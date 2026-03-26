@@ -11,6 +11,6 @@ export function StatusDot({ status, size = 'sm' }: StatusDotProps) {
   const color = status === 'online' ? 'bg-green-500' : 'bg-yellow-400';
 
   return (
-    <div className={`absolute ${position} rounded-full border-2 border-white ${dotSize} ${color}`} />
+    <div className={`absolute ${position} rounded-full border-2 border-white dark:border-[#1e1e1e] ${dotSize} ${color}`} />
   );
 }
