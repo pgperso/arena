@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/hooks/useAuth';
-import Image from 'next/image';
 
 export function Nordiquometre() {
   const supabase = useSupabase();
@@ -16,7 +15,6 @@ export function Nordiquometre() {
   const [loaded, setLoaded] = useState(false);
 
   const loadData = useCallback(async () => {
-    // Get average
     const { data: votes } = await supabase
       .from('nordiquometre_votes')
       .select('vote');
@@ -29,7 +27,6 @@ export function Nordiquometre() {
       setTotalVotes(votes.length);
     }
 
-    // Get my vote
     if (user) {
       const { data: myData } = await supabase
         .from('nordiquometre_votes')
@@ -70,8 +67,7 @@ export function Nordiquometre() {
     loadData();
   }
 
-  // Convert percentage (0-100) to rotation angle
-  // 0% = -130deg (left), 50% = 0deg (top), 100% = 130deg (right)
+  // 0% = -130deg (gauche), 50% = 0deg (haut), 100% = 130deg (droite)
   const needleAngle = -130 + (average / 100) * 260;
 
   if (!loaded) {
@@ -83,82 +79,76 @@ export function Nordiquometre() {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center overflow-y-auto px-4 py-6">
-      <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-gray-100">Nordiquomètre</h2>
-      <p className="mb-6 text-center text-sm text-gray-500 dark:text-gray-400">
-        Indice de confiance du retour des Nordiques de Québec
-      </p>
-
-      {/* Gauge */}
-      <div className="relative mb-6" style={{ width: 300, height: 220 }}>
-        <Image
+    <div className="flex flex-1 flex-col overflow-y-auto">
+      {/* Gauge — full width */}
+      <div className="relative w-full">
+        <img
           src="/images/nordiquometre.jpg"
           alt="Nordiquomètre"
-          width={300}
-          height={220}
-          className="h-auto w-full rounded-lg"
-          priority
+          className="w-full"
         />
-        {/* Needle overlay */}
+        {/* Needle */}
         <div
           className="absolute"
           style={{
             left: '37%',
-            top: '45%',
-            width: 0,
-            height: 0,
-            transformOrigin: '0% 50%',
+            top: '47%',
+            transformOrigin: 'left center',
             transform: `rotate(${needleAngle}deg)`,
             transition: 'transform 1s ease-out',
           }}
         >
-          <Image
-            src="/images/aiguille.png"
-            alt="Aiguille"
-            width={100}
-            height={8}
-            className="h-2"
-            style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}
-          />
-        </div>
-      </div>
-
-      {/* Average display */}
-      <div className="mb-6 text-center">
-        <p className="text-4xl font-bold text-brand-blue">{average}%</p>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{totalVotes} vote{totalVotes !== 1 ? 's' : ''}</p>
-      </div>
-
-      {/* Vote slider */}
-      {user ? (
-        <div className="w-full max-w-xs">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs text-gray-400">0%</span>
-            <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{sliderValue}%</span>
-            <span className="text-xs text-gray-400">100%</span>
+          <div className="h-1 rounded-full bg-white shadow-lg" style={{ width: '22%', minWidth: 60 }}>
+            <div className="h-full rounded-full bg-gradient-to-r from-white to-red-500" />
           </div>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={sliderValue}
-            onChange={(e) => setSliderValue(Number(e.target.value))}
-            className="mb-4 h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200 dark:bg-gray-700 accent-brand-blue"
-          />
-          <button
-            onClick={handleVote}
-            disabled={saving}
-            className="w-full rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
-          >
-            {saving ? 'Envoi...' : myVote !== null ? 'Mettre à jour mon vote' : 'Voter'}
-          </button>
-          {myVote !== null && (
-            <p className="mt-2 text-center text-xs text-gray-400">Ton vote actuel : {myVote}%</p>
-          )}
         </div>
-      ) : (
-        <p className="text-sm text-gray-400">Connecte-toi pour voter</p>
-      )}
+        {/* Center dot */}
+        <div
+          className="absolute h-4 w-4 rounded-full border-2 border-white bg-gray-900 shadow-lg"
+          style={{ left: '36%', top: '44%' }}
+        />
+        {/* Percentage overlay */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-4 py-1.5 backdrop-blur-sm">
+          <span className="text-lg font-bold text-white">{average}%</span>
+          <span className="ml-2 text-xs text-gray-300">{totalVotes} vote{totalVotes !== 1 ? 's' : ''}</span>
+        </div>
+      </div>
+
+      {/* Vote controls */}
+      <div className="px-4 py-4">
+        {user ? (
+          <div className="mx-auto max-w-sm">
+            <p className="mb-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300">
+              Quel est ton indice de confiance ?
+            </p>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs text-gray-400">Aucune chance</span>
+              <span className="rounded-full bg-brand-blue px-3 py-0.5 text-sm font-bold text-white">{sliderValue}%</span>
+              <span className="text-xs text-gray-400">Certain</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={sliderValue}
+              onChange={(e) => setSliderValue(Number(e.target.value))}
+              className="mb-4 h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200 dark:bg-gray-700 accent-brand-blue"
+            />
+            <button
+              onClick={handleVote}
+              disabled={saving}
+              className="w-full rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
+            >
+              {saving ? 'Envoi...' : myVote !== null ? 'Mettre à jour mon vote' : 'Voter'}
+            </button>
+            {myVote !== null && (
+              <p className="mt-2 text-center text-xs text-gray-400">Ton vote actuel : {myVote}%</p>
+            )}
+          </div>
+        ) : (
+          <p className="text-center text-sm text-gray-400">Connecte-toi pour voter</p>
+        )}
+      </div>
     </div>
   );
 }
