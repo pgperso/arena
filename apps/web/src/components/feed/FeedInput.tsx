@@ -87,7 +87,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
       />
 
       {/* Single unified container */}
-      <div className="overflow-hidden rounded-lg bg-gray-100 dark:bg-[#1e1e1e]">
+      <div className="overflow-hidden rounded-lg bg-gray-100 dark:bg-[#272525]">
         {/* Image previews inside the bar */}
         {images.length > 0 && (
           <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 p-3">
