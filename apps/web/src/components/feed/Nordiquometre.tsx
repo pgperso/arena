@@ -199,10 +199,11 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      {/* Cadran */}
-      <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden p-2">
-        <div className="relative w-full" style={{ maxWidth: 700 }}>
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+
+      {/* BLOC 1 : Cadran — taille fixe, aspect ratio verrouillé, JAMAIS affecté */}
+      <div className="shrink-0 flex justify-center px-2 pt-2">
+        <div className="relative" style={{ width: '100%', maxWidth: 500 }}>
           <img src="/images/nordiquometre.png" alt="Nordiquomètre" className="w-full" draggable={false} />
 
           <svg
@@ -232,19 +233,21 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
               boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
             }}
           />
-
-          {/* Badge — même largeur que l'image, collé sous le cadran */}
-          <div className="w-full rounded-xl bg-black/75 px-4 py-2.5 text-center backdrop-blur-sm">
-            <div className="text-lg font-bold text-white sm:text-xl">
-              {current.average}% <span className="text-xs text-gray-300 sm:text-sm">({current.totalVotes} vote{current.totalVotes !== 1 ? 's' : ''} · {horizonLabel(activeHorizon)})</span>
-            </div>
-            <div className="text-xs text-gray-200 sm:text-sm">{verdict.emoji} {verdict.text}</div>
-          </div>
         </div>
       </div>
 
-      {/* Vote + partage */}
-      <div className="relative z-10 shrink-0 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3">
+      {/* BLOC 2 : Badge résultat — taille fixe, même largeur que le cadran */}
+      <div className="shrink-0 flex justify-center px-2">
+        <div className="w-full rounded-xl bg-black/75 px-4 py-2 text-center backdrop-blur-sm" style={{ maxWidth: 500 }}>
+          <div className="text-lg font-bold text-white sm:text-xl">
+            {current.average}% <span className="text-xs text-gray-300 sm:text-sm">({current.totalVotes} vote{current.totalVotes !== 1 ? 's' : ''} · {horizonLabel(activeHorizon)})</span>
+          </div>
+          <div className="text-xs text-gray-200 sm:text-sm">{verdict.emoji} {verdict.text}</div>
+        </div>
+      </div>
+
+      {/* BLOC 3 : Vote + partage — prend le restant, jamais de scroll */}
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col justify-center border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-2">
         {/* Onglets horizons */}
         <div className="mx-auto mb-3 flex max-w-sm gap-1">
           {HORIZONS.map((h) => (
