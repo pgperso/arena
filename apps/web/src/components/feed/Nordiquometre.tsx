@@ -14,9 +14,11 @@ const CONFIG = {
   pivotY: 48.5,       // % depuis le haut
   // Longueur de l'aiguille
   needleLength: 25, // % de la largeur de l'image
-  // Angles de rotation (en degrés)
-  angleMin: -130,   // angle quand 0%
-  angleMax: 130,    // angle quand 100%
+  // Angles de rotation (en degrés, CSS: 0°=droite, positif=horaire)
+  // 0% = position 3h20 (aiguille pointe bas-droite) ≈ 30°
+  // 100% = position 3h15 (aiguille pointe droite, tour complet CCW) ≈ -300°
+  angleMin: 30,     // angle quand 0%
+  angleMax: -300,   // angle quand 100%
 };
 
 export function Nordiquometre() {
