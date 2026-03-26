@@ -66,6 +66,7 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
   const [sliderValue, setSliderValue] = useState(50);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [showVoteModal, setShowVoteModal] = useState(false);
   const [resetStep, setResetStep] = useState(0); // 0=hidden, 1=confirm, 2=type RESET
   const [resetInput, setResetInput] = useState('');
   const [resetting, setResetting] = useState(false);
@@ -199,12 +200,12 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
 
-      {/* BLOC 1 : Cadran — taille fixe, aspect ratio verrouillé, JAMAIS affecté */}
-      <div className="shrink-0 flex justify-center px-2 pt-2">
-        <div className="relative" style={{ width: '100%', maxWidth: 600 }}>
-          <img src="/images/nordiquometre.png" alt="Nordiquomètre" className="w-full" draggable={false} />
+      {/* BLOC 1 : Cadran — scale selon la hauteur dispo, aspect ratio verrouillé */}
+      <div className="shrink flex justify-center px-2 pt-2">
+        <div className="relative w-full max-w-[600px] max-h-[45vh]" style={{ aspectRatio: '1/1' }}>
+          <img src="/images/nordiquometre.png" alt="Nordiquomètre" className="h-full w-full object-contain" draggable={false} />
 
           <svg
             className="pointer-events-none absolute"
@@ -246,168 +247,130 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
         </div>
       </div>
 
-      {/* BLOC 3 : Vote + partage — prend le restant, jamais de scroll */}
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col justify-center border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3">
-        {/* Onglets horizons */}
-        <div className="mb-3 flex gap-2">
-          {HORIZONS.map((h) => (
-            <button
-              key={h.key}
-              onClick={() => setActiveHorizon(h.key)}
-              className={`flex flex-1 items-center justify-center rounded-lg py-1.5 text-xs font-semibold transition ${
-                activeHorizon === h.key
-                  ? 'bg-red-600 text-white shadow-sm'
-                  : 'bg-gray-100 dark:bg-[#272525] text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
-            >
-              {h.label}
-              {data[h.key].totalVotes > 0 && (
-                <span className="ml-1 text-[9px] opacity-60">({data[h.key].totalVotes})</span>
-              )}
-            </button>
-          ))}
-        </div>
-
-        {!user ? (
-          <p className="text-center text-sm text-gray-400">Connecte-toi pour voter</p>
-        ) : !canVote ? (
-          <div className="mx-auto max-w-md text-center">
-            <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">Tu as déjà voté pour {horizonLabel(activeHorizon)} aujourd&apos;hui !</p>
-            <p className="mb-3 text-[10px] text-gray-400">Ton vote : {current.myVote}% — Reviens demain ou vote pour un autre horizon.</p>
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-[10px] text-gray-400">Partager :</span>
-              <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}&quote=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600">
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
-              </a>
-              <a href={`https://x.com/intent/tweet?url=${encodeURIComponent(SHARE_URL)}&text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100">
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
-              </a>
-            </div>
-          </div>
-        ) : (
-          <div className="mx-auto max-w-md">
-            {canModerate && votedToday && (
-              <p className="mb-2 text-center text-[10px] text-orange-500">Mode admin — vote illimité</p>
-            )}
-            <div className="mb-2 flex items-center justify-center gap-2">
-              <span className="text-[10px] text-gray-400">0%</span>
-              <input
-                type="range" min={0} max={100} value={sliderValue}
-                onChange={(e) => setSliderValue(Number(e.target.value))}
-                className="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-gray-200 dark:bg-gray-700 accent-brand-blue"
-              />
-              <span className="text-[10px] text-gray-400">100%</span>
-              <input
-                type="number" min={0} max={100} value={sliderValue}
-                onChange={(e) => setSliderValue(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
-                className="w-14 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] px-2 py-1 text-center text-sm font-bold text-brand-blue focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-              />
-            </div>
-            <button
-              onClick={handleVote}
-              disabled={saving}
-              className="w-full rounded-lg bg-brand-blue px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
-            >
-              {saving ? 'Envoi...' : current.myVote !== null ? `Mettre à jour (${horizonLabel(activeHorizon)})` : `Voter (${horizonLabel(activeHorizon)})`}
-            </button>
-            {current.myVote !== null && (
-              <p className="mt-1 text-center text-[10px] text-gray-400">Ton vote ({horizonLabel(activeHorizon)}) : {current.myVote}%</p>
-            )}
-            <div className="mt-3 flex items-center justify-center gap-2">
-              <span className="text-[10px] text-gray-400">Partager :</span>
-              <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}&quote=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600">
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
-              </a>
-              <a href={`https://x.com/intent/tweet?url=${encodeURIComponent(SHARE_URL)}&text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100">
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
-              </a>
-            </div>
-          </div>
-        )}
-
-        {/* Admin: reset button */}
-        {canModerate && (
+      {/* Boutons d'action — shrink-0, jamais de problème de hauteur */}
+      <div className="shrink-0 flex items-center justify-center gap-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3">
+        {user ? (
           <button
-            onClick={() => setResetStep(1)}
-            className="mx-auto mt-3 block text-[10px] text-gray-400 transition hover:text-red-500"
+            onClick={() => setShowVoteModal(true)}
+            className="rounded-lg bg-brand-blue px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-blue-dark"
           >
-            Remettre les votes à zéro
+            Voter
+          </button>
+        ) : (
+          <p className="text-sm text-gray-400">Connecte-toi pour voter</p>
+        )}
+        {/* Partage */}
+        <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}&quote=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-2 text-gray-400 transition hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600">
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
+        </a>
+        <a href={`https://x.com/intent/tweet?url=${encodeURIComponent(SHARE_URL)}&text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100">
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+        </a>
+        {canModerate && (
+          <button onClick={() => setResetStep(1)} className="rounded-lg p-2 text-gray-400 transition hover:text-red-500" title="Remettre à zéro">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" /></svg>
           </button>
         )}
-
-        {/* Reset modal (pop-up) */}
-        {resetStep > 0 && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#1e1e1e] p-6 shadow-xl">
-              {resetStep === 1 ? (
-                <>
-                  <h3 className="mb-2 text-base font-bold text-red-600">Supprimer tous les votes ?</h3>
-                  <p className="mb-5 text-sm text-gray-500 dark:text-gray-400">
-                    Cette action est irréversible. Tous les votes de toutes les périodes seront supprimés définitivement.
-                  </p>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setResetStep(0)}
-                      className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-700"
-                    >
-                      Annuler
-                    </button>
-                    <button
-                      onClick={() => { setResetStep(2); setResetInput(''); }}
-                      className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700"
-                    >
-                      Continuer
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <h3 className="mb-2 text-base font-bold text-red-600">Confirmation finale</h3>
-                  <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">Tapez <strong>RESET</strong> pour confirmer la suppression.</p>
-                  <input
-                    type="text"
-                    value={resetInput}
-                    onChange={(e) => setResetInput(e.target.value)}
-                    placeholder="RESET"
-                    className="mb-4 w-full rounded-lg border border-red-300 dark:border-red-700 bg-white dark:bg-[#272525] px-3 py-2 text-center text-sm font-bold text-red-600 placeholder-red-300 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
-                    autoFocus
-                  />
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => { setResetStep(0); setResetInput(''); }}
-                      className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-700"
-                    >
-                      Annuler
-                    </button>
-                    <button
-                      onClick={async () => {
-                        if (resetInput !== 'RESET') return;
-                        setResetting(true);
-                        // Supprimer tous les votes
-                        await supabase.from('nordiquometre_votes').delete().neq('id', 0);
-                        // Supprimer tous les messages bot liés au Nordiquomètre
-                        await supabase
-                          .from('chat_messages')
-                          .delete()
-                          .eq('member_id', '00000000-0000-0000-0000-000000000001')
-                          .like('content', '%Nordiquomètre%');
-                        setResetStep(0);
-                        setResetInput('');
-                        setResetting(false);
-                        loadData();
-                      }}
-                      disabled={resetInput !== 'RESET' || resetting}
-                      className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
-                    >
-                      {resetting ? 'Suppression...' : 'Supprimer'}
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Modal de vote */}
+      {showVoteModal && user && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-[#1e1e1e] p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Voter au Nordiquomètre</h3>
+              <button onClick={() => setShowVoteModal(false)} className="rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            {/* Onglets horizons */}
+            <div className="mb-4 flex gap-2">
+              {HORIZONS.map((h) => (
+                <button
+                  key={h.key}
+                  onClick={() => setActiveHorizon(h.key)}
+                  className={`flex flex-1 items-center justify-center rounded-lg py-2 text-sm font-semibold transition ${
+                    activeHorizon === h.key
+                      ? 'bg-red-600 text-white shadow-sm'
+                      : 'bg-gray-100 dark:bg-[#272525] text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  {h.label}
+                  {data[h.key].totalVotes > 0 && (
+                    <span className="ml-1.5 text-[10px] opacity-60">({data[h.key].totalVotes})</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {!canVote ? (
+              <div className="text-center">
+                <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">Tu as déjà voté pour {horizonLabel(activeHorizon)} aujourd&apos;hui !</p>
+                <p className="text-[10px] text-gray-400">Ton vote : {current.myVote}% — Reviens demain ou sélectionne un autre horizon.</p>
+              </div>
+            ) : (
+              <>
+                {canModerate && votedToday && (
+                  <p className="mb-2 text-center text-[10px] text-orange-500">Mode admin — vote illimité</p>
+                )}
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="text-xs text-gray-400">0%</span>
+                  <input
+                    type="range" min={0} max={100} value={sliderValue}
+                    onChange={(e) => setSliderValue(Number(e.target.value))}
+                    className="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-gray-200 dark:bg-gray-700 accent-brand-blue"
+                  />
+                  <span className="text-xs text-gray-400">100%</span>
+                  <input
+                    type="number" min={0} max={100} value={sliderValue}
+                    onChange={(e) => setSliderValue(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+                    className="w-16 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] px-2 py-1.5 text-center text-sm font-bold text-brand-blue focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                  />
+                </div>
+                <button
+                  onClick={async () => { await handleVote(); setShowVoteModal(false); }}
+                  disabled={saving}
+                  className="w-full rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
+                >
+                  {saving ? 'Envoi...' : current.myVote !== null ? `Mettre à jour (${horizonLabel(activeHorizon)})` : `Voter (${horizonLabel(activeHorizon)})`}
+                </button>
+                {current.myVote !== null && (
+                  <p className="mt-2 text-center text-[10px] text-gray-400">Ton vote ({horizonLabel(activeHorizon)}) : {current.myVote}%</p>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Reset modal */}
+      {resetStep > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#1e1e1e] p-6 shadow-xl">
+            {resetStep === 1 ? (
+              <>
+                <h3 className="mb-2 text-base font-bold text-red-600">Supprimer tous les votes ?</h3>
+                <p className="mb-5 text-sm text-gray-500 dark:text-gray-400">Cette action est irréversible. Tous les votes de toutes les périodes seront supprimés.</p>
+                <div className="flex gap-3">
+                  <button onClick={() => setResetStep(0)} className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-700">Annuler</button>
+                  <button onClick={() => { setResetStep(2); setResetInput(''); }} className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700">Continuer</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="mb-2 text-base font-bold text-red-600">Confirmation finale</h3>
+                <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">Tapez <strong>RESET</strong> pour confirmer.</p>
+                <input type="text" value={resetInput} onChange={(e) => setResetInput(e.target.value)} placeholder="RESET" className="mb-4 w-full rounded-lg border border-red-300 dark:border-red-700 bg-white dark:bg-[#272525] px-3 py-2 text-center text-sm font-bold text-red-600 placeholder-red-300 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" autoFocus />
+                <div className="flex gap-3">
+                  <button onClick={() => { setResetStep(0); setResetInput(''); }} className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-700">Annuler</button>
+                  <button onClick={async () => { if (resetInput !== 'RESET') return; setResetting(true); await supabase.from('nordiquometre_votes').delete().neq('id', 0); await supabase.from('chat_messages').delete().eq('member_id', '00000000-0000-0000-0000-000000000001').like('content', '%Nordiquomètre%'); setResetStep(0); setResetInput(''); setResetting(false); loadData(); }} disabled={resetInput !== 'RESET' || resetting} className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50">{resetting ? 'Suppression...' : 'Supprimer'}</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
