@@ -383,7 +383,14 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
                       onClick={async () => {
                         if (resetInput !== 'RESET') return;
                         setResetting(true);
+                        // Supprimer tous les votes
                         await supabase.from('nordiquometre_votes').delete().neq('id', 0);
+                        // Supprimer tous les messages bot liés au Nordiquomètre
+                        await supabase
+                          .from('chat_messages')
+                          .delete()
+                          .eq('member_id', '00000000-0000-0000-0000-000000000001')
+                          .like('content', '%Nordiquomètre%');
                         setResetStep(0);
                         setResetInput('');
                         setResetting(false);
