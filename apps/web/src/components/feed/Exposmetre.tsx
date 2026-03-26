@@ -165,7 +165,7 @@ export function Exposmetre({ canModerate }: ExposmetreProps) {
       .map((h) => `${h.label}: ${avgs[h.key]?.avg ?? 0}%`)
       .join(' · ');
 
-    const botMsg = `${verdict.emoji} ${voteName} a voté au Expomètre (${horizonLabel(activeHorizon)}) : ${sliderValue}% !\nIndices de confiance : ${indicesLine} (${totalAllVotes} votes)\n${verdict.text}`;
+    const botMsg = `${verdict.emoji} ${voteName} a voté au Exposmètre (${horizonLabel(activeHorizon)}) : ${sliderValue}% !\nIndices de confiance : ${indicesLine} (${totalAllVotes} votes)\n${verdict.text}`;
 
     const { data: comms } = await supabase
       .from('communities')
@@ -188,7 +188,7 @@ export function Exposmetre({ canModerate }: ExposmetreProps) {
   const needleAngle = CONFIG.angleMin + (current.average / 100) * (CONFIG.angleMax - CONFIG.angleMin);
   const verdict = getVerdict(current.average);
 
-  const shareText = `${verdict.emoji} Expomètre (${horizonLabel(activeHorizon)}) : ${current.average}% — ${verdict.text} Votez vous aussi !`;
+  const shareText = `${verdict.emoji} Exposmètre (${horizonLabel(activeHorizon)}) : ${current.average}% — ${verdict.text} Votez vous aussi !`;
 
 
   if (!loaded) {
@@ -205,7 +205,7 @@ export function Exposmetre({ canModerate }: ExposmetreProps) {
       {/* BLOC 1 : Cadran + badge — centré verticalement */}
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-2">
         <div className="relative w-full max-w-[600px]">
-          <img src="/images/exposmetre.png" alt="Expomètre" className="w-full" draggable={false} />
+          <img src="/images/exposmetre.png" alt="Exposmètre" className="w-full" draggable={false} />
 
           <svg
             className="pointer-events-none absolute"
@@ -277,7 +277,7 @@ export function Exposmetre({ canModerate }: ExposmetreProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-[#1e1e1e] p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Voter au Expomètre</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Voter au Exposmètre</h3>
               <button onClick={() => setShowVoteModal(false)} className="rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
               </button>
@@ -363,7 +363,7 @@ export function Exposmetre({ canModerate }: ExposmetreProps) {
                 <input type="text" value={resetInput} onChange={(e) => setResetInput(e.target.value)} placeholder="RESET" className="mb-4 w-full rounded-lg border border-red-300 dark:border-red-700 bg-white dark:bg-[#272525] px-3 py-2 text-center text-sm font-bold text-red-600 placeholder-red-300 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" autoFocus />
                 <div className="flex gap-3">
                   <button onClick={() => { setResetStep(0); setResetInput(''); }} className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-700">Annuler</button>
-                  <button onClick={async () => { if (resetInput !== 'RESET') return; setResetting(true); await supabase.from('exposmetre_votes').delete().neq('id', 0); await supabase.from('chat_messages').delete().eq('member_id', '00000000-0000-0000-0000-000000000001').like('content', '%Expomètre%'); setResetStep(0); setResetInput(''); setResetting(false); loadData(); }} disabled={resetInput !== 'RESET' || resetting} className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50">{resetting ? 'Suppression...' : 'Supprimer'}</button>
+                  <button onClick={async () => { if (resetInput !== 'RESET') return; setResetting(true); await supabase.from('exposmetre_votes').delete().neq('id', 0); await supabase.from('chat_messages').delete().eq('member_id', '00000000-0000-0000-0000-000000000001').like('content', '%Exposmètre%'); setResetStep(0); setResetInput(''); setResetting(false); loadData(); }} disabled={resetInput !== 'RESET' || resetting} className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50">{resetting ? 'Suppression...' : 'Supprimer'}</button>
                 </div>
               </>
             )}
