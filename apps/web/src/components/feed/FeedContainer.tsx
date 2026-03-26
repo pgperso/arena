@@ -20,6 +20,7 @@ import { AdInFeed } from '@/components/ads/AdInFeed';
 import { FEED_AD_INTERVAL } from '@arena/shared';
 import { CommunityContentTab } from './CommunityContentTab';
 import { Nordiquometre } from './Nordiquometre';
+import { Exposmetre } from './Exposmetre';
 import { Link } from '@/i18n/navigation';
 
 const ArticleEditor = dynamic(() => import('@/components/article/ArticleEditor').then((m) => m.ArticleEditor), { ssr: false });
@@ -88,8 +89,9 @@ export function FeedContainer({
   const [showArticleList, setShowArticleList] = useState(false);
   const [showPodcastEditor, setShowPodcastEditor] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'content' | 'nordiquometre'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'content' | 'nordiquometre' | 'exposmetre'>('chat');
   const isNordiques = communitySlug === 'nordiques-quebec' || communitySlug === 'nordiques-de-quebec';
+  const isExpos = communitySlug === 'expos-de-montreal' || communitySlug === 'expos-montreal';
 
   // Reply state
   const [replyTarget, setReplyTarget] = useState<FeedMessageType | null>(null);
@@ -313,10 +315,27 @@ export function FeedContainer({
               Nordiquomètre
             </button>
           )}
+          {isExpos && (
+            <button
+              onClick={() => setActiveTab('exposmetre')}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
+                activeTab === 'exposmetre'
+                  ? 'bg-white dark:bg-brand-blue text-brand-blue dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 dark:bg-[#272525] hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5" />
+              </svg>
+              Expomètre
+            </button>
+          )}
         </div>
 
         {activeTab === 'nordiquometre' ? (
           <Nordiquometre canModerate={canModerate} />
+        ) : activeTab === 'exposmetre' ? (
+          <Exposmetre canModerate={canModerate} />
         ) : activeTab === 'content' ? (
           <CommunityContentTab communityId={communityId} communitySlug={communitySlug} userId={user?.id ?? null} canModerate={canModerate} />
         ) : (
