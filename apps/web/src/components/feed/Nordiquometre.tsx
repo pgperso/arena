@@ -197,26 +197,6 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Onglets horizons */}
-      <div className="flex shrink-0 gap-1 bg-gray-100 dark:bg-[#1e1e1e] px-3 py-1.5">
-        {HORIZONS.map((h) => (
-          <button
-            key={h.key}
-            onClick={() => setActiveHorizon(h.key)}
-            className={`flex flex-1 items-center justify-center rounded-lg py-2 text-xs font-semibold transition sm:text-sm ${
-              activeHorizon === h.key
-                ? 'bg-white dark:bg-brand-blue text-brand-blue dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 dark:bg-[#272525] hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            {h.label}
-            {data[h.key].totalVotes > 0 && (
-              <span className="ml-1.5 text-[9px] opacity-60">({data[h.key].totalVotes})</span>
-            )}
-          </button>
-        ))}
-      </div>
-
       {/* Cadran */}
       <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden p-2">
         <div className="relative w-full" style={{ maxWidth: 700 }}>
@@ -262,6 +242,26 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
 
       {/* Vote + partage */}
       <div className="relative z-10 shrink-0 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3">
+        {/* Onglets horizons */}
+        <div className="mx-auto mb-3 flex max-w-sm gap-1">
+          {HORIZONS.map((h) => (
+            <button
+              key={h.key}
+              onClick={() => setActiveHorizon(h.key)}
+              className={`flex flex-1 items-center justify-center rounded-lg py-1.5 text-xs font-semibold transition ${
+                activeHorizon === h.key
+                  ? 'bg-brand-blue text-white shadow-sm'
+                  : 'bg-gray-100 dark:bg-[#272525] text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              {h.label}
+              {data[h.key].totalVotes > 0 && (
+                <span className="ml-1 text-[9px] opacity-60">({data[h.key].totalVotes})</span>
+              )}
+            </button>
+          ))}
+        </div>
+
         {!user ? (
           <p className="text-center text-sm text-gray-400">Connecte-toi pour voter</p>
         ) : !canVote ? (
