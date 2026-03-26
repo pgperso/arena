@@ -4,10 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/hooks/useAuth';
 
-/**
- * CONFIGURATION — Ajuster ces valeurs pour positionner l'aiguille
- * Toutes les valeurs sont en % de l'image (0-100)
- */
 const CONFIG = {
   pivotX: 40,
   pivotY: 48.5,
@@ -16,7 +12,14 @@ const CONFIG = {
   angleMax: 360,
 };
 
-/** Phrases selon le pourcentage MOYEN de tous les utilisateurs */
+const HORIZONS = [
+  { key: '0-3', label: '0-3 ans' },
+  { key: '3-5', label: '3-5 ans' },
+  { key: '5-10', label: '5-10 ans' },
+] as const;
+
+type HorizonKey = typeof HORIZONS[number]['key'];
+
 function getVerdict(pct: number): { text: string; emoji: string } {
   if (pct <= 5) return { text: "C'est mort. Oubliez ça.", emoji: '💀' };
   if (pct <= 15) return { text: 'Aucun signe de vie. Zéro espoir.', emoji: '🪦' };
@@ -31,7 +34,20 @@ function getVerdict(pct: number): { text: string; emoji: string } {
   return { text: 'LES NORDIQUES SONT DE RETOUR !', emoji: '🏒' };
 }
 
+function horizonLabel(key: string) {
+  return HORIZONS.find((h) => h.key === key)?.label ?? key;
+}
+
 const SHARE_URL = 'https://fanstribune.com/fr/tribunes/nordiques-de-quebec';
+
+interface HorizonData {
+  average: number;
+  totalVotes: number;
+  myVote: number | null;
+  lastVoteDate: string | null;
+}
+
+const EMPTY_DATA: HorizonData = { average: 0, totalVotes: 0, myVote: null, lastVoteDate: null };
 
 interface NordiquometreProps {
   canModerate: boolean;
@@ -41,54 +57,52 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
   const supabase = useSupabase();
   const { user, username } = useAuth();
 
-  // MOYENNE de tous les utilisateurs (pas le vote individuel)
-  const [average, setAverage] = useState(0);
-  const [totalVotes, setTotalVotes] = useState(0);
-
-  // Vote de l'utilisateur courant
-  const [myVote, setMyVote] = useState<number | null>(null);
-  const [lastVoteDate, setLastVoteDate] = useState<string | null>(null);
+  const [activeHorizon, setActiveHorizon] = useState<HorizonKey>('0-3');
+  const [data, setData] = useState<Record<HorizonKey, HorizonData>>({
+    '0-3': { ...EMPTY_DATA },
+    '3-5': { ...EMPTY_DATA },
+    '5-10': { ...EMPTY_DATA },
+  });
   const [sliderValue, setSliderValue] = useState(50);
-
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  /**
-   * Charge la MOYENNE de TOUS les votes + le vote de l'utilisateur courant
-   */
   const loadData = useCallback(async () => {
-    // 1. Charger TOUS les votes pour calculer la moyenne globale
+    // Charger TOUS les votes (toutes périodes)
     const { data: allVotes } = await supabase
       .from('nordiquometre_votes')
-      .select('vote');
+      .select('vote, horizon, member_id, updated_at');
 
-    if (allVotes && allVotes.length > 0) {
-      const votes = allVotes as { vote: number }[];
-      const sum = votes.reduce((acc, v) => acc + v.vote, 0);
-      const avg = Math.round(sum / votes.length);
-      setAverage(avg);
-      setTotalVotes(votes.length);
-    } else {
-      setAverage(0);
-      setTotalVotes(0);
-    }
+    const newData: Record<string, HorizonData> = {
+      '0-3': { ...EMPTY_DATA },
+      '3-5': { ...EMPTY_DATA },
+      '5-10': { ...EMPTY_DATA },
+    };
 
-    // 2. Charger le vote de l'utilisateur courant (s'il existe)
-    if (user) {
-      const { data: myData } = await supabase
-        .from('nordiquometre_votes')
-        .select('vote, updated_at')
-        .eq('member_id', user.id)
-        .single();
+    if (allVotes) {
+      const votes = allVotes as { vote: number; horizon: string; member_id: string; updated_at: string }[];
 
-      if (myData) {
-        const d = myData as { vote: number; updated_at: string };
-        setMyVote(d.vote);
-        setSliderValue(d.vote);
-        setLastVoteDate(d.updated_at);
+      // Calculer moyenne par horizon
+      for (const h of HORIZONS) {
+        const hVotes = votes.filter((v) => v.horizon === h.key);
+        if (hVotes.length > 0) {
+          const sum = hVotes.reduce((acc, v) => acc + v.vote, 0);
+          newData[h.key].average = Math.round(sum / hVotes.length);
+          newData[h.key].totalVotes = hVotes.length;
+        }
+
+        // Vote de l'utilisateur courant pour cet horizon
+        if (user) {
+          const myV = hVotes.find((v) => v.member_id === user.id);
+          if (myV) {
+            newData[h.key].myVote = myV.vote;
+            newData[h.key].lastVoteDate = myV.updated_at;
+          }
+        }
       }
     }
 
+    setData(newData as Record<HorizonKey, HorizonData>);
     setLoaded(true);
   }, [supabase, user]);
 
@@ -96,51 +110,58 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
     loadData();
   }, [loadData]);
 
-  /**
-   * L'utilisateur a-t-il déjà voté aujourd'hui ?
-   * Les admins/modérateurs peuvent toujours voter (bypass)
-   */
-  const votedToday = !!lastVoteDate && new Date(lastVoteDate).toDateString() === new Date().toDateString();
+  // Quand on change d'horizon, mettre le slider sur le vote existant ou 50
+  useEffect(() => {
+    const d = data[activeHorizon];
+    setSliderValue(d.myVote ?? 50);
+  }, [activeHorizon, data]);
+
+  const current = data[activeHorizon];
+  const votedToday = !!current.lastVoteDate && new Date(current.lastVoteDate).toDateString() === new Date().toDateString();
   const canVote = canModerate || !votedToday;
 
-  /**
-   * Soumettre le vote
-   */
   async function handleVote() {
     if (!user || !canVote) return;
     setSaving(true);
 
-    // Upsert le vote
-    if (myVote !== null) {
+    if (current.myVote !== null) {
       await supabase
         .from('nordiquometre_votes')
         .update({ vote: sliderValue, updated_at: new Date().toISOString() } as never)
-        .eq('member_id', user.id);
+        .eq('member_id', user.id)
+        .eq('horizon' as never, activeHorizon as never);
     } else {
       await supabase
         .from('nordiquometre_votes')
-        .insert({ member_id: user.id, vote: sliderValue } as never);
+        .insert({ member_id: user.id, vote: sliderValue, horizon: activeHorizon } as never);
     }
 
-    // Recharger pour avoir la nouvelle moyenne GLOBALE
+    // Recharger les moyennes fraîches
     const { data: freshVotes } = await supabase
       .from('nordiquometre_votes')
-      .select('vote');
+      .select('vote, horizon');
 
-    let newAvg = average;
-    let newTotal = totalVotes;
-    if (freshVotes && freshVotes.length > 0) {
-      const votes = freshVotes as { vote: number }[];
-      newAvg = Math.round(votes.reduce((acc, v) => acc + v.vote, 0) / votes.length);
-      newTotal = votes.length;
-      setAverage(newAvg);
-      setTotalVotes(newTotal);
+    const avgs: Record<string, { avg: number; count: number }> = {};
+    if (freshVotes) {
+      for (const h of HORIZONS) {
+        const hv = (freshVotes as { vote: number; horizon: string }[]).filter((v) => v.horizon === h.key);
+        if (hv.length > 0) {
+          avgs[h.key] = { avg: Math.round(hv.reduce((a, v) => a + v.vote, 0) / hv.length), count: hv.length };
+        }
+      }
     }
 
-    // Message bot dans Nordiques + Taverne avec la MOYENNE GLOBALE
+    // Bot message avec les 3 indices
     const voteName = username || 'Un fan';
-    const verdict = getVerdict(newAvg);
-    const botMsg = `${verdict.emoji} ${voteName} a voté au Nordiquomètre ! Indice de confiance : ${newAvg}% (${newTotal} votes). ${verdict.text}`;
+    const horizonAvg = avgs[activeHorizon]?.avg ?? sliderValue;
+    const verdict = getVerdict(horizonAvg);
+    const totalAllVotes = Object.values(avgs).reduce((a, v) => a + v.count, 0);
+
+    const indicesLine = HORIZONS
+      .map((h) => `${h.label}: ${avgs[h.key]?.avg ?? 0}%`)
+      .join(' · ');
+
+    const botMsg = `${verdict.emoji} ${voteName} a voté au Nordiquomètre (${horizonLabel(activeHorizon)}) : ${sliderValue}% !\nIndices de confiance : ${indicesLine} (${totalAllVotes} votes)\n${verdict.text}`;
 
     const { data: comms } = await supabase
       .from('communities')
@@ -156,15 +177,15 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
       }
     }
 
-    setMyVote(sliderValue);
-    setLastVoteDate(new Date().toISOString());
     setSaving(false);
+    loadData();
   }
 
-  // Angle de l'aiguille basé sur la MOYENNE GLOBALE
-  const needleAngle = CONFIG.angleMin + (average / 100) * (CONFIG.angleMax - CONFIG.angleMin);
-  const verdict = getVerdict(average);
-  const shareText = `${verdict.emoji} Nordiquomètre : ${average}% — ${verdict.text} Votez vous aussi !`;
+  const needleAngle = CONFIG.angleMin + (current.average / 100) * (CONFIG.angleMax - CONFIG.angleMin);
+  const verdict = getVerdict(current.average);
+
+  const shareText = `${verdict.emoji} Nordiquomètre (${horizonLabel(activeHorizon)}) : ${current.average}% — ${verdict.text} Votez vous aussi !`;
+
 
   if (!loaded) {
     return (
@@ -176,20 +197,37 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {/* Onglets horizons */}
+      <div className="flex shrink-0 gap-1 bg-gray-100 dark:bg-[#1e1e1e] px-3 py-1.5">
+        {HORIZONS.map((h) => (
+          <button
+            key={h.key}
+            onClick={() => setActiveHorizon(h.key)}
+            className={`flex flex-1 items-center justify-center rounded-lg py-2 text-xs font-semibold transition sm:text-sm ${
+              activeHorizon === h.key
+                ? 'bg-white dark:bg-brand-blue text-brand-blue dark:text-white shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 dark:bg-[#272525] hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            {h.label}
+            {data[h.key].totalVotes > 0 && (
+              <span className="ml-1.5 text-[9px] opacity-60">({data[h.key].totalVotes})</span>
+            )}
+          </button>
+        ))}
+      </div>
+
       {/* Cadran */}
       <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden p-2">
         <div className="relative w-full" style={{ maxWidth: 700 }}>
           <img src="/images/nordiquometre.png" alt="Nordiquomètre" className="w-full" draggable={false} />
 
-          {/* Aiguille CSS — couleur basée sur la MOYENNE */}
           <svg
             className="pointer-events-none absolute"
             viewBox="0 0 100 24"
             style={{
-              left: `${CONFIG.pivotX}%`,
-              top: `${CONFIG.pivotY}%`,
-              width: `${CONFIG.needleLength}%`,
-              height: 'auto',
+              left: `${CONFIG.pivotX}%`, top: `${CONFIG.pivotY}%`,
+              width: `${CONFIG.needleLength}%`, height: 'auto',
               transformOrigin: '0% 50%',
               transform: `translateY(-50%) rotate(${needleAngle}deg)`,
               transition: 'transform 1s ease-out',
@@ -197,45 +235,42 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
               overflow: 'visible',
             }}
           >
-            <polygon points="0,4 0,20 100,12" fill={`color-mix(in srgb, #000000 ${100 - average}%, #0B4870 ${average}%)`} />
+            <polygon points="0,4 0,20 100,12" fill={`color-mix(in srgb, #000000 ${100 - current.average}%, #0B4870 ${current.average}%)`} />
           </svg>
 
-          {/* Point central */}
           <div
             className="pointer-events-none absolute"
             style={{
               left: `${CONFIG.pivotX}%`, top: `${CONFIG.pivotY}%`,
               width: '3%', height: '3%',
               transform: 'translate(-50%, -50%)', borderRadius: '50%',
-              background: `color-mix(in srgb, #000000 ${100 - average}%, #0B4870 ${average}%)`,
+              background: `color-mix(in srgb, #000000 ${100 - current.average}%, #0B4870 ${current.average}%)`,
               border: '2px solid rgba(255,255,255,0.8)',
               boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
             }}
           />
 
-          {/* Badge — MOYENNE GLOBALE + nombre total de votes + verdict */}
+          {/* Badge */}
           <div
             className="absolute left-1/2 rounded-xl bg-black/75 px-4 py-2 text-center backdrop-blur-sm"
             style={{ bottom: '4%', transform: 'translateX(-50%)', maxWidth: '90%' }}
           >
             <div className="text-lg font-bold text-white sm:text-xl">
-              {average}% <span className="text-xs text-gray-300 sm:text-sm">({totalVotes} vote{totalVotes !== 1 ? 's' : ''})</span>
+              {current.average}% <span className="text-xs text-gray-300 sm:text-sm">({current.totalVotes} vote{current.totalVotes !== 1 ? 's' : ''} · {horizonLabel(activeHorizon)})</span>
             </div>
             <div className="text-xs text-gray-200 sm:text-sm">{verdict.emoji} {verdict.text}</div>
           </div>
         </div>
       </div>
 
-      {/* Section vote + partage */}
+      {/* Vote + partage */}
       <div className="relative z-10 shrink-0 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3">
         {!user ? (
           <p className="text-center text-sm text-gray-400">Connecte-toi pour voter</p>
         ) : !canVote ? (
-          /* Utilisateur a déjà voté aujourd'hui — on cache le module de vote */
           <div className="mx-auto max-w-sm text-center">
-            <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">Tu as déjà voté aujourd&apos;hui !</p>
-            <p className="mb-3 text-[10px] text-gray-400">Ton vote : {myVote}% — Reviens demain pour voter à nouveau.</p>
-            {/* Partage toujours disponible */}
+            <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">Tu as déjà voté pour {horizonLabel(activeHorizon)} aujourd&apos;hui !</p>
+            <p className="mb-3 text-[10px] text-gray-400">Ton vote : {current.myVote}% — Reviens demain ou vote pour un autre horizon.</p>
             <div className="flex items-center justify-center gap-2">
               <span className="text-[10px] text-gray-400">Partager :</span>
               <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}&quote=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600">
@@ -247,7 +282,6 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
             </div>
           </div>
         ) : (
-          /* Module de vote — visible si pas encore voté aujourd'hui OU admin */
           <div className="mx-auto max-w-sm">
             {canModerate && votedToday && (
               <p className="mb-2 text-center text-[10px] text-orange-500">Mode admin — vote illimité</p>
@@ -271,12 +305,11 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
               disabled={saving}
               className="w-full rounded-lg bg-brand-blue px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
             >
-              {saving ? 'Envoi...' : myVote !== null ? 'Mettre à jour mon vote' : 'Voter'}
+              {saving ? 'Envoi...' : current.myVote !== null ? `Mettre à jour (${horizonLabel(activeHorizon)})` : `Voter (${horizonLabel(activeHorizon)})`}
             </button>
-            {myVote !== null && (
-              <p className="mt-1 text-center text-[10px] text-gray-400">Ton vote actuel : {myVote}%</p>
+            {current.myVote !== null && (
+              <p className="mt-1 text-center text-[10px] text-gray-400">Ton vote ({horizonLabel(activeHorizon)}) : {current.myVote}%</p>
             )}
-            {/* Partage */}
             <div className="mt-3 flex items-center justify-center gap-2">
               <span className="text-[10px] text-gray-400">Partager :</span>
               <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}&quote=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600">
