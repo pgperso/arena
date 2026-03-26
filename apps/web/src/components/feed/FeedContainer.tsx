@@ -189,7 +189,7 @@ export function FeedContainer({
   return (
     <div className="flex h-full flex-col lg:flex-row">
       {/* Feed area */}
-      <div className="relative flex flex-1 flex-col overflow-hidden">
+      <div className="relative flex flex-1 flex-col overflow-hidden dark:border-x dark:border-gray-700">
         {/* Header — compact on mobile (no name, just actions), full on desktop */}
         <div className="flex shrink-0 items-center justify-end border-b border-gray-200 dark:border-gray-700 px-3 py-1.5 md:justify-between md:px-4 md:py-3">
           <div className="hidden md:block">

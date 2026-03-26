@@ -265,7 +265,7 @@ export const FeedMessage = memo(function FeedMessage({
       {hasReplyContext && (
         <div className="mb-0.5 flex items-end pl-4">
           <div className="reply-connector relative -top-0.5" />
-          <div className="ml-8">
+          <div className="ml-8 min-w-0 overflow-hidden">
             <FeedReplyContext
               parentUsername={parentMessage.member?.username ?? t('deletedUser')}
               parentAvatarUrl={parentMessage.member?.avatarUrl}

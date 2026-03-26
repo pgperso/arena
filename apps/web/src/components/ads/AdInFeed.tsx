@@ -8,7 +8,7 @@ interface AdInFeedProps {
 
 export function AdInFeed({ index }: AdInFeedProps) {
   return (
-    <div className="border-y border-ad-border bg-ad-bg px-4 py-3">
+    <div className="border-y border-ad-border bg-ad-bg dark:bg-[#1e1e1e] px-4 py-3">
       <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-gray-400">
         Sponsorisé
       </p>
