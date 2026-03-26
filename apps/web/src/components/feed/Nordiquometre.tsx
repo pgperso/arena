@@ -250,15 +250,12 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
             }}
           />
 
-          {/* Badge */}
-          <div
-            className="absolute left-1/2 rounded-xl bg-black/75 px-4 py-2 text-center backdrop-blur-sm"
-            style={{ bottom: '4%', transform: 'translateX(-50%)', maxWidth: '90%' }}
-          >
+          {/* Badge — même largeur que l'image */}
+          <div className="mt-2 w-full rounded-xl bg-black/75 px-4 py-2.5 text-center backdrop-blur-sm">
             <div className="text-lg font-bold text-white sm:text-xl">
               {current.average}% <span className="text-xs text-gray-300 sm:text-sm">({current.totalVotes} vote{current.totalVotes !== 1 ? 's' : ''} · {horizonLabel(activeHorizon)})</span>
             </div>
-            <div className="text-xs text-gray-200 sm:text-sm">{verdict.emoji} {verdict.text}</div>
+            <div className="text-xs text-gray-200 sm:text-sm">{verdict.text}</div>
           </div>
         </div>
       </div>
