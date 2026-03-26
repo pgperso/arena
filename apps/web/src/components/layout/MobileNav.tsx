@@ -22,7 +22,7 @@ export function MobileNav({ isOpen, onClose, user, username, onLogout }: MobileN
       <nav className="flex flex-col px-4 py-3">
         <Link
           href="/"
-          className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800"
+          className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e]"
           onClick={onClose}
         >
           Tribunes
@@ -32,7 +32,7 @@ export function MobileNav({ isOpen, onClose, user, username, onLogout }: MobileN
           <>
             <Link
               href="/vestiaire"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e]"
               onClick={onClose}
             >
               {t('vestiaire.title')}
@@ -51,7 +51,7 @@ export function MobileNav({ isOpen, onClose, user, username, onLogout }: MobileN
           <>
             <Link
               href="/login"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e]"
               onClick={onClose}
             >
               {t('auth.login')}

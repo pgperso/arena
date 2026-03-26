@@ -161,7 +161,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('title')}</h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
+            className="rounded-full p-1 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

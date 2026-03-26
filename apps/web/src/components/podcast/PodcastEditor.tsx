@@ -226,7 +226,7 @@ export function PodcastEditor({
           <button
             onClick={() => setMode('audio')}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-              mode === 'audio' ? 'bg-brand-blue text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
+              mode === 'audio' ? 'bg-brand-blue text-white' : 'bg-gray-100 dark:bg-[#1e1e1e] text-gray-600 dark:text-gray-400 hover:bg-gray-200'
             }`}
           >
             {t('typePodcast')}
@@ -234,7 +234,7 @@ export function PodcastEditor({
           <button
             onClick={() => setMode('youtube')}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-              mode === 'youtube' ? 'bg-red-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
+              mode === 'youtube' ? 'bg-red-600 text-white' : 'bg-gray-100 dark:bg-[#1e1e1e] text-gray-600 dark:text-gray-400 hover:bg-gray-200'
             }`}
           >
             {t('typeYoutube')}
@@ -324,7 +324,7 @@ export function PodcastEditor({
             <button
               onClick={() => setUseExternalUrl(false)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                !useExternalUrl ? 'bg-brand-blue text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
+                !useExternalUrl ? 'bg-brand-blue text-white' : 'bg-gray-100 dark:bg-[#1e1e1e] text-gray-600 dark:text-gray-400 hover:bg-gray-200'
               }`}
             >
               {t('audioFile')}
@@ -332,7 +332,7 @@ export function PodcastEditor({
             <button
               onClick={() => setUseExternalUrl(true)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                useExternalUrl ? 'bg-brand-blue text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
+                useExternalUrl ? 'bg-brand-blue text-white' : 'bg-gray-100 dark:bg-[#1e1e1e] text-gray-600 dark:text-gray-400 hover:bg-gray-200'
               }`}
             >
               {t('externalUrl')}

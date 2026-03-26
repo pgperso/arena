@@ -462,7 +462,7 @@ function ToolbarButton({
       onClick={onClick}
       title={title}
       className={`rounded px-2 py-1 text-xs font-medium transition ${
-        active ? 'bg-gray-200 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
+        active ? 'bg-gray-200 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
       }`}
     >
       {children}

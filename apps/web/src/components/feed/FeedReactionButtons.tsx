@@ -46,7 +46,7 @@ export const FeedReactionButtons = memo(function FeedReactionButtons({
         className={`${BTN} ${
           isLiked
             ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-950'
-            : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-red-400'
+            : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-red-400'
         }`}
         title={isLiked ? 'Retirer le like' : 'J\'aime'}
       >
@@ -64,7 +64,7 @@ export const FeedReactionButtons = memo(function FeedReactionButtons({
         className={`${BTN} ${
           isDisliked
             ? 'text-brand-blue hover:bg-blue-50 dark:hover:bg-blue-950'
-            : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-brand-blue'
+            : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-brand-blue'
         }`}
         title={isDisliked ? 'Retirer le dislike' : 'Je n\'aime pas'}
       >

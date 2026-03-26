@@ -150,7 +150,7 @@ function ScrollSection({
           <button
             onClick={() => scroll('left')}
             disabled={!canScrollLeft}
-            className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 disabled:opacity-0"
+            className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 disabled:opacity-0"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
@@ -159,7 +159,7 @@ function ScrollSection({
           <button
             onClick={() => scroll('right')}
             disabled={!canScrollRight}
-            className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 disabled:opacity-0"
+            className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 disabled:opacity-0"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />

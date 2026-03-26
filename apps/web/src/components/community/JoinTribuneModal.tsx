@@ -67,7 +67,7 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
             {selectedCategory && (
               <button
                 onClick={() => setSelectedCategory(null)}
-                className="rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
+                className="rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
@@ -87,7 +87,7 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
+            className="rounded-full p-1 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -100,7 +100,7 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
           {loading ? (
             <div className="space-y-3">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-14 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
+                <div key={i} className="h-14 animate-pulse rounded-xl bg-gray-100 dark:bg-[#1e1e1e]" />
               ))}
             </div>
           ) : !selectedCategory ? (

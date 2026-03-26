@@ -219,7 +219,7 @@ function ShareButtons({ url, title }: { url: string; title: string }) {
         href={`https://x.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-900 dark:text-gray-100"
+        className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-900 dark:text-gray-100"
         title="X"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">

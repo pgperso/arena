@@ -164,7 +164,7 @@ export function CommunityPageClient({
 
       {/* Community bar — hidden on mobile (Header shows back + name instead) */}
       <div
-        className="hidden shrink-0 items-center justify-between bg-gray-100 dark:bg-gray-800 px-4 py-2 md:flex"
+        className="hidden shrink-0 items-center justify-between bg-gray-100 dark:bg-[#1e1e1e] px-4 py-2 md:flex"
       >
         <div className="flex items-center gap-1.5 sm:gap-2">
           <Link

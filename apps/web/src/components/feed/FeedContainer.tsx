@@ -224,7 +224,7 @@ export function FeedContainer({
                 </button>
                 <button
                   onClick={() => setShowArticleList(true)}
-                  className="hidden items-center gap-1 rounded-lg bg-gray-50 dark:bg-[#1e1e1e] px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 md:flex"
+                  className="hidden items-center gap-1 rounded-lg bg-gray-50 dark:bg-[#1e1e1e] px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] md:flex"
                   title={t('myArticles')}
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -258,7 +258,7 @@ export function FeedContainer({
             )}
             <button
               onClick={() => setShowMembers(!showMembers)}
-              className="rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 lg:hidden"
+              className="rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 lg:hidden"
               title={t('membersOnline')}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -269,7 +269,7 @@ export function FeedContainer({
         </div>
 
         {/* Tab bar: Tribune / Contenu */}
-        <div className="flex shrink-0 gap-1 bg-gray-100 dark:bg-gray-800 px-3 py-1.5">
+        <div className="flex shrink-0 gap-1 bg-gray-100 dark:bg-[#1e1e1e] px-3 py-1.5">
           <button
             onClick={() => setActiveTab('chat')}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
@@ -545,7 +545,7 @@ function AdminMenu({
     <div className="relative md:hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300"
+        className="rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300"
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />

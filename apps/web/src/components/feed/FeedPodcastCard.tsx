@@ -139,7 +139,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
               {!podcast.isLive && (
                 <button
                   onClick={handleRemoveFromFeed}
-                  className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
+                  className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
                 >
                   {tc('remove')}
                 </button>
@@ -264,7 +264,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
           <div className="ml-auto flex items-center gap-1">
             <button
               onClick={handleRemoveFromFeed}
-              className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
+              className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
             >
               {tc('remove')}
             </button>

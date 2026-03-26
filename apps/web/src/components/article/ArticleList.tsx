@@ -116,7 +116,7 @@ export function ArticleList({ communityId, communitySlug, userId, onClose }: Art
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
+            <div key={i} className="h-20 animate-pulse rounded-lg bg-gray-100 dark:bg-[#1e1e1e]" />
           ))}
         </div>
       ) : articles.length === 0 ? (

@@ -156,7 +156,7 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
         {/* Skip back 15s */}
         <button
           onClick={() => skip(-15)}
-          className="rounded-full p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300"
+          className="rounded-full p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300"
           title="-15s"
         >
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -183,7 +183,7 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
         {/* Skip forward 30s */}
         <button
           onClick={() => skip(30)}
-          className="rounded-full p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300"
+          className="rounded-full p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300"
           title="+30s"
         >
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -257,7 +257,7 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
             href={`https://x.com/intent/tweet?url=${encodeURIComponent(`https://fanstribune.com/fr/tribunes/${communitySlug}/podcasts/${podcast.id}`)}&text=${encodeURIComponent(podcast.title)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-900 dark:text-gray-100"
+            className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-900 dark:text-gray-100"
             title="X"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">

@@ -54,7 +54,7 @@ export function Header() {
           {tribune && (
             <Link
               href="/tribunes"
-              className="flex items-center rounded-lg p-1 text-gray-600 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 md:hidden"
+              className="flex items-center rounded-lg p-1 text-gray-600 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] md:hidden"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
@@ -85,7 +85,7 @@ export function Header() {
         <div className="hidden items-center gap-3 md:flex">
           <button
             onClick={toggleDark}
-            className="rounded-md p-1.5 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+            className="rounded-md p-1.5 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
             title={dark ? 'Mode clair' : 'Mode sombre'}
           >
             {dark ? (
@@ -100,7 +100,7 @@ export function Header() {
           </button>
           <a
             href={switchLocalePath}
-            className="rounded-md px-2 py-1 text-xs font-bold text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800"
+            className="rounded-md px-2 py-1 text-xs font-bold text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800"
           >
             {otherLocale.toUpperCase()}
           </a>
@@ -111,7 +111,7 @@ export function Header() {
             <div ref={dropdownRef} className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2 rounded-lg px-2 py-1 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800"
+                className="flex items-center gap-2 rounded-lg px-2 py-1 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e]"
               >
                 {avatarUrl ? (
                   <Image
@@ -178,7 +178,7 @@ export function Header() {
         <div className="flex items-center gap-2 md:hidden">
           <button
             onClick={toggleDark}
-            className="rounded-md p-1.5 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
+            className="rounded-md p-1.5 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] dark:text-gray-400 dark:hover:bg-gray-800"
           >
             {dark ? (
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">

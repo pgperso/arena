@@ -134,7 +134,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
             className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
               filter === f
                 ? 'bg-brand-blue text-white'
-                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
+                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
             }`}
           >
             {f === 'all' ? t('all') : f === 'articles' ? t('articles') : t('podcasts')}
@@ -147,7 +147,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
         {loading ? (
           <div className="space-y-3 p-4">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-20 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
+              <div key={i} className="h-20 animate-pulse rounded-xl bg-gray-100 dark:bg-[#1e1e1e]" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
@@ -329,7 +329,7 @@ function ContentRow({
             <>
               <button
                 onClick={handleHideFromFeed}
-                className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
+                className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
                 title={t('removeFromFeed')}
               >
                 <EyeOff className="h-4 w-4" strokeWidth={1.5} />

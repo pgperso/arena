@@ -44,7 +44,7 @@ export function FeedArticleCard({ article, communitySlug, userId, canModerate }:
       >
         {/* Cover image */}
         {article.coverImageUrl && (
-          <div className="h-40 w-full bg-gray-100 dark:bg-gray-800">
+          <div className="h-40 w-full bg-gray-100 dark:bg-[#1e1e1e]">
             <Image
               src={article.coverImageUrl}
               alt={article.title}
@@ -113,7 +113,7 @@ export function FeedArticleCard({ article, communitySlug, userId, canModerate }:
         {canRemove && (
           <button
             onClick={handleRemoveFromFeed}
-            className="ml-auto rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
+            className="ml-auto rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
           >
             {tc('remove')}
           </button>

@@ -79,7 +79,7 @@ export const FeedActions = memo(function FeedActions({
       {showMobileEdit && (
         <button
           onClick={onStartEdit}
-          className={`${BTN} text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 md:hidden`}
+          className={`${BTN} text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 md:hidden`}
           title={tc('edit')}
         >
           <Pencil className="h-4 w-4" strokeWidth={1.5} />

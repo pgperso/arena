@@ -12,7 +12,7 @@ interface FeedReplyBarProps {
 export function FeedReplyBar({ username, preview, onCancel }: FeedReplyBarProps) {
   const t = useTranslations('tribune');
   return (
-    <div className="flex shrink-0 items-center gap-2 border-l-2 border-brand-blue bg-gray-100 dark:bg-gray-800 px-4 py-2">
+    <div className="flex shrink-0 items-center gap-2 border-l-2 border-brand-blue bg-gray-100 dark:bg-[#1e1e1e] px-4 py-2">
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs text-gray-500 dark:text-gray-400">
           {t('replyToLabel')} <strong className="font-semibold text-gray-700 dark:text-gray-300">@{username}</strong>

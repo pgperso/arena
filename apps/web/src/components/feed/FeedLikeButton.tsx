@@ -41,7 +41,7 @@ export const FeedLikeButton = memo(function FeedLikeButton({
       className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs transition ${
         isLiked
           ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-950'
-          : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-red-400'
+          : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-red-400'
       } disabled:cursor-not-allowed disabled:opacity-50`}
       title={isLiked ? 'Retirer le like' : 'Liker'}
     >
