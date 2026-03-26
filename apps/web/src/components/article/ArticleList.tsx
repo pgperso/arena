@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
 import { fetchArticlesByAuthor, fetchArticle, removeArticle } from '@/services/articleService';
 import { ArticleEditor } from './ArticleEditor';
@@ -47,6 +47,9 @@ export function ArticleList({ communityId, communitySlug, userId, onClose }: Art
     communitySlug: string;
   } | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [filterTribune, setFilterTribune] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'date' | 'views' | 'likes'>('date');
 
   const loadArticles = useCallback(async () => {
     const { data } = await fetchArticlesByAuthor(supabase, userId);
@@ -85,6 +88,22 @@ export function ArticleList({ communityId, communitySlug, userId, onClose }: Art
     setDeleting(null);
   }, [supabase, userId]);
 
+  const tribuneNames = useMemo(() => {
+    const names = new Set(articles.map((a) => a.communities.name));
+    return Array.from(names).sort();
+  }, [articles]);
+
+  const filtered = useMemo(() => {
+    let list = [...articles];
+    if (filterTribune !== 'all') list = list.filter((a) => a.communities.name === filterTribune);
+    if (filterStatus === 'published') list = list.filter((a) => a.is_published);
+    if (filterStatus === 'draft') list = list.filter((a) => !a.is_published);
+    if (sortBy === 'views') list.sort((a, b) => b.view_count - a.view_count);
+    else if (sortBy === 'likes') list.sort((a, b) => b.like_count - a.like_count);
+    else list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return list;
+  }, [articles, filterTribune, filterStatus, sortBy]);
+
   if (editingArticle) {
     return (
       <ArticleEditor
@@ -122,8 +141,42 @@ export function ArticleList({ communityId, communitySlug, userId, onClose }: Art
       ) : articles.length === 0 ? (
         <p className="py-8 text-center text-sm text-gray-400">Aucun article</p>
       ) : (
-        <div className="space-y-3">
-          {articles.map((article) => (
+        <>
+          {/* Filters + Sort */}
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <select
+              value={filterTribune}
+              onChange={(e) => setFilterTribune(e.target.value)}
+              className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300"
+            >
+              <option value="all">Toutes les tribunes</option>
+              {tribuneNames.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300"
+            >
+              <option value="all">Tous les statuts</option>
+              <option value="published">Publiés</option>
+              <option value="draft">Brouillons</option>
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'date' | 'views' | 'likes')}
+              className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300"
+            >
+              <option value="date">Plus récents</option>
+              <option value="views">Plus vus</option>
+              <option value="likes">Plus likés</option>
+            </select>
+            <span className="text-xs text-gray-400">{filtered.length} article{filtered.length !== 1 ? 's' : ''}</span>
+          </div>
+
+          <div className="space-y-3">
+            {filtered.map((article) => (
             <div
               key={article.id}
               className="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3"
@@ -171,7 +224,8 @@ export function ArticleList({ communityId, communitySlug, userId, onClose }: Art
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
