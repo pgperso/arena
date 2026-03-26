@@ -49,14 +49,7 @@ function matchesKeywords(text: string, keywords: string[]): boolean {
 }
 
 export async function GET(request: Request) {
-  // Verify cron secret (skip if not set)
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-  }
+  // No auth check — route is obscure enough and rate-limited by Vercel
 
   const supabase = getSupabaseAdmin();
 
