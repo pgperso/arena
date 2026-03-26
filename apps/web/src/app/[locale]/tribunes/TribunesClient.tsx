@@ -54,59 +54,93 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
           </button>
         </div>
 
-        {/* Tribunes list */}
-        {communities.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {communities.map((community) => (
-              <div
-                key={community.id}
-                className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-4 sm:p-5"
-              >
-                <div className="mb-3 flex items-center gap-3">
+        {/* La Taverne — full width, always first */}
+        {(() => {
+          const taverne = communities.find((c) => c.slug === 'la-taverne');
+          const others = communities.filter((c) => c.slug !== 'la-taverne');
+          return (
+            <>
+              {taverne && (
+                <Link
+                  href={`/tribunes/${taverne.slug}`}
+                  className="mb-4 flex items-center gap-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-5 transition hover:border-brand-blue/30 hover:shadow-md sm:p-6"
+                >
                   <Image
-                    src={community.logo_url || '/images/fanstribune.webp'}
-                    alt={community.name}
-                    width={48}
-                    height={48}
-                    className="h-12 w-12 shrink-0 rounded-lg object-contain"
+                    src={taverne.logo_url || '/images/fanstribune.webp'}
+                    alt={taverne.name}
+                    width={56}
+                    height={56}
+                    className="h-14 w-14 shrink-0 rounded-lg object-contain"
                   />
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100 sm:text-base">
-                      {community.name}
+                    <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 sm:text-lg">
+                      {taverne.name}
                     </h3>
                     <p className="text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
-                      {community.member_count} membre{community.member_count !== 1 ? 's' : ''}
+                      {taverne.description}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-400">
+                      {taverne.member_count} membre{taverne.member_count !== 1 ? 's' : ''} — Ouverte à tous
                     </p>
                   </div>
+                  <svg className="h-6 w-6 shrink-0 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                  </svg>
+                </Link>
+              )}
+
+              {others.length > 0 ? (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {others.map((community) => (
+                    <div
+                      key={community.id}
+                      className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-4 sm:p-5"
+                    >
+                      <div className="mb-3 flex items-center gap-3">
+                        <Image
+                          src={community.logo_url || '/images/fanstribune.webp'}
+                          alt={community.name}
+                          width={48}
+                          height={48}
+                          className="h-12 w-12 shrink-0 rounded-lg object-contain"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <h3 className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100 sm:text-base">
+                            {community.name}
+                          </h3>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+                            {community.member_count} membre{community.member_count !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
+                      {community.description && (
+                        <p className="mb-3 line-clamp-2 text-xs text-gray-400">{community.description}</p>
+                      )}
+                      <div className="flex gap-2">
+                        <Link
+                          href={`/tribunes/${community.slug}`}
+                          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand-blue px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-blue-dark"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                          </svg>
+                          {tc('join')}
+                        </Link>
+                        <button
+                          onClick={() => setLeaveConfirm(community)}
+                          title={tc('leave')}
+                          className="flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-gray-400 transition hover:border-red-500 hover:bg-red-500 hover:text-white"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                {community.description && (
-                  <p className="mb-3 line-clamp-2 text-xs text-gray-400">{community.description}</p>
-                )}
-                <div className="flex gap-2">
-                  <Link
-                    href={`/tribunes/${community.slug}`}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand-blue px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-blue-dark"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                    </svg>
-                    {tc('join')}
-                  </Link>
-                  <button
-                    onClick={() => setLeaveConfirm(community)}
-                    title={tc('leave')}
-                    className="flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-gray-400 transition hover:border-red-500 hover:bg-red-500 hover:text-white"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 py-16">
+              ) : !taverne ? (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 py-16">
             <Image
               src="/images/fanstribune.webp"
               alt="La tribune des fans"
@@ -122,8 +156,11 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
             >
               {t('joinNewTribune')}
             </button>
-          </div>
-        )}
+                </div>
+              ) : null}
+            </>
+          );
+        })()}
       </div>
 
       {showJoinModal && (
