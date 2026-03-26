@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/hooks/useAuth';
+import { useLocale } from 'next-intl';
 
 const CONFIG = {
   pivotX: 40,
@@ -56,6 +57,7 @@ interface NordiquometreProps {
 export function Nordiquometre({ canModerate }: NordiquometreProps) {
   const supabase = useSupabase();
   const { user, username } = useAuth();
+  const locale = useLocale();
 
   const [activeHorizon, setActiveHorizon] = useState<HorizonKey>('0-3');
   const [data, setData] = useState<Record<HorizonKey, HorizonData>>({
@@ -188,7 +190,9 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
   const needleAngle = CONFIG.angleMin + (current.average / 100) * (CONFIG.angleMax - CONFIG.angleMin);
   const verdict = getVerdict(current.average);
 
-  const shareText = `${verdict.emoji} Nordiquomètre (${horizonLabel(activeHorizon)}) : ${current.average}% — ${verdict.text} Votez vous aussi !`;
+  const shareText = locale === 'fr'
+    ? `Le Nordiquomètre est à ${current.average}% (${horizonLabel(activeHorizon)}) selon ${current.totalVotes} fans. Et toi, tu y crois ? Vote sur fanstribune.com`
+    : `The Nordiquomètre is at ${current.average}% (${horizonLabel(activeHorizon)}) according to ${current.totalVotes} fans. Do you believe? Vote at fanstribune.com`;
 
 
   if (!loaded) {

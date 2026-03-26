@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/hooks/useAuth';
+import { useLocale } from 'next-intl';
 
 const CONFIG = {
   pivotX: 50,
@@ -56,6 +57,7 @@ interface ExposmetreProps {
 export function Exposmetre({ canModerate }: ExposmetreProps) {
   const supabase = useSupabase();
   const { user, username } = useAuth();
+  const locale = useLocale();
 
   const [activeHorizon, setActiveHorizon] = useState<HorizonKey>('0-3');
   const [data, setData] = useState<Record<HorizonKey, HorizonData>>({
@@ -188,7 +190,9 @@ export function Exposmetre({ canModerate }: ExposmetreProps) {
   const needleAngle = CONFIG.angleMin + (current.average / 100) * (CONFIG.angleMax - CONFIG.angleMin);
   const verdict = getVerdict(current.average);
 
-  const shareText = `${verdict.emoji} Exposmètre (${horizonLabel(activeHorizon)}) : ${current.average}% — ${verdict.text} Votez vous aussi !`;
+  const shareText = locale === 'fr'
+    ? `L'Exposmètre est à ${current.average}% (${horizonLabel(activeHorizon)}) selon ${current.totalVotes} fans. Le baseball revient à Montréal ? Vote sur fanstribune.com`
+    : `The Exposmètre is at ${current.average}% (${horizonLabel(activeHorizon)}) according to ${current.totalVotes} fans. Is baseball coming back to Montreal? Vote at fanstribune.com`;
 
 
   if (!loaded) {
