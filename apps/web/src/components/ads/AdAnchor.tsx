@@ -23,7 +23,7 @@ export function AdAnchor() {
   if (!visible || dismissed) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-40 border-b border-ad-border bg-ad-bg lg:hidden">
+    <div className="shrink-0 border-b border-ad-border bg-ad-bg dark:bg-[#1e1e1e] lg:hidden">
       <div className="relative flex justify-center py-1">
         <button
           onClick={() => setDismissed(true)}
