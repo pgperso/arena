@@ -109,38 +109,32 @@ export function Nordiquometre() {
           />
 
           {/* Aiguille CSS — forme d'aiguille d'horloge, couleur noir→bleu */}
-          <div
+          <svg
             className="pointer-events-none absolute"
+            viewBox="0 0 100 12"
             style={{
               left: `${CONFIG.pivotX}%`,
               top: `${CONFIG.pivotY}%`,
               width: `${CONFIG.needleLength}%`,
-              height: 0,
+              height: 'auto',
               transformOrigin: '0% 50%',
-              transform: `rotate(${needleAngle}deg)`,
-              transition: 'transform 1s ease-out, filter 0.5s',
+              transform: `translateY(-50%) rotate(${needleAngle}deg)`,
+              transition: 'transform 1s ease-out',
+              filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.4))',
+              overflow: 'visible',
             }}
           >
-            {/* Triangle pointu (forme d'aiguille) */}
-            <svg
-              viewBox="0 0 100 12"
-              className="h-full w-full"
-              style={{
-                filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.4))',
-                overflow: 'visible',
-              }}
-            >
-              <polygon
-                points="0,6 100,2 100,10"
-                fill={`color-mix(in srgb, #000000 ${100 - average}%, #0B4870 ${average}%)`}
-              />
-              {/* Pointe fine */}
-              <polygon
-                points="85,4 100,5.5 100,6.5 85,8"
-                fill={`color-mix(in srgb, #111111 ${100 - average}%, #1969B4 ${average}%)`}
-              />
-            </svg>
-          </div>
+            {/* Corps de l'aiguille — triangle épais au pivot, fin à la pointe */}
+            <polygon
+              points="0,3 0,9 95,5.5 95,6.5"
+              fill={`color-mix(in srgb, #000000 ${100 - average}%, #0B4870 ${average}%)`}
+            />
+            {/* Pointe */}
+            <polygon
+              points="90,5 100,6 90,7"
+              fill={`color-mix(in srgb, #111111 ${100 - average}%, #1969B4 ${average}%)`}
+            />
+          </svg>
 
           {/* Point central du pivot */}
           <div
