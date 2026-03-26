@@ -4,6 +4,21 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/hooks/useAuth';
 
+/**
+ * CONFIGURATION — Ajuster ces valeurs pour positionner l'aiguille
+ * Toutes les valeurs sont en % de l'image (0-100)
+ */
+const CONFIG = {
+  // Position du pivot de l'aiguille (centre du cadran)
+  pivotX: 42,       // % depuis la gauche
+  pivotY: 50,       // % depuis le haut
+  // Longueur de l'aiguille
+  needleLength: 25, // % de la largeur de l'image
+  // Angles de rotation (en degrés)
+  angleMin: -130,   // angle quand 0%
+  angleMax: 130,    // angle quand 100%
+};
+
 export function Nordiquometre() {
   const supabase = useSupabase();
   const { user } = useAuth();
@@ -67,8 +82,7 @@ export function Nordiquometre() {
     loadData();
   }
 
-  // 0% = -130deg (gauche), 50% = 0deg (haut), 100% = 130deg (droite)
-  const needleAngle = -130 + (average / 100) * 260;
+  const needleAngle = CONFIG.angleMin + (average / 100) * (CONFIG.angleMax - CONFIG.angleMin);
 
   if (!loaded) {
     return (
@@ -79,52 +93,71 @@ export function Nordiquometre() {
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-y-auto">
-      {/* Gauge — full width */}
-      <div className="relative w-full">
-        <img
-          src="/images/nordiquometre.jpg"
-          alt="Nordiquomètre"
-          className="w-full"
-        />
-        {/* Needle */}
-        <div
-          className="absolute"
-          style={{
-            left: '37%',
-            top: '47%',
-            transformOrigin: 'left center',
-            transform: `rotate(${needleAngle}deg)`,
-            transition: 'transform 1s ease-out',
-          }}
-        >
-          <div className="h-1 rounded-full bg-white shadow-lg" style={{ width: '22%', minWidth: 60 }}>
-            <div className="h-full rounded-full bg-gradient-to-r from-white to-red-500" />
+    <div className="flex min-h-0 flex-1 flex-col">
+      {/* Gauge */}
+      <div className="flex min-h-0 flex-1 items-center justify-center p-2">
+        <div className="relative w-full" style={{ maxWidth: 500 }}>
+          {/* Image de fond — garde ses proportions */}
+          <img
+            src="/images/nordiquometre.png"
+            alt="Nordiquomètre"
+            className="w-full"
+            draggable={false}
+          />
+
+          {/* Aiguille — positionnée en % relatif à l'image */}
+          <img
+            src="/images/aiguille.png"
+            alt="Aiguille"
+            draggable={false}
+            className="pointer-events-none absolute"
+            style={{
+              left: `${CONFIG.pivotX}%`,
+              top: `${CONFIG.pivotY}%`,
+              width: `${CONFIG.needleLength}%`,
+              transformOrigin: '0% 50%',
+              transform: `translateY(-50%) rotate(${needleAngle}deg)`,
+              transition: 'transform 1s ease-out',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+            }}
+          />
+
+          {/* Point central du pivot */}
+          <div
+            className="pointer-events-none absolute rounded-full bg-white shadow-lg"
+            style={{
+              left: `${CONFIG.pivotX}%`,
+              top: `${CONFIG.pivotY}%`,
+              width: '2.5%',
+              height: '2.5%',
+              transform: 'translate(-50%, -50%)',
+              border: '2px solid #333',
+            }}
+          />
+
+          {/* Pourcentage */}
+          <div
+            className="absolute rounded-full bg-black/70 px-3 py-1 backdrop-blur-sm"
+            style={{
+              left: `${CONFIG.pivotX}%`,
+              bottom: '5%',
+              transform: 'translateX(-50%)',
+            }}
+          >
+            <span className="text-sm font-bold text-white sm:text-base">{average}%</span>
+            <span className="ml-1.5 text-[10px] text-gray-300">{totalVotes} vote{totalVotes !== 1 ? 's' : ''}</span>
           </div>
-        </div>
-        {/* Center dot */}
-        <div
-          className="absolute h-4 w-4 rounded-full border-2 border-white bg-gray-900 shadow-lg"
-          style={{ left: '36%', top: '44%' }}
-        />
-        {/* Percentage overlay */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-4 py-1.5 backdrop-blur-sm">
-          <span className="text-lg font-bold text-white">{average}%</span>
-          <span className="ml-2 text-xs text-gray-300">{totalVotes} vote{totalVotes !== 1 ? 's' : ''}</span>
         </div>
       </div>
 
-      {/* Vote controls */}
-      <div className="px-4 py-4">
+      {/* Vote */}
+      <div className="shrink-0 border-t border-gray-200 dark:border-gray-700 px-4 py-3">
         {user ? (
           <div className="mx-auto max-w-sm">
-            <p className="mb-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300">
-              Quel est ton indice de confiance ?
-            </p>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs text-gray-400">Aucune chance</span>
-              <span className="rounded-full bg-brand-blue px-3 py-0.5 text-sm font-bold text-white">{sliderValue}%</span>
-              <span className="text-xs text-gray-400">Certain</span>
+            <div className="mb-1.5 flex items-center justify-between">
+              <span className="text-[10px] text-gray-400">0%</span>
+              <span className="text-xs font-bold text-brand-blue">{sliderValue}%</span>
+              <span className="text-[10px] text-gray-400">100%</span>
             </div>
             <input
               type="range"
@@ -132,17 +165,17 @@ export function Nordiquometre() {
               max={100}
               value={sliderValue}
               onChange={(e) => setSliderValue(Number(e.target.value))}
-              className="mb-4 h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200 dark:bg-gray-700 accent-brand-blue"
+              className="mb-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200 dark:bg-gray-700 accent-brand-blue"
             />
             <button
               onClick={handleVote}
               disabled={saving}
-              className="w-full rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
+              className="w-full rounded-lg bg-brand-blue px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
             >
-              {saving ? 'Envoi...' : myVote !== null ? 'Mettre à jour mon vote' : 'Voter'}
+              {saving ? 'Envoi...' : myVote !== null ? 'Mettre à jour' : 'Voter'}
             </button>
             {myVote !== null && (
-              <p className="mt-2 text-center text-xs text-gray-400">Ton vote actuel : {myVote}%</p>
+              <p className="mt-1 text-center text-[10px] text-gray-400">Ton vote : {myVote}%</p>
             )}
           </div>
         ) : (
