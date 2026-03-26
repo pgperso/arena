@@ -203,7 +203,7 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
 
       {/* BLOC 1 : Cadran — taille fixe, aspect ratio verrouillé, JAMAIS affecté */}
       <div className="shrink-0 flex justify-center px-2 pt-2">
-        <div className="relative" style={{ width: '100%', maxWidth: 500 }}>
+        <div className="relative" style={{ width: '100%', maxWidth: 600 }}>
           <img src="/images/nordiquometre.png" alt="Nordiquomètre" className="w-full" draggable={false} />
 
           <svg
@@ -238,7 +238,7 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
 
       {/* BLOC 2 : Badge résultat — taille fixe, même largeur que le cadran */}
       <div className="shrink-0 flex justify-center px-2">
-        <div className="w-full rounded-xl bg-black/75 px-4 py-2 text-center backdrop-blur-sm" style={{ maxWidth: 500 }}>
+        <div className="w-full rounded-xl bg-black/75 px-4 py-2 text-center backdrop-blur-sm" style={{ maxWidth: 600 }}>
           <div className="text-lg font-bold text-white sm:text-xl">
             {current.average}% <span className="text-xs text-gray-300 sm:text-sm">({current.totalVotes} vote{current.totalVotes !== 1 ? 's' : ''} · {horizonLabel(activeHorizon)})</span>
           </div>
@@ -247,9 +247,9 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
       </div>
 
       {/* BLOC 3 : Vote + partage — prend le restant, jamais de scroll */}
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col justify-center border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-2">
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col justify-center border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3">
         {/* Onglets horizons */}
-        <div className="mx-auto mb-3 flex max-w-sm gap-1">
+        <div className="mx-auto mb-3 flex max-w-md gap-2">
           {HORIZONS.map((h) => (
             <button
               key={h.key}
@@ -271,7 +271,7 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
         {!user ? (
           <p className="text-center text-sm text-gray-400">Connecte-toi pour voter</p>
         ) : !canVote ? (
-          <div className="mx-auto max-w-sm text-center">
+          <div className="mx-auto max-w-md text-center">
             <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">Tu as déjà voté pour {horizonLabel(activeHorizon)} aujourd&apos;hui !</p>
             <p className="mb-3 text-[10px] text-gray-400">Ton vote : {current.myVote}% — Reviens demain ou vote pour un autre horizon.</p>
             <div className="flex items-center justify-center gap-2">
@@ -285,7 +285,7 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
             </div>
           </div>
         ) : (
-          <div className="mx-auto max-w-sm">
+          <div className="mx-auto max-w-md">
             {canModerate && votedToday && (
               <p className="mb-2 text-center text-[10px] text-orange-500">Mode admin — vote illimité</p>
             )}
@@ -338,7 +338,7 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
             )}
 
             {resetStep === 1 && (
-              <div className="mx-auto mt-4 max-w-sm rounded-lg border border-red-300 bg-red-50 dark:bg-red-950 dark:border-red-800 p-3 text-center">
+              <div className="mx-auto mt-4 max-w-md rounded-lg border border-red-300 bg-red-50 dark:bg-red-950 dark:border-red-800 p-3 text-center">
                 <p className="mb-2 text-sm font-semibold text-red-700 dark:text-red-400">Supprimer tous les votes ?</p>
                 <p className="mb-3 text-[10px] text-red-600 dark:text-red-400">Cette action est irréversible. Tous les votes de toutes les périodes seront supprimés.</p>
                 <div className="flex gap-2">
@@ -359,7 +359,7 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
             )}
 
             {resetStep === 2 && (
-              <div className="mx-auto mt-4 max-w-sm rounded-lg border border-red-300 bg-red-50 dark:bg-red-950 dark:border-red-800 p-3 text-center">
+              <div className="mx-auto mt-4 max-w-md rounded-lg border border-red-300 bg-red-50 dark:bg-red-950 dark:border-red-800 p-3 text-center">
                 <p className="mb-2 text-sm font-semibold text-red-700 dark:text-red-400">Tapez RESET pour confirmer</p>
                 <input
                   type="text"
