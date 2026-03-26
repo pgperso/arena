@@ -200,12 +200,12 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+    <div className="flex min-h-0 flex-1 flex-col">
 
-      {/* BLOC 1 : Cadran — scale selon la hauteur dispo, aspect ratio verrouillé */}
-      <div className="shrink flex justify-center px-2 pt-2">
-        <div className="relative w-full max-w-[600px] max-h-[45vh]" style={{ aspectRatio: '1/1' }}>
-          <img src="/images/nordiquometre.png" alt="Nordiquomètre" className="h-full w-full object-contain" draggable={false} />
+      {/* BLOC 1 : Cadran + badge — centré verticalement */}
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-2">
+        <div className="relative w-full max-w-[600px]">
+          <img src="/images/nordiquometre.png" alt="Nordiquomètre" className="w-full" draggable={false} />
 
           <svg
             className="pointer-events-none absolute"
@@ -235,11 +235,9 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
             }}
           />
         </div>
-      </div>
 
-      {/* BLOC 2 : Badge résultat — taille fixe, même largeur que le cadran */}
-      <div className="shrink-0 flex justify-center px-2 pb-3">
-        <div className="w-full rounded-xl bg-black/75 px-4 py-2 text-center backdrop-blur-sm" style={{ maxWidth: 600 }}>
+        {/* Badge — même largeur que le cadran */}
+        <div className="w-full max-w-[600px] rounded-xl bg-black/75 px-4 py-2 text-center backdrop-blur-sm">
           <div className="text-lg font-bold text-white sm:text-xl">
             {current.average}% <span className="text-xs text-gray-300 sm:text-sm">({current.totalVotes} vote{current.totalVotes !== 1 ? 's' : ''} · {horizonLabel(activeHorizon)})</span>
           </div>
@@ -247,30 +245,31 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
         </div>
       </div>
 
-      {/* Boutons d'action — shrink-0, jamais de problème de hauteur */}
-      <div className="shrink-0 flex items-center justify-center gap-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3">
+      {/* BLOC 2 : Actions — centré verticalement, compact */}
+      <div className="shrink-0 flex flex-col items-center justify-center gap-2 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-2">
         {user ? (
           <button
             onClick={() => setShowVoteModal(true)}
-            className="rounded-lg bg-brand-blue px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-blue-dark"
+            className="rounded-lg bg-brand-blue px-8 py-2 text-sm font-semibold text-white transition hover:bg-brand-blue-dark"
           >
             Voter
           </button>
         ) : (
           <p className="text-sm text-gray-400">Connecte-toi pour voter</p>
         )}
-        {/* Partage */}
-        <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}&quote=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-2 text-gray-400 transition hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600">
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
-        </a>
-        <a href={`https://x.com/intent/tweet?url=${encodeURIComponent(SHARE_URL)}&text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100">
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
-        </a>
-        {canModerate && (
-          <button onClick={() => setResetStep(1)} className="rounded-lg p-2 text-gray-400 transition hover:text-red-500" title="Remettre à zéro">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" /></svg>
-          </button>
-        )}
+        <div className="flex items-center gap-1">
+          <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}&quote=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600">
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
+          </a>
+          <a href={`https://x.com/intent/tweet?url=${encodeURIComponent(SHARE_URL)}&text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100">
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+          </a>
+          {canModerate && (
+            <button onClick={() => setResetStep(1)} className="rounded-lg p-1.5 text-gray-400 transition hover:text-red-500" title="Remettre à zéro">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" /></svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Modal de vote */}
