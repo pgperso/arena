@@ -98,7 +98,7 @@ export function Nordiquometre() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Gauge */}
-      <div className="flex min-h-0 flex-1 items-center justify-center p-2">
+      <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden p-2">
         <div className="relative w-full" style={{ maxWidth: 1000 }}>
           {/* Image de fond — garde ses proportions */}
           <img
@@ -168,22 +168,32 @@ export function Nordiquometre() {
       </div>
 
       {/* Vote */}
-      <div className="shrink-0 border-t border-gray-200 dark:border-gray-700 px-4 py-3">
+      <div className="relative z-10 shrink-0 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3">
         {user ? (
           <div className="mx-auto max-w-sm">
-            <div className="mb-1.5 flex items-center justify-between">
+            <div className="mb-2 flex items-center justify-center gap-2">
               <span className="text-[10px] text-gray-400">0%</span>
-              <span className="text-xs font-bold text-brand-blue">{sliderValue}%</span>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={sliderValue}
+                onChange={(e) => setSliderValue(Number(e.target.value))}
+                className="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-gray-200 dark:bg-gray-700 accent-brand-blue"
+              />
               <span className="text-[10px] text-gray-400">100%</span>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={sliderValue}
+                onChange={(e) => {
+                  const v = Math.max(0, Math.min(100, Number(e.target.value) || 0));
+                  setSliderValue(v);
+                }}
+                className="w-14 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] px-2 py-1 text-center text-sm font-bold text-brand-blue focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+              />
             </div>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={sliderValue}
-              onChange={(e) => setSliderValue(Number(e.target.value))}
-              className="mb-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200 dark:bg-gray-700 accent-brand-blue"
-            />
             <button
               onClick={handleVote}
               disabled={saving}
