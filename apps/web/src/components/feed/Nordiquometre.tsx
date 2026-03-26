@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
  */
 const CONFIG = {
   // Position du pivot de l'aiguille (centre du cadran)
-  pivotX: 42,       // % depuis la gauche
+  pivotX: 41,       // % depuis la gauche
   pivotY: 50,       // % depuis le haut
   // Longueur de l'aiguille
   needleLength: 25, // % de la largeur de l'image
