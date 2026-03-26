@@ -197,8 +197,7 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
               overflow: 'visible',
             }}
           >
-            <polygon points="0,5 0,19 95,11 95,13" fill={`color-mix(in srgb, #000000 ${100 - average}%, #0B4870 ${average}%)`} />
-            <polygon points="90,10 100,12 90,14" fill={`color-mix(in srgb, #111111 ${100 - average}%, #1969B4 ${average}%)`} />
+            <polygon points="0,4 0,20 100,12" fill={`color-mix(in srgb, #000000 ${100 - average}%, #0B4870 ${average}%)`} />
           </svg>
 
           {/* Point central */}
@@ -216,13 +215,13 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
 
           {/* Badge — MOYENNE GLOBALE + nombre total de votes + verdict */}
           <div
-            className="absolute rounded-xl bg-black/70 px-3 py-1.5 text-center backdrop-blur-sm"
-            style={{ left: `${CONFIG.pivotX}%`, bottom: '5%', transform: 'translateX(-50%)', maxWidth: '80%' }}
+            className="absolute left-1/2 rounded-xl bg-black/75 px-4 py-2 text-center backdrop-blur-sm"
+            style={{ bottom: '4%', transform: 'translateX(-50%)', maxWidth: '90%' }}
           >
-            <div className="text-sm font-bold text-white sm:text-base">
-              {average}% <span className="text-[10px] text-gray-300">({totalVotes} vote{totalVotes !== 1 ? 's' : ''})</span>
+            <div className="text-lg font-bold text-white sm:text-xl">
+              {average}% <span className="text-xs text-gray-300 sm:text-sm">({totalVotes} vote{totalVotes !== 1 ? 's' : ''})</span>
             </div>
-            <div className="text-[10px] text-gray-200 sm:text-xs">{verdict.emoji} {verdict.text}</div>
+            <div className="text-xs text-gray-200 sm:text-sm">{verdict.emoji} {verdict.text}</div>
           </div>
         </div>
       </div>
