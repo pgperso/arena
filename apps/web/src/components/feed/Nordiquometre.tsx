@@ -99,7 +99,7 @@ export function Nordiquometre() {
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Gauge */}
       <div className="flex min-h-0 flex-1 items-center justify-center p-2">
-        <div className="relative w-full" style={{ maxWidth: 500 }}>
+        <div className="relative w-full" style={{ maxWidth: 1000 }}>
           {/* Image de fond — garde ses proportions */}
           <img
             src="/images/nordiquometre.png"
