@@ -94,7 +94,7 @@ export function useImageUpload(): UseImageUploadReturn {
           const compressed = await imageCompression(img.file, {
             maxSizeMB: 0.2,
             maxWidthOrHeight: 1920,
-            useWebWorker: true,
+            useWebWorker: false,
             fileType: 'image/webp',
           });
 

@@ -147,16 +147,18 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
           />
 
           {/* Send button — always visible on mobile, hidden on desktop */}
-          {!uploading && (
-            <button
-              onClick={handleSend}
-              disabled={disabled || (!content.trim() && images.length === 0)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center text-brand-blue transition hover:text-brand-blue-dark disabled:text-gray-300 md:hidden"
-              title={tc('send')}
-            >
+          <button
+            onClick={handleSend}
+            disabled={disabled || uploading || (!content.trim() && images.length === 0)}
+            className="flex h-10 w-10 shrink-0 items-center justify-center text-brand-blue transition hover:text-brand-blue-dark disabled:text-gray-300 md:hidden"
+            title={tc('send')}
+          >
+            {uploading ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-blue border-t-transparent" />
+            ) : (
               <SendHorizontal className="h-5 w-5" strokeWidth={2} />
-            </button>
-          )}
+            )}
+          </button>
 
           {/* Upload spinner */}
           {uploading && (
