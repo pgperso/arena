@@ -456,7 +456,7 @@ export function FeedContainer({
       <div
         className={`${
           showMembers ? 'block' : 'hidden'
-        } w-full border-t border-gray-200 dark:border-gray-700 lg:block lg:w-60 lg:border-l lg:border-t-0`}
+        } w-full border-t border-gray-200 dark:border-gray-700 lg:block lg:w-60 lg:border-l lg:border-r lg:border-t-0`}
       >
         <OnlineMembers members={onlineMembers} />
       </div>
