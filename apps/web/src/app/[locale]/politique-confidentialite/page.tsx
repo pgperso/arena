@@ -11,16 +11,16 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
   setRequestLocale(locale);
   return (
     <div className="mx-auto max-w-3xl overflow-y-auto px-4 py-12">
-      <h1 className="mb-8 text-3xl font-bold text-gray-900">
+      <h1 className="mb-8 text-3xl font-bold text-gray-900 dark:text-gray-100">
         Politique de confidentialité
       </h1>
-      <p className="mb-4 text-sm text-gray-500">
+      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
         Dernière mise à jour : 19 mars 2026
       </p>
 
-      <div className="space-y-6 text-gray-700">
+      <div className="space-y-6 text-gray-700 dark:text-gray-300">
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-gray-900">
+          <h2 className="mb-3 text-xl font-semibold text-gray-900 dark:text-gray-100">
             1. Collecte des données
           </h2>
           <p>
@@ -32,7 +32,7 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-gray-900">
+          <h2 className="mb-3 text-xl font-semibold text-gray-900 dark:text-gray-100">
             2. Utilisation des données
           </h2>
           <p>Vos données sont utilisées pour :</p>
@@ -45,7 +45,7 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-gray-900">
+          <h2 className="mb-3 text-xl font-semibold text-gray-900 dark:text-gray-100">
             3. Publicité
           </h2>
           <p>
@@ -66,7 +66,7 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-gray-900">
+          <h2 className="mb-3 text-xl font-semibold text-gray-900 dark:text-gray-100">
             4. Hébergement et sécurité
           </h2>
           <p>
@@ -78,7 +78,7 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-gray-900">
+          <h2 className="mb-3 text-xl font-semibold text-gray-900 dark:text-gray-100">
             5. Vos droits
           </h2>
           <p>
@@ -95,7 +95,7 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-gray-900">
+          <h2 className="mb-3 text-xl font-semibold text-gray-900 dark:text-gray-100">
             6. Cookies
           </h2>
           <p>

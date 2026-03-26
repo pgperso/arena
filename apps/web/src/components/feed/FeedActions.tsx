@@ -46,7 +46,7 @@ export const FeedActions = memo(function FeedActions({
         <button
           onClick={onReply}
           disabled={!userId}
-          className={`${BTN} text-gray-400 hover:bg-blue-50 hover:text-blue-500 disabled:cursor-not-allowed disabled:opacity-50`}
+          className={`${BTN} text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-500 disabled:cursor-not-allowed disabled:opacity-50`}
           title={t('reply')}
         >
           <MessageCircle className="h-4 w-4" strokeWidth={1.5} />
@@ -79,7 +79,7 @@ export const FeedActions = memo(function FeedActions({
       {showMobileEdit && (
         <button
           onClick={onStartEdit}
-          className={`${BTN} text-gray-400 hover:bg-gray-100 hover:text-gray-600 md:hidden`}
+          className={`${BTN} text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 md:hidden`}
           title={tc('edit')}
         >
           <Pencil className="h-4 w-4" strokeWidth={1.5} />
@@ -88,7 +88,7 @@ export const FeedActions = memo(function FeedActions({
       {showMobileDelete && (
         <button
           onClick={onDelete}
-          className={`${BTN} text-gray-400 hover:bg-red-50 hover:text-red-500 md:hidden`}
+          className={`${BTN} text-gray-400 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-500 md:hidden`}
           title={tc('delete')}
         >
           <Trash2 className="h-4 w-4" strokeWidth={1.5} />

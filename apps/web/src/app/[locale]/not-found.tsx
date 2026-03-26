@@ -11,10 +11,10 @@ export default function NotFound() {
     <div className="flex flex-1 items-center justify-center p-6">
       <div className="max-w-md text-center">
         <p className="mb-2 text-5xl font-bold text-gray-300">404</p>
-        <h2 className="mb-2 text-lg font-semibold text-gray-900">
+        <h2 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
           Page introuvable
         </h2>
-        <p className="mb-6 text-sm text-gray-500">
+        <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
           La page que vous recherchez n&apos;existe pas ou a été déplacée.
         </p>
         <Link

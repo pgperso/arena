@@ -164,20 +164,20 @@ export function ArticleEditor({
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           {isEditMode ? "Modifier l'article" : 'Nouvel article'}
         </h2>
         <div className="flex gap-2">
           <button
             onClick={onCancel}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
           >
             Annuler
           </button>
           <button
             onClick={() => handleSave(false)}
             disabled={saving}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 disabled:opacity-50"
           >
             {saving ? 'Enregistrement...' : 'Brouillon'}
           </button>
@@ -212,7 +212,7 @@ export function ArticleEditor({
             </button>
           </div>
         ) : (
-          <label className="flex h-32 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-gray-300 transition hover:border-gray-400">
+          <label className="flex h-32 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 transition hover:border-gray-400">
             <div className="text-center text-sm text-gray-400">
               <svg className="mx-auto mb-1 h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
@@ -233,7 +233,7 @@ export function ArticleEditor({
           if (!slugTouched) setCustomSlug(slugify(e.target.value).slice(0, 60));
         }}
         placeholder="Titre de l'article"
-        className="mb-2 w-full border-none text-2xl font-bold text-gray-900 placeholder-gray-300 focus:ring-0 focus:outline-none"
+        className="mb-2 w-full border-none text-2xl font-bold text-gray-900 dark:text-gray-100 placeholder-gray-300 dark:placeholder-gray-600 focus:ring-0 focus:outline-none"
         maxLength={200}
       />
 
@@ -245,7 +245,7 @@ export function ArticleEditor({
             {customSlug.length}/60
           </span>
         </div>
-        <div className="mt-1 flex items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5">
+        <div className="mt-1 flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-1.5">
           <span className="shrink-0 text-xs text-gray-400">…/articles/</span>
           <input
             type="text"
@@ -254,7 +254,7 @@ export function ArticleEditor({
               setSlugTouched(true);
               setCustomSlug(slugify(e.target.value).slice(0, 60));
             }}
-            className="flex-1 border-none bg-transparent text-xs text-gray-700 focus:ring-0 focus:outline-none"
+            className="flex-1 border-none bg-transparent text-xs text-gray-700 dark:text-gray-300 focus:ring-0 focus:outline-none"
             placeholder="slug-auto-genere"
             maxLength={60}
           />
@@ -263,8 +263,8 @@ export function ArticleEditor({
 
       {/* Tribune selector (new articles only — can't change after publish) */}
       {!isEditMode && communities.length > 1 && (
-        <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
-          <p className="mb-2 text-xs font-medium text-gray-500">Publier dans :</p>
+        <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-3">
+          <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">Publier dans :</p>
           <select
             value={selectedCommunityId}
             onChange={(e) => {
@@ -273,7 +273,7 @@ export function ArticleEditor({
               const comm = communities.find((c) => c.id === id);
               if (comm) setSelectedCommunitySlug(comm.slug);
             }}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+            className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
           >
             {communities.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
@@ -295,14 +295,14 @@ export function ArticleEditor({
           value={excerpt}
           onChange={(e) => setExcerpt(e.target.value)}
           placeholder="120-155 caractères idéal. Ex: Analyse sans filtre des Canadiens — séries, deadline, gardien..."
-          className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-300 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-300 dark:placeholder-gray-600 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
           maxLength={200}
         />
       </div>
 
       {/* Publish as selector */}
-      <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
-        <p className="mb-2 text-xs font-medium text-gray-500">Publier en tant que :</p>
+      <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-3">
+        <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">Publier en tant que :</p>
         <div className="flex flex-wrap gap-2">
           {AUTHOR_OPTIONS.map((author) => (
             <button
@@ -312,7 +312,7 @@ export function ArticleEditor({
               className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
                 (authorNameOverride === '' && author.name === 'Mon profil') || authorNameOverride === author.name
                   ? 'border-brand-blue bg-brand-blue/5 font-medium text-brand-blue'
-                  : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-white'
+                  : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:border-gray-600 hover:bg-white dark:bg-gray-900'
               }`}
             >
               <span
@@ -329,7 +329,7 @@ export function ArticleEditor({
 
       {/* Toolbar */}
       {editor && (
-        <div className="mb-1 flex flex-wrap gap-1 rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-2 py-1.5">
+        <div className="mb-1 flex flex-wrap gap-1 rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-2 py-1.5">
           <ToolbarButton
             active={editor.isActive('bold')}
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -376,7 +376,7 @@ export function ArticleEditor({
               <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
             </svg>
           </ToolbarButton>
-          <span className="mx-1 border-l border-gray-300" />
+          <span className="mx-1 border-l border-gray-300 dark:border-gray-600" />
           <ToolbarButton
             active={false}
             onClick={() => {
@@ -393,15 +393,15 @@ export function ArticleEditor({
       )}
 
       {/* Editor */}
-      <div className="rounded-b-lg border border-gray-200">
+      <div className="rounded-b-lg border border-gray-200 dark:border-gray-700">
         <EditorContent editor={editor} />
       </div>
 
       {/* Publish confirmation modal */}
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-4 text-lg font-bold text-gray-900">Confirmer la publication</h3>
+          <div className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Confirmer la publication</h3>
             <div className="mb-5 space-y-2.5">
               <CheckItem label="Titre" value={title.trim()} ok={!!title.trim()} />
               <CheckItem label="Tribune" value={communities.find((c) => c.id === selectedCommunityId)?.name ?? communitySlug} ok={true} />
@@ -413,7 +413,7 @@ export function ArticleEditor({
             <div className="flex gap-3">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
               >
                 Modifier
               </button>
@@ -439,8 +439,8 @@ function CheckItem({ label, value, ok, warn }: { label: string; value: string; o
         {ok && !warn ? '✓' : warn ? '⚠' : '✗'}
       </span>
       <div>
-        <span className="font-medium text-gray-700">{label} : </span>
-        <span className="text-gray-500">{value}</span>
+        <span className="font-medium text-gray-700 dark:text-gray-300">{label} : </span>
+        <span className="text-gray-500 dark:text-gray-400">{value}</span>
       </div>
     </div>
   );
@@ -462,7 +462,7 @@ function ToolbarButton({
       onClick={onClick}
       title={title}
       className={`rounded px-2 py-1 text-xs font-medium transition ${
-        active ? 'bg-gray-200 text-gray-900' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+        active ? 'bg-gray-200 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
       }`}
     >
       {children}

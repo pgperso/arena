@@ -58,16 +58,16 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div
-        className="mx-4 w-full max-w-md rounded-2xl bg-white shadow-xl"
+        className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-5 py-4">
           <div className="flex items-center gap-2">
             {selectedCategory && (
               <button
                 onClick={() => setSelectedCategory(null)}
-                className="rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+                className="rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
@@ -75,19 +75,19 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
               </button>
             )}
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 {selectedCategory
                   ? categories.find((c) => c.id === selectedCategory)?.name ?? t('community.backToTribunes')
                   : t('community.joinTitle')}
               </h2>
               {!selectedCategory && (
-                <p className="text-xs text-gray-500">{t('community.joinSubtitle')}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('community.joinSubtitle')}</p>
               )}
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-full p-1 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -100,7 +100,7 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
           {loading ? (
             <div className="space-y-3">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-14 animate-pulse rounded-xl bg-gray-100" />
+                <div key={i} className="h-14 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
               ))}
             </div>
           ) : !selectedCategory ? (
@@ -114,11 +114,11 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
                     disabled={availableCount === 0}
-                    className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-4 text-left transition hover:border-brand-blue hover:bg-brand-blue/5 disabled:opacity-30"
+                    className="flex w-full items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-4 text-left transition hover:border-brand-blue hover:bg-brand-blue/5 disabled:opacity-30"
                   >
                     <div>
-                      <span className="text-base font-bold text-gray-900">{cat.name}</span>
-                      <p className="text-xs text-gray-500">
+                      <span className="text-base font-bold text-gray-900 dark:text-gray-100">{cat.name}</span>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {totalInCategory === 0
                           ? t('community.comingSoon')
                           : availableCount > 0
@@ -148,7 +148,7 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                       onClose();
                       router.push(`/tribunes/${com.slug}`);
                     }}
-                    className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-4 text-left transition hover:border-brand-blue hover:bg-brand-blue/5"
+                    className="flex w-full items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-4 text-left transition hover:border-brand-blue hover:bg-brand-blue/5"
                   >
                     <Image
                       src={com.logo_url || '/images/fanstribune.webp'}
@@ -158,9 +158,9 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                       className="h-10 w-10 shrink-0 object-contain"
                     />
                     <div className="flex-1">
-                      <span className="text-sm font-bold text-gray-900">{com.name}</span>
+                      <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{com.name}</span>
                       {com.description && (
-                        <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">{com.description}</p>
+                        <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{com.description}</p>
                       )}
                       <p className="mt-0.5 text-xs text-gray-400">{t('common.members', { count: com.member_count })}</p>
                     </div>

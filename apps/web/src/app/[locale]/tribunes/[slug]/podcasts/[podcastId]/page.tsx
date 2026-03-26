@@ -170,7 +170,7 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
   ];
 
   return (
-    <div className="overflow-y-auto bg-white" style={{ height: 'calc(100dvh - 4rem)' }}>
+    <div className="overflow-y-auto bg-white dark:bg-gray-900" style={{ height: 'calc(100dvh - 4rem)' }}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(podcastJsonLd).replace(/</g, '\\u003c') }}

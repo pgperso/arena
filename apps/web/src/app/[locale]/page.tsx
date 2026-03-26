@@ -61,11 +61,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center">
         {/* Hero */}
         <div className="shrink-0 pt-6 pb-4 text-center md:pt-12 md:pb-8">
-          <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-900 md:text-5xl">
+          <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-5xl">
             {t('title')}{' '}
             <span className="text-red-600">{t('titleAccent')}</span>
           </h1>
-          <p className="mb-6 text-sm text-gray-600 md:mb-8 md:text-lg">
+          <p className="mb-6 text-sm text-gray-600 dark:text-gray-400 md:mb-8 md:text-lg">
             {t('subtitle')}
           </p>
           <HomeCTA />

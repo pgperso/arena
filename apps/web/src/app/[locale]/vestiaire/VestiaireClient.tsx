@@ -105,7 +105,7 @@ export function VestiaireClient({
 
   if (!member) {
     return (
-      <div className="py-12 text-center text-gray-500">
+      <div className="py-12 text-center text-gray-500 dark:text-gray-400">
         Profil introuvable.
       </div>
     );
@@ -122,7 +122,7 @@ export function VestiaireClient({
       {/* Back button */}
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-1.5 text-sm font-medium text-gray-500 transition hover:text-gray-700"
+        className="flex items-center gap-1.5 text-sm font-medium text-gray-500 dark:text-gray-400 transition hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
@@ -131,7 +131,7 @@ export function VestiaireClient({
       </button>
 
       {/* Profile header */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6">
         <div className="flex items-start gap-4">
           <button
             type="button"
@@ -169,17 +169,17 @@ export function VestiaireClient({
             />
           </button>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {member.username}
             </h1>
-            <p className="text-sm text-gray-500">{userEmail}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{userEmail}</p>
             <p className="mt-1 text-sm text-gray-400">
               Membre depuis le {joinDate}
             </p>
           </div>
           <button
             onClick={handleLogout}
-            className="shrink-0 rounded-lg border border-gray-200 p-2 text-gray-600 transition hover:border-red-300 hover:text-red-600 sm:px-4 sm:text-sm sm:font-medium"
+            className="shrink-0 rounded-lg border border-gray-200 dark:border-gray-700 p-2 text-gray-600 dark:text-gray-400 transition hover:border-red-300 hover:text-red-600 sm:px-4 sm:text-sm sm:font-medium"
             title={ta('logout')}
           >
             <svg className="h-4 w-4 sm:hidden" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -194,7 +194,7 @@ export function VestiaireClient({
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 transition focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+            className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 transition focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
             rows={3}
             placeholder={tcr('creatorNamePlaceholder') === tcr('creatorNamePlaceholder') ? 'Parlez-nous de vous...' : ''}
             maxLength={500}
@@ -210,7 +210,7 @@ export function VestiaireClient({
             <button
               onClick={() => setDescription(savedDescription)}
               disabled={description === savedDescription}
-              className="rounded-lg border border-gray-200 px-4 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
+              className="rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 disabled:opacity-50"
             >
               {tc('cancel')}
             </button>
@@ -255,7 +255,7 @@ export function VestiaireClient({
                     </button>
                     <button
                       onClick={() => setCreatorAvatarUrl(null)}
-                      className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-500 transition hover:bg-gray-50"
+                      className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
                     >
                       {tc('remove')}
                     </button>
@@ -324,7 +324,7 @@ export function VestiaireClient({
                 value={creatorName}
                 onChange={(e) => setCreatorName(e.target.value)}
                 placeholder={tcr('creatorNamePlaceholder')}
-                className="w-full rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                className="w-full rounded-lg border border-purple-200 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
                 maxLength={100}
               />
             </div>
@@ -361,7 +361,7 @@ export function VestiaireClient({
 
       {/* Communities */}
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">
+        <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
           Mes tribunes
         </h2>
         {communities.length > 0 ? (
@@ -372,7 +372,7 @@ export function VestiaireClient({
                 <Link
                   key={community.id}
                   href={`/tribunes/${community.slug}`}
-                  className="group flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 hover:shadow-sm"
+                  className="group flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 transition hover:border-gray-300 dark:border-gray-600 hover:shadow-sm"
                 >
                   <Image
                     src={community.logo_url || '/images/fanstribune.webp'}
@@ -383,7 +383,7 @@ export function VestiaireClient({
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="truncate text-sm font-semibold text-gray-900 group-hover:text-brand-blue">
+                      <h3 className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-brand-blue">
                         {community.name}
                       </h3>
                       {role && (
@@ -396,7 +396,7 @@ export function VestiaireClient({
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       {community.member_count} membre
                       {community.member_count !== 1 ? 's' : ''}
                     </p>
@@ -419,8 +419,8 @@ export function VestiaireClient({
             })}
           </div>
         ) : (
-          <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
-            <p className="text-sm text-gray-500">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-8 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               Vous n&apos;avez rejoint aucune tribune.
             </p>
             <Link
@@ -436,7 +436,7 @@ export function VestiaireClient({
       {/* Admin section */}
       {Object.keys(adminStats).length > 0 && (
         <div>
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
             Administration
           </h2>
           <div className="space-y-3">
@@ -448,7 +448,7 @@ export function VestiaireClient({
                 return (
                   <div
                     key={`admin-${community.id}`}
-                    className="rounded-xl border border-gray-200 bg-white p-4"
+                    className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4"
                   >
                     <div className="mb-3 flex items-center gap-2">
                       <Image
@@ -458,7 +458,7 @@ export function VestiaireClient({
                         height={28}
                         className="h-7 w-7 shrink-0 object-contain"
                       />
-                      <h3 className="text-sm font-semibold text-gray-900">{community.name}</h3>
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{community.name}</h3>
                       <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                         role === 'owner'
                           ? 'bg-brand-blue text-white'
@@ -467,7 +467,7 @@ export function VestiaireClient({
                         {role === 'owner' ? 'Propriétaire' : role === 'admin' ? 'Arbitre' : 'Mod'}
                       </span>
                     </div>
-                    <div className="mb-3 flex gap-4 text-xs text-gray-500">
+                    <div className="mb-3 flex gap-4 text-xs text-gray-500 dark:text-gray-400">
                       <span>{stats.articles} article{stats.articles !== 1 ? 's' : ''} publié{stats.articles !== 1 ? 's' : ''}</span>
                       <span>{stats.drafts} brouillon{stats.drafts !== 1 ? 's' : ''}</span>
                       <span>{stats.podcasts} podcast{stats.podcasts !== 1 ? 's' : ''}</span>
@@ -510,10 +510,10 @@ export function VestiaireClient({
       {/* Delete account modal — Step 1: Information */}
       {deleteStep === 1 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-3 text-lg font-bold text-gray-900">{t('deleteTitle')}</h3>
-            <p className="mb-4 text-sm text-gray-600">{t('deleteWarning')}</p>
-            <ul className="mb-6 space-y-2 text-sm text-gray-600">
+          <div className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl">
+            <h3 className="mb-3 text-lg font-bold text-gray-900 dark:text-gray-100">{t('deleteTitle')}</h3>
+            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">{t('deleteWarning')}</p>
+            <ul className="mb-6 space-y-2 text-sm text-gray-600 dark:text-gray-400">
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 text-red-500">•</span>
                 {t('deleteItem1')}
@@ -534,7 +534,7 @@ export function VestiaireClient({
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteStep(0)}
-                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
               >
                 {tc('cancel')}
               </button>
@@ -552,9 +552,9 @@ export function VestiaireClient({
       {/* Delete account modal — Step 2: Password confirmation */}
       {deleteStep === 2 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-2 text-lg font-bold text-gray-900">{t('confirmTitle')}</h3>
-            <p className="mb-4 text-sm text-gray-500">{t('confirmSubtitle')}</p>
+          <div className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl">
+            <h3 className="mb-2 text-lg font-bold text-gray-900 dark:text-gray-100">{t('confirmTitle')}</h3>
+            <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">{t('confirmSubtitle')}</p>
 
             {deleteError && (
               <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
@@ -563,13 +563,13 @@ export function VestiaireClient({
             )}
 
             <div className="mb-5">
-              <label className="mb-1 block text-sm font-medium text-gray-700">{t('passwordLabel')}</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('passwordLabel')}</label>
               <input
                 type="password"
                 value={deletePassword}
                 onChange={(e) => setDeletePassword(e.target.value)}
                 placeholder={t('passwordPlaceholder')}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
                 autoFocus
               />
             </div>
@@ -578,7 +578,7 @@ export function VestiaireClient({
               <button
                 onClick={() => setDeleteStep(0)}
                 disabled={deleting}
-                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
+                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 disabled:opacity-50"
               >
                 {tc('cancel')}
               </button>
@@ -619,14 +619,14 @@ export function VestiaireClient({
       {/* Delete account modal — Step 3: Success */}
       {deleteStep === 3 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl text-center">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl text-center">
             <div className="mb-4 flex justify-center">
               <svg className="h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
               </svg>
             </div>
-            <h3 className="mb-2 text-lg font-bold text-gray-900">{t('deleted')}</h3>
-            <p className="text-sm text-gray-500">{t('deletedDetail')}</p>
+            <h3 className="mb-2 text-lg font-bold text-gray-900 dark:text-gray-100">{t('deleted')}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('deletedDetail')}</p>
           </div>
         </div>
       )}

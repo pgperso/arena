@@ -19,7 +19,7 @@ export function FeedReplyContext({
     <button
       onClick={onClick}
       disabled={!onClick}
-      className="flex h-4 items-center gap-1 text-[11px] leading-none text-gray-400 transition hover:text-gray-600 disabled:hover:text-gray-400"
+      className="flex h-4 items-center gap-1 text-[11px] leading-none text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 disabled:hover:text-gray-400"
     >
       {parentAvatarUrl ? (
         <Image

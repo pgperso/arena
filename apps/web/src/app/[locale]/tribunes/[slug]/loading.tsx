@@ -4,7 +4,7 @@ export default function CommunityLoading() {
       {/* Main content skeleton */}
       <div className="flex flex-1 flex-col">
         {/* Community header skeleton */}
-        <div className="border-b border-gray-200 px-6 py-4">
+        <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 animate-pulse rounded-full bg-gray-200" />
             <div className="flex-1">

@@ -126,7 +126,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
   return (
     <div className="flex h-full flex-col">
       {/* Filter tabs */}
-      <div className="flex shrink-0 gap-1 border-b border-gray-200 px-4 py-2">
+      <div className="flex shrink-0 gap-1 border-b border-gray-200 dark:border-gray-700 px-4 py-2">
         {(['all', 'articles', 'podcasts'] as FilterType[]).map((f) => (
           <button
             key={f}
@@ -134,7 +134,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
             className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
               filter === f
                 ? 'bg-brand-blue text-white'
-                : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
             }`}
           >
             {f === 'all' ? t('all') : f === 'articles' ? t('articles') : t('podcasts')}
@@ -147,7 +147,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
         {loading ? (
           <div className="space-y-3 p-4">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-20 animate-pulse rounded-xl bg-gray-100" />
+              <div key={i} className="h-20 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
@@ -158,11 +158,11 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
             <p className="text-sm">{t('noContent')}</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-gray-800">
             {filtered.map((item, idx) => (
               <div key={`${item.type}-${item.id}`}>
               {idx > 0 && idx % CONTENT_AD_INTERVAL === 0 && (
-                <div className="border-y border-gray-100 bg-gray-50 px-4 py-3">
+                <div className="border-y border-gray-100 bg-gray-50 dark:bg-gray-950 px-4 py-3">
                   <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-gray-400">{tt('sponsored')}</p>
                   <AdSlot slotId={`content-feed-${idx}`} format="in-feed" className="w-full" />
                 </div>
@@ -228,7 +228,7 @@ function ContentRow({
   }
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 transition hover:bg-gray-50">
+    <div className="flex items-center gap-3 px-4 py-3 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950">
       {/* Thumbnail */}
       <Link href={href} className="shrink-0">
         {item.coverImageUrl ? (
@@ -272,7 +272,7 @@ function ContentRow({
           )}
         </div>
         <Link href={href}>
-          <h3 className="text-sm font-semibold text-gray-900 line-clamp-1 hover:text-brand-blue">{item.title}</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-1 hover:text-brand-blue">{item.title}</h3>
         </Link>
         <div className="mt-0.5 flex items-center gap-2">
           {(() => {
@@ -283,7 +283,7 @@ function ContentRow({
               <Avatar url={item.authorAvatarUrl} name={item.authorName} size="xs" />
             );
           })()}
-          <span className="text-xs text-gray-500">{item.authorName}</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">{item.authorName}</span>
           {item.likeCount > 0 && (
             <span className="text-xs text-gray-400">{item.likeCount} ♥</span>
           )}
@@ -299,7 +299,7 @@ function ContentRow({
           href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://fanstribune.com/fr${href}`)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-lg p-2 text-gray-400 transition hover:bg-blue-50 hover:text-blue-600"
+          className="rounded-lg p-2 text-gray-400 transition hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600"
           title="Facebook"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -323,20 +323,20 @@ function ContentRow({
           {confirmDelete ? (
             <span className="flex items-center gap-1.5 text-xs">
               <button onClick={handleDelete} className="font-semibold text-red-500 hover:text-red-700">{tc('confirm')}</button>
-              <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600">{tc('cancel')}</button>
+              <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400">{tc('cancel')}</button>
             </span>
           ) : (
             <>
               <button
                 onClick={handleHideFromFeed}
-                className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+                className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
                 title={t('removeFromFeed')}
               >
                 <EyeOff className="h-4 w-4" strokeWidth={1.5} />
               </button>
               <button
                 onClick={() => setConfirmDelete(true)}
-                className="rounded-lg p-2 text-gray-400 transition hover:bg-red-50 hover:text-red-500"
+                className="rounded-lg p-2 text-gray-400 transition hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-500"
                 title={t('deleteForever')}
               >
                 <Trash2 className="h-4 w-4" strokeWidth={1.5} />

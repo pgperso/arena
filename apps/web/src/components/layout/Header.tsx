@@ -47,14 +47,14 @@ export function Header() {
   }, [dropdownOpen]);
 
   return (
-    <header className="shrink-0 border-b border-gray-200 dark:border-gray-800 dark:bg-gray-950">
+    <header className="shrink-0 border-b border-gray-200 dark:border-gray-700 dark:border-gray-800 dark:bg-gray-950">
       <div className="flex h-12 items-center justify-between px-3 sm:h-14 sm:px-4 md:h-16">
         {/* Logo — on mobile in tribune: back arrow + tribune name */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           {tribune && (
             <Link
               href="/tribunes"
-              className="flex items-center rounded-lg p-1 text-gray-600 transition hover:bg-gray-100 md:hidden"
+              className="flex items-center rounded-lg p-1 text-gray-600 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 md:hidden"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
@@ -72,11 +72,11 @@ export function Header() {
             />
             {tribune ? (
               <>
-                <span className="text-base font-bold text-gray-900 md:hidden">{tribune.name}</span>
-                <span className="hidden text-lg font-bold text-gray-900 md:inline md:text-xl">{t('brand.name')}</span>
+                <span className="text-base font-bold text-gray-900 dark:text-gray-100 md:hidden">{tribune.name}</span>
+                <span className="hidden text-lg font-bold text-gray-900 dark:text-gray-100 md:inline md:text-xl">{t('brand.name')}</span>
               </>
             ) : (
-              <span className="text-base font-bold text-gray-900 sm:text-lg md:text-xl">{t('brand.name')}</span>
+              <span className="text-base font-bold text-gray-900 dark:text-gray-100 sm:text-lg md:text-xl">{t('brand.name')}</span>
             )}
           </Link>
         </div>
@@ -85,7 +85,7 @@ export function Header() {
         <div className="hidden items-center gap-3 md:flex">
           <button
             onClick={toggleDark}
-            className="rounded-md p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+            className="rounded-md p-1.5 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
             title={dark ? 'Mode clair' : 'Mode sombre'}
           >
             {dark ? (
@@ -100,7 +100,7 @@ export function Header() {
           </button>
           <a
             href={switchLocalePath}
-            className="rounded-md px-2 py-1 text-xs font-bold text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
+            className="rounded-md px-2 py-1 text-xs font-bold text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800"
           >
             {otherLocale.toUpperCase()}
           </a>
@@ -111,7 +111,7 @@ export function Header() {
             <div ref={dropdownRef} className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2 rounded-lg px-2 py-1 transition hover:bg-gray-100"
+                className="flex items-center gap-2 rounded-lg px-2 py-1 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800"
               >
                 {avatarUrl ? (
                   <Image
@@ -126,18 +126,18 @@ export function Header() {
                     {(username ?? 'U')[0].toUpperCase()}
                   </div>
                 )}
-                <span className="text-sm font-medium text-gray-700">{username}</span>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{username}</span>
                 <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                 </svg>
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-1 w-48 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
+                <div className="absolute right-0 top-full mt-1 w-48 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg">
                   <Link
                     href="/vestiaire"
                     onClick={() => setDropdownOpen(false)}
-                    className="flex w-full items-center gap-2 px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-50"
+                    className="flex w-full items-center gap-2 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
@@ -146,7 +146,7 @@ export function Header() {
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="flex w-full items-center gap-2 border-t border-gray-100 px-4 py-3 text-sm text-red-600 transition hover:bg-red-50"
+                    className="flex w-full items-center gap-2 border-t border-gray-100 px-4 py-3 text-sm text-red-600 transition hover:bg-red-50 dark:hover:bg-red-950"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
@@ -160,7 +160,7 @@ export function Header() {
             <>
               <Link
                 href="/login"
-                className="text-sm font-medium text-gray-600 transition hover:text-brand-blue"
+                className="text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:text-brand-blue"
               >
                 {t('auth.login')}
               </Link>
@@ -178,7 +178,7 @@ export function Header() {
         <div className="flex items-center gap-2 md:hidden">
           <button
             onClick={toggleDark}
-            className="rounded-md p-1.5 text-gray-500 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+            className="rounded-md p-1.5 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
           >
             {dark ? (
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -195,7 +195,7 @@ export function Header() {
           aria-label="Menu"
         >
           <svg
-            className="h-6 w-6 text-gray-600"
+            className="h-6 w-6 text-gray-600 dark:text-gray-400"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={1.5}

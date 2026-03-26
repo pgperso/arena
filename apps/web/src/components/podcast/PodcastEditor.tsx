@@ -186,20 +186,20 @@ export function PodcastEditor({
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           {isEditMode ? t('editPodcast') : t('newPodcast')}
         </h2>
         <div className="flex gap-2">
           <button
             onClick={onCancel}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
           >
             {tc('cancel')}
           </button>
           <button
             onClick={() => handleSave(false)}
             disabled={isBusy}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 disabled:opacity-50"
           >
             {tc('draft')}
           </button>
@@ -221,12 +221,12 @@ export function PodcastEditor({
 
       {/* Mode toggle: Audio vs YouTube */}
       <div className="mb-4">
-        <label className="mb-2 block text-sm font-medium text-gray-700">{t('type')}</label>
+        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('type')}</label>
         <div className="flex gap-2">
           <button
             onClick={() => setMode('audio')}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-              mode === 'audio' ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              mode === 'audio' ? 'bg-brand-blue text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
             }`}
           >
             {t('typePodcast')}
@@ -234,7 +234,7 @@ export function PodcastEditor({
           <button
             onClick={() => setMode('youtube')}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-              mode === 'youtube' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              mode === 'youtube' ? 'bg-red-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
             }`}
           >
             {t('typeYoutube')}
@@ -244,25 +244,25 @@ export function PodcastEditor({
 
       {/* Title */}
       <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-gray-700">{t('title')}</label>
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('title')}</label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder={mode === 'youtube' ? t('liveTitlePlaceholder') : t('titlePlaceholder')}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
           maxLength={500}
         />
       </div>
 
       {/* Description */}
       <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-gray-700">{t('description')}</label>
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('description')}</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder={t('descriptionPlaceholder')}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
           rows={3}
           maxLength={5000}
         />
@@ -272,13 +272,13 @@ export function PodcastEditor({
       {mode === 'youtube' && (
         <div className="mb-4 space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">{t('youtubeUrl')}</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('youtubeUrl')}</label>
             <input
               type="text"
               value={youtubeVideoId}
               onChange={(e) => setYoutubeVideoId(e.target.value)}
               placeholder={t('youtubeUrlPlaceholder')}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
             />
             <p className="mt-1 text-xs text-gray-400">
               {t('youtubeHelp')} ({t('youtubeExampleId')})
@@ -291,17 +291,17 @@ export function PodcastEditor({
               type="checkbox"
               checked={isLive}
               onChange={(e) => setIsLive(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-red-600 focus:ring-red-500"
             />
             <div>
-              <span className="text-sm font-medium text-gray-700">{t('isLive')}</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('isLive')}</span>
               <p className="text-xs text-gray-400">{t('isLiveHelp')}</p>
             </div>
           </label>
 
           {/* Preview */}
           {youtubeVideoId && (
-            <div className="overflow-hidden rounded-xl border border-gray-200">
+            <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
               <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                 <iframe
                   className="absolute inset-0 h-full w-full"
@@ -319,12 +319,12 @@ export function PodcastEditor({
       {/* Audio mode */}
       {mode === 'audio' && (
         <div className="mb-4">
-          <label className="mb-2 block text-sm font-medium text-gray-700">{t('audioSource')}</label>
+          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('audioSource')}</label>
           <div className="mb-3 flex gap-2">
             <button
               onClick={() => setUseExternalUrl(false)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                !useExternalUrl ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                !useExternalUrl ? 'bg-brand-blue text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
               }`}
             >
               {t('audioFile')}
@@ -332,7 +332,7 @@ export function PodcastEditor({
             <button
               onClick={() => setUseExternalUrl(true)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                useExternalUrl ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                useExternalUrl ? 'bg-brand-blue text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
               }`}
             >
               {t('externalUrl')}
@@ -345,25 +345,25 @@ export function PodcastEditor({
               value={audioUrl}
               onChange={(e) => setAudioUrl(e.target.value)}
               placeholder="https://example.com/podcast.mp3"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
             />
           ) : (
             <div>
               {audioFile ? (
-                <div className="flex items-center gap-3 rounded-lg border border-gray-200 px-4 py-3">
+                <div className="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3">
                   <svg className="h-5 w-5 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                   </svg>
-                  <span className="min-w-0 flex-1 truncate text-sm text-gray-700">{audioFile.name}</span>
+                  <span className="min-w-0 flex-1 truncate text-sm text-gray-700 dark:text-gray-300">{audioFile.name}</span>
                   <button
                     onClick={() => setAudioFile(null)}
-                    className="text-xs text-gray-400 hover:text-gray-600"
+                    className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
                   >
                     {t('change')}
                   </button>
                 </div>
               ) : (
-                <label className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 px-4 py-6 transition hover:border-gray-400">
+                <label className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 px-4 py-6 transition hover:border-gray-400">
                   <div className="text-center text-sm text-gray-400">
                     <svg className="mx-auto mb-1 h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
@@ -396,7 +396,7 @@ export function PodcastEditor({
 
       {/* Cover image */}
       <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-gray-700">{t('coverImage')}</label>
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('coverImage')}</label>
         {coverPreview ? (
           <div className="relative">
             <img src={coverPreview} alt={t('coverAlt')} className="h-36 w-full rounded-lg object-cover" />
@@ -410,7 +410,7 @@ export function PodcastEditor({
             </button>
           </div>
         ) : (
-          <label className="flex h-24 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 transition hover:border-gray-400">
+          <label className="flex h-24 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 transition hover:border-gray-400">
             <div className="text-center text-xs text-gray-400">
               <svg className="mx-auto mb-1 h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />

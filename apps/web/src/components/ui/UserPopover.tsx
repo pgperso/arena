@@ -92,13 +92,13 @@ export function UserPopover({
   return createPortal(
     <div
       ref={popoverRef}
-      className="fixed z-50 w-[200px] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl"
+      className="fixed z-50 w-[200px] overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-xl"
       style={{ top, left }}
     >
       {/* Title */}
       <div className="flex items-center gap-2 border-b border-gray-100 px-3 py-2.5">
         <Shield className="h-4 w-4 text-brand-blue" strokeWidth={2} />
-        <span className="text-xs font-bold text-gray-900">{username}</span>
+        <span className="text-xs font-bold text-gray-900 dark:text-gray-100">{username}</span>
       </div>
 
       {error && (
@@ -117,7 +117,7 @@ export function UserPopover({
               className={`flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left transition ${
                 isActive
                   ? 'bg-brand-blue/10 text-brand-blue'
-                  : 'text-gray-700 hover:bg-gray-50'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'
               } disabled:opacity-50`}
             >
               <div>
@@ -139,7 +139,7 @@ export function UserPopover({
           <button
             onClick={handleRemoveRole}
             disabled={saving}
-            className="mt-0.5 w-full rounded-md px-3 py-2 text-left text-xs text-gray-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+            className="mt-0.5 w-full rounded-md px-3 py-2 text-left text-xs text-gray-400 transition hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-500 disabled:opacity-50"
           >
             {t('moderation.removeRole')}
           </button>

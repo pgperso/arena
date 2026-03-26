@@ -90,23 +90,23 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
   if (isYouTube) {
     return (
       <div className="px-4 py-3">
-        <div className="max-w-md overflow-hidden rounded-xl border border-gray-200">
+        <div className="max-w-md overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
           <FeedLivePlayer videoId={podcast.youtubeVideoId!} isLive={podcast.isLive} />
 
-          <div className="bg-white p-3">
+          <div className="bg-white dark:bg-gray-900 p-3">
             <div className="mb-1 flex items-center gap-2">
               {podcast.isLive ? (
                 <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
                   {t('liveNow')}
                 </span>
               ) : (
-                <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">
+                <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">
                   {t('replay')}
                 </span>
               )}
               <span className="text-xs text-gray-400">{formatTime(podcast.createdAt)}</span>
             </div>
-            <h3 className="text-sm font-semibold text-gray-900 line-clamp-1">{podcast.title}</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">{podcast.title}</h3>
             {podcast.description && (
               <p className="mt-0.5 text-xs text-gray-400 line-clamp-1">{podcast.description}</p>
             )}
@@ -139,7 +139,7 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
               {!podcast.isLive && (
                 <button
                   onClick={handleRemoveFromFeed}
-                  className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+                  className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
                 >
                   {tc('remove')}
                 </button>
@@ -147,12 +147,12 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
               {confirmDelete ? (
                 <span className="flex items-center gap-1.5 text-xs">
                   <button onClick={handleDelete} className="font-semibold text-red-500 hover:text-red-700">{tc('delete')}</button>
-                  <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600">{tc('cancel')}</button>
+                  <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400">{tc('cancel')}</button>
                 </span>
               ) : (
                 <button
                   onClick={() => setConfirmDelete(true)}
-                  className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-red-50 hover:text-red-500"
+                  className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-500"
                 >
                   {tc('delete')}
                 </button>
@@ -216,9 +216,9 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
               <span className="rounded-full bg-brand-blue/20 px-2 py-0.5 text-xs font-medium text-brand-blue-light">
                 {t('podcast')}
               </span>
-              <span className="text-xs text-gray-500">{formatTime(podcast.createdAt)}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">{formatTime(podcast.createdAt)}</span>
               {podcast.durationSeconds && (
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   {formatDuration(podcast.durationSeconds)}
                 </span>
               )}
@@ -264,19 +264,19 @@ export function FeedPodcastCard({ podcast, communitySlug, userId, canModerate }:
           <div className="ml-auto flex items-center gap-1">
             <button
               onClick={handleRemoveFromFeed}
-              className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+              className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
             >
               {tc('remove')}
             </button>
             {confirmDelete ? (
               <span className="flex items-center gap-1.5 text-xs">
                 <button onClick={handleDelete} className="font-semibold text-red-500 hover:text-red-700">{tc('delete')}</button>
-                <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600">{tc('cancel')}</button>
+                <button onClick={() => setConfirmDelete(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400">{tc('cancel')}</button>
               </span>
             ) : (
               <button
                 onClick={() => setConfirmDelete(true)}
-                className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-red-50 hover:text-red-500"
+                className="rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-500"
               >
                 {tc('delete')}
               </button>

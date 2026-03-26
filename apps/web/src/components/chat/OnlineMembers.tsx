@@ -24,8 +24,8 @@ export function OnlineMembers({ members }: OnlineMembersProps) {
 
   return (
     <div className="flex flex-col">
-      <div className="border-b border-gray-200 px-4 py-3">
-        <h3 className="text-sm font-semibold text-gray-900">
+      <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
           {t('membersOnline')}{' '}
           <span className="text-gray-400">({members.length + 1})</span>
         </h3>
@@ -45,7 +45,7 @@ export function OnlineMembers({ members }: OnlineMembersProps) {
                 <StatusDot status="online" />
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="truncate text-sm font-medium text-gray-700">{botName}</span>
+                <span className="truncate text-sm font-medium text-gray-700 dark:text-gray-300">{botName}</span>
                 <span className="rounded-full bg-brand-blue px-1 py-px text-[8px] font-bold text-white">Bot</span>
               </div>
             </li>
@@ -56,7 +56,7 @@ export function OnlineMembers({ members }: OnlineMembersProps) {
                   <Avatar url={member.avatarUrl} name={member.username} size="sm" />
                   <StatusDot status={member.status} />
                 </div>
-                <span className={`truncate text-sm ${member.status === 'idle' ? 'text-gray-400' : 'text-gray-700'}`}>
+                <span className={`truncate text-sm ${member.status === 'idle' ? 'text-gray-400' : 'text-gray-700 dark:text-gray-300'}`}>
                   {member.username}
                 </span>
               </li>

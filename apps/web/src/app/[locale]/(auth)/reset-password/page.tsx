@@ -35,10 +35,10 @@ export default function ResetPasswordPage() {
       <div className="flex flex-1 items-center justify-center px-4">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {t('resetPassword')}
             </h1>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               {t('resetSubtitle')}
             </p>
           </div>
@@ -66,7 +66,7 @@ export default function ResetPasswordPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="mb-1 block text-sm font-medium text-gray-700"
+                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                   {t('email')}
                 </label>
@@ -76,7 +76,7 @@ export default function ResetPasswordPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
                   placeholder={t('emailPlaceholder')}
                 />
               </div>
@@ -87,7 +87,7 @@ export default function ResetPasswordPage() {
               >
                 {loading ? t('sending') : t('sendLink')}
               </button>
-              <p className="text-center text-sm text-gray-500">
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400">
                 <Link
                   href="/login"
                   className="text-brand-blue hover:underline"

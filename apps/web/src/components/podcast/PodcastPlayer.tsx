@@ -107,7 +107,7 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
       {/* Back link */}
       <Link
         href={`/tribunes/${communitySlug}`}
-        className="mb-6 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+        className="mb-6 inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -128,9 +128,9 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
             </div>
           )}
         </div>
-        <h1 className="mb-1 text-center text-xl font-bold text-gray-900">{podcast.title}</h1>
+        <h1 className="mb-1 text-center text-xl font-bold text-gray-900 dark:text-gray-100">{podcast.title}</h1>
         {podcast.publisher && (
-          <p className="text-sm text-gray-500">par {podcast.publisher.username}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">par {podcast.publisher.username}</p>
         )}
       </div>
 
@@ -156,7 +156,7 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
         {/* Skip back 15s */}
         <button
           onClick={() => skip(-15)}
-          className="rounded-full p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+          className="rounded-full p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300"
           title="-15s"
         >
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -183,7 +183,7 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
         {/* Skip forward 30s */}
         <button
           onClick={() => skip(30)}
-          className="rounded-full p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+          className="rounded-full p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300"
           title="+30s"
         >
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -197,7 +197,7 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
         {/* Playback rate */}
         <button
           onClick={cyclePlaybackRate}
-          className="rounded-lg border border-gray-200 px-2 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
+          className="rounded-lg border border-gray-200 dark:border-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
         >
           {playbackRate}x
         </button>
@@ -221,9 +221,9 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
 
       {/* Description */}
       {podcast.description && (
-        <div className="mb-6 rounded-xl bg-gray-50 p-4">
-          <h3 className="mb-2 text-sm font-semibold text-gray-700">Description</h3>
-          <p className="whitespace-pre-wrap text-sm text-gray-600">{podcast.description}</p>
+        <div className="mb-6 rounded-xl bg-gray-50 dark:bg-gray-950 p-4">
+          <h3 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Description</h3>
+          <p className="whitespace-pre-wrap text-sm text-gray-600 dark:text-gray-400">{podcast.description}</p>
         </div>
       )}
 
@@ -246,7 +246,7 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
             href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://fanstribune.com/fr/tribunes/${communitySlug}/podcasts/${podcast.id}`)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-blue-50 hover:text-blue-600"
+            className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600"
             title="Facebook"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -257,7 +257,7 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
             href={`https://x.com/intent/tweet?url=${encodeURIComponent(`https://fanstribune.com/fr/tribunes/${communitySlug}/podcasts/${podcast.id}`)}&text=${encodeURIComponent(podcast.title)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-900"
+            className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-900 dark:text-gray-100"
             title="X"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">

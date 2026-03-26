@@ -16,10 +16,10 @@ export default function Error({
   return (
     <div className="flex flex-1 items-center justify-center p-6">
       <div className="max-w-md text-center">
-        <h2 className="mb-2 text-lg font-semibold text-gray-900">
+        <h2 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
           Quelque chose s&apos;est mal passé
         </h2>
-        <p className="mb-6 text-sm text-gray-500">
+        <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
           Une erreur est survenue lors du chargement de cette page.
         </p>
         <button

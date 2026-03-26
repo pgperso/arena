@@ -155,13 +155,13 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="mx-4 w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+      <div className="mx-4 w-full max-w-lg rounded-2xl bg-white dark:bg-gray-900 shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">{t('title')}</h2>
+        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-5 py-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('title')}</h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-full p-1 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -170,13 +170,13 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setActiveTab('restrict')}
             className={`flex-1 px-4 py-2.5 text-sm font-medium transition ${
               activeTab === 'restrict'
                 ? 'border-b-2 border-brand-blue text-brand-blue'
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
             }`}
           >
             {t('restrict')}
@@ -186,7 +186,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
             className={`flex-1 px-4 py-2.5 text-sm font-medium transition ${
               activeTab === 'active'
                 ? 'border-b-2 border-brand-blue text-brand-blue'
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
             }`}
           >
             {t('activeRestrictions')}
@@ -205,22 +205,22 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
               )}
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">{t('user')}</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('user')}</label>
                 <input
                   type="text"
                   value={targetUsername}
                   onChange={(e) => setTargetUsername(e.target.value)}
                   placeholder={t('userPlaceholder')}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">{t('restrictionType')}</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('restrictionType')}</label>
                 <select
                   value={restrictionType}
                   onChange={(e) => setRestrictionType(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
                 >
                   <option value="chat:mute">{t('muteChatLabel')}</option>
                   <option value="community:ban">{t('banLabel')}</option>
@@ -228,11 +228,11 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">{t('duration')}</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('duration')}</label>
                 <select
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
                 >
                   <option value="1">{t('duration1h')}</option>
                   <option value="24">{t('duration24h')}</option>
@@ -243,13 +243,13 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">{t('reason')}</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('reason')}</label>
                 <textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder={t('reasonPlaceholder')}
                   rows={2}
-                  className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
+                  className="w-full resize-none rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
                 />
               </div>
 
@@ -278,11 +278,11 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
                     return (
                       <div
                         key={r.id}
-                        className={`rounded-lg border p-3 ${isExpired ? 'border-gray-200 bg-gray-50 opacity-60' : 'border-gray-200'}`}
+                        className={`rounded-lg border p-3 ${isExpired ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 opacity-60' : 'border-gray-200 dark:border-gray-700'}`}
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <span className="text-sm font-medium text-gray-900">
+                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                               @{r.member_username}
                             </span>
                             <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -306,7 +306,7 @@ export function ModerationPanel({ communityId, onClose }: ModerationPanelProps) 
                           )}
                         </div>
                         {r.reason && (
-                          <p className="mt-1 text-xs text-gray-500">{t('reasonPrefix')} {r.reason}</p>
+                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('reasonPrefix')} {r.reason}</p>
                         )}
                         <p className="mt-1 text-xs text-gray-400">
                           {r.ends_at

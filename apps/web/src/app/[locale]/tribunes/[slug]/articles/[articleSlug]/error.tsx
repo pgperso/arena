@@ -2,9 +2,9 @@
 
 export default function ArticleError({ reset }: { reset: () => void }) {
   return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center bg-white px-4">
-      <h2 className="mb-2 text-lg font-bold text-gray-900">Article indisponible</h2>
-      <p className="mb-4 text-sm text-gray-500">
+    <div className="flex min-h-[50vh] flex-col items-center justify-center bg-white dark:bg-gray-900 px-4">
+      <h2 className="mb-2 text-lg font-bold text-gray-900 dark:text-gray-100">Article indisponible</h2>
+      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
         Une erreur est survenue lors du chargement de cet article.
       </p>
       <button

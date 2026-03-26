@@ -31,7 +31,7 @@ export function FeedBotMessage({ message }: FeedBotMessageProps) {
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-white">{botName}</span>
               <span className="rounded-full bg-brand-blue px-1.5 py-0.5 text-[9px] font-medium text-white">Bot</span>
-              <span className="text-xs text-gray-500">{time}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">{time}</span>
             </div>
             <p className="mt-0.5 text-sm text-gray-300">{message.content}</p>
           </div>

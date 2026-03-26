@@ -40,11 +40,11 @@ export function FeedArticleCard({ article, communitySlug, userId, canModerate }:
     <div className="px-4 py-3">
       <Link
         href={`/tribunes/${communitySlug}/articles/${article.slug}`}
-        className="block max-w-md overflow-hidden rounded-xl border border-gray-200 transition hover:border-gray-300 hover:shadow-sm"
+        className="block max-w-md overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 transition hover:border-gray-300 dark:border-gray-600 hover:shadow-sm"
       >
         {/* Cover image */}
         {article.coverImageUrl && (
-          <div className="h-40 w-full bg-gray-100">
+          <div className="h-40 w-full bg-gray-100 dark:bg-gray-800">
             <Image
               src={article.coverImageUrl}
               alt={article.title}
@@ -66,20 +66,20 @@ export function FeedArticleCard({ article, communitySlug, userId, canModerate }:
           </div>
 
           {/* Title */}
-          <h3 className="mb-1 text-base font-semibold text-gray-900 line-clamp-2">
+          <h3 className="mb-1 text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">
             {article.title}
           </h3>
 
           {/* Excerpt */}
           {article.excerpt && (
-            <p className="mb-3 text-sm text-gray-500 line-clamp-2">{article.excerpt}</p>
+            <p className="mb-3 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{article.excerpt}</p>
           )}
 
           {/* Author + stats */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Avatar url={article.author.avatarUrl} name={article.author.username} size="xs" />
-              <span className="text-xs font-medium text-gray-700">{article.author.username}</span>
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{article.author.username}</span>
             </div>
 
             <div className="flex items-center gap-3 text-xs text-gray-400">
@@ -113,7 +113,7 @@ export function FeedArticleCard({ article, communitySlug, userId, canModerate }:
         {canRemove && (
           <button
             onClick={handleRemoveFromFeed}
-            className="ml-auto rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+            className="ml-auto rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
           >
             {tc('remove')}
           </button>

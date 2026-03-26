@@ -106,7 +106,7 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
         {/* Back link */}
         <Link
           href={`/tribunes/${communitySlug}`}
-          className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -129,7 +129,7 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
         )}
 
         {/* Title */}
-        <h1 className="mb-3 text-3xl font-bold text-gray-900">{article.title}</h1>
+        <h1 className="mb-3 text-3xl font-bold text-gray-900 dark:text-gray-100">{article.title}</h1>
 
         {/* Author & meta */}
         <div className="mb-6 flex items-center gap-3 border-b border-gray-100 pb-4">
@@ -142,7 +142,7 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
             );
           })()}
           <div>
-            <p className="text-sm font-semibold text-gray-900">{article.author.username}</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{article.author.username}</p>
             <p className="text-xs text-gray-400">
               {formatTime(article.published_at ?? article.created_at)}
               {article.view_count > 0 && ` · ${article.view_count} vue${article.view_count > 1 ? 's' : ''}`}
@@ -154,18 +154,18 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
         {bodyParts ? (
           <>
             <div
-              className="prose max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
+              className="prose max-w-none prose-headings:text-gray-900 dark:text-gray-100 prose-p:text-gray-700 dark:text-gray-300 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
               dangerouslySetInnerHTML={{ __html: bodyParts[0] }}
             />
             <AdInArticle />
             <div
-              className="prose max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
+              className="prose max-w-none prose-headings:text-gray-900 dark:text-gray-100 prose-p:text-gray-700 dark:text-gray-300 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
               dangerouslySetInnerHTML={{ __html: bodyParts[1] }}
             />
           </>
         ) : (
           <div
-            className="prose max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
+            className="prose max-w-none prose-headings:text-gray-900 dark:text-gray-100 prose-p:text-gray-700 dark:text-gray-300 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
             dangerouslySetInnerHTML={{ __html: sanitizedBody }}
           />
         )}
@@ -208,7 +208,7 @@ function ShareButtons({ url, title }: { url: string; title: string }) {
         href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-blue-50 hover:text-blue-600"
+        className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600"
         title="Facebook"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -219,7 +219,7 @@ function ShareButtons({ url, title }: { url: string; title: string }) {
         href={`https://x.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-900"
+        className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-900 dark:text-gray-100"
         title="X"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">

@@ -87,10 +87,10 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
       />
 
       {/* Single unified container */}
-      <div className="overflow-hidden rounded-lg bg-gray-100">
+      <div className="overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
         {/* Image previews inside the bar */}
         {images.length > 0 && (
-          <div className="flex gap-2 border-b border-gray-200 p-3">
+          <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 p-3">
             {images.map((img) => (
               <div key={img.id} className="relative flex-shrink-0">
                 <Image
@@ -113,7 +113,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={disabled}
-                className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-400 transition hover:border-gray-400 hover:text-gray-500 disabled:opacity-50"
+                className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-400 transition hover:border-gray-400 hover:text-gray-500 dark:text-gray-400 disabled:opacity-50"
                 title={t('addMoreImages')}
               >
                 <Plus className="h-5 w-5" strokeWidth={2} />
@@ -128,7 +128,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || !canAddMoreImages}
-            className="flex h-10 w-10 shrink-0 items-center justify-center text-gray-400 transition hover:text-gray-600 disabled:opacity-50"
+            className="flex h-10 w-10 shrink-0 items-center justify-center text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 disabled:opacity-50"
             title={t('addImages')}
           >
             <Plus className="h-5 w-5" strokeWidth={2} />
@@ -143,7 +143,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
             disabled={disabled || uploading}
             placeholder={uploading ? t('uploadingImages') : (placeholder ?? t('writeMessage'))}
             rows={1}
-            className="flex-1 resize-none bg-transparent px-1 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none disabled:text-gray-400"
+            className="flex-1 resize-none bg-transparent px-1 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none disabled:text-gray-400"
           />
 
           {/* Send button — always visible on mobile, hidden on desktop */}

@@ -105,7 +105,7 @@ export function CommunityPageClient({
       {/* Join / Login modal */}
       {showJoinModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl">
             <div className="mb-4 flex flex-col items-center gap-3 text-center">
               <Image
                 src={community.logo_url || '/images/fanstribune.webp'}
@@ -114,11 +114,11 @@ export function CommunityPageClient({
                 height={64}
                 className="h-16 w-16 object-contain"
               />
-              <h2 className="text-lg font-bold text-gray-900">{community.name}</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{community.name}</h2>
               {community.description && (
-                <p className="text-sm text-gray-500">{community.description}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{community.description}</p>
               )}
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {t('common.members', { count: memberCount })}
               </p>
             </div>
@@ -146,7 +146,7 @@ export function CommunityPageClient({
                 </Link>
                 <Link
                   href="/register"
-                  className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-center text-sm font-medium text-gray-700 transition hover:border-gray-400"
+                  className="mt-2 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-center text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:border-gray-400"
                 >
                   {t('auth.register')}
                 </Link>
@@ -154,7 +154,7 @@ export function CommunityPageClient({
             )}
             <Link
               href="/"
-              className="mt-3 block w-full text-center text-sm text-gray-400 transition hover:text-gray-600"
+              className="mt-3 block w-full text-center text-sm text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
             >
               &larr; {t('common.back')}
             </Link>
@@ -164,7 +164,7 @@ export function CommunityPageClient({
 
       {/* Community bar — hidden on mobile (Header shows back + name instead) */}
       <div
-        className="hidden shrink-0 items-center justify-between bg-gray-100 px-4 py-2 md:flex"
+        className="hidden shrink-0 items-center justify-between bg-gray-100 dark:bg-gray-800 px-4 py-2 md:flex"
       >
         <div className="flex items-center gap-1.5 sm:gap-2">
           <Link
@@ -188,7 +188,7 @@ export function CommunityPageClient({
               </svg>
             </Link>
           )}
-          <span className="text-sm font-semibold text-gray-900 sm:text-base">{community.name}</span>
+          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 sm:text-base">{community.name}</span>
           {(hasMultiple || userCommunities === null) && (
             <Link
               href={nextCommunity ? `/tribunes/${nextCommunity.slug}` : '#'}
@@ -200,7 +200,7 @@ export function CommunityPageClient({
               </svg>
             </Link>
           )}
-          <span className="hidden text-sm text-gray-500 sm:inline">
+          <span className="hidden text-sm text-gray-500 dark:text-gray-400 sm:inline">
             {t('common.members', { count: memberCount })}
           </span>
         </div>
@@ -221,12 +221,12 @@ export function CommunityPageClient({
       {isMember ? (
         <>
           {/* 3-column layout: [Ad left] | [Feed] | [Ad right] */}
-          <div className="flex flex-1 overflow-hidden border-t border-gray-200">
+          <div className="flex flex-1 overflow-hidden border-t border-gray-200 dark:border-gray-700">
             {/* Left ad sidebar - xl+ only */}
             <AdSidebar position="left" />
 
             {/* Central feed area */}
-            <div className="flex-1 overflow-hidden bg-white">
+            <div className="flex-1 overflow-hidden bg-white dark:bg-gray-900">
               <FeedContainer
                 communityId={community.id}
                 communityName={community.name}
@@ -247,7 +247,7 @@ export function CommunityPageClient({
           <AdAnchor />
         </>
       ) : (
-        <div className="flex flex-1 items-center justify-center border-t border-gray-200 bg-gray-50">
+        <div className="flex flex-1 items-center justify-center border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950">
           <p className="text-sm text-gray-400">
             {t('community.joinToAccess')}
           </p>

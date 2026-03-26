@@ -191,10 +191,10 @@ export function FeedContainer({
       {/* Feed area */}
       <div className="relative flex flex-1 flex-col overflow-hidden">
         {/* Header — compact on mobile (no name, just actions), full on desktop */}
-        <div className="flex shrink-0 items-center justify-end border-b border-gray-200 px-3 py-1.5 md:justify-between md:px-4 md:py-3">
+        <div className="flex shrink-0 items-center justify-end border-b border-gray-200 dark:border-gray-700 px-3 py-1.5 md:justify-between md:px-4 md:py-3">
           <div className="hidden md:block">
-            <h2 className="text-base font-semibold text-gray-900">{communityName}</h2>
-            <p className="text-xs text-gray-500">{t('online', { count: onlineMembers.length })}</p>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">{communityName}</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('online', { count: onlineMembers.length })}</p>
           </div>
           <div className="flex items-center gap-2">
             {/* Desktop: full buttons */}
@@ -224,7 +224,7 @@ export function FeedContainer({
                 </button>
                 <button
                   onClick={() => setShowArticleList(true)}
-                  className="hidden items-center gap-1 rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-100 md:flex"
+                  className="hidden items-center gap-1 rounded-lg bg-gray-50 dark:bg-gray-950 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 md:flex"
                   title={t('myArticles')}
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -258,7 +258,7 @@ export function FeedContainer({
             )}
             <button
               onClick={() => setShowMembers(!showMembers)}
-              className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 lg:hidden"
+              className="rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 lg:hidden"
               title={t('membersOnline')}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -269,13 +269,13 @@ export function FeedContainer({
         </div>
 
         {/* Tab bar: Tribune / Contenu */}
-        <div className="flex shrink-0 gap-1 bg-gray-100 px-3 py-1.5">
+        <div className="flex shrink-0 gap-1 bg-gray-100 dark:bg-gray-800 px-3 py-1.5">
           <button
             onClick={() => setActiveTab('chat')}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
               activeTab === 'chat'
-                ? 'bg-white text-brand-blue shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white dark:bg-gray-900 text-brand-blue shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
             }`}
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -287,8 +287,8 @@ export function FeedContainer({
             onClick={() => setActiveTab('content')}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
               activeTab === 'content'
-                ? 'bg-white text-brand-blue shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white dark:bg-gray-900 text-brand-blue shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
             }`}
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -435,8 +435,8 @@ export function FeedContainer({
             autoFocus={!!replyTarget}
           />
         ) : (
-          <div className="border-t border-gray-200 bg-gray-50 px-4 py-3 text-center">
-            <p className="text-sm text-gray-500">
+          <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-4 py-3 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               <Link href="/login" className="font-medium text-brand-blue hover:underline">
                 {t('loginToChat')}
               </Link>{' '}
@@ -456,14 +456,14 @@ export function FeedContainer({
       <div
         className={`${
           showMembers ? 'block' : 'hidden'
-        } w-full border-t border-gray-200 lg:block lg:w-60 lg:border-l lg:border-t-0`}
+        } w-full border-t border-gray-200 dark:border-gray-700 lg:block lg:w-60 lg:border-l lg:border-t-0`}
       >
         <OnlineMembers members={onlineMembers} />
       </div>
 
       {/* Article editor overlay */}
       {showArticleEditor && user && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-white">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-gray-900">
           <div className="p-4">
             <ArticleEditor
               communityId={communityId}
@@ -481,7 +481,7 @@ export function FeedContainer({
 
       {/* Podcast editor overlay */}
       {showPodcastEditor && user && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-white">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-gray-900">
           <div className="p-4">
             <PodcastEditor
               communityId={communityId}
@@ -495,7 +495,7 @@ export function FeedContainer({
 
       {/* Article list overlay */}
       {showArticleList && user && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-white">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-white dark:bg-gray-900">
           <div className="p-4">
             <ArticleList
               communityId={communityId}
@@ -545,7 +545,7 @@ function AdminMenu({
     <div className="relative md:hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+        className="rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300"
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
@@ -554,11 +554,11 @@ function AdminMenu({
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+          <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 py-1 shadow-lg">
             {canModerate && (
               <button
                 onClick={() => { setOpen(false); onModerate(); }}
-                className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-700 transition hover:bg-red-50"
+                className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-700 transition hover:bg-red-50 dark:hover:bg-red-950"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
@@ -570,7 +570,7 @@ function AdminMenu({
               <>
                 <button
                   onClick={() => { setOpen(false); onArticle(); }}
-                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-purple-700 transition hover:bg-purple-50"
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-purple-700 transition hover:bg-purple-50 dark:hover:bg-purple-950"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
@@ -579,7 +579,7 @@ function AdminMenu({
                 </button>
                 <button
                   onClick={() => { setOpen(false); onMyArticles(); }}
-                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-gray-50"
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
@@ -588,7 +588,7 @@ function AdminMenu({
                 </button>
                 <button
                   onClick={() => { setOpen(false); onPodcast(); }}
-                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-orange-700 transition hover:bg-orange-50"
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-orange-700 transition hover:bg-orange-50 dark:hover:bg-orange-950"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
@@ -602,7 +602,7 @@ function AdminMenu({
                 <div className="my-1 border-t border-gray-100" />
                 <button
                   onClick={() => { setOpen(false); onLeave(); }}
-                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 transition hover:bg-red-50"
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 transition hover:bg-red-50 dark:hover:bg-red-950"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.181 8.68a4.503 4.503 0 0 1 1.903 6.405m-9.768-2.782L3.56 14.06a4.5 4.5 0 0 0 6.364 6.365l3.129-3.129m5.614-5.615 1.757-1.757a4.5 4.5 0 0 0-6.364-6.365l-3.129 3.129m0 5.657-3.182-3.182" />

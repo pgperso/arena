@@ -181,7 +181,7 @@ export const FeedMessage = memo(function FeedMessage({
         onChange={(e) => setEditContent(e.target.value)}
         onKeyDown={handleEditKeyDown}
         rows={1}
-        className="w-full resize-none rounded-md border border-brand-blue bg-gray-50 px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-brand-blue"
+        className="w-full resize-none rounded-md border border-brand-blue bg-gray-50 dark:bg-gray-950 px-2 py-1 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-brand-blue"
         style={{ height: 'auto', minHeight: '2rem' }}
         onInput={(e) => {
           const t = e.currentTarget;
@@ -218,14 +218,14 @@ export const FeedMessage = memo(function FeedMessage({
   if (isGrouped && !hasReplyContext) {
     return (
       <div
-        className={`group relative py-1.5 pl-[52px] pr-3 transition-colors sm:pl-[60px] sm:pr-4 ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}
+        className={`group relative py-1.5 pl-[52px] pr-3 transition-colors sm:pl-[60px] sm:pr-4 ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'}`}
         onClick={() => showToolbar && setMobileToolbar((v) => !v)}
       >
         <span className="absolute left-2 top-2 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100">
           {time}
         </span>
         <span
-          className={`text-[10px] font-medium text-gray-400 ${usernameClickable ? 'cursor-pointer hover:text-gray-600 hover:underline' : ''}`}
+          className={`text-[10px] font-medium text-gray-400 ${usernameClickable ? 'cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 hover:underline' : ''}`}
           onClick={usernameClickable ? handleUsernameClick : undefined}
         >
           {username}
@@ -259,7 +259,7 @@ export const FeedMessage = memo(function FeedMessage({
   // Full message
   return (
     <div
-      className={`group relative px-4 pt-3 pb-1 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50'}`}
+      className={`group relative px-4 pt-3 pb-1 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'}`}
       onClick={() => showToolbar && setMobileToolbar((v) => !v)}
     >
       {hasReplyContext && (
@@ -297,7 +297,7 @@ export const FeedMessage = memo(function FeedMessage({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span
-              className={`text-sm font-semibold ${isOwn ? 'text-brand-blue' : 'text-gray-900'} ${usernameClickable ? 'cursor-pointer hover:underline' : ''}`}
+              className={`text-sm font-semibold ${isOwn ? 'text-brand-blue' : 'text-gray-900 dark:text-gray-100'} ${usernameClickable ? 'cursor-pointer hover:underline' : ''}`}
               onClick={usernameClickable ? handleUsernameClick : undefined}
             >
               {username}
