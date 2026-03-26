@@ -18,7 +18,7 @@ const CONFIG = {
   // 0% = 3h20 (bas-droite) = 30°
   // 50% = 9h (gauche) = 180°
   // 100% = 3h00 (droite) = 360°
-  angleMin: 12,     // angle quand 0%
+  angleMin: 14,     // angle quand 0%
   angleMax: 360,    // angle quand 100%
 };
 
