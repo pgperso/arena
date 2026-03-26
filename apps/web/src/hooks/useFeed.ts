@@ -514,6 +514,17 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
     };
   }, [communityId, userId, reconnectCount]);
 
+  // --- Heartbeat: check connection every 30s, reconnect if dead ---
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const ch = channelRef.current;
+      if (ch && (ch as unknown as { state: string }).state !== 'joined') {
+        setReconnectCount((c) => c + 1);
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   // --- Reconnect on tab visibility (mobile backgrounding kills WebSocket) ---
 
   useEffect(() => {
