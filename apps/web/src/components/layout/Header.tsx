@@ -61,7 +61,7 @@ export function Header() {
               </svg>
             </Link>
           )}
-          <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
+          <Link href={user ? "/tribunes" : "/"} className="flex items-center gap-1.5 sm:gap-2">
             <Image
               src="/images/fanstribune.webp"
               alt="La tribune des fans"
