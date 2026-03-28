@@ -78,20 +78,43 @@ export function usePresence(
       });
     }
 
+    // Upsert chat_presence row so other pages can query online counts
+    function upsertPresence() {
+      supabase
+        .from('chat_presence')
+        .upsert(
+          { community_id: communityId, member_id: userId!, last_seen_at: new Date().toISOString() },
+          { onConflict: 'community_id,member_id' },
+        )
+        .then(() => {});
+    }
+
     channel
       .on('presence', { event: 'sync' }, syncPresence)
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           await trackStatus();
+          upsertPresence();
         }
       });
+
+    // Refresh presence row every 60s
+    const presenceInterval = setInterval(upsertPresence, 60000);
 
     // Listen to visibility changes for idle detection
     document.addEventListener('visibilitychange', trackStatus);
 
     return () => {
       clearTimeout(debounceRef.current);
+      clearInterval(presenceInterval);
       document.removeEventListener('visibilitychange', trackStatus);
+      // Clean up presence row
+      supabase
+        .from('chat_presence')
+        .delete()
+        .eq('community_id', communityId)
+        .eq('member_id', userId!)
+        .then(() => {});
       channel.untrack();
       supabase.removeChannel(channel);
       channelRef.current = null;

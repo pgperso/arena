@@ -57,6 +57,7 @@ export function CommunityPageClient({
 
   // Load user's communities for horizontal tribune selector
   const [userCommunities, setUserCommunities] = useState<{ id: number; slug: string; name: string; logo_url: string | null }[] | null>(null);
+  const [presenceCounts, setPresenceCounts] = useState<Record<number, number>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLAnchorElement>(null);
 
@@ -75,6 +76,34 @@ export function CommunityPageClient({
         }
       });
   }, [supabase, userId]);
+
+  // Fetch online counts for all user communities from chat_presence
+  useEffect(() => {
+    if (!userCommunities || !userId) return;
+    const ids = userCommunities.map((c) => c.id);
+
+    async function fetchCounts() {
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data } = await supabase
+        .from('chat_presence')
+        .select('community_id')
+        .in('community_id', ids)
+        .gte('last_seen_at', fiveMinAgo);
+
+      if (data) {
+        const counts: Record<number, number> = {};
+        for (const row of data) {
+          counts[row.community_id] = (counts[row.community_id] || 0) + 1;
+        }
+        setPresenceCounts(counts);
+      }
+    }
+
+    fetchCounts();
+    // Refresh every 30s
+    const interval = setInterval(fetchCounts, 30000);
+    return () => clearInterval(interval);
+  }, [userCommunities, userId, supabase]);
 
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -244,7 +273,14 @@ export function CommunityPageClient({
                     height={20}
                     className="h-5 w-5 shrink-0 rounded object-contain"
                   />
-                  <span className="whitespace-nowrap">{c.name}</span>
+                  <span className="whitespace-nowrap">
+                    {c.name}
+                    {(presenceCounts[c.id] ?? 0) > 0 && (
+                      <span className={isActive ? 'ml-1 opacity-80' : 'ml-1 text-green-600 dark:text-green-400'}>
+                        ({presenceCounts[c.id]})
+                      </span>
+                    )}
+                  </span>
                 </Link>
               );
             })}
