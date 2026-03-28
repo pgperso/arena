@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { FeedContainer } from '@/components/feed/FeedContainer';
@@ -76,12 +76,51 @@ export function CommunityPageClient({
       });
   }, [supabase, userId]);
 
-  // Auto-scroll active tribune into view
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateScrollButtons = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
+  }, []);
+
+  // Auto-scroll active tribune into view + init scroll buttons
   useEffect(() => {
     if (activeTabRef.current && scrollRef.current) {
       activeTabRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      // Update after scroll animation
+      setTimeout(updateScrollButtons, 350);
     }
-  }, [userCommunities]);
+  }, [userCommunities, updateScrollButtons]);
+
+  // Convert vertical mousewheel to horizontal scroll on desktop
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    function onWheel(e: WheelEvent) {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        el!.scrollLeft += e.deltaY;
+        updateScrollButtons();
+      }
+    }
+    el.addEventListener('wheel', onWheel, { passive: false });
+    el.addEventListener('scroll', updateScrollButtons, { passive: true });
+    updateScrollButtons();
+    return () => {
+      el.removeEventListener('wheel', onWheel);
+      el.removeEventListener('scroll', updateScrollButtons);
+    };
+  }, [userCommunities, updateScrollButtons]);
+
+  function scrollTribunes(direction: 'left' | 'right') {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction === 'left' ? -200 : 200, behavior: 'smooth' });
+    setTimeout(updateScrollButtons, 350);
+  }
 
   async function handleJoin() {
     if (!userId) {
@@ -168,7 +207,19 @@ export function CommunityPageClient({
 
       {/* Horizontal tribune selector — scrollable tabs */}
       {userCommunities && userCommunities.length > 1 && (
-        <div className="shrink-0 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e]">
+        <div className="relative shrink-0 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e]">
+          {/* Left scroll arrow + fade */}
+          {canScrollLeft && (
+            <button
+              onClick={() => scrollTribunes('left')}
+              className="absolute left-0 top-0 z-10 hidden h-full items-center bg-gradient-to-r from-gray-50 via-gray-50/90 to-transparent pl-1 pr-3 dark:from-[#1e1e1e] dark:via-[#1e1e1e]/90 md:flex"
+            >
+              <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+          )}
+
           <div
             ref={scrollRef}
             className="flex items-center gap-1 overflow-x-auto px-2 py-1.5 scrollbar-none"
@@ -198,6 +249,18 @@ export function CommunityPageClient({
               );
             })}
           </div>
+
+          {/* Right scroll arrow + fade */}
+          {canScrollRight && (
+            <button
+              onClick={() => scrollTribunes('right')}
+              className="absolute right-0 top-0 z-10 hidden h-full items-center bg-gradient-to-l from-gray-50 via-gray-50/90 to-transparent pl-3 pr-1 dark:from-[#1e1e1e] dark:via-[#1e1e1e]/90 md:flex"
+            >
+              <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+          )}
         </div>
       )}
 
