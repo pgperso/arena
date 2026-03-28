@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter, Link } from '@/i18n/navigation';
 import Image from 'next/image';
@@ -26,6 +26,20 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [leaveConfirm, setLeaveConfirm] = useState<CommunityRow | null>(null);
   const [leaving, setLeaving] = useState(false);
+
+  // Sort communities by last visited (most recent first), then by name
+  const sortedCommunities = useMemo(() => {
+    let visits: Record<string, number> = {};
+    try {
+      visits = JSON.parse(localStorage.getItem('tribune_visits') || '{}');
+    } catch { /* ignore */ }
+    return [...communities].sort((a, b) => {
+      const va = visits[a.id] || 0;
+      const vb = visits[b.id] || 0;
+      if (va !== vb) return vb - va; // most recent first
+      return a.name.localeCompare(b.name);
+    });
+  }, [communities]);
 
   async function handleLeave(community: CommunityRow) {
     setLeaving(true);
@@ -56,8 +70,8 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
 
         {/* La Taverne — full width, always first */}
         {(() => {
-          const taverne = communities.find((c) => c.slug === 'la-taverne');
-          const others = communities.filter((c) => c.slug !== 'la-taverne');
+          const taverne = sortedCommunities.find((c) => c.slug === 'la-taverne');
+          const others = sortedCommunities.filter((c) => c.slug !== 'la-taverne');
           return (
             <>
               {taverne && (

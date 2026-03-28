@@ -45,11 +45,16 @@ export function CommunityPageClient({
   const [showJoinModal, setShowJoinModal] = useState(!initialIsMember);
   const [joinError, setJoinError] = useState<string | null>(null);
 
-  // Tell the Header we're in a tribune
+  // Tell the Header we're in a tribune + track last visit for sorting
   useEffect(() => {
     setTribune({ name: community.name, slug: community.slug });
+    try {
+      const visits = JSON.parse(localStorage.getItem('tribune_visits') || '{}');
+      visits[community.id] = Date.now();
+      localStorage.setItem('tribune_visits', JSON.stringify(visits));
+    } catch { /* ignore */ }
     return () => setTribune(null);
-  }, [community.name, community.slug, setTribune]);
+  }, [community.name, community.slug, community.id, setTribune]);
 
   // Load user's communities for prev/next navigation
   const [userCommunities, setUserCommunities] = useState<{ id: number; slug: string; name: string }[] | null>(null);
