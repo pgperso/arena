@@ -73,6 +73,24 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
     }
   }
 
+  function handlePaste(e: React.ClipboardEvent) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imageFiles: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        const file = items[i].getAsFile();
+        if (file) imageFiles.push(file);
+      }
+    }
+    if (imageFiles.length > 0) {
+      e.preventDefault();
+      const dt = new DataTransfer();
+      imageFiles.forEach((f) => dt.items.add(f));
+      addImages(dt.files);
+    }
+  }
+
   const canAddMoreImages = images.length < MAX_IMAGES_PER_MESSAGE;
 
   return (
@@ -140,6 +158,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
             value={content}
             onChange={handleInput}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             disabled={disabled || uploading}
             placeholder={uploading ? t('uploadingImages') : (placeholder ?? t('writeMessage'))}
             rows={1}
