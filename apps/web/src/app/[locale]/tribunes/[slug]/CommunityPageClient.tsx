@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { FeedContainer } from '@/components/feed/FeedContainer';
 import { AdSidebar } from '@/components/ads/AdSidebar';
 import { AdAnchor } from '@/components/ads/AdAnchor';
-import { Avatar } from '@/components/ui/Avatar';
 import { useSupabase } from '@/hooks/useSupabase';
 import { joinCommunity } from '@/services/communityService';
 import { useTribune } from '@/contexts/TribuneContext';
@@ -56,17 +55,20 @@ export function CommunityPageClient({
     return () => setTribune(null);
   }, [community.name, community.slug, community.id, setTribune]);
 
-  // Load user's communities for prev/next navigation
-  const [userCommunities, setUserCommunities] = useState<{ id: number; slug: string; name: string }[] | null>(null);
+  // Load user's communities for horizontal tribune selector
+  const [userCommunities, setUserCommunities] = useState<{ id: number; slug: string; name: string; logo_url: string | null }[] | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const activeTabRef = useRef<HTMLAnchorElement>(null);
+
   useEffect(() => {
     if (!userId) return;
     supabase
       .from('community_members')
-      .select('community_id, communities!inner(id, name, slug)')
+      .select('community_id, communities!inner(id, name, slug, logo_url)')
       .eq('member_id', userId)
       .then(({ data }) => {
         if (data) {
-          const comms = (data as unknown as { communities: { id: number; name: string; slug: string } }[])
+          const comms = (data as unknown as { communities: { id: number; name: string; slug: string; logo_url: string | null } }[])
             .map((d) => d.communities)
             .sort((a, b) => a.name.localeCompare(b.name));
           setUserCommunities(comms);
@@ -74,15 +76,12 @@ export function CommunityPageClient({
       });
   }, [supabase, userId]);
 
-  const { prevCommunity, nextCommunity, hasMultiple } = useMemo(() => {
-    if (!userCommunities) return { prevCommunity: null, nextCommunity: null, hasMultiple: false };
-    const idx = userCommunities.findIndex((c) => c.id === community.id);
-    return {
-      prevCommunity: idx > 0 ? userCommunities[idx - 1] : null,
-      nextCommunity: idx < userCommunities.length - 1 ? userCommunities[idx + 1] : null,
-      hasMultiple: userCommunities.length > 1,
-    };
-  }, [userCommunities, community.id]);
+  // Auto-scroll active tribune into view
+  useEffect(() => {
+    if (activeTabRef.current && scrollRef.current) {
+      activeTabRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [userCommunities]);
 
   async function handleJoin() {
     if (!userId) {
@@ -167,61 +166,40 @@ export function CommunityPageClient({
         </div>
       )}
 
-      {/* Community bar — hidden on mobile (Header shows back + name instead) */}
-      <div
-        className="hidden shrink-0 items-center justify-between bg-gray-100 dark:bg-[#1e1e1e] px-4 py-2 md:flex"
-      >
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <Link
-            href="/tribunes"
-            className="flex items-center gap-1 rounded-lg bg-brand-blue px-2 py-1.5 text-xs font-medium text-white transition hover:bg-brand-blue-dark sm:gap-1.5 sm:px-3"
+      {/* Horizontal tribune selector — scrollable tabs */}
+      {userCommunities && userCommunities.length > 1 && (
+        <div className="shrink-0 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e]">
+          <div
+            ref={scrollRef}
+            className="flex items-center gap-1 overflow-x-auto px-2 py-1.5 scrollbar-none"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-            </svg>
-            <span className="hidden sm:inline">{t('community.exitTribune')}</span>
-          </Link>
-          {/* Prev/Next tribune navigation + name */}
-          {(hasMultiple || userCommunities === null) && (
-            <Link
-              href={prevCommunity ? `/tribunes/${prevCommunity.slug}` : '#'}
-              className={`flex items-center rounded-lg px-2 py-1.5 transition ${prevCommunity ? 'bg-brand-blue text-white hover:bg-brand-blue-dark' : 'pointer-events-none bg-gray-200 text-gray-400'}`}
-              title={prevCommunity?.name}
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-              </svg>
-            </Link>
-          )}
-          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 sm:text-base">{community.name}</span>
-          {(hasMultiple || userCommunities === null) && (
-            <Link
-              href={nextCommunity ? `/tribunes/${nextCommunity.slug}` : '#'}
-              className={`flex items-center rounded-lg px-2 py-1.5 transition ${nextCommunity ? 'bg-brand-blue text-white hover:bg-brand-blue-dark' : 'pointer-events-none bg-gray-200 text-gray-400'}`}
-              title={nextCommunity?.name}
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-              </svg>
-            </Link>
-          )}
-          <span className="hidden text-sm text-gray-500 dark:text-gray-400 sm:inline">
-            {t('common.members', { count: memberCount })}
-          </span>
+            {userCommunities.map((c) => {
+              const isActive = c.id === community.id;
+              return (
+                <Link
+                  key={c.id}
+                  ref={isActive ? activeTabRef : undefined}
+                  href={`/tribunes/${c.slug}`}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition sm:text-sm ${
+                    isActive
+                      ? 'bg-brand-blue text-white shadow-sm'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <Image
+                    src={c.logo_url || '/images/fanstribune.webp'}
+                    alt={c.name}
+                    width={20}
+                    height={20}
+                    className="h-5 w-5 shrink-0 rounded object-contain"
+                  />
+                  <span className="whitespace-nowrap">{c.name}</span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
-
-        <div className="flex items-center gap-1 sm:gap-2">
-          {userId && !isMember && (
-            <button
-              onClick={handleJoin}
-              disabled={joining}
-              className="rounded-lg bg-brand-blue px-2 py-1 text-xs font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50 sm:px-3 sm:py-1.5"
-            >
-              {joining ? t('common.loading') : t('community.join')}
-            </button>
-          )}
-        </div>
-      </div>
+      )}
 
       {isMember ? (
         <>

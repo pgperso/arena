@@ -85,6 +85,14 @@
     display: none;
   }
 
+  /* Hide scrollbar completely */
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Reply connector — curved L-shape from reply context down to avatar */
   .reply-connector {
     position: absolute;
