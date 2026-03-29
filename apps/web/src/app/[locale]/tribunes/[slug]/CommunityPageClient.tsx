@@ -253,6 +253,20 @@ export function CommunityPageClient({
             ref={scrollRef}
             className="flex items-center gap-1 overflow-x-auto px-2 py-1.5 scrollbar-none"
           >
+            {/* Galerie de presse — always visible */}
+            <Link
+              href="/galerie-de-presse"
+              className="flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition sm:text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+            >
+              <svg className="h-5 w-5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6V7.5Z" />
+              </svg>
+              <span className="whitespace-nowrap">Galerie</span>
+            </Link>
+
+            {/* Separator */}
+            <div className="mx-0.5 h-5 w-px shrink-0 bg-gray-300 dark:bg-gray-600" />
+
             {userCommunities.map((c) => {
               const isActive = c.id === community.id;
               return (
