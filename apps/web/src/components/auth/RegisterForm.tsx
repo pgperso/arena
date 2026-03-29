@@ -53,10 +53,14 @@ export function RegisterForm() {
     });
 
     if (authError) {
-      if (authError.message.includes('already registered')) {
-        setError('Ce courriel est déjà utilisé');
+      if (authError.message.includes('already registered') || authError.message.includes('already exists')) {
+        setError('Ce courriel est déjà utilisé. Essayez « Mot de passe oublié » pour récupérer votre compte.');
+      } else if (authError.message.includes('rate') || authError.message.includes('limit') || authError.message.includes('exceeded')) {
+        setError('Trop de tentatives. Veuillez réessayer dans quelques minutes.');
+      } else if (authError.message.includes('email') && authError.message.includes('send')) {
+        setError('Impossible d\'envoyer le courriel de confirmation. Veuillez réessayer plus tard.');
       } else {
-        setError('Une erreur est survenue. Veuillez réessayer.');
+        setError(`Une erreur est survenue : ${authError.message}`);
       }
       setLoading(false);
       return;
