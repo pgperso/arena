@@ -232,8 +232,10 @@
   },
   "footer": {
     "rights": "Tous droits réservés.",
-    "contact": "Nous joindre",
-    "privacy": "Politique de confidentialité"
+    "about": "À propos",
+    "contact": "Contact",
+    "terms": "Conditions d'utilisation",
+    "privacy": "Confidentialité"
   },
   "errors": {
     "notFound": "Page introuvable",

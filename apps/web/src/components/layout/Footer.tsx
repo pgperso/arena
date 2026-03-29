@@ -21,16 +21,28 @@ export function Footer() {
           <span className="hidden text-sm font-semibold text-gray-700 dark:text-gray-300 sm:inline">La tribune des fans</span>
         </div>
 
-        <nav className="flex gap-3 sm:gap-4">
-          <a
-            href="mailto:info@fanstribune.com"
-            className="text-[10px] text-gray-500 dark:text-gray-400 transition hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 sm:text-xs"
+        <nav className="flex flex-wrap gap-2 sm:gap-4">
+          <Link
+            href="/a-propos"
+            className="text-[10px] text-gray-500 dark:text-gray-400 transition hover:text-gray-700 dark:hover:text-gray-300 sm:text-xs"
+          >
+            {t('footer.about')}
+          </Link>
+          <Link
+            href="/contact"
+            className="text-[10px] text-gray-500 dark:text-gray-400 transition hover:text-gray-700 dark:hover:text-gray-300 sm:text-xs"
           >
             {t('footer.contact')}
-          </a>
+          </Link>
+          <Link
+            href="/conditions-utilisation"
+            className="text-[10px] text-gray-500 dark:text-gray-400 transition hover:text-gray-700 dark:hover:text-gray-300 sm:text-xs"
+          >
+            {t('footer.terms')}
+          </Link>
           <Link
             href="/politique-confidentialite"
-            className="text-[10px] text-gray-500 dark:text-gray-400 transition hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 sm:text-xs"
+            className="text-[10px] text-gray-500 dark:text-gray-400 transition hover:text-gray-700 dark:hover:text-gray-300 sm:text-xs"
           >
             {t('footer.privacy')}
           </Link>

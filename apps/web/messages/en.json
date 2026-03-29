@@ -226,8 +226,10 @@
   },
   "footer": {
     "rights": "All rights reserved.",
-    "contact": "Contact us",
-    "privacy": "Privacy policy"
+    "about": "About",
+    "contact": "Contact",
+    "terms": "Terms of use",
+    "privacy": "Privacy"
   },
   "errors": {
     "notFound": "Page not found",

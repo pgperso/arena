@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { TrendingMessages } from '@/components/home/TrendingMessages';
 import { HomeCTA } from '@/components/home/HomeCTA';
+import { AdBanner } from '@/components/ads/AdBanner';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 export const revalidate = 60;
 
@@ -71,9 +73,17 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <HomeCTA />
         </div>
 
+        {/* Ad between hero and trending */}
+        <AdBanner slotId="home-mid-banner" className="mb-4" />
+
         {/* Trending */}
         <div>
           <TrendingMessages popular={popular} controversial={controversial} />
+        </div>
+
+        {/* Bottom ad */}
+        <div className="flex justify-center py-6">
+          <AdSlot slotId="home-bottom" format="rectangle" />
         </div>
       </div>
     </div>

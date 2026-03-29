@@ -37,3 +37,7 @@ supabase/.temp/
 
 # Original legacy code
 original-code/
+
+# Import data (sensitive)
+membre.csv
+import-results.log
