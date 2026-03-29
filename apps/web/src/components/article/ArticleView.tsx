@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { formatTime, ARTICLE_AD_WORD_THRESHOLD } from '@arena/shared';
 import DOMPurify from 'isomorphic-dompurify';
 import { FeedLikeButton } from '@/components/feed/FeedLikeButton';
@@ -10,7 +10,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { ArticleComments } from '@/components/press/ArticleComments';
 import { getContentAuthor } from '@/lib/contentAuthors';
 import Image from 'next/image';
-import { Link } from '@/i18n/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
 
 interface ArticleViewProps {
   article: {
@@ -79,6 +79,14 @@ function splitHtmlAtParagraph(html: string, wordThreshold: number): [string, str
 }
 
 export function ArticleView({ article, communitySlug, userId }: ArticleViewProps) {
+  const router = useRouter();
+  const handleBack = useCallback(() => {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(`/tribunes/${communitySlug}`);
+    }
+  }, [router, communitySlug]);
   const sanitizedBody = useMemo(() => {
     try {
       return DOMPurify.sanitize(article.body ?? '', {
@@ -105,16 +113,16 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
     <div className="flex justify-center gap-8 px-4 py-6">
       {/* Main article content */}
       <article className="max-w-3xl flex-1 overflow-hidden">
-        {/* Back link */}
-        <Link
-          href={`/tribunes/${communitySlug}`}
-          className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300"
+        {/* Back button — returns to previous page (gallery or tribune) */}
+        <button
+          onClick={handleBack}
+          className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
           </svg>
-          Retour au feed
-        </Link>
+          Retour
+        </button>
 
         {/* Cover image */}
         {article.cover_image_url && (
