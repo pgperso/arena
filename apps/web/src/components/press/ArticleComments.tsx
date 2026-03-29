@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { useSupabase } from '@/hooks/useSupabase';
@@ -26,13 +26,21 @@ export function ArticleComments({ articleId, userId }: ArticleCommentsProps) {
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const loadComments = useCallback(async () => {
     setLoading(true);
-    const data = await fetchArticleComments(supabase, articleId);
-    setComments(data);
-    setLoading(false);
-  }, [supabase, articleId]);
+    try {
+      const data = await fetchArticleComments(supabase, articleId);
+      setComments(data);
+    } catch {
+      setError(t('errorLoadingComments'));
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase, articleId, t]);
 
   useEffect(() => {
     loadComments();
@@ -40,24 +48,70 @@ export function ArticleComments({ articleId, userId }: ArticleCommentsProps) {
 
   const handleSubmit = async () => {
     if (!userId || !content.trim() || submitting) return;
+
+    const trimmed = content.trim();
     setSubmitting(true);
-    const { error } = await createArticleComment(
+    setError(null);
+
+    // Optimistic insertion
+    const optimisticComment: ArticleCommentType = {
+      id: -Date.now(), // Temporary negative ID
+      articleId,
+      memberId: userId,
+      content: trimmed,
+      createdAt: new Date().toISOString(),
+      username: '...',
+      avatarUrl: null,
+    };
+    setComments((prev) => [...prev, optimisticComment]);
+    setContent('');
+
+    const { error: apiError } = await createArticleComment(
       supabase,
       articleId,
       userId,
-      content,
+      trimmed,
     );
-    if (!error) {
-      setContent('');
+
+    if (apiError) {
+      // Roll back optimistic insertion
+      setComments((prev) => prev.filter((c) => c.id !== optimisticComment.id));
+      setContent(trimmed);
+      setError(apiError.message);
+    } else {
+      // Reload to get the real comment with correct ID and username
       await loadComments();
+      textareaRef.current?.focus();
     }
+
     setSubmitting(false);
   };
 
   const handleDelete = async (commentId: number) => {
     if (!userId) return;
-    await removeArticleComment(supabase, commentId, userId);
-    await loadComments();
+
+    setError(null);
+
+    // Optimistic removal
+    const removedComment = comments.find((c) => c.id === commentId);
+    setComments((prev) => prev.filter((c) => c.id !== commentId));
+
+    try {
+      await removeArticleComment(supabase, commentId, userId);
+    } catch {
+      // Roll back: add comment back
+      if (removedComment) {
+        setComments((prev) => {
+          const restored = [...prev, removedComment];
+          restored.sort(
+            (a, b) =>
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+          );
+          return restored;
+        });
+      }
+      setError(t('errorDeletingComment'));
+    }
   };
 
   return (
@@ -69,10 +123,18 @@ export function ArticleComments({ articleId, userId }: ArticleCommentsProps) {
         </span>
       </h3>
 
+      {/* Error banner */}
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/20 dark:text-red-400">
+          {error}
+        </div>
+      )}
+
       {/* Comment form */}
       {userId ? (
         <div className="mb-6">
           <textarea
+            ref={textareaRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder={t('writeComment')}

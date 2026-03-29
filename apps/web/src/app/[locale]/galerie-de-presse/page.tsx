@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import {
-  fetchHeroArticle,
+  fetchFeaturedItems,
   fetchPressGalleryItems,
 } from '@/services/pressGalleryService';
 import { PressGalleryClient } from './PressGalleryClient';
@@ -52,16 +52,14 @@ export default async function PressGalleryPage({
   const t = await getTranslations('pressGallery');
   const supabase = await createClient();
 
-  // Fetch data in parallel
-  const [heroArticle, initialItems, communitiesRes, userRes] =
-    await Promise.all([
-      fetchHeroArticle(supabase),
-      fetchPressGalleryItems(supabase, {
-        filter: 'all',
-        sort: 'latest',
-        offset: 0,
-        limit: 12,
-      }),
+  let featuredItems: Awaited<ReturnType<typeof fetchFeaturedItems>> = [];
+  let initialResult: Awaited<ReturnType<typeof fetchPressGalleryItems>> = { items: [], nextCursor: null };
+  let communities: { id: number; name: string; slug: string; logo_url: string | null }[] = [];
+  let userId: string | null = null;
+
+  try {
+    const [featured, communitiesRes, userRes] = await Promise.all([
+      fetchFeaturedItems(supabase),
       supabase
         .from('communities')
         .select('id, name, slug, logo_url')
@@ -70,14 +68,27 @@ export default async function PressGalleryPage({
       supabase.auth.getUser(),
     ]);
 
-  const communities = (communitiesRes.data ?? []).map((c) => ({
-    id: c.id,
-    name: c.name,
-    slug: c.slug,
-    logo_url: c.logo_url,
-  }));
+    featuredItems = featured;
+    communities = (communitiesRes.data ?? []).map((c) => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      logo_url: c.logo_url,
+    }));
+    userId = userRes.data?.user?.id ?? null;
 
-  const userId = userRes.data?.user?.id ?? null;
+    // Exclude featured article IDs from the grid
+    const excludeIds = featuredItems.map((i) => i.id);
+
+    initialResult = await fetchPressGalleryItems(supabase, {
+      filter: 'all',
+      sort: 'latest',
+      limit: 12,
+      excludeIds,
+    });
+  } catch {
+    // Graceful degradation: render with empty data
+  }
 
   // JSON-LD structured data
   const jsonLd = {
@@ -95,8 +106,9 @@ export default async function PressGalleryPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <PressGalleryClient
-        initialItems={initialItems}
-        heroArticle={heroArticle}
+        initialItems={initialResult.items}
+        initialCursor={initialResult.nextCursor}
+        featuredItems={featuredItems}
         communities={communities}
         userId={userId}
       />

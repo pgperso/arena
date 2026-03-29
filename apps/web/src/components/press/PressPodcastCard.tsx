@@ -3,7 +3,8 @@
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { formatTime, formatDuration } from '@arena/shared';
+import { useLocale } from 'next-intl';
+import { formatTime } from '@arena/shared';
 import type { PressGalleryItem } from '@/services/pressGalleryService';
 
 interface PressPodcastCardProps {
@@ -12,6 +13,7 @@ interface PressPodcastCardProps {
 
 export function PressPodcastCard({ item }: PressPodcastCardProps) {
   const t = useTranslations('pressGallery');
+  const locale = useLocale();
   const href = `/tribunes/${item.communitySlug}/podcasts/${item.id}`;
 
   const durationLabel = item.durationSeconds
@@ -62,7 +64,7 @@ export function PressPodcastCard({ item }: PressPodcastCardProps) {
           {item.isLive && (
             <span className="flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-[11px] font-semibold text-white">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-              EN DIRECT
+              {locale === 'fr' ? 'EN DIRECT' : 'LIVE'}
             </span>
           )}
         </div>
@@ -70,7 +72,7 @@ export function PressPodcastCard({ item }: PressPodcastCardProps) {
         {/* Duration */}
         {durationLabel && (
           <span className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-[11px] font-medium text-white">
-            {formatDuration(item.durationSeconds)}
+            {durationLabel}
           </span>
         )}
       </div>

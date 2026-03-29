@@ -39,103 +39,168 @@ interface FetchOptions {
   filter: 'all' | 'articles' | 'podcasts';
   communityId?: number;
   sort: 'latest' | 'trending';
-  offset: number;
+  cursor?: string;
   limit: number;
+  excludeIds?: number[];
 }
 
-export async function fetchHeroArticle(
+export interface FetchResult {
+  items: PressGalleryItem[];
+  nextCursor: string | null;
+}
+
+const ARTICLE_SELECT = 'id, title, slug, excerpt, cover_image_url, cover_position_y, like_count, view_count, published_at, author_name_override, author_id, communities!inner(id, name, slug, logo_url), members:members!articles_author_id_fkey(username, avatar_url, creator_display_name, creator_avatar_url)';
+const PODCAST_SELECT = 'id, title, description, cover_image_url, like_count, duration_seconds, created_at, youtube_video_id, is_live, published_by, communities!inner(id, name, slug, logo_url), members:members!podcasts_published_by_fkey(username, avatar_url, creator_display_name, creator_avatar_url)';
+
+export async function fetchFeaturedItems(
   supabase: SupabaseClient<Database>,
-): Promise<PressGalleryItem | null> {
+): Promise<PressGalleryItem[]> {
   const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
 
   const { data } = await supabase
     .from('articles')
-    .select('id, title, slug, excerpt, cover_image_url, cover_position_y, like_count, view_count, published_at, author_name_override, author_id, communities!inner(id, name, slug, logo_url), members:members!articles_author_id_fkey(username, avatar_url, creator_display_name, creator_avatar_url)')
+    .select(ARTICLE_SELECT)
     .eq('is_published', true)
     .eq('is_removed', false)
     .not('cover_image_url', 'is', null)
     .gte('published_at', twoDaysAgo)
     .order('view_count', { ascending: false })
-    .limit(1);
+    .limit(3);
 
-  if (!data || data.length === 0) {
-    // Fallback: most recent article with cover image
-    const { data: fallback } = await supabase
-      .from('articles')
-      .select('id, title, slug, excerpt, cover_image_url, cover_position_y, like_count, view_count, published_at, author_name_override, author_id, communities!inner(id, name, slug, logo_url), members:members!articles_author_id_fkey(username, avatar_url, creator_display_name, creator_avatar_url)')
-      .eq('is_published', true)
-      .eq('is_removed', false)
-      .not('cover_image_url', 'is', null)
-      .order('published_at', { ascending: false })
-      .limit(1);
-
-    if (!fallback || fallback.length === 0) return null;
-    return articleToItem(fallback[0] as unknown as ArticleRow);
+  if (data && data.length > 0) {
+    // Sort by engagement score: view_count + like_count * 3
+    const sorted = [...data].sort((a, b) => {
+      const scoreA = (a as unknown as ArticleRow).view_count + (a as unknown as ArticleRow).like_count * 3;
+      const scoreB = (b as unknown as ArticleRow).view_count + (b as unknown as ArticleRow).like_count * 3;
+      return scoreB - scoreA;
+    });
+    return sorted.map((r) => articleToItem(r as unknown as ArticleRow));
   }
 
-  return articleToItem(data[0] as unknown as ArticleRow);
+  // Fallback: most recent 3 articles with cover image
+  const { data: fallback } = await supabase
+    .from('articles')
+    .select(ARTICLE_SELECT)
+    .eq('is_published', true)
+    .eq('is_removed', false)
+    .not('cover_image_url', 'is', null)
+    .order('published_at', { ascending: false })
+    .limit(3);
+
+  if (!fallback || fallback.length === 0) return [];
+  return fallback.map((r) => articleToItem(r as unknown as ArticleRow));
 }
 
 export async function fetchPressGalleryItems(
   supabase: SupabaseClient<Database>,
   options: FetchOptions,
+): Promise<FetchResult> {
+  const { filter, communityId, sort, cursor, limit, excludeIds } = options;
+
+  if (filter === 'articles') {
+    const items = await fetchArticles(supabase, { communityId, sort, cursor, limit, excludeIds });
+    return {
+      items,
+      nextCursor: items.length > 0 ? items[items.length - 1].publishedAt : null,
+    };
+  }
+
+  if (filter === 'podcasts') {
+    const items = await fetchPodcasts(supabase, { communityId, sort, cursor, limit, excludeIds });
+    return {
+      items,
+      nextCursor: items.length > 0 ? items[items.length - 1].publishedAt : null,
+    };
+  }
+
+  // filter === 'all': fetch both, merge, take first `limit`
+  const [articles, podcasts] = await Promise.all([
+    fetchArticles(supabase, { communityId, sort, cursor, limit, excludeIds }),
+    fetchPodcasts(supabase, { communityId, sort, cursor, limit, excludeIds }),
+  ]);
+
+  const merged = [...articles, ...podcasts];
+  if (sort === 'trending') {
+    merged.sort((a, b) => (b.viewCount + b.likeCount * 3) - (a.viewCount + a.likeCount * 3));
+  } else {
+    merged.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+  }
+
+  const items = merged.slice(0, limit);
+  return {
+    items,
+    nextCursor: items.length > 0 ? items[items.length - 1].publishedAt : null,
+  };
+}
+
+// --- Internal fetch helpers ---
+
+interface InternalFetchOptions {
+  communityId?: number;
+  sort: 'latest' | 'trending';
+  cursor?: string;
+  limit: number;
+  excludeIds?: number[];
+}
+
+async function fetchArticles(
+  supabase: SupabaseClient<Database>,
+  options: InternalFetchOptions,
 ): Promise<PressGalleryItem[]> {
-  const { filter, communityId, sort, offset, limit } = options;
-  const items: PressGalleryItem[] = [];
+  const { communityId, sort, cursor, limit, excludeIds } = options;
 
-  if (filter !== 'podcasts') {
-    let q = supabase
-      .from('articles')
-      .select('id, title, slug, excerpt, cover_image_url, cover_position_y, like_count, view_count, published_at, author_name_override, author_id, communities!inner(id, name, slug, logo_url), members:members!articles_author_id_fkey(username, avatar_url, creator_display_name, creator_avatar_url)')
-      .eq('is_published', true)
-      .eq('is_removed', false);
+  let q = supabase
+    .from('articles')
+    .select(ARTICLE_SELECT)
+    .eq('is_published', true)
+    .eq('is_removed', false);
 
-    if (communityId) q = q.eq('community_id', communityId);
-
-    if (sort === 'trending') {
-      q = q.order('view_count', { ascending: false });
-    } else {
-      q = q.order('published_at', { ascending: false });
-    }
-
-    const { data } = await q.range(offset, offset + limit - 1);
-    if (data) {
-      items.push(...data.map((r) => articleToItem(r as unknown as ArticleRow)));
-    }
+  if (communityId) q = q.eq('community_id', communityId);
+  if (excludeIds && excludeIds.length > 0) {
+    q = q.not('id', 'in', `(${excludeIds.join(',')})`);
   }
 
-  if (filter !== 'articles') {
-    let q = supabase
-      .from('podcasts')
-      .select('id, title, description, cover_image_url, like_count, duration_seconds, created_at, youtube_video_id, is_live, published_by, communities!inner(id, name, slug, logo_url), members:members!podcasts_published_by_fkey(username, avatar_url, creator_display_name, creator_avatar_url)')
-      .eq('is_published', true)
-      .or('is_removed.eq.false,is_removed.is.null');
-
-    if (communityId) q = q.eq('community_id', communityId);
-
-    if (sort === 'trending') {
-      q = q.order('like_count', { ascending: false });
-    } else {
-      q = q.order('created_at', { ascending: false });
-    }
-
-    const { data } = await q.range(offset, offset + limit - 1);
-    if (data) {
-      items.push(...data.map((r) => podcastToItem(r as unknown as PodcastRow)));
-    }
+  if (sort === 'trending') {
+    if (cursor) q = q.lt('published_at', cursor);
+    q = q.order('view_count', { ascending: false });
+  } else {
+    if (cursor) q = q.lt('published_at', cursor);
+    q = q.order('published_at', { ascending: false });
   }
 
-  // Merge and sort
-  if (filter === 'all') {
-    if (sort === 'trending') {
-      items.sort((a, b) => (b.viewCount + b.likeCount * 3) - (a.viewCount + a.likeCount * 3));
-    } else {
-      items.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-    }
-    return items.slice(0, limit);
+  const { data } = await q.limit(limit);
+  if (!data) return [];
+  return data.map((r) => articleToItem(r as unknown as ArticleRow));
+}
+
+async function fetchPodcasts(
+  supabase: SupabaseClient<Database>,
+  options: InternalFetchOptions,
+): Promise<PressGalleryItem[]> {
+  const { communityId, sort, cursor, limit, excludeIds } = options;
+
+  let q = supabase
+    .from('podcasts')
+    .select(PODCAST_SELECT)
+    .eq('is_published', true)
+    .or('is_removed.eq.false,is_removed.is.null');
+
+  if (communityId) q = q.eq('community_id', communityId);
+  if (excludeIds && excludeIds.length > 0) {
+    q = q.not('id', 'in', `(${excludeIds.join(',')})`);
   }
 
-  return items;
+  if (sort === 'trending') {
+    if (cursor) q = q.lt('created_at', cursor);
+    q = q.order('like_count', { ascending: false });
+  } else {
+    if (cursor) q = q.lt('created_at', cursor);
+    q = q.order('created_at', { ascending: false });
+  }
+
+  const { data } = await q.limit(limit);
+  if (!data) return [];
+  return data.map((r) => podcastToItem(r as unknown as PodcastRow));
 }
 
 // --- Comments ---

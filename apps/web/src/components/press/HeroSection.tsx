@@ -33,7 +33,7 @@ export function HeroSection({ hero, secondary }: HeroSectionProps) {
         {/* Hero card */}
         <Link
           href={itemHref(hero)}
-          className="group relative block flex-[2] overflow-hidden rounded-xl"
+          className={`group relative block overflow-hidden rounded-xl ${secondary.length > 0 ? 'flex-[2]' : 'flex-1'}`}
         >
           <div className="relative aspect-[16/9] w-full lg:aspect-[16/10]">
             {hero.coverImageUrl ? (
@@ -91,6 +91,7 @@ export function HeroSection({ hero, secondary }: HeroSectionProps) {
         </Link>
 
         {/* Secondary cards */}
+        {secondary.length > 0 && (
         <div className="flex flex-col gap-4 lg:flex-1">
           {secondary.map((item) => (
             <Link
@@ -104,6 +105,7 @@ export function HeroSection({ hero, secondary }: HeroSectionProps) {
                     src={item.coverImageUrl}
                     alt={item.title}
                     fill
+                    loading="lazy"
                     className="object-cover"
                     style={{ objectPosition: `center ${item.coverPositionY}%` }}
                     sizes="(max-width: 1024px) 33vw, 11vw"
@@ -140,6 +142,7 @@ export function HeroSection({ hero, secondary }: HeroSectionProps) {
             </Link>
           ))}
         </div>
+        )}
       </div>
     </section>
   );

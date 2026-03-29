@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSupabase } from '@/hooks/useSupabase';
 import { HeroSection } from '@/components/press/HeroSection';
@@ -26,7 +26,8 @@ interface Community {
 
 interface PressGalleryClientProps {
   initialItems: PressGalleryItem[];
-  heroArticle: PressGalleryItem | null;
+  initialCursor: string | null;
+  featuredItems: PressGalleryItem[];
   communities: Community[];
   userId: string | null;
 }
@@ -35,82 +36,110 @@ const PAGE_SIZE = 12;
 
 export function PressGalleryClient({
   initialItems,
-  heroArticle,
+  initialCursor,
+  featuredItems,
   communities,
 }: PressGalleryClientProps) {
   const t = useTranslations('pressGallery');
   const supabase = useSupabase();
 
+  const heroIds = useMemo(
+    () => featuredItems.map((i) => i.id),
+    [featuredItems],
+  );
+
+  const hero = featuredItems.length > 0 ? featuredItems[0] : null;
+  const secondaryItems = featuredItems.slice(1);
+
+  const [items, setItems] = useState<PressGalleryItem[]>(initialItems);
+  const [cursor, setCursor] = useState<string | null>(initialCursor);
+  const [hasMore, setHasMore] = useState(initialItems.length >= PAGE_SIZE);
   const [filter, setFilter] = useState<FilterType>('all');
   const [sort, setSort] = useState<SortType>('latest');
   const [communityId, setCommunityId] = useState<number | undefined>(undefined);
-
-  // Separate hero + secondary from grid
-  const heroIds = new Set<string>();
-  if (heroArticle) heroIds.add(`${heroArticle.type}-${heroArticle.id}`);
-  const secondaryItems = initialItems
-    .filter((i) => !heroIds.has(`${i.type}-${i.id}`))
-    .slice(0, 2);
-  secondaryItems.forEach((i) => heroIds.add(`${i.type}-${i.id}`));
-
-  const initialGridItems = initialItems.filter(
-    (i) => !heroIds.has(`${i.type}-${i.id}`),
-  );
-
-  const [items, setItems] = useState<PressGalleryItem[]>(initialGridItems);
-  const [offset, setOffset] = useState(PAGE_SIZE);
-  const [hasMore, setHasMore] = useState(initialItems.length >= PAGE_SIZE);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const abortRef = useRef<AbortController | null>(null);
 
   const fetchItems = useCallback(
     async (
       f: FilterType,
       s: SortType,
       cId: number | undefined,
-      off: number,
+      cur: string | null,
       append: boolean,
     ) => {
+      // Abort any in-flight request
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       setLoading(true);
+      setError(null);
+
       try {
         const data = await fetchPressGalleryItems(supabase, {
           filter: f,
           sort: s,
           communityId: cId,
-          offset: off,
+          cursor: cur ?? undefined,
           limit: PAGE_SIZE,
+          excludeIds: heroIds,
         });
 
+        // Check if this request was aborted
+        if (controller.signal.aborted) return;
+
         if (append) {
-          setItems((prev) => [...prev, ...data]);
+          setItems((prev) => [...prev, ...data.items]);
         } else {
-          setItems(data);
+          setItems(data.items);
         }
-        setHasMore(data.length >= PAGE_SIZE);
-        setOffset(off + PAGE_SIZE);
+        setHasMore(data.items.length >= PAGE_SIZE);
+        setCursor(data.nextCursor);
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        setError(
+          err instanceof Error ? err.message : t('errorLoading'),
+        );
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     },
-    [supabase],
+    [supabase, heroIds, t],
   );
 
   const handleFilterChange = (f: FilterType) => {
     setFilter(f);
-    fetchItems(f, sort, communityId, 0, false);
+    setItems([]);
+    setCursor(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    fetchItems(f, sort, communityId, null, false);
   };
 
   const handleSortChange = (s: SortType) => {
     setSort(s);
-    fetchItems(filter, s, communityId, 0, false);
+    setItems([]);
+    setCursor(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    fetchItems(filter, s, communityId, null, false);
   };
 
   const handleCommunityChange = (cId: number | undefined) => {
     setCommunityId(cId);
-    fetchItems(filter, sort, cId, 0, false);
+    setItems([]);
+    setCursor(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    fetchItems(filter, sort, cId, null, false);
   };
 
   const handleLoadMore = () => {
-    fetchItems(filter, sort, communityId, offset, true);
+    fetchItems(filter, sort, communityId, cursor, true);
   };
 
   // Only show hero section on default filter state
@@ -129,19 +158,26 @@ export function PressGalleryClient({
             {t('subtitle')}
           </p>
           <PressFilterBar
-          filter={filter}
-          sort={sort}
-          communityId={communityId}
-          communities={communities}
-          onFilterChange={handleFilterChange}
-          onSortChange={handleSortChange}
-          onCommunityChange={handleCommunityChange}
-        />
+            filter={filter}
+            sort={sort}
+            communityId={communityId}
+            communities={communities}
+            onFilterChange={handleFilterChange}
+            onSortChange={handleSortChange}
+            onCommunityChange={handleCommunityChange}
+          />
         </div>
+
+        {/* Error banner */}
+        {error && (
+          <div className="mt-4 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/20 dark:text-red-400">
+            {error}
+          </div>
+        )}
 
         {/* Hero section */}
         {showHero && (
-          <HeroSection hero={heroArticle} secondary={secondaryItems} />
+          <HeroSection hero={hero} secondary={secondaryItems} />
         )}
 
         {/* Ad banner after hero */}
@@ -186,7 +222,7 @@ export function PressGalleryClient({
             </div>
 
             {/* No results */}
-            {!loading && items.length === 0 && (
+            {!loading && items.length === 0 && !error && (
               <p className="py-12 text-center text-gray-400">
                 {t('noResults')}
               </p>
