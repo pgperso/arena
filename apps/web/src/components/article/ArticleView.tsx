@@ -154,18 +154,18 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
         {bodyParts ? (
           <>
             <div
-              className="prose max-w-none prose-headings:text-gray-900 dark:text-gray-100 prose-p:text-gray-700 dark:text-gray-300 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
+              className="prose max-w-none prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-a:text-brand-blue prose-blockquote:text-gray-600 dark:prose-blockquote:text-gray-400 prose-li:text-gray-700 dark:prose-li:text-gray-300 prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
               dangerouslySetInnerHTML={{ __html: bodyParts[0] }}
             />
             <AdInArticle />
             <div
-              className="prose max-w-none prose-headings:text-gray-900 dark:text-gray-100 prose-p:text-gray-700 dark:text-gray-300 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
+              className="prose max-w-none prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-a:text-brand-blue prose-blockquote:text-gray-600 dark:prose-blockquote:text-gray-400 prose-li:text-gray-700 dark:prose-li:text-gray-300 prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
               dangerouslySetInnerHTML={{ __html: bodyParts[1] }}
             />
           </>
         ) : (
           <div
-            className="prose max-w-none prose-headings:text-gray-900 dark:text-gray-100 prose-p:text-gray-700 dark:text-gray-300 prose-a:text-brand-blue prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
+            className="prose max-w-none prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-a:text-brand-blue prose-blockquote:text-gray-600 dark:prose-blockquote:text-gray-400 prose-li:text-gray-700 dark:prose-li:text-gray-300 prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
             dangerouslySetInnerHTML={{ __html: sanitizedBody }}
           />
         )}
