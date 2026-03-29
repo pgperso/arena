@@ -48,6 +48,7 @@ export async function createArticle(
     excerpt: string | null;
     body: string;
     coverImageUrl: string | null;
+    coverPositionY?: number;
     isPublished?: boolean;
     authorNameOverride?: string | null;
   },
@@ -68,6 +69,7 @@ export async function createArticle(
     excerpt: validated.excerpt ?? null,
     body: validated.body,
     cover_image_url: validated.coverImageUrl ?? null,
+    cover_position_y: data.coverPositionY ?? 50,
     is_published: data.isPublished ?? true,
     published_at: data.isPublished !== false ? new Date().toISOString() : null,
     author_name_override: data.authorNameOverride?.trim() || null,
@@ -103,6 +105,7 @@ export async function updateArticle(
     excerpt: string | null;
     body: string;
     coverImageUrl: string | null;
+    coverPositionY?: number;
     isPublished?: boolean;
     authorNameOverride?: string | null;
     communityId?: number;
@@ -122,6 +125,7 @@ export async function updateArticle(
     excerpt: validated.excerpt ?? null,
     body: validated.body,
     cover_image_url: validated.coverImageUrl ?? null,
+    cover_position_y: data.coverPositionY ?? 50,
     author_name_override: data.authorNameOverride?.trim() || null,
     ...(data.communityId ? { community_id: data.communityId } : {}),
     updated_at: new Date().toISOString(),
@@ -143,7 +147,7 @@ export async function fetchArticle(
 ) {
   return supabase
     .from('articles')
-    .select('id, community_id, author_id, title, slug, excerpt, body, cover_image_url, like_count, view_count, published_at, is_published, is_removed, created_at, updated_at, author_name_override')
+    .select('id, community_id, author_id, title, slug, excerpt, body, cover_image_url, cover_position_y, like_count, view_count, published_at, is_published, is_removed, created_at, updated_at, author_name_override')
     .eq('id', articleId)
     .single();
 }
@@ -155,7 +159,7 @@ export async function fetchArticlesByAuthor(
 ) {
   let query = supabase
     .from('articles')
-    .select('id, title, slug, excerpt, cover_image_url, is_published, published_at, created_at, updated_at, like_count, view_count, is_removed, author_name_override, community_id, communities!inner(name, slug)')
+    .select('id, title, slug, excerpt, cover_image_url, cover_position_y, is_published, published_at, created_at, updated_at, like_count, view_count, is_removed, author_name_override, community_id, communities!inner(name, slug)')
     .eq('author_id', authorId)
     .eq('is_removed', false)
     .order('created_at', { ascending: false })

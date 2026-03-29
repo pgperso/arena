@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import LinkExtension from '@tiptap/extension-link';
@@ -24,6 +24,7 @@ interface ExistingArticle {
   excerpt: string | null;
   body: string;
   cover_image_url: string | null;
+  cover_position_y?: number | null;
   is_published: boolean;
   author_name_override?: string | null;
 }
@@ -58,9 +59,11 @@ export function ArticleEditor({
   const [authorNameOverride, setAuthorNameOverride] = useState(existingArticle?.author_name_override ?? '');
   const [showConfirm, setShowConfirm] = useState(false);
   const supabase = useSupabase();
-  const { coverPreview, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
-    supabase, selectedCommunityId, existingArticle?.cover_image_url ?? null,
+  const { coverPreview, coverPositionY, setCoverPositionY, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
+    supabase, selectedCommunityId, existingArticle?.cover_image_url ?? null, '', existingArticle?.cover_position_y ?? 50,
   );
+  const [isDraggingCover, setIsDraggingCover] = useState(false);
+  const coverContainerRef = useRef<HTMLDivElement>(null);
 
   // Load communities for tribune selector (new articles only)
   useEffect(() => {
@@ -128,6 +131,7 @@ export function ArticleEditor({
         excerpt: excerpt.trim() || null,
         body,
         coverImageUrl,
+        coverPositionY,
         isPublished: publish,
         authorNameOverride: authorNameOverride.trim() || null,
       });
@@ -146,6 +150,7 @@ export function ArticleEditor({
         excerpt: excerpt.trim() || null,
         body,
         coverImageUrl,
+        coverPositionY,
         isPublished: publish,
         authorNameOverride: authorNameOverride.trim() || null,
       });
@@ -197,11 +202,69 @@ export function ArticleEditor({
         </div>
       )}
 
-      {/* Cover image */}
+      {/* Cover image with drag-to-reposition */}
       <div className="mb-4">
         {coverPreview ? (
           <div className="relative">
-            <img src={coverPreview} alt="Couverture" className="h-48 w-full rounded-xl object-cover" />
+            <div
+              ref={coverContainerRef}
+              className={`relative h-48 w-full overflow-hidden rounded-xl ${isDraggingCover ? 'cursor-grabbing' : 'cursor-grab'}`}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setIsDraggingCover(true);
+                const startY = e.clientY;
+                const startPos = coverPositionY;
+                const rect = coverContainerRef.current!.getBoundingClientRect();
+
+                function onMove(ev: MouseEvent) {
+                  const delta = ((ev.clientY - startY) / rect.height) * -100;
+                  setCoverPositionY(Math.max(0, Math.min(100, startPos + delta)));
+                }
+                function onUp() {
+                  setIsDraggingCover(false);
+                  document.removeEventListener('mousemove', onMove);
+                  document.removeEventListener('mouseup', onUp);
+                }
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+              }}
+              onTouchStart={(e) => {
+                setIsDraggingCover(true);
+                const startY = e.touches[0].clientY;
+                const startPos = coverPositionY;
+                const rect = coverContainerRef.current!.getBoundingClientRect();
+
+                function onMove(ev: TouchEvent) {
+                  ev.preventDefault();
+                  const delta = ((ev.touches[0].clientY - startY) / rect.height) * -100;
+                  setCoverPositionY(Math.max(0, Math.min(100, startPos + delta)));
+                }
+                function onEnd() {
+                  setIsDraggingCover(false);
+                  document.removeEventListener('touchmove', onMove);
+                  document.removeEventListener('touchend', onEnd);
+                }
+                document.addEventListener('touchmove', onMove, { passive: false });
+                document.addEventListener('touchend', onEnd);
+              }}
+            >
+              <img
+                src={coverPreview}
+                alt="Couverture"
+                className="h-full w-full object-cover select-none pointer-events-none"
+                style={{ objectPosition: `center ${coverPositionY}%` }}
+                draggable={false}
+              />
+              {/* Reposition hint */}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-3 py-2">
+                <p className="text-center text-xs text-white/80">
+                  <svg className="mr-1 inline h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5-6L16.5 15m0 0L12 10.5m4.5 4.5V6.5" />
+                  </svg>
+                  Glissez pour repositionner
+                </p>
+              </div>
+            </div>
             <button
               onClick={removeCover}
               className="absolute right-2 top-2 rounded-full bg-black/50 p-1 text-white transition hover:bg-black/70"

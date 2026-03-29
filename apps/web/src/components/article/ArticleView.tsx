@@ -18,6 +18,7 @@ interface ArticleViewProps {
     body: string;
     excerpt: string | null;
     cover_image_url: string | null;
+    cover_position_y?: number | null;
     like_count: number;
     view_count: number;
     published_at: string | null;
@@ -122,6 +123,7 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
               alt={article.title}
               fill
               className="object-cover"
+              style={{ objectPosition: `center ${article.cover_position_y ?? 50}%` }}
               sizes="(max-width: 768px) 100vw, 720px"
               priority
             />

@@ -104,7 +104,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   // Load article with author
   const { data: articleData } = await supabase
     .from('articles')
-    .select('id, title, body, excerpt, cover_image_url, like_count, view_count, published_at, created_at, author_name_override, members:members!articles_author_id_fkey(id, username, avatar_url, creator_display_name, creator_avatar_url)')
+    .select('id, title, body, excerpt, cover_image_url, cover_position_y, like_count, view_count, published_at, created_at, author_name_override, members:members!articles_author_id_fkey(id, username, avatar_url, creator_display_name, creator_avatar_url)')
     .eq('community_id', community.id)
     .eq('slug', articleSlug)
     .eq('is_published', true)
@@ -119,6 +119,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     body: string;
     excerpt: string | null;
     cover_image_url: string | null;
+    cover_position_y: number | null;
     like_count: number;
     view_count: number;
     published_at: string | null;

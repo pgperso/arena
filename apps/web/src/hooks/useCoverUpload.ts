@@ -10,6 +10,8 @@ const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 interface UseCoverUploadReturn {
   coverPreview: string | null;
   coverFile: File | null;
+  coverPositionY: number;
+  setCoverPositionY: (y: number) => void;
   handleCoverChange: (e: React.ChangeEvent<HTMLInputElement>) => string | null;
   removeCover: () => void;
   uploadCover: () => Promise<string | null>;
@@ -20,9 +22,11 @@ export function useCoverUpload(
   communityId: number,
   existingUrl: string | null = null,
   suffix = '',
+  initialPositionY = 50,
 ): UseCoverUploadReturn {
   const [coverPreview, setCoverPreview] = useState<string | null>(existingUrl);
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPositionY, setCoverPositionY] = useState(initialPositionY);
 
   const handleCoverChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): string | null => {
     const file = e.target.files?.[0];
@@ -67,5 +71,5 @@ export function useCoverUpload(
     setCoverFile(null);
   }, []);
 
-  return { coverPreview, coverFile, handleCoverChange, removeCover, uploadCover };
+  return { coverPreview, coverFile, coverPositionY, setCoverPositionY, handleCoverChange, removeCover, uploadCover };
 }
