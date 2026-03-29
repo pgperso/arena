@@ -175,9 +175,17 @@ export function PressGalleryClient({
           </div>
         )}
 
-        {/* Hero section */}
+        {/* À la une */}
         {showHero && (
-          <HeroSection hero={hero} secondary={secondaryItems} />
+          <>
+            <h2 className="mt-6 mb-4 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100 md:text-xl">
+              <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zm7-10a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clipRule="evenodd" />
+              </svg>
+              {t('featured')}
+            </h2>
+            <HeroSection hero={hero} secondary={secondaryItems} />
+          </>
         )}
 
         {/* Ad banner after hero */}
@@ -187,41 +195,63 @@ export function PressGalleryClient({
         <div className="flex gap-8">
           {/* Main content */}
           <div className="flex-1 min-w-0">
-            {/* Grid */}
-            <h2 className="sr-only">{t('articles')}</h2>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {items.map((item, idx) => {
-                const card =
-                  item.type === 'article' ? (
-                    <PressArticleCard
-                      key={`${item.type}-${item.id}`}
-                      item={item}
-                    />
-                  ) : (
-                    <PressPodcastCard
-                      key={`${item.type}-${item.id}`}
-                      item={item}
-                    />
-                  );
+            {(() => {
+              const articleItems = items.filter((i) => i.type === 'article');
+              const podcastItems = items.filter((i) => i.type === 'podcast');
+              const showArticles = filter !== 'podcasts' && articleItems.length > 0;
+              const showPodcasts = filter !== 'articles' && podcastItems.length > 0;
 
-                if (idx > 0 && idx % 4 === 0) {
-                  return (
-                    <div key={`ad-group-${idx}`} className="contents">
-                      <div className="col-span-full">
-                        <AdSlot
-                          slotId={`feed-ad-press-${idx}`}
-                          format="in-feed"
-                          layoutKey="-6t+ed+2i-1n-4w"
-                        />
+              return (
+                <>
+                  {/* Articles section */}
+                  {showArticles && (
+                    <>
+                      <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100 md:text-xl">
+                        <svg className="h-5 w-5 text-brand-blue" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6V7.5Z" />
+                        </svg>
+                        {filter === 'all' ? t('articles') : t('latest')}
+                      </h2>
+                      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {articleItems.map((item, idx) => {
+                          const card = (
+                            <PressArticleCard key={`article-${item.id}`} item={item} />
+                          );
+                          if (idx > 0 && idx % 4 === 0) {
+                            return (
+                              <div key={`ad-art-${idx}`} className="contents">
+                                <div className="col-span-full">
+                                  <AdSlot slotId={`feed-ad-press-${idx}`} format="in-feed" layoutKey="-6t+ed+2i-1n-4w" />
+                                </div>
+                                {card}
+                              </div>
+                            );
+                          }
+                          return card;
+                        })}
                       </div>
-                      {card}
-                    </div>
-                  );
-                }
+                    </>
+                  )}
 
-                return card;
-              })}
-            </div>
+                  {/* Podcasts section */}
+                  {showPodcasts && (
+                    <>
+                      <h2 className="mt-8 mb-4 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100 md:text-xl">
+                        <svg className="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                        </svg>
+                        {t('podcasts')}
+                      </h2>
+                      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {podcastItems.map((item) => (
+                          <PressPodcastCard key={`podcast-${item.id}`} item={item} />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
+              );
+            })()}
 
             {/* No results */}
             {!loading && items.length === 0 && !error && (
