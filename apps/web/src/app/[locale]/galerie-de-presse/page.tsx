@@ -18,15 +18,24 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: 'pressGallery' });
 
   const title = `${t('title')} | La tribune des fans`;
-  const description = t('description');
+  const desc = t('description');
 
   return {
     title,
-    description,
+    description: desc,
     openGraph: {
       title,
-      description,
+      description: desc,
       type: 'website',
+      url: `https://fanstribune.com/${locale}/galerie-de-presse`,
+      siteName: 'La tribune des fans',
+      images: [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: title, width: 512, height: 512 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: desc,
+      images: ['https://fanstribune.com/images/fanstribune.webp'],
     },
     alternates: {
       canonical: `/${locale}/galerie-de-presse`,
@@ -38,6 +47,9 @@ export async function generateMetadata({
     robots: {
       index: true,
       follow: true,
+      'max-snippet': -1,
+      'max-image-preview': 'large',
+      'max-video-preview': -1,
     },
   };
 }
@@ -91,13 +103,46 @@ export default async function PressGalleryPage({
   }
 
   // JSON-LD structured data
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
-    name: t('title'),
-    description: t('description'),
-    url: `https://latribunedesfans.com/${locale}/galerie-de-presse`,
-  };
+  const title = `${t('title')} | La tribune des fans`;
+  const desc = t('description');
+  const items = [...featuredItems, ...initialResult.items];
+
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: title,
+      description: desc,
+      url: `https://fanstribune.com/${locale}/galerie-de-presse`,
+      image: 'https://fanstribune.com/images/fanstribune.webp',
+      inLanguage: locale === 'fr' ? 'fr-CA' : 'en-CA',
+      publisher: {
+        '@type': 'Organization',
+        name: 'La tribune des fans',
+        url: 'https://fanstribune.com',
+        logo: { '@type': 'ImageObject', url: 'https://fanstribune.com/images/fanstribune.webp', width: 512, height: 512 },
+      },
+      mainEntity: {
+        '@type': 'ItemList',
+        itemListElement: items.map((item, idx) => ({
+          '@type': 'ListItem',
+          position: idx + 1,
+          url: item.type === 'article'
+            ? `https://fanstribune.com/${locale}/tribunes/${item.communitySlug}/articles/${item.slug}`
+            : `https://fanstribune.com/${locale}/tribunes/${item.communitySlug}/podcasts/${item.id}`,
+          name: item.title,
+        })),
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `https://fanstribune.com/${locale}` },
+        { '@type': 'ListItem', position: 2, name: title },
+      ],
+    },
+  ];
 
   return (
     <>

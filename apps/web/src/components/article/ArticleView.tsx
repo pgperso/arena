@@ -11,6 +11,7 @@ import { ArticleComments } from '@/components/press/ArticleComments';
 import { getContentAuthor } from '@/lib/contentAuthors';
 import Image from 'next/image';
 import { Link, useRouter } from '@/i18n/navigation';
+import { useLocale } from 'next-intl';
 
 interface ArticleViewProps {
   article: {
@@ -79,6 +80,7 @@ function splitHtmlAtParagraph(html: string, wordThreshold: number): [string, str
 }
 
 export function ArticleView({ article, communitySlug, userId }: ArticleViewProps) {
+  const locale = useLocale();
   const router = useRouter();
   const handleBack = useCallback(() => {
     if (window.history.length > 1) {
@@ -195,7 +197,7 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
             userId={userId}
           />
           <ShareButtons
-            url={`https://fanstribune.com/fr/tribunes/${communitySlug}/articles/${article.id}`}
+            url={`https://fanstribune.com/${locale}/tribunes/${communitySlug}/articles/${article.id}`}
             title={article.title}
           />
         </div>

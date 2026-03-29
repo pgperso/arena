@@ -47,12 +47,13 @@ const SLOT_MAP: Record<string, string> = {
   'contact-bottom': '3958416756',
   'terms-bottom': '2645335081',
   'podcast-below-description': '6723241541',
-  'press-hero-banner': '6787556814',
-  'press-sidebar': '1974213839',
+  'press-hero-banner': '3236362029',
+  'press-sidebar': '3787026366',
 };
 
 // Feed ads all use the same slot
 function resolveSlotId(slotId: string): string {
+  if (slotId.startsWith('feed-ad-press-')) return '8049705004';
   if (slotId.startsWith('feed-ad-') || slotId.startsWith('content-feed-')) return '5095404454';
   return SLOT_MAP[slotId] || slotId;
 }

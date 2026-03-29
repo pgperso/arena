@@ -188,6 +188,7 @@ export function PressGalleryClient({
           {/* Main content */}
           <div className="flex-1 min-w-0">
             {/* Grid */}
+            <h2 className="sr-only">{t('articles')}</h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((item, idx) => {
                 const card =
@@ -203,13 +204,14 @@ export function PressGalleryClient({
                     />
                   );
 
-                if (idx > 0 && idx % 6 === 0) {
+                if (idx > 0 && idx % 4 === 0) {
                   return (
                     <div key={`ad-group-${idx}`} className="contents">
                       <div className="col-span-full">
                         <AdSlot
                           slotId={`feed-ad-press-${idx}`}
                           format="in-feed"
+                          layoutKey="-6t+ed+2i-1n-4w"
                         />
                       </div>
                       {card}
