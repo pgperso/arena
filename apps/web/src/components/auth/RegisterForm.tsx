@@ -47,6 +47,7 @@ export function RegisterForm() {
       options: {
         data: {
           username,
+          display_name: username,
         },
       },
     });
