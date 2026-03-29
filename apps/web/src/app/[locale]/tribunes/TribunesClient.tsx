@@ -21,6 +21,7 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
   const t = useTranslations('home');
   const tc = useTranslations('community');
   const tco = useTranslations('common');
+  const tp = useTranslations('pressGallery');
   const router = useRouter();
   const supabase = useSupabase();
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -68,40 +69,65 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
           </button>
         </div>
 
-        {/* La Taverne — full width, always first */}
+        {/* La Taverne + Galerie de presse — side by side */}
         {(() => {
           const taverne = sortedCommunities.find((c) => c.slug === 'la-taverne');
           const others = sortedCommunities.filter((c) => c.slug !== 'la-taverne');
           return (
             <>
-              {taverne && (
+              <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {taverne && (
+                  <Link
+                    href={`/tribunes/${taverne.slug}`}
+                    className="flex items-center gap-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-5 transition hover:border-brand-blue/30 hover:shadow-md sm:p-6"
+                  >
+                    <Image
+                      src={taverne.logo_url || '/images/fanstribune.webp'}
+                      alt={taverne.name}
+                      width={56}
+                      height={56}
+                      className="h-14 w-14 shrink-0 rounded-lg object-contain"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 sm:text-lg">
+                        {taverne.name}
+                      </h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+                        {taverne.description}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-400">
+                        {taverne.member_count} membre{taverne.member_count !== 1 ? 's' : ''} — Ouverte à tous
+                      </p>
+                    </div>
+                    <svg className="h-6 w-6 shrink-0 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                    </svg>
+                  </Link>
+                )}
+
+                {/* Galerie de presse */}
                 <Link
-                  href={`/tribunes/${taverne.slug}`}
-                  className="mb-4 flex items-center gap-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-5 transition hover:border-brand-blue/30 hover:shadow-md sm:p-6"
+                  href="/galerie-de-presse"
+                  className="flex items-center gap-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-5 transition hover:border-brand-blue/30 hover:shadow-md sm:p-6"
                 >
-                  <Image
-                    src={taverne.logo_url || '/images/fanstribune.webp'}
-                    alt={taverne.name}
-                    width={56}
-                    height={56}
-                    className="h-14 w-14 shrink-0 rounded-lg object-contain"
-                  />
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-red-50 dark:bg-red-950">
+                    <svg className="h-7 w-7 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6V7.5Z" />
+                    </svg>
+                  </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 sm:text-lg">
-                      {taverne.name}
+                      {tp('title')}
                     </h3>
                     <p className="text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
-                      {taverne.description}
-                    </p>
-                    <p className="mt-1 text-xs text-gray-400">
-                      {taverne.member_count} membre{taverne.member_count !== 1 ? 's' : ''} — Ouverte à tous
+                      {tp('subtitle')}
                     </p>
                   </div>
                   <svg className="h-6 w-6 shrink-0 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                   </svg>
                 </Link>
-              )}
+              </div>
 
               {others.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

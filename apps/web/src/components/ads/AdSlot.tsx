@@ -47,6 +47,8 @@ const SLOT_MAP: Record<string, string> = {
   'contact-bottom': '3958416756',
   'terms-bottom': '2645335081',
   'podcast-below-description': '6723241541',
+  'press-hero-banner': '6787556814',
+  'press-sidebar': '1974213839',
 };
 
 // Feed ads all use the same slot

@@ -7,6 +7,7 @@ import { FeedLikeButton } from '@/components/feed/FeedLikeButton';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { AdInArticle } from '@/components/ads/AdInArticle';
 import { Avatar } from '@/components/ui/Avatar';
+import { ArticleComments } from '@/components/press/ArticleComments';
 import { getContentAuthor } from '@/lib/contentAuthors';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
@@ -190,6 +191,9 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
             title={article.title}
           />
         </div>
+
+        {/* Comments */}
+        <ArticleComments articleId={article.id} userId={userId} />
       </article>
 
       {/* Sticky sidebar ad - desktop only */}
