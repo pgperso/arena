@@ -81,7 +81,7 @@ function AdSlotLive({ slotId, format = 'rectangle', className = '', layoutKey }:
   const [visible, setVisible] = useState(false);
   const size = FORMAT_SIZES[format];
   const isFluid = format === 'in-feed' || format === 'in-article';
-  const isResponsive = format === 'leaderboard' || format === 'anchor' || format === 'large-mobile-banner';
+  const isInArticle = format === 'in-article';
 
   useEffect(() => {
     const el = containerRef.current;
@@ -111,25 +111,34 @@ function AdSlotLive({ slotId, format = 'rectangle', className = '', layoutKey }:
     }
   }, [visible]);
 
+  // Container: fluid ads need flexible height, display ads need min-height only
+  const containerStyle = isFluid
+    ? { minHeight: '100px', width: '100%' }
+    : { minHeight: size.height, maxWidth: '100%', width: '100%' };
+
+  // Ins style: fluid = block, display = block responsive (no fixed dimensions)
+  const insStyle = isFluid
+    ? isInArticle
+      ? { display: 'block', textAlign: 'center' as const }
+      : { display: 'block' }
+    : { display: 'block' };
+
   return (
     <div
       ref={containerRef}
       className={`flex items-center justify-center overflow-hidden rounded-lg border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-[#1e1e1e] ${className}`}
-      style={isFluid ? { minHeight: '100px' } : { minWidth: size.width, minHeight: size.height, maxWidth: '100%' }}
+      style={containerStyle}
     >
       {visible ? (
         <ins
           className="adsbygoogle"
-          style={
-            isFluid
-              ? { display: 'block' }
-              : { display: 'block', width: size.width, height: size.height }
-          }
+          style={insStyle}
           data-ad-client={ADSENSE_CLIENT_ID}
           data-ad-slot={resolveSlotId(slotId)}
-          data-ad-format={isFluid ? 'fluid' : isResponsive ? 'auto' : undefined}
-          data-ad-layout-key={isFluid && layoutKey ? layoutKey : undefined}
-          data-full-width-responsive={isResponsive ? 'true' : undefined}
+          data-ad-format={isFluid ? 'fluid' : 'auto'}
+          data-ad-layout={isInArticle ? 'in-article' : undefined}
+          data-ad-layout-key={format === 'in-feed' && layoutKey ? layoutKey : undefined}
+          data-full-width-responsive="true"
         />
       ) : (
         <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400">Publicité</p>
