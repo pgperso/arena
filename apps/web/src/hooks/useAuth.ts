@@ -21,49 +21,29 @@ export function useAuth(): AuthState {
     let cancelled = false;
     const supabase = createClient();
 
-    async function getUser() {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (cancelled) return;
-        setUser(user);
-
-        if (user) {
-          const { data: member } = await supabase
-            .from('members')
-            .select('username, avatar_url')
-            .eq('id', user.id)
-            .single();
-          if (cancelled) return;
-          setUsername(member?.username ?? null);
-          setAvatarUrl(member?.avatar_url ?? null);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+    async function loadProfile(userId: string) {
+      const { data: member } = await supabase
+        .from('members')
+        .select('username, avatar_url')
+        .eq('id', userId)
+        .single();
+      if (cancelled) return;
+      setUsername(member?.username ?? null);
+      setAvatarUrl(member?.avatar_url ?? null);
     }
-
-    getUser();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (cancelled) return;
       setUser(session?.user ?? null);
       if (session?.user) {
-        const { data: member } = await supabase
-          .from('members')
-          .select('username, avatar_url')
-          .eq('id', session.user.id)
-          .single();
-        if (cancelled) return;
-        setUsername(member?.username ?? null);
-        setAvatarUrl(member?.avatar_url ?? null);
+        loadProfile(session.user.id);
       } else {
         setUsername(null);
         setAvatarUrl(null);
       }
+      setLoading(false);
     });
 
     return () => {
