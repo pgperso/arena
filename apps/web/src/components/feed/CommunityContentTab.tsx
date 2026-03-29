@@ -164,7 +164,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
               {idx > 0 && idx % CONTENT_AD_INTERVAL === 0 && (
                 <div className="border-y border-gray-100 bg-gray-50 dark:bg-[#1e1e1e] px-4 py-3">
                   <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-gray-400">{tt('sponsored')}</p>
-                  <AdSlot slotId={`content-feed-${idx}`} format="in-feed" className="w-full" />
+                  <AdSlot slotId={`content-feed-${idx}`} format="in-feed" layoutKey="-gw-3+1f-3d+2z" className="w-full" />
                 </div>
               )}
               <ContentRow

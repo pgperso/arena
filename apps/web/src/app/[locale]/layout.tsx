@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { TribuneProvider } from '@/contexts/TribuneContext';
 import { ADSENSE_CLIENT_ID } from '@arena/shared';
+import { CookieConsent } from '@/components/ui/CookieConsent';
 import { routing } from '@/i18n/routing';
 
 const jsonLd = [
@@ -107,6 +108,7 @@ export default async function LocaleLayout({
               <Header />
               <main className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</main>
               <Footer />
+              <CookieConsent />
             </div>
           </TribuneProvider>
         </NextIntlClientProvider>
