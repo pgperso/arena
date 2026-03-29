@@ -133,7 +133,7 @@ export function Header() {
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-1 w-48 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] shadow-lg">
+                <div className="absolute right-0 top-full z-50 mt-1 w-48 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] shadow-lg">
                   <Link
                     href="/vestiaire"
                     onClick={() => setDropdownOpen(false)}
