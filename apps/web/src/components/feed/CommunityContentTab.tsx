@@ -12,7 +12,7 @@ import { removePodcast } from '@/services/podcastService';
 import { Trash2, EyeOff } from 'lucide-react';
 import { getContentAuthor } from '@/lib/contentAuthors';
 
-const CONTENT_AD_INTERVAL = 5; // Ad every 5 items
+const CONTENT_AD_INTERVAL = 8; // Ad every 8 items (avoid excessive ad density)
 
 interface ContentItem {
   type: 'article' | 'podcast';

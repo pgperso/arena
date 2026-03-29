@@ -7,7 +7,7 @@ interface AdBannerProps {
   slotId?: string;
 }
 
-export function AdBanner({ className = '', slotId = 'banner' }: AdBannerProps) {
+export function AdBanner({ className = '', slotId = 'home-mid-banner' }: AdBannerProps) {
   return (
     <div className={`flex justify-center py-2 ${className}`}>
       <AdSlot
