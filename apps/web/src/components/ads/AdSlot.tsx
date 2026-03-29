@@ -33,6 +33,28 @@ const FORMAT_SIZES: Record<string, { width: string; height: string }> = {
   'in-article': { width: '100%', height: '250px' },
 };
 
+// Map human-readable slot names to real AdSense slot IDs
+const SLOT_MAP: Record<string, string> = {
+  'article-in-content': '2277466168',
+  'article-end': '4193183068',
+  'article-sidebar': '1974213839',
+  'home-mid-banner': '6787556814',
+  'home-bottom': '7034968820',
+  'mobile-anchor': '5474475141',
+  'sidebar-left': '6899237458',
+  'sidebar-right': '5586155788',
+  'about-sidebar': '2684863538',
+  'contact-bottom': '2684863538',
+  'terms-bottom': '2684863538',
+  'podcast-below-description': '4193183068',
+};
+
+// Feed ads all use the same slot
+function resolveSlotId(slotId: string): string {
+  if (slotId.startsWith('feed-ad-') || slotId.startsWith('content-feed-')) return '5095404454';
+  return SLOT_MAP[slotId] || slotId;
+}
+
 declare global {
   interface Window {
     adsbygoogle?: Record<string, unknown>[];
@@ -104,7 +126,7 @@ function AdSlotLive({ slotId, format = 'rectangle', className = '', layoutKey }:
               : { display: 'block', width: size.width, height: size.height }
           }
           data-ad-client={ADSENSE_CLIENT_ID}
-          data-ad-slot={slotId}
+          data-ad-slot={resolveSlotId(slotId)}
           data-ad-format={isFluid ? 'fluid' : isResponsive ? 'auto' : undefined}
           data-ad-layout-key={isFluid && layoutKey ? layoutKey : undefined}
           data-full-width-responsive={isResponsive ? 'true' : undefined}

@@ -15,7 +15,7 @@ export function AdInFeed({ index }: AdInFeedProps) {
       <AdSlot
         slotId={`feed-ad-${index}`}
         format="in-feed"
-        layoutKey="-fb+5w+4e-db+86"
+        layoutKey="-gw-3+1f-3d+2z"
         className="w-full"
       />
     </div>
