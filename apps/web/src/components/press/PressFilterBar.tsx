@@ -40,7 +40,7 @@ export function PressFilterBar({
   ];
 
   return (
-    <div className="sticky top-12 z-20 mb-6 border-b border-gray-200 bg-white/95 py-3 backdrop-blur-sm dark:border-gray-700 dark:bg-[#1e1e1e]/95">
+    <div className="border-b border-gray-200 py-3 dark:border-gray-700">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Filter pills */}
         <div className="flex gap-2 overflow-x-auto">

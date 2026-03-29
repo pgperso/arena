@@ -120,16 +120,15 @@ export function PressGalleryClient({
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-y-auto">
       <div className="mx-auto w-full max-w-7xl px-4 py-6">
-        {/* Header */}
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 md:text-3xl">
-          {t('title')}
-        </h1>
-        <p className="mt-1 mb-4 text-sm text-gray-500 dark:text-gray-400">
-          {t('subtitle')}
-        </p>
-
-        {/* Filter bar */}
-        <PressFilterBar
+        {/* Header + Filter bar — sticky together */}
+        <div className="sticky top-0 z-20 -mx-4 bg-white/95 px-4 pt-4 pb-0 backdrop-blur-sm dark:bg-[#1e1e1e]/95">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 md:text-3xl">
+            {t('title')}
+          </h1>
+          <p className="mt-1 mb-3 text-sm text-gray-500 dark:text-gray-400">
+            {t('subtitle')}
+          </p>
+          <PressFilterBar
           filter={filter}
           sort={sort}
           communityId={communityId}
@@ -138,6 +137,7 @@ export function PressGalleryClient({
           onSortChange={handleSortChange}
           onCommunityChange={handleCommunityChange}
         />
+        </div>
 
         {/* Hero section */}
         {showHero && (
