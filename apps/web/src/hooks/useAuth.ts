@@ -48,10 +48,19 @@ export function useAuth(): AuthState {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (cancelled) return;
       setUser(session?.user ?? null);
-      if (!session?.user) {
+      if (session?.user) {
+        const { data: member } = await supabase
+          .from('members')
+          .select('username, avatar_url')
+          .eq('id', session.user.id)
+          .single();
+        if (cancelled) return;
+        setUsername(member?.username ?? null);
+        setAvatarUrl(member?.avatar_url ?? null);
+      } else {
         setUsername(null);
         setAvatarUrl(null);
       }
