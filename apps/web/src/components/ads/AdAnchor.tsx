@@ -23,11 +23,11 @@ export function AdAnchor() {
   if (!visible || dismissed) return null;
 
   return (
-    <div className="shrink-0 border-b border-ad-border bg-ad-bg dark:bg-[#1e1e1e] lg:hidden">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] shadow-[0_-2px_8px_rgba(0,0,0,0.1)] lg:hidden pb-safe">
       <div className="relative flex justify-center py-1">
         <button
           onClick={() => setDismissed(true)}
-          className="absolute -bottom-6 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-gray-800/70 text-xs text-white transition hover:bg-gray-800"
+          className="absolute -top-3 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-gray-800 text-xs text-white shadow transition hover:bg-gray-700"
           aria-label="Fermer la publicité"
         >
           &times;
