@@ -234,10 +234,10 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                 ? 'Vous avez des questions ou des suggestions\u00a0? N\'hésitez pas à nous écrire à '
                 : 'Have questions or suggestions? Feel free to reach out at '}
               <a
-                href="mailto:contact@fanstribune.com"
+                href="mailto:info@fanstribune.com"
                 className="text-red-600 hover:underline font-medium"
               >
-                contact@fanstribune.com
+                info@fanstribune.com
               </a>
             </p>
           </section>

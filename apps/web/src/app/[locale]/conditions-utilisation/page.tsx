@@ -355,15 +355,15 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
               <p>
                 Si vous avez des questions concernant ces conditions d&apos;utilisation, vous pouvez nous
                 contacter à l&apos;adresse suivante\u00a0:{' '}
-                <a href="mailto:contact@fanstribune.com" className="text-red-600 hover:underline font-medium">
-                  contact@fanstribune.com
+                <a href="mailto:info@fanstribune.com" className="text-red-600 hover:underline font-medium">
+                  info@fanstribune.com
                 </a>
               </p>
             ) : (
               <p>
                 If you have any questions about these terms of use, you can contact us at:{' '}
-                <a href="mailto:contact@fanstribune.com" className="text-red-600 hover:underline font-medium">
-                  contact@fanstribune.com
+                <a href="mailto:info@fanstribune.com" className="text-red-600 hover:underline font-medium">
+                  info@fanstribune.com
                 </a>
               </p>
             )}

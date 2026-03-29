@@ -85,10 +85,10 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
             Vous pouvez à tout moment demander l&apos;accès, la modification ou
             la suppression de vos données personnelles en nous contactant à{' '}
             <a
-              href="mailto:contact@fanstribune.com"
+              href="mailto:info@fanstribune.com"
               className="text-brand-blue underline"
             >
-              contact@fanstribune.com
+              info@fanstribune.com
             </a>
             .
           </p>
