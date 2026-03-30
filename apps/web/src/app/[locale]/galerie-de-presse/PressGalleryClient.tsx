@@ -151,9 +151,19 @@ export function PressGalleryClient({
       <div className="mx-auto w-full max-w-7xl px-4 py-6">
         {/* Header + Filter bar — sticky together */}
         <div className="sticky top-0 z-20 -mx-4 bg-white/95 px-4 pt-4 pb-0 backdrop-blur-sm dark:bg-[#1e1e1e]/95">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 md:text-3xl">
-            {t('title')}
-          </h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => { if (window.history.length > 1) window.history.back(); else window.location.href = '/tribunes'; }}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 md:text-3xl">
+              {t('title')}
+            </h1>
+          </div>
           <p className="mt-1 mb-3 text-sm text-gray-500 dark:text-gray-400">
             {t('subtitle')}
           </p>
