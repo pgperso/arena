@@ -17,7 +17,7 @@ const STAFF_RANK_MAP: Record<string, { label: string; color: string; bg: string 
   owner: { label: 'Propriétaire', color: 'text-brand-blue', bg: 'bg-brand-blue text-white' },
   admin: { label: 'Arbitre', color: 'text-red-600', bg: 'bg-red-600 text-white' },
   moderator: { label: 'Arbitre', color: 'text-red-600', bg: 'bg-red-600 text-white' },
-  creator: { label: 'Créateur', color: 'text-purple-600', bg: 'bg-purple-100 text-purple-700' },
+  creator: { label: 'Journaliste', color: 'text-purple-600', bg: 'bg-purple-100 text-purple-700' },
 };
 
 interface FeedMessageProps {
