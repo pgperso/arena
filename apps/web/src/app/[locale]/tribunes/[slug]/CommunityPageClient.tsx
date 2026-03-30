@@ -251,13 +251,25 @@ export function CommunityPageClient({
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
-                  <Image
-                    src={c.logo_url || '/images/fanstribune.webp'}
-                    alt={c.name}
-                    width={20}
-                    height={20}
-                    className="h-5 w-5 shrink-0 rounded object-contain"
-                  />
+                  <div className="relative shrink-0">
+                    <Image
+                      src={c.logo_url || '/images/fanstribune.webp'}
+                      alt={c.name}
+                      width={20}
+                      height={20}
+                      className="h-5 w-5 rounded object-contain"
+                    />
+                    {(() => {
+                      try {
+                        const visits = JSON.parse(localStorage.getItem('tribune_visits') || '{}');
+                        const lastVisit = visits[c.id];
+                        if (lastVisit && Date.now() - lastVisit < 15 * 60 * 1000) {
+                          return <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-green-500 ring-1 ring-white dark:ring-[#1e1e1e]" />;
+                        }
+                      } catch { /* ignore */ }
+                      return null;
+                    })()}
+                  </div>
                   <span className="whitespace-nowrap">{c.name}</span>
                 </Link>
               );
