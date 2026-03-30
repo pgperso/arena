@@ -98,8 +98,8 @@ export function usePresence(
         }
       });
 
-    // Refresh presence row every 60s
-    const presenceInterval = setInterval(upsertPresence, 60000);
+    // Refresh presence row every 5 min (reduces Disk IO)
+    const presenceInterval = setInterval(upsertPresence, 300000);
 
     // Listen to visibility changes for idle detection
     document.addEventListener('visibilitychange', trackStatus);

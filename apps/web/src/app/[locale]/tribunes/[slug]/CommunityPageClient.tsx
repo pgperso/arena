@@ -100,8 +100,8 @@ export function CommunityPageClient({
     }
 
     fetchCounts();
-    // Refresh every 30s
-    const interval = setInterval(fetchCounts, 30000);
+    // Refresh every 2 min (reduces Disk IO)
+    const interval = setInterval(fetchCounts, 120000);
     return () => clearInterval(interval);
   }, [userCommunities, userId, supabase]);
 
