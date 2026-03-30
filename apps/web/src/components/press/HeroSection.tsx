@@ -25,7 +25,7 @@ export function HeroSection({ hero, secondary }: HeroSectionProps) {
 
   return (
     <section className="mb-8">
-      <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">
+      <h2 className="mb-5 text-xl font-bold text-gray-900 dark:text-gray-100 md:text-2xl">
         {t('featured')}
       </h2>
 
