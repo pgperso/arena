@@ -210,7 +210,7 @@
     "veteran": "Veteran",
     "legend": "Legend",
     "bot": "Tribune Speaker",
-    "creator": "Creator"
+    "creator": "Journalist"
   },
   "vestiaire": {
     "title": "Locker Room",
@@ -268,11 +268,11 @@
     "genericErrorMessage": "An error occurred while loading this page."
   },
   "creator": {
-    "creatorProfile": "Creator profile",
+    "creatorProfile": "Journalist profile",
     "creatorProfileDesc": "This name and avatar will be displayed on your articles and podcasts instead of your username.",
     "creatorDisplayName": "Full name",
     "creatorNamePlaceholder": "Your full name",
-    "creatorAvatar": "Creator avatar",
+    "creatorAvatar": "Journalist avatar",
     "creatorAvatarDesc": "This avatar will be displayed on your articles and podcasts",
     "saved": "Saved!"
   },

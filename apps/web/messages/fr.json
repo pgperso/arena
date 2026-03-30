@@ -216,7 +216,7 @@
     "veteran": "Vétéran",
     "legend": "Légende",
     "bot": "Gérant d'estrade",
-    "creator": "Créateur"
+    "creator": "Journaliste"
   },
   "vestiaire": {
     "title": "Vestiaire",
@@ -274,11 +274,11 @@
     "genericErrorMessage": "Une erreur est survenue lors du chargement de cette page."
   },
   "creator": {
-    "creatorProfile": "Profil créateur",
+    "creatorProfile": "Profil journaliste",
     "creatorProfileDesc": "Ce nom et cet avatar seront affichés sur vos articles et podcasts à la place de votre pseudo.",
     "creatorDisplayName": "Nom complet",
     "creatorNamePlaceholder": "Votre nom complet",
-    "creatorAvatar": "Avatar créateur",
+    "creatorAvatar": "Avatar journaliste",
     "creatorAvatarDesc": "Cet avatar sera affiché sur vos articles et podcasts",
     "saved": "Sauvegardé !"
   },

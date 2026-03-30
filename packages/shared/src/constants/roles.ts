@@ -19,6 +19,6 @@ export const ROLE_DISPLAY_NAMES: Record<string, string> = {
   owner: 'Propriétaire',
   admin: 'Arbitre',
   moderator: 'Arbitre',
-  creator: 'Créateur',
+  creator: 'Journaliste',
   member: 'Membre',
 };
