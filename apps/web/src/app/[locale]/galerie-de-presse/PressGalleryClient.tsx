@@ -212,24 +212,26 @@ export function PressGalleryClient({
                         </svg>
                         {filter === 'all' ? t('articles') : t('latest')}
                       </h2>
-                      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {articleItems.map((item, idx) => {
-                          const card = (
-                            <PressArticleCard key={`article-${item.id}`} item={item} />
-                          );
-                          if (idx > 0 && idx % 4 === 0) {
-                            return (
-                              <div key={`ad-art-${idx}`} className="contents">
-                                <div className="col-span-full">
-                                  <AdSlot slotId={`feed-ad-press-${idx}`} format="in-feed" layoutKey="-6t+ed+2i-1n-4w" />
-                                </div>
-                                {card}
+                      {(() => {
+                        const chunks: PressGalleryItem[][] = [];
+                        for (let i = 0; i < articleItems.length; i += 6) {
+                          chunks.push(articleItems.slice(i, i + 6));
+                        }
+                        return chunks.map((chunk, chunkIdx) => (
+                          <div key={`chunk-${chunkIdx}`}>
+                            {chunkIdx > 0 && (
+                              <div className="my-6">
+                                <AdSlot slotId={`feed-ad-press-${chunkIdx}`} format="in-feed" layoutKey="-6t+ed+2i-1n-4w" />
                               </div>
-                            );
-                          }
-                          return card;
-                        })}
-                      </div>
+                            )}
+                            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                              {chunk.map((item) => (
+                                <PressArticleCard key={`article-${item.id}`} item={item} />
+                              ))}
+                            </div>
+                          </div>
+                        ));
+                      })()}
                     </>
                   )}
 
