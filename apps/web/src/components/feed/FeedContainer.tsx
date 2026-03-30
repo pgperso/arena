@@ -18,7 +18,6 @@ import dynamic from 'next/dynamic';
 import { OnlineMembers } from '@/components/chat/OnlineMembers';
 import { AdInFeed } from '@/components/ads/AdInFeed';
 import { FEED_AD_INTERVAL } from '@arena/shared';
-import { CommunityContentTab } from './CommunityContentTab';
 import { Nordiquometre } from './Nordiquometre';
 import { Exposmetre } from './Exposmetre';
 import { Link } from '@/i18n/navigation';
@@ -288,19 +287,6 @@ export function FeedContainer({
             </svg>
             {t('tabTribune')}
           </button>
-          <button
-            onClick={() => setActiveTab('content')}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
-              activeTab === 'content'
-                ? 'bg-white dark:bg-brand-blue text-brand-blue dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 dark:bg-[#272525] hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-            </svg>
-            {t('tabContent')}
-          </button>
           {isNordiques && (
             <button
               onClick={() => setActiveTab('nordiquometre')}
@@ -337,8 +323,6 @@ export function FeedContainer({
           <Nordiquometre canModerate={canModerate} />
         ) : activeTab === 'exposmetre' ? (
           <Exposmetre canModerate={canModerate} />
-        ) : activeTab === 'content' ? (
-          <CommunityContentTab communityId={communityId} communitySlug={communitySlug} userId={user?.id ?? null} canModerate={canModerate} />
         ) : (
         <>
         {/* Live banner — small notification, click to scroll to the live card */}

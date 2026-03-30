@@ -24,22 +24,24 @@ const JOIN_ANNOUNCEMENTS = [
 
 // ── Article announcements ──
 
+const GALLERY_URL = 'https://fanstribune.com/fr/galerie-de-presse';
+
 const ARTICLE_ANNOUNCEMENTS = [
-  (u: string, c: string, t: string, url: string) => `📰 Nouvel article dans ${c} : "${t}" par ${u}. À lire ! ${url}`,
-  (u: string, c: string, t: string, url: string) => `✍️ ${u} vient de publier "${t}" dans ${c}. Ça vaut le détour ! ${url}`,
-  (u: string, c: string, t: string, url: string) => `📝 "${t}" — nouvel article de ${u} dans ${c}. Allez voir ça ! ${url}`,
-  (u: string, c: string, t: string, url: string) => `🗞️ ${u} a écrit quelque chose dans ${c} : "${t}". Check ça ! ${url}`,
-  (u: string, c: string, t: string, url: string) => `💡 Nouvel article signé ${u} dans ${c} : "${t}" ${url}`,
+  (u: string, c: string, t: string, url: string) => `📰 Nouvel article dans ${c} : "${t}" par ${u}. À lire dans la Galerie de presse ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `✍️ ${u} vient de publier "${t}" dans ${c}. Disponible dans la Galerie de presse ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `📝 "${t}" — nouvel article de ${u}. Retrouvez-le dans la Galerie de presse ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `🗞️ ${u} a écrit "${t}" dans ${c}. Direction la Galerie de presse ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `💡 Nouvel article signé ${u} : "${t}" — en vedette dans la Galerie de presse ! ${url}`,
 ];
 
 // ── Podcast announcements ──
 
 const PODCAST_ANNOUNCEMENTS = [
-  (u: string, c: string, t: string, url: string) => `🎙️ Nouveau podcast dans ${c} : "${t}" par ${u}. Bonne écoute ! ${url}`,
-  (u: string, c: string, t: string, url: string) => `🎧 ${u} a sorti un nouveau podcast dans ${c} : "${t}" ${url}`,
-  (u: string, c: string, t: string, url: string) => `🔊 "${t}" — nouveau podcast de ${u} dans ${c}. Montez le son ! ${url}`,
-  (u: string, c: string, t: string, url: string) => `📻 ${u} est au micro dans ${c} : "${t}". Écoutez ça ! ${url}`,
-  (u: string, c: string, t: string, url: string) => `🎤 Nouveau épisode dans ${c} ! "${t}" par ${u} ${url}`,
+  (u: string, c: string, t: string, url: string) => `🎙️ Nouveau podcast dans ${c} : "${t}" par ${u}. Disponible dans la Galerie de presse ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `🎧 ${u} a sorti un nouveau podcast : "${t}". Écoutez-le dans la Galerie de presse ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `🔊 "${t}" — nouveau podcast de ${u}. Retrouvez-le dans la Galerie de presse ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `📻 ${u} est au micro dans ${c} : "${t}". Direction la Galerie de presse ! ${url}`,
+  (u: string, c: string, t: string, url: string) => `🎤 Nouveau épisode dans ${c} ! "${t}" par ${u}. Dans la Galerie de presse ! ${url}`,
 ];
 
 // ── Live announcements ──
