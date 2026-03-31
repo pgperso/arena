@@ -81,7 +81,7 @@ function PreviewCard({ preview }: { preview: LinkPreview }) {
           </p>
         )}
         {preview.description && (
-          <p className={`text-xs text-gray-500 dark:text-gray-400 line-clamp-3 ${isX ? 'text-sm text-gray-700 dark:text-gray-300' : 'mt-1 line-clamp-2'}`}>
+          <p className={isX ? 'text-base leading-relaxed text-gray-800 dark:text-gray-200 line-clamp-4' : 'mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-2'}>
             {preview.description}
           </p>
         )}
