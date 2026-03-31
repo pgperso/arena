@@ -26,4 +26,5 @@ export type {
   FeedArticle,
   FeedPodcast,
   FeedMember,
+  LinkPreview,
 } from './feed';
