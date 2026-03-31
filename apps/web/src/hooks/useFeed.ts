@@ -41,6 +41,7 @@ function memberFromRow(
 
 interface ChatMessageWithJoin extends ChatMessageRow {
   members: Pick<MemberRow, 'id' | 'username' | 'avatar_url' | 'message_count'> | null;
+  link_previews?: unknown;
 }
 
 function messageToFeedItem(row: ChatMessageWithJoin): FeedMessage {
