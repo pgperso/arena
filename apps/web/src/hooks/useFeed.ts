@@ -208,7 +208,7 @@ function feedReducer(state: FeedState, action: FeedAction): FeedState {
                 likeCount: u.like_count,
                 dislikeCount: u.dislike_count,
                 replyCount: u.reply_count,
-                linkPreviews: (u.link_previews as unknown as LinkPreview[]) ?? msg.linkPreviews,
+                linkPreviews: ((u as unknown as Record<string, unknown>).link_previews as LinkPreview[]) ?? msg.linkPreviews,
                 editedAt: u.edited_at ?? null,
                 isRemoved: u.is_removed ?? false,
                 removedAt: u.removed_at,
