@@ -9,6 +9,7 @@ import type {
   FeedArticle,
   FeedPodcast,
   FeedMember,
+  LinkPreview,
 } from '@arena/shared';
 import type {
   RealtimePostgresInsertPayload,
@@ -25,7 +26,7 @@ const MAX_FEED_ITEMS = 500;
 const REALTIME_DEBOUNCE_MS = 100;
 
 // Explicit column selections (avoid select('*') to exclude large columns like body)
-const CHAT_MSG_SELECT = 'id, community_id, member_id, content, image_urls, created_at, is_removed, removed_at, removed_by, like_count, dislike_count, reply_count, parent_id, members:members!chat_messages_member_id_fkey(id, username, avatar_url, message_count)';
+const CHAT_MSG_SELECT = 'id, community_id, member_id, content, image_urls, created_at, is_removed, removed_at, removed_by, like_count, dislike_count, reply_count, parent_id, link_previews, members:members!chat_messages_member_id_fkey(id, username, avatar_url, message_count)';
 const ARTICLE_SELECT = 'id, community_id, author_id, title, slug, excerpt, cover_image_url, like_count, view_count, published_at, is_published, is_removed, created_at, author_name_override, members:members!articles_author_id_fkey(id, username, avatar_url, message_count, creator_display_name, creator_avatar_url)';
 const PODCAST_SELECT = 'id, community_id, published_by, title, description, audio_url, cover_image_url, duration_seconds, youtube_video_id, is_live, like_count, is_published, is_removed, created_at, members:members!podcasts_published_by_fkey(id, username, avatar_url, message_count, creator_display_name, creator_avatar_url)';
 
@@ -56,6 +57,7 @@ function messageToFeedItem(row: ChatMessageWithJoin): FeedMessage {
     likeCount: row.like_count,
     dislikeCount: row.dislike_count,
     replyCount: row.reply_count,
+    linkPreviews: (row.link_previews as unknown as LinkPreview[]) ?? [],
     editedAt: null,
     isRemoved: row.is_removed ?? false,
     removedAt: row.removed_at,
@@ -205,6 +207,7 @@ function feedReducer(state: FeedState, action: FeedAction): FeedState {
                 likeCount: u.like_count,
                 dislikeCount: u.dislike_count,
                 replyCount: u.reply_count,
+                linkPreviews: (u.link_previews as unknown as LinkPreview[]) ?? msg.linkPreviews,
                 editedAt: u.edited_at ?? null,
                 isRemoved: u.is_removed ?? false,
                 removedAt: u.removed_at,
@@ -625,6 +628,29 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           const typed = data as unknown as ChatMessageWithJoin;
           if (typed.members) memberCacheRef.current.set(typed.members.id, typed.members);
           dispatch({ type: 'ADD_MESSAGE', message: messageToFeedItem(typed) });
+
+          // Fetch link previews in background (non-blocking)
+          const urlRegex = /https?:\/\/[^\s<]+[^\s<.,:;"')\]!?]/g;
+          const urls = (hasContent ? options.content!.trim() : '').match(urlRegex);
+          if (urls && urls.length > 0) {
+            const uniqueUrls = [...new Set(urls)].slice(0, 3);
+            Promise.all(
+              uniqueUrls.map((u) =>
+                fetch(`/api/link-preview?url=${encodeURIComponent(u)}`)
+                  .then((r) => r.json())
+                  .catch(() => null)
+              )
+            ).then((results) => {
+              const previews = results.filter((r) => r && (r.title || r.image));
+              if (previews.length > 0) {
+                supabaseRef.current
+                  .from('chat_messages')
+                  .update({ link_previews: previews } as never)
+                  .eq('id', (data as unknown as { id: number }).id)
+                  .then(() => {});
+              }
+            });
+          }
         }
       } finally {
         dispatch({ type: 'SET_SENDING', sending: false });

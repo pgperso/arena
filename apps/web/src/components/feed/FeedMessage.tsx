@@ -9,6 +9,7 @@ import { FeedActions } from './FeedActions';
 import { FeedImageGallery } from './FeedImageGallery';
 import { FeedRichContent } from './FeedRichContent';
 import { FeedReplyContext } from './FeedReplyContext';
+import { FeedLinkPreview } from './FeedLinkPreview';
 import { Avatar } from '@/components/ui/Avatar';
 import { UserPopover } from '@/components/ui/UserPopover';
 import { StatusDot } from '@/components/ui/StatusDot';
@@ -233,6 +234,9 @@ export const FeedMessage = memo(function FeedMessage({
 
         {toolbar}
         {contentBlock}
+        {!editing && message.linkPreviews && message.linkPreviews.length > 0 && (
+          <FeedLinkPreview previews={message.linkPreviews} />
+        )}
         {!editing && message.imageUrls.length > 0 && (
           <FeedImageGallery imageUrls={message.imageUrls} />
         )}
@@ -307,6 +311,9 @@ export const FeedMessage = memo(function FeedMessage({
           </div>
 
           {contentBlock}
+          {!editing && message.linkPreviews && message.linkPreviews.length > 0 && (
+            <FeedLinkPreview previews={message.linkPreviews} />
+          )}
           {!editing && message.imageUrls.length > 0 && (
             <FeedImageGallery imageUrls={message.imageUrls} />
           )}

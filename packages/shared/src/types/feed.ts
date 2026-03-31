@@ -14,12 +14,21 @@ interface FeedItemBase {
   communityId: number;
 }
 
+export interface LinkPreview {
+  url: string;
+  title: string | null;
+  description: string | null;
+  image: string | null;
+  domain: string;
+}
+
 export interface FeedMessage extends FeedItemBase {
   feedType: 'message';
   id: number;
   memberId: string | null;
   content: string | null;
   imageUrls: string[];
+  linkPreviews: LinkPreview[];
   parentId: number | null;
   likeCount: number;
   dislikeCount: number;
