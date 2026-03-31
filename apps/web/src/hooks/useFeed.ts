@@ -641,14 +641,17 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
                   .then((r) => r.json())
                   .catch(() => null)
               )
-            ).then((results) => {
-              const previews = results.filter((r) => r && (r.title || r.image));
+            ).then(async (results) => {
+              const previews = results.filter((r: Record<string, unknown> | null) => r && (r.title || r.image));
               if (previews.length > 0) {
-                supabaseRef.current
+                const msgId = typed.id;
+                const { error: updateError } = await supabaseRef.current
                   .from('chat_messages')
                   .update({ link_previews: previews } as never)
-                  .eq('id', (data as unknown as { id: number }).id)
-                  .then(() => {});
+                  .eq('id', msgId);
+                if (updateError) {
+                  console.error('Link preview update failed:', updateError.message);
+                }
               }
             });
           }
