@@ -23,9 +23,18 @@ function isXTwitter(domain: string): boolean {
   return domain === 'x.com' || domain === 'twitter.com';
 }
 
+function extractXHandle(url: string): string | null {
+  const match = url.match(/(?:x\.com|twitter\.com)\/(@?[\w]+)/i);
+  if (match && !['home', 'search', 'explore', 'settings', 'i'].includes(match[1].toLowerCase())) {
+    return '@' + match[1].replace(/^@/, '');
+  }
+  return null;
+}
+
 function PreviewCard({ preview }: { preview: LinkPreview }) {
   const [imgError, setImgError] = useState(false);
   const isX = isXTwitter(preview.domain);
+  const xHandle = isX ? extractXHandle(preview.url) : null;
 
   return (
     <a
@@ -34,13 +43,15 @@ function PreviewCard({ preview }: { preview: LinkPreview }) {
       rel="noopener noreferrer"
       className="group block overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] transition hover:border-gray-300 dark:hover:border-gray-600"
     >
-      {/* X/Twitter: branded header */}
+      {/* X/Twitter: branded header with author */}
       {isX && (
         <div className="flex items-center gap-2 bg-black px-3 py-2">
           <svg className="h-4 w-4 text-white" viewBox="0 0 24 24" fill="currentColor">
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
           </svg>
-          <span className="text-xs font-medium text-gray-400">Post</span>
+          {xHandle && (
+            <span className="text-sm font-semibold text-white">{xHandle}</span>
+          )}
         </div>
       )}
 
