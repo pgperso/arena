@@ -23,6 +23,10 @@ function isXTwitter(domain: string): boolean {
   return domain === 'x.com' || domain === 'twitter.com';
 }
 
+function isYouTube(domain: string): boolean {
+  return domain === 'youtube.com' || domain === 'youtu.be';
+}
+
 function extractXHandle(url: string): string | null {
   const match = url.match(/(?:x\.com|twitter\.com)\/(@?[\w]+)/i);
   if (match && !['home', 'search', 'explore', 'settings', 'i'].includes(match[1].toLowerCase())) {
@@ -34,6 +38,7 @@ function extractXHandle(url: string): string | null {
 function PreviewCard({ preview }: { preview: LinkPreview }) {
   const [imgError, setImgError] = useState(false);
   const isX = isXTwitter(preview.domain);
+  const isYT = isYouTube(preview.domain);
   const xHandle = isX ? extractXHandle(preview.url) : null;
 
   return (
@@ -57,7 +62,7 @@ function PreviewCard({ preview }: { preview: LinkPreview }) {
 
       {/* Image (non-X links) */}
       {!isX && preview.image && !imgError && (
-        <div className="overflow-hidden bg-gray-100 dark:bg-gray-800">
+        <div className="relative overflow-hidden bg-gray-100 dark:bg-gray-800">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={preview.image}
@@ -66,6 +71,16 @@ function PreviewCard({ preview }: { preview: LinkPreview }) {
             loading="lazy"
             onError={() => setImgError(true)}
           />
+          {/* YouTube play button overlay */}
+          {isYT && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-600 shadow-lg transition group-hover:scale-110">
+                <svg className="ml-1 h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

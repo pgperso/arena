@@ -11,6 +11,30 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
   }
 
+  // YouTube: extract video ID, get title via noembed, thumbnail via img.youtube.com
+  const ytId = extractYouTubeId(url);
+  if (ytId) {
+    let title: string | null = null;
+    let author: string | null = null;
+    try {
+      const oembed = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${ytId}`, { signal: AbortSignal.timeout(3000) });
+      const data = await oembed.json();
+      title = data.title || null;
+      author = data.author_name || null;
+    } catch { /* noembed failed, continue without title */ }
+
+    return NextResponse.json(
+      {
+        url,
+        title: title ? (author ? `${title} — ${author}` : title) : null,
+        description: author || null,
+        image: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
+        domain: 'youtube.com',
+      },
+      { headers: { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' } },
+    );
+  }
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -51,6 +75,20 @@ export async function GET(request: Request) {
   } catch {
     return NextResponse.json({ url, title: null, description: null, image: null, domain: new URL(url).hostname.replace(/^www\./, '') });
   }
+}
+
+function extractYouTubeId(url: string): string | null {
+  const patterns = [
+    /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const p of patterns) {
+    const match = url.match(p);
+    if (match) return match[1];
+  }
+  return null;
 }
 
 function extractMeta(html: string, property: string): string | null {
