@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { TrendingMessages } from '@/components/home/TrendingMessages';
@@ -6,6 +7,36 @@ import { AdBanner } from '@/components/ads/AdBanner';
 import { AdSlot } from '@/components/ads/AdSlot';
 
 export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'home' });
+  const isFr = locale === 'fr';
+  const title = isFr ? 'La tribune des fans — Communauté sportive en direct' : 'Fans Tribune — Live Sports Community';
+  const description = isFr
+    ? 'Rejoignez La tribune des fans : chat sportif en direct, articles, podcasts et jauges de confiance. La communauté #1 des fans de sport au Québec.'
+    : 'Join Fans Tribune: live sports chat, articles, podcasts and confidence gauges. The #1 sports fan community in Quebec.';
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      url: `https://fanstribune.com/${locale}`,
+      siteName: 'La tribune des fans',
+      locale: isFr ? 'fr_CA' : 'en_CA',
+      images: [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 }],
+    },
+    twitter: { card: 'summary_large_image', title, description, images: ['https://fanstribune.com/images/fanstribune.webp'] },
+    alternates: {
+      canonical: `https://fanstribune.com/${locale}`,
+      languages: { 'fr-CA': 'https://fanstribune.com/fr', 'en-CA': 'https://fanstribune.com/en', 'x-default': 'https://fanstribune.com/fr' },
+    },
+    robots: { index: true, follow: true, 'max-snippet': -1, 'max-image-preview': 'large', 'max-video-preview': -1 },
+  };
+}
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

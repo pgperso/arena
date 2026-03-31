@@ -3,7 +3,7 @@ import { AdSlot } from '@/components/ads/AdSlot';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Conditions d\'utilisation | La tribune des fans — Fans Tribune',
+  title: 'Conditions d\'utilisation | La tribune des fans',
   description:
     'Consultez les conditions d\'utilisation de La tribune des fans (Fans Tribune). Règles de la communauté, responsabilités des utilisateurs et politique de contenu.',
   openGraph: {

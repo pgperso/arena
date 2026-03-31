@@ -1,31 +1,33 @@
 # La tribune des fans
 
-> La tribune des fans (fanstribune.com) est une plateforme communautaire sportive en direct. Les fans rejoignent des tribunes dédiées à leurs équipes favorites pour chatter en temps réel, lire et publier des articles, écouter des podcasts et participer à des diffusions YouTube Live. La plateforme est bilingue (français/anglais) et basée au Canada.
+> Plateforme communautaire sportive bilingue (FR/EN) pour les fans de hockey, baseball, football et plus. Chat en direct, articles, podcasts et jauges de confiance.
 
-## Fonctionnalités principales
-- Chat en temps réel dans des tribunes sportives thématiques
-- Publication d'articles par les créateurs de contenu
-- Podcasts audio et YouTube Live intégrés
-- Système de rôles : Recrue, Régulier, Vétéran, Légende, Créateur, Arbitre, Propriétaire
-- Réactions (likes/dislikes), réponses, images dans le chat
-- Profil créateur avec avatar et nom distinct
-- Modération intégrée (mute, ban)
-- Publicités Google AdSense intégrées
+La tribune des fans (Fans Tribune) est une communauté en ligne dédiée aux passionnés de sport au Québec et au Canada. Les utilisateurs rejoignent des tribunes thématiques pour discuter en temps réel, lire des articles d'analyse, écouter des podcasts et voter sur des jauges de confiance comme le Nordiquomètre et l'Exposmètre.
 
-## Stack technique
-- Next.js 16 App Router (React Server Components)
-- Supabase (PostgreSQL, Realtime, Storage, Auth)
-- Tailwind CSS v4
-- TypeScript
-- react-virtuoso pour le chat virtualisé
-- next-intl pour l'internationalisation
+## Pages principales
 
-## URLs importantes
-- Site principal : https://fanstribune.com
-- Tribunes : https://fanstribune.com/fr/tribunes/
-- Articles : https://fanstribune.com/fr/tribunes/{slug}/articles/{articleSlug}
-- Podcasts : https://fanstribune.com/fr/tribunes/{slug}/podcasts/{podcastId}
+- [Accueil](https://fanstribune.com/fr): Page d'accueil avec les messages tendances
+- [Galerie de presse](https://fanstribune.com/fr/galerie-de-presse): Tous les articles et podcasts sportifs
+- [À propos](https://fanstribune.com/fr/a-propos): Mission et fonctionnalités de la plateforme
+- [Contact](https://fanstribune.com/fr/contact): Coordonnées et réseaux sociaux
 
-## Contact
-- Site : https://fanstribune.com
-- Politique de confidentialité : https://fanstribune.com/fr/politique-confidentialite
+## Types de contenu
+
+- **Tribunes**: Salons de chat en direct par équipe/sport
+- **Articles**: Chroniques, analyses et opinions de fans et journalistes
+- **Podcasts**: Émissions audio et vidéo en direct (YouTube Live)
+- **Nordiquomètre**: Jauge de confiance pour le retour des Nordiques à Québec
+- **Exposmètre**: Jauge de confiance pour le retour des Expos à Montréal
+
+## Communautés actives
+
+- Zone Nordiques (hockey)
+- Expos de Montréal (baseball)
+- Blue Jays de Toronto (baseball)
+- La Taverne (discussions générales)
+
+## Informations techniques
+
+- Site bilingue: français et anglais
+- Plateforme: Next.js, Supabase, Vercel
+- Contact: info@fanstribune.com

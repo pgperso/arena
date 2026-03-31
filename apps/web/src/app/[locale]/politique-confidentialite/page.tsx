@@ -1,10 +1,45 @@
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 
-export const metadata: Metadata = {
-  title: 'Politique de confidentialité',
-  description: 'Politique de confidentialité de La tribune des fans — comment nous protégeons vos données.',
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const isFr = locale === 'fr';
+  const title = isFr
+    ? 'Politique de confidentialité | La tribune des fans'
+    : 'Privacy Policy | Fans Tribune';
+  const description = isFr
+    ? 'Découvrez comment La tribune des fans protège vos données personnelles. Collecte, utilisation, cookies et vos droits.'
+    : 'Learn how Fans Tribune protects your personal data. Collection, usage, cookies and your rights explained.';
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      url: `https://fanstribune.com/${locale}/politique-confidentialite`,
+      siteName: 'La tribune des fans',
+      locale: isFr ? 'fr_CA' : 'en_CA',
+      images: [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['https://fanstribune.com/images/fanstribune.webp'],
+    },
+    alternates: {
+      canonical: `https://fanstribune.com/${locale}/politique-confidentialite`,
+      languages: {
+        'fr-CA': 'https://fanstribune.com/fr/politique-confidentialite',
+        'en-CA': 'https://fanstribune.com/en/politique-confidentialite',
+        'x-default': 'https://fanstribune.com/fr/politique-confidentialite',
+      },
+    },
+    robots: { index: true, follow: true, 'max-snippet': -1, 'max-image-preview': 'large', 'max-video-preview': -1 },
+  };
+}
 
 export default async function PolitiqueConfidentialite({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

@@ -10,7 +10,7 @@ interface PodcastPageProps {
 }
 
 export async function generateMetadata({ params }: PodcastPageProps) {
-  const { podcastId } = await params;
+  const { locale, podcastId, slug } = await params;
   const id = parseInt(podcastId, 10);
   if (isNaN(id)) return { title: 'Podcast introuvable' };
 
@@ -26,9 +26,8 @@ export async function generateMetadata({ params }: PodcastPageProps) {
   if (!podcast) return { title: 'Podcast introuvable' };
 
   const { title, description, audio_url, cover_image_url } = podcast as { title: string; description: string | null; audio_url: string; cover_image_url: string | null };
-  const { slug } = await params;
   const desc = description ?? `${title} — Podcast sportif sur La tribune des fans. Écoutez maintenant !`;
-  const url = `https://fanstribune.com/fr/tribunes/${slug}/podcasts/${podcastId}`;
+  const url = `https://fanstribune.com/${locale}/tribunes/${slug}/podcasts/${podcastId}`;
 
   return {
     title: `${title} | La tribune des fans`,
@@ -41,7 +40,7 @@ export async function generateMetadata({ params }: PodcastPageProps) {
       audio: audio_url,
       url,
       siteName: 'La tribune des fans',
-      locale: 'fr_CA',
+      locale: locale === 'fr' ? 'fr_CA' : 'en_CA',
       images: cover_image_url
         ? [{ url: cover_image_url, alt: title, width: 1200, height: 630 }]
         : [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 }],
@@ -80,12 +79,12 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
   // Verify community exists
   const { data: communityData } = await supabase
     .from('communities')
-    .select('id, slug')
+    .select('id, slug, name')
     .eq('slug', slug)
     .eq('is_active', true)
     .single();
 
-  const community = communityData as { id: number; slug: string } | null;
+  const community = communityData as { id: number; slug: string; name: string } | null;
   if (!community) notFound();
 
   // Load podcast with publisher info
@@ -119,7 +118,7 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const podcastUrl = `https://fanstribune.com/fr/tribunes/${slug}/podcasts/${podcast.id}`;
+  const podcastUrl = `https://fanstribune.com/${locale}/tribunes/${slug}/podcasts/${podcast.id}`;
 
   const podcastJsonLd = [
     {
@@ -130,7 +129,7 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
       description: podcast.description ?? `${podcast.title} — Podcast sportif sur La tribune des fans`,
       url: podcastUrl,
       datePublished: podcast.created_at,
-      inLanguage: 'fr-CA',
+      inLanguage: locale === 'fr' ? 'fr-CA' : 'en-CA',
       duration: podcast.duration_seconds ? `PT${Math.floor(podcast.duration_seconds / 60)}M${podcast.duration_seconds % 60}S` : undefined,
       associatedMedia: {
         '@type': 'MediaObject',
@@ -161,9 +160,9 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Accueil', item: 'https://fanstribune.com' },
-        { '@type': 'ListItem', position: 2, name: 'Tribunes', item: 'https://fanstribune.com/fr/tribunes' },
-        { '@type': 'ListItem', position: 3, name: community.slug, item: `https://fanstribune.com/fr/tribunes/${slug}` },
+        { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `https://fanstribune.com/${locale}` },
+        { '@type': 'ListItem', position: 2, name: 'Tribunes', item: `https://fanstribune.com/${locale}/tribunes` },
+        { '@type': 'ListItem', position: 3, name: community.name, item: `https://fanstribune.com/${locale}/tribunes/${slug}` },
         { '@type': 'ListItem', position: 4, name: podcast.title },
       ],
     },

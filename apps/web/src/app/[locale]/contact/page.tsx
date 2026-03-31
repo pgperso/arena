@@ -3,7 +3,7 @@ import { AdSlot } from '@/components/ads/AdSlot';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Contact | La tribune des fans — Fans Tribune',
+  title: 'Contact | La tribune des fans',
   description:
     'Contactez l\'équipe de La tribune des fans (Fans Tribune). Envoyez-nous un courriel ou suivez-nous sur les réseaux sociaux.',
   openGraph: {

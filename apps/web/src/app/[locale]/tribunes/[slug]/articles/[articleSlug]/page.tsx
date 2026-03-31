@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
       tags: [communityName?.name ?? 'Sports', 'Opinion', 'Tribune'],
       url,
       siteName: 'La tribune des fans',
-      locale: 'fr_CA',
+      locale: loc === 'fr' ? 'fr_CA' : 'en_CA',
       images: cover_image_url
         ? [{ url: cover_image_url, alt: title, width: 1200, height: 630 }]
         : [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 }],

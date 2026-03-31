@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import {
@@ -107,6 +108,8 @@ export default async function PressGalleryPage({
   const desc = t('description');
   const items = [...featuredItems, ...initialResult.items];
 
+  const nonce = (await headers()).get('x-nonce') ?? '';
+
   const jsonLd = [
     {
       '@context': 'https://schema.org',
@@ -148,6 +151,7 @@ export default async function PressGalleryPage({
     <>
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <PressGalleryClient

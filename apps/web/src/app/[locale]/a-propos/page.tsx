@@ -4,7 +4,7 @@ import { AdInArticle } from '@/components/ads/AdInArticle';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'À propos | La tribune des fans — Fans Tribune',
+  title: 'À propos | La tribune des fans',
   description:
     'Découvrez La tribune des fans (Fans Tribune), la plateforme communautaire bilingue pour les fans de sport. Chat tribunes, articles, podcasts, jauges de confiance et plus encore.',
   openGraph: {

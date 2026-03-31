@@ -12,6 +12,7 @@ function withAlternates(path: string) {
       languages: {
         'fr-CA': `${BASE_URL}/fr${path}`,
         'en-CA': `${BASE_URL}/en${path}`,
+        'x-default': `${BASE_URL}/fr${path}`,
       },
     },
   };
@@ -25,6 +26,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { ...withAlternates('/tribunes'), lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     { ...withAlternates('/politique-confidentialite'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
     { ...withAlternates('/galerie-de-presse'), lastModified: new Date(), changeFrequency: 'daily' as const, priority: 0.85 },
+    { ...withAlternates('/a-propos'), lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.5 },
+    { ...withAlternates('/conditions-utilisation'), lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.3 },
+    { ...withAlternates('/contact'), lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.4 },
   ];
 
   // Communities
