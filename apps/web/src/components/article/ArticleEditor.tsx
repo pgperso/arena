@@ -97,7 +97,7 @@ export function ArticleEditor({
     content: existingArticle?.body ?? '',
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none min-h-[300px] px-4 py-3 focus:outline-none',
+        class: 'prose prose-sm max-w-none min-h-[300px] px-4 py-3 focus:outline-none text-gray-900 dark:text-gray-100 prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-800 dark:prose-p:text-gray-200 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-a:text-brand-blue',
       },
     },
   });
