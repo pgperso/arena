@@ -19,8 +19,13 @@ export function FeedLinkPreview({ previews }: FeedLinkPreviewProps) {
   );
 }
 
+function isXTwitter(domain: string): boolean {
+  return domain === 'x.com' || domain === 'twitter.com';
+}
+
 function PreviewCard({ preview }: { preview: LinkPreview }) {
   const [imgError, setImgError] = useState(false);
+  const isX = isXTwitter(preview.domain);
 
   return (
     <a
@@ -29,7 +34,18 @@ function PreviewCard({ preview }: { preview: LinkPreview }) {
       rel="noopener noreferrer"
       className="group block overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#272525] transition hover:border-gray-300 dark:hover:border-gray-600"
     >
-      {preview.image && !imgError && (
+      {/* X/Twitter: branded header */}
+      {isX && (
+        <div className="flex items-center gap-2 bg-black px-3 py-2">
+          <svg className="h-4 w-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+          </svg>
+          <span className="text-xs font-medium text-gray-400">Post</span>
+        </div>
+      )}
+
+      {/* Image (non-X links) */}
+      {!isX && preview.image && !imgError && (
         <div className="overflow-hidden bg-gray-100 dark:bg-gray-800">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -41,17 +57,20 @@ function PreviewCard({ preview }: { preview: LinkPreview }) {
           />
         </div>
       )}
+
       <div className="p-3">
-        <p className="mb-0.5 text-[11px] font-medium text-gray-400 dark:text-gray-500">
-          {preview.domain}
-        </p>
-        {preview.title && (
+        {!isX && (
+          <p className="mb-0.5 text-[11px] font-medium text-gray-400 dark:text-gray-500">
+            {preview.domain}
+          </p>
+        )}
+        {preview.title && !isX && (
           <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-brand-blue">
             {preview.title}
           </p>
         )}
         {preview.description && (
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+          <p className={`text-xs text-gray-500 dark:text-gray-400 line-clamp-3 ${isX ? 'text-sm text-gray-700 dark:text-gray-300' : 'mt-1 line-clamp-2'}`}>
             {preview.description}
           </p>
         )}
