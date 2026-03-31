@@ -33,8 +33,9 @@ export async function generateMetadata({ params }: ArticlePageProps) {
   if (!article) return { title: 'Article introuvable' };
 
   const { title, excerpt, cover_image_url, published_at } = article as { title: string; excerpt: string | null; cover_image_url: string | null; published_at: string | null };
+  const { locale: loc } = await params;
   const desc = excerpt ?? `${title} — Article sportif sur La tribune des fans. Opinions, analyses et débats.`;
-  const url = `https://fanstribune.com/fr/tribunes/${slug}/articles/${articleSlug}`;
+  const url = `https://fanstribune.com/${loc}/tribunes/${slug}/articles/${articleSlug}`;
   const communityName = (await supabase.from('communities').select('name').eq('slug', slug).single()).data as { name: string } | null;
 
   return {
@@ -81,6 +82,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
       follow: true,
       'max-image-preview': 'large',
       'max-snippet': -1,
+      'max-video-preview': -1,
     },
   };
 }
@@ -93,12 +95,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   // Load community
   const { data: communityData } = await supabase
     .from('communities')
-    .select('id, slug')
+    .select('id, slug, name')
     .eq('slug', slug)
     .eq('is_active', true)
     .single();
 
-  const community = communityData as { id: number; slug: string } | null;
+  const community = communityData as { id: number; slug: string; name: string } | null;
   if (!community) notFound();
 
   // Load article with author
@@ -138,24 +140,25 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   void (async () => { try { await supabase.rpc('increment_article_views' as never, { p_article_id: article.id } as never); } catch { /* ignore */ } })();
 
   const authorDisplayName = article.author_name_override || article.members?.creator_display_name || article.members?.username || 'Inconnu';
-  const articleUrl = `https://fanstribune.com/fr/tribunes/${slug}/articles/${articleSlug}`;
+  const articleUrl = `https://fanstribune.com/${locale}/tribunes/${slug}/articles/${articleSlug}`;
   const wordCount = article.body.replace(/<[^>]*>/g, '').split(/\s+/).length;
+  const lang = locale === 'fr' ? 'fr-CA' : 'en-CA';
 
   const articleJsonLd = [
     {
       '@context': 'https://schema.org',
-      '@type': 'Article',
+      '@type': 'NewsArticle',
       '@id': articleUrl,
       headline: article.title,
       description: article.excerpt ?? `${article.title} — article sportif sur La tribune des fans`,
       image: article.cover_image_url ?? 'https://fanstribune.com/images/fanstribune.webp',
       datePublished: article.published_at ?? article.created_at,
-      dateModified: article.created_at,
+      dateModified: article.published_at ?? article.created_at,
       url: articleUrl,
       mainEntityOfPage: { '@type': 'WebPage', '@id': articleUrl },
       wordCount,
       articleSection: 'Sports',
-      inLanguage: 'fr-CA',
+      inLanguage: lang,
       publisher: {
         '@type': 'Organization',
         name: 'La tribune des fans',
@@ -176,9 +179,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Accueil', item: 'https://fanstribune.com' },
-        { '@type': 'ListItem', position: 2, name: 'Tribunes', item: 'https://fanstribune.com/fr/tribunes' },
-        { '@type': 'ListItem', position: 3, name: community.slug, item: `https://fanstribune.com/fr/tribunes/${slug}` },
+        { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `https://fanstribune.com/${locale}` },
+        { '@type': 'ListItem', position: 2, name: locale === 'fr' ? 'Galerie de presse' : 'Press Gallery', item: `https://fanstribune.com/${locale}/galerie-de-presse` },
+        { '@type': 'ListItem', position: 3, name: community.name, item: `https://fanstribune.com/${locale}/tribunes/${slug}` },
         { '@type': 'ListItem', position: 4, name: article.title },
       ],
     },
