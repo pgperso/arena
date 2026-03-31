@@ -16,6 +16,7 @@ import { useLocale } from 'next-intl';
 interface ArticleViewProps {
   article: {
     id: number;
+    slug: string;
     title: string;
     body: string;
     excerpt: string | null;
@@ -197,7 +198,7 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
             userId={userId}
           />
           <ShareButtons
-            url={`https://fanstribune.com/${locale}/tribunes/${communitySlug}/articles/${article.id}`}
+            url={`https://fanstribune.com/${locale}/tribunes/${communitySlug}/articles/${article.slug}`}
             title={article.title}
           />
         </div>
