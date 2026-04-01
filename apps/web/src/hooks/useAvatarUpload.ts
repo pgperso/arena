@@ -26,7 +26,7 @@ export function useAvatarUpload(): UseAvatarUploadReturn {
       const compressed = await imageCompression(file, {
         maxSizeMB: 0.5,
         maxWidthOrHeight: 512,
-        useWebWorker: true,
+        useWebWorker: false,
         fileType: 'image/webp',
       });
 
@@ -52,7 +52,10 @@ export function useAvatarUpload(): UseAvatarUploadReturn {
           cacheControl: '31536000',
         });
 
-      if (error) return null;
+      if (error) {
+        console.error('Avatar upload failed:', error.message);
+        return null;
+      }
 
       const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
       const publicUrl = urlData.publicUrl;
