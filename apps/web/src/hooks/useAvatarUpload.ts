@@ -20,20 +20,20 @@ export function useAvatarUpload(): UseAvatarUploadReturn {
 
   const uploadAvatar = useCallback(async (file: File, memberId: string): Promise<string | null> => {
     setError(null);
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      setError('Format non supporté. Utilisez JPG, PNG, WebP ou GIF.');
-      return null;
-    }
-    if (file.size > MAX_SIZE) {
-      setError('Image trop lourde. Maximum 5 Mo.');
+
+    // Accept any image type — compression will convert to webp
+    const isImage = file.type.startsWith('image/');
+    if (!isImage) {
+      setError('Ce fichier n\'est pas une image.');
       return null;
     }
 
     setUploading(true);
 
     try {
+      // Compress FIRST — handles any size, converts to webp 512x512 max
       const compressed = await imageCompression(file, {
-        maxSizeMB: 0.5,
+        maxSizeMB: 0.3,
         maxWidthOrHeight: 512,
         useWebWorker: false,
         fileType: 'image/webp',
