@@ -5,20 +5,29 @@ import { useSupabase } from './useSupabase';
 import imageCompression from 'browser-image-compression';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 
 interface UseAvatarUploadReturn {
   uploading: boolean;
+  error: string | null;
   uploadAvatar: (file: File, memberId: string) => Promise<string | null>;
 }
 
 export function useAvatarUpload(): UseAvatarUploadReturn {
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const supabase = useSupabase();
 
   const uploadAvatar = useCallback(async (file: File, memberId: string): Promise<string | null> => {
-    if (!ALLOWED_TYPES.includes(file.type)) return null;
-    if (file.size > MAX_SIZE) return null;
+    setError(null);
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setError('Format non supporté. Utilisez JPG, PNG, WebP ou GIF.');
+      return null;
+    }
+    if (file.size > MAX_SIZE) {
+      setError('Image trop lourde. Maximum 5 Mo.');
+      return null;
+    }
 
     setUploading(true);
 
@@ -54,6 +63,7 @@ export function useAvatarUpload(): UseAvatarUploadReturn {
 
       if (error) {
         console.error('Avatar upload failed:', error.message);
+        setError('Échec du téléversement : ' + error.message);
         return null;
       }
 
@@ -72,5 +82,5 @@ export function useAvatarUpload(): UseAvatarUploadReturn {
     }
   }, []);
 
-  return { uploading, uploadAvatar };
+  return { uploading, error, uploadAvatar };
 }

@@ -57,7 +57,7 @@ export function VestiaireClient({
   const [description, setDescription] = useState(member?.description ?? '');
   const [saving, setSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(member?.avatar_url ?? null);
-  const { uploading, uploadAvatar } = useAvatarUpload();
+  const { uploading, error: avatarError, uploadAvatar } = useAvatarUpload();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleSaveDescription() {
@@ -76,11 +76,15 @@ export function VestiaireClient({
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !member) return;
+    console.log('Avatar upload starting:', file.name, file.type, file.size);
     const url = await uploadAvatar(file, member.id);
+    console.log('Avatar upload result:', url);
     if (url) {
       setAvatarUrl(url);
       router.refresh();
     }
+    // Reset input so same file can be selected again
+    e.target.value = '';
   }
 
   async function handleLogout() {
@@ -120,33 +124,43 @@ export function VestiaireClient({
       {/* Profile header */}
       <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-6">
         <div className="flex items-start gap-4">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="group relative shrink-0"
-          >
-            <Avatar
-              url={avatarUrl}
-              name={member.username}
-              size="xl"
-            />
-            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 transition group-hover:bg-black/40">
-              {uploading ? (
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              ) : (
-                <svg
-                  className="h-5 w-5 text-white opacity-0 transition group-hover:opacity-100"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
-                </svg>
-              )}
-            </div>
+          <div className="flex shrink-0 flex-col items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="group relative"
+            >
+              <Avatar
+                url={avatarUrl}
+                name={member.username}
+                size="xl"
+              />
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 transition group-hover:bg-black/40">
+                {uploading ? (
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <svg
+                    className="h-5 w-5 text-white opacity-0 transition group-hover:opacity-100"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+                  </svg>
+                )}
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="text-xs font-medium text-brand-blue hover:underline disabled:opacity-50"
+            >
+              {uploading ? 'Chargement...' : 'Modifier'}
+            </button>
             <input
               ref={fileInputRef}
               type="file"
@@ -154,7 +168,10 @@ export function VestiaireClient({
               onChange={handleAvatarChange}
               className="hidden"
             />
-          </button>
+            {avatarError && (
+              <p className="text-xs text-red-500">{avatarError}</p>
+            )}
+          </div>
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {member.username}
