@@ -139,7 +139,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   // Increment view count (fire and forget)
   void (async () => { try { await supabase.rpc('increment_article_views' as never, { p_article_id: article.id } as never); } catch { /* ignore */ } })();
 
-  const authorDisplayName = article.author_name_override || article.members?.creator_display_name || article.members?.username || 'Inconnu';
+  const authorDisplayName = article.author_name_override || article.members?.username || 'Inconnu';
   const articleUrl = `https://fanstribune.com/${locale}/tribunes/${slug}/articles/${articleSlug}`;
   const wordCount = article.body.replace(/<[^>]*>/g, '').split(/\s+/).length;
   const lang = locale === 'fr' ? 'fr-CA' : 'en-CA';
@@ -198,8 +198,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           ...article,
           author: article.members ? {
             id: article.members.id,
-            username: article.author_name_override || article.members.creator_display_name || article.members.username,
-            avatar_url: article.author_name_override ? null : (article.members.creator_avatar_url || article.members.avatar_url),
+            username: article.author_name_override || article.members.username,
+            avatar_url: article.author_name_override ? null : article.members.avatar_url,
           } : { id: '', username: article.author_name_override || 'Inconnu', avatar_url: null },
         }}
         communitySlug={slug}

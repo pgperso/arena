@@ -79,11 +79,10 @@ export async function createArticle(
   if (!result.error && data.isPublished !== false) {
     const authorName = data.authorNameOverride?.trim();
     const [{ data: author }, { data: community }] = await Promise.all([
-      authorName ? Promise.resolve({ data: null }) : supabase.from('members').select('username, creator_display_name').eq('id', data.authorId).single(),
+      authorName ? Promise.resolve({ data: null }) : supabase.from('members').select('username').eq('id', data.authorId).single(),
       supabase.from('communities').select('name, slug').eq('id', data.communityId).single(),
     ]);
     const displayName = authorName
-      || (author as { creator_display_name: string | null; username: string } | null)?.creator_display_name
       || (author as { username: string } | null)?.username
       || 'Inconnu';
     if (community) {

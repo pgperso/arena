@@ -8,7 +8,6 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAvatarUpload } from '@/hooks/useAvatarUpload';
-import imageCompression from 'browser-image-compression';
 import type { Database } from '@arena/supabase-client';
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'];
@@ -50,19 +49,7 @@ export function VestiaireClient({
   const t = useTranslations('account');
   const tc = useTranslations('common');
   const ta = useTranslations('auth');
-  const tcr = useTranslations('creator');
   const [savedDescription, setSavedDescription] = useState(member?.description ?? '');
-  const initialCreatorName = member?.creator_display_name ?? '';
-  const initialCreatorAvatarUrl = member?.creator_avatar_url ?? null;
-  const [creatorName, setCreatorName] = useState(initialCreatorName);
-  const [creatorAvatarUrl, setCreatorAvatarUrl] = useState(initialCreatorAvatarUrl);
-  const [savedCreatorName, setSavedCreatorName] = useState(initialCreatorName);
-  const [savedCreatorAvatarUrl, setSavedCreatorAvatarUrl] = useState(initialCreatorAvatarUrl);
-  const [savingCreator, setSavingCreator] = useState(false);
-  const [uploadingCreator, setUploadingCreator] = useState(false);
-  const [creatorSaved, setCreatorSaved] = useState(false);
-  const creatorFileRef = useRef<HTMLInputElement>(null);
-  const creatorDirty = creatorName !== savedCreatorName || creatorAvatarUrl !== savedCreatorAvatarUrl;
   const [deleteStep, setDeleteStep] = useState<0 | 1 | 2 | 3>(0); // 0=hidden, 1=info, 2=password, 3=done
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState('');
@@ -196,7 +183,7 @@ export function VestiaireClient({
             onChange={(e) => setDescription(e.target.value)}
             className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 transition focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
             rows={3}
-            placeholder={tcr('creatorNamePlaceholder') === tcr('creatorNamePlaceholder') ? 'Parlez-nous de vous...' : ''}
+            placeholder="Parlez-nous de vous..."
             maxLength={500}
           />
           <div className="flex items-center gap-2">
@@ -217,147 +204,6 @@ export function VestiaireClient({
           </div>
         </div>
       </div>
-
-      {/* Creator profile */}
-      {isContentCreator && member && (
-        <div className="mb-8 rounded-xl border border-purple-200 bg-purple-50 p-6">
-          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-purple-900">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
-            </svg>
-            {tcr('creatorProfile')}
-          </h2>
-          <p className="mb-4 text-xs text-purple-700/70">{tcr('creatorProfileDesc')}</p>
-
-          <div className="space-y-4">
-            {/* Creator avatar */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-purple-900">{tcr('creatorAvatar')}</label>
-              <p className="mb-3 text-xs text-purple-700/60">{tcr('creatorAvatarDesc')}</p>
-
-              {creatorAvatarUrl ? (
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <Avatar url={creatorAvatarUrl} name={creatorName || member.username} size="xl" />
-                    {uploadingCreator && (
-                      <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <button
-                      onClick={() => creatorFileRef.current?.click()}
-                      disabled={uploadingCreator}
-                      className="rounded-lg border border-purple-300 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100 disabled:opacity-50"
-                    >
-                      {uploadingCreator ? tc('loading') : tc('edit')}
-                    </button>
-                    <button
-                      onClick={() => setCreatorAvatarUrl(null)}
-                      className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e]"
-                    >
-                      {tc('remove')}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <Avatar url={avatarUrl} name={member.username} size="xl" />
-                  <div className="flex flex-col gap-1.5">
-                    <p className="text-xs text-purple-700/60">Même avatar que le chat</p>
-                    <button
-                      onClick={() => creatorFileRef.current?.click()}
-                      disabled={uploadingCreator}
-                      className="rounded-lg border border-purple-300 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100 disabled:opacity-50"
-                    >
-                      {uploadingCreator ? tc('loading') : 'Utiliser un avatar différent'}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <input
-                ref={creatorFileRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="hidden"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  setUploadingCreator(true);
-                  try {
-                    const compressed = await imageCompression(file, {
-                      maxSizeMB: 0.5,
-                      maxWidthOrHeight: 512,
-                      useWebWorker: true,
-                      fileType: 'image/webp',
-                    });
-                    const supabase = createClient();
-                    const dir = `${member.id}/creator`;
-                    const { data: existing } = await supabase.storage.from('avatars').list(dir);
-                    if (existing && existing.length > 0) {
-                      await supabase.storage.from('avatars').remove(existing.map((f) => `${dir}/${f.name}`));
-                    }
-                    const path = `${dir}/${Date.now()}.webp`;
-                    const { error } = await supabase.storage.from('avatars').upload(path, compressed, {
-                      contentType: 'image/webp',
-                      cacheControl: '31536000',
-                    });
-                    if (!error) {
-                      const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-                      setCreatorAvatarUrl(data.publicUrl);
-                    }
-                  } finally {
-                    setUploadingCreator(false);
-                  }
-                  e.target.value = '';
-                }}
-              />
-            </div>
-
-            {/* Creator display name */}
-            <div>
-              <label className="mb-1 block text-sm font-medium text-purple-900">{tcr('creatorDisplayName')}</label>
-              <input
-                type="text"
-                value={creatorName}
-                onChange={(e) => setCreatorName(e.target.value)}
-                placeholder={tcr('creatorNamePlaceholder')}
-                className="w-full rounded-lg border border-purple-200 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                maxLength={100}
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={async () => {
-                  setSavingCreator(true);
-                  setCreatorSaved(false);
-                  const trimmedName = creatorName.trim();
-                  const supabase = createClient();
-                  await supabase.from('members').update({
-                    creator_display_name: trimmedName || null,
-                    creator_avatar_url: creatorAvatarUrl,
-                  }).eq('id', member.id);
-                  setSavedCreatorName(trimmedName);
-                  setSavedCreatorAvatarUrl(creatorAvatarUrl);
-                  setSavingCreator(false);
-                  setCreatorSaved(true);
-                  setTimeout(() => setCreatorSaved(false), 2000);
-                }}
-                disabled={savingCreator || !creatorDirty}
-                className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-700 disabled:opacity-50"
-              >
-                {savingCreator ? tc('saving') : tc('save')}
-              </button>
-              {creatorSaved && (
-                <span className="text-xs font-medium text-green-600">{tcr('saved')}</span>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Communities */}
       <div>

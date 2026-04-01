@@ -77,8 +77,8 @@ function articleToFeedItem(row: ArticleWithJoin & { author_name_override?: strin
   const override = (row as unknown as Record<string, unknown>).author_name_override as string | null;
   const author = m ? {
     id: m.id,
-    username: override || m.creator_display_name || m.username,
-    avatarUrl: override ? null : (m.creator_avatar_url || m.avatar_url),
+    username: override || m.username,
+    avatarUrl: override ? null : m.avatar_url,
     messageCount: m.message_count,
   } : { id: row.author_id, username: override || 'unknown', avatarUrl: null, messageCount: 0 };
 
@@ -107,8 +107,8 @@ function podcastToFeedItem(row: PodcastWithJoin): FeedPodcast {
   const m = row.members;
   const publisher = m ? {
     id: m.id,
-    username: m.creator_display_name || m.username,
-    avatarUrl: m.creator_avatar_url || m.avatar_url,
+    username: m.username,
+    avatarUrl: m.avatar_url,
     messageCount: m.message_count,
   } : null;
 
