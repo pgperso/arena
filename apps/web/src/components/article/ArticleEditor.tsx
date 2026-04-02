@@ -60,6 +60,7 @@ export function ArticleEditor({
   const [showConfirm, setShowConfirm] = useState(false);
   const [showAiPanel, setShowAiPanel] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
+  const [aiInstructions, setAiInstructions] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
   const supabase = useSupabase();
   const { coverPreview, coverPositionY, setCoverPositionY, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
@@ -119,7 +120,7 @@ export function ArticleEditor({
       const res = await fetch('/api/articles/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: aiTopic.trim(), communityName }),
+        body: JSON.stringify({ topic: aiTopic.trim(), communityName, instructions: aiInstructions.trim() || undefined }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -279,6 +280,14 @@ export function ArticleEditor({
                   {aiGenerating ? 'Génération...' : 'Générer'}
                 </button>
               </div>
+              <textarea
+                value={aiInstructions}
+                onChange={(e) => setAiInstructions(e.target.value)}
+                placeholder="Instructions optionnelles : ton plus sarcastique, focus sur les échanges, parle des chances en séries, régénère avec plus d'opinion..."
+                className="mt-2 w-full rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none"
+                rows={2}
+                disabled={aiGenerating}
+              />
               <p className="mt-2 text-xs text-purple-400">
                 L'IA va chercher les nouvelles récentes et écrire un brouillon éditorial. Tu pourras le modifier avant de publier.
               </p>

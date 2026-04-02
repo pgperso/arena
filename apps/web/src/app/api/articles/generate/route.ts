@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    const { topic, communityName } = await request.json();
+    const { topic, communityName, instructions } = await request.json();
     if (!topic || typeof topic !== 'string' || topic.trim().length < 2) {
       return NextResponse.json({ error: 'Sujet requis (min 2 caractères)' }, { status: 400 });
     }
@@ -53,7 +53,7 @@ RÈGLES :
 - PAS de balises <html>, <head>, <body>
 - À la fin de l'article, ajoute une section "Sources" avec les liens des nouvelles utilisées sous forme de liste HTML (<ul><li><a>)
 - Termine avec un paragraphe discret en italique : <p><em>Cet article a été rédigé avec l'assistance de l'intelligence artificielle et révisé par notre équipe éditoriale.</em></p>
-
+${instructions ? `\nINSTRUCTIONS SUPPLÉMENTAIRES DE L'AUTEUR :\n${instructions}\n` : ''}
 Réponds en JSON strict avec cette structure :
 {
   "title": "Titre accrocheur (max 200 caractères)",
