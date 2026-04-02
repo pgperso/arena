@@ -58,6 +58,9 @@ export function ArticleEditor({
   const [error, setError] = useState<string | null>(null);
   const [authorNameOverride, setAuthorNameOverride] = useState(existingArticle?.author_name_override ?? '');
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showAiPanel, setShowAiPanel] = useState(false);
+  const [aiTopic, setAiTopic] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
   const supabase = useSupabase();
   const { coverPreview, coverPositionY, setCoverPositionY, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
     supabase, selectedCommunityId, existingArticle?.cover_image_url ?? null, '', existingArticle?.cover_position_y ?? 50,
@@ -105,6 +108,38 @@ export function ArticleEditor({
   function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const err = onCoverChange(e);
     if (err) setError(err);
+  }
+
+  async function handleAiGenerate() {
+    if (!aiTopic.trim()) return;
+    setAiGenerating(true);
+    setError(null);
+    try {
+      const communityName = communities.find((c) => c.id === selectedCommunityId)?.name ?? communitySlug;
+      const res = await fetch('/api/articles/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: aiTopic.trim(), communityName }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? 'Erreur lors de la génération');
+        return;
+      }
+      // Pre-fill editor
+      if (data.title) {
+        setTitle(data.title);
+        if (!slugTouched) setCustomSlug(slugify(data.title).slice(0, 60));
+      }
+      if (data.excerpt) setExcerpt(data.excerpt);
+      if (data.body && editor) editor.commands.setContent(data.body);
+      setShowAiPanel(false);
+      setAiTopic('');
+    } catch {
+      setError('Erreur de connexion au service IA');
+    } finally {
+      setAiGenerating(false);
+    }
   }
 
   const handleSave = useCallback(async (publish: boolean) => {
@@ -199,6 +234,56 @@ export function ArticleEditor({
       {error && (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
+        </div>
+      )}
+
+      {/* AI Generation */}
+      {!isEditMode && (
+        <div className="mb-4">
+          {!showAiPanel ? (
+            <button
+              onClick={() => setShowAiPanel(true)}
+              className="flex items-center gap-2 rounded-lg border border-purple-200 bg-purple-50 dark:bg-purple-950 dark:border-purple-800 px-4 py-2.5 text-sm font-medium text-purple-700 dark:text-purple-300 transition hover:bg-purple-100 dark:hover:bg-purple-900"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456Z" />
+              </svg>
+              Générer avec l'IA
+            </button>
+          ) : (
+            <div className="rounded-lg border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950 p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Génération par IA</p>
+                <button
+                  onClick={() => { setShowAiPanel(false); setAiTopic(''); }}
+                  className="text-xs text-purple-400 hover:text-purple-600"
+                >
+                  Fermer
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={aiTopic}
+                  onChange={(e) => setAiTopic(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !aiGenerating) handleAiGenerate(); }}
+                  placeholder="Ex: Tiger Woods Masters 2026, Canadiens séries..."
+                  className="flex-1 rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none"
+                  disabled={aiGenerating}
+                />
+                <button
+                  onClick={handleAiGenerate}
+                  disabled={aiGenerating || !aiTopic.trim()}
+                  className="shrink-0 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {aiGenerating ? 'Génération...' : 'Générer'}
+                </button>
+              </div>
+              <p className="mt-2 text-xs text-purple-400">
+                L'IA va chercher les nouvelles récentes et écrire un brouillon éditorial. Tu pourras le modifier avant de publier.
+              </p>
+            </div>
+          )}
         </div>
       )}
 

@@ -11,6 +11,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.82.0",
     "@arena/shared": "*",
     "@arena/supabase-client": "*",
     "@supabase/ssr": "^0.9.0",
