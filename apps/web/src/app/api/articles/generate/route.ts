@@ -3,13 +3,10 @@ import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@/lib/supabase/server';
 import { fetchRecentNews } from '@/lib/newsSearch';
 
-// In-memory rate limit: userId -> { count, resetAt }
+// ─── Rate Limiting ───
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 10;
 const RATE_WINDOW_MS = 60 * 60 * 1000;
-
-const MAX_TOPIC_LENGTH = 200;
-const MAX_INSTRUCTIONS_LENGTH = 500;
 
 function checkRateLimit(userId: string): { allowed: boolean; remaining: number } {
   const now = Date.now();
@@ -23,36 +20,89 @@ function checkRateLimit(userId: string): { allowed: boolean; remaining: number }
   return { allowed: true, remaining: RATE_LIMIT - entry.count };
 }
 
+// ─── Input Sanitization ───
+
+/** Strip characters that could break prompt structure */
 function sanitize(input: string, max: number): string {
-  return input.trim().slice(0, max);
+  return input
+    .trim()
+    .slice(0, max)
+    .replace(/[`]/g, "'"); // Remove backticks (markdown injection)
 }
 
-/** Extract text from Claude response */
+/** Escape input that goes into prompt to prevent injection */
+function escapeForPrompt(input: string): string {
+  return input
+    .replace(/\n/g, ' ')           // No newlines (prompt structure)
+    .replace(/["""]/g, '«»')       // Replace quotes
+    .replace(/\\/g, '')            // Remove backslashes
+    .slice(0, 500);
+}
+
+// ─── Helpers ───
+
 function extractText(message: Anthropic.Message): string {
   const block = message.content.find((b) => b.type === 'text');
   return block?.type === 'text' ? block.text.trim() : '';
 }
 
-/** Robustly extract JSON from text */
-function extractJson<T>(raw: string): T | null {
+interface ArticleJson {
+  title?: string;
+  excerpt?: string;
+  body?: string;
+}
+
+/** Robustly extract article JSON from text */
+function extractJson(raw: string): ArticleJson | null {
   let str = raw.trim();
   if (str.startsWith('```')) str = str.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
 
-  try { return JSON.parse(str); } catch { /* */ }
+  // Strategy 1: direct parse
+  try {
+    const parsed = JSON.parse(str);
+    if (parsed && typeof parsed.title === 'string') return parsed;
+  } catch { /* fall through */ }
 
-  const match = str.match(/\{[\s\S]*\}/);
+  // Strategy 2: extract first JSON object
+  const match = str.match(/\{[\s\S]*?\}"?\s*$/);
   if (match) {
-    try { return JSON.parse(match[0]); } catch { /* */ }
+    try {
+      const parsed = JSON.parse(match[0].replace(/"\s*$/, '"}')); // Fix truncated
+      if (parsed && typeof parsed.title === 'string') return parsed;
+    } catch { /* fall through */ }
   }
 
-  // Field-by-field extraction for article JSON
+  // Strategy 3: extract fields individually (non-greedy)
   const title = str.match(/"title"\s*:\s*"((?:[^"\\]|\\.)*)"/)?.[1]?.replace(/\\"/g, '"');
   const excerpt = str.match(/"excerpt"\s*:\s*"((?:[^"\\]|\\.)*)"/)?.[1]?.replace(/\\"/g, '"');
-  const bodyMatch = str.match(/"body"\s*:\s*"([\s\S]*)"\s*\}?\s*$/);
-  const body = bodyMatch?.[1]?.replace(/\\"/g, '"').replace(/\\n/g, '\n');
-  if (title && body) return { title, excerpt: excerpt ?? '', body } as T;
+
+  // For body, find "body":" then capture until the last "}
+  const bodyStart = str.indexOf('"body"');
+  if (bodyStart !== -1) {
+    const afterBody = str.slice(bodyStart);
+    const bodyContent = afterBody.match(/"body"\s*:\s*"([\s\S]*?)"\s*\}$/)?.[1];
+    if (bodyContent && title) {
+      return {
+        title,
+        excerpt: excerpt ?? '',
+        body: bodyContent.replace(/\\"/g, '"').replace(/\\n/g, '\n'),
+      };
+    }
+  }
 
   return null;
+}
+
+/** Deduplicate news by normalized title prefix */
+function deduplicateNews(items: string[]): string[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    // Normalize: lowercase, strip lang prefix, take first 80 chars
+    const key = item.replace(/^\[(FR|EN)\]\s*/i, '').toLowerCase().slice(0, 80);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 // ─── AGENT 1: RECHERCHISTE ───
@@ -61,7 +111,6 @@ async function agentResearch(
   topic: string,
   communityName: string,
 ): Promise<string> {
-  // Fetch news in both French and English
   const [newsFr, newsEn] = await Promise.all([
     fetchRecentNews(topic),
     fetchRecentNews(`${topic} latest news`),
@@ -76,24 +125,21 @@ async function agentResearch(
     ...(newsEn ?? []).map((n) => `[EN] ${n.title} (${n.pubDate}) — ${n.link}`),
   ];
 
-  // Deduplicate by title similarity
-  const unique = allNews.filter((item, i) =>
-    allNews.findIndex((other) => other.slice(5, 50) === item.slice(5, 50)) === i,
-  );
+  const unique = deduplicateNews(allNews).slice(0, 12);
 
-  const newsContext = unique.length > 0
-    ? unique.slice(0, 12).join('\n')
-    : `Aucune nouvelle trouvée. Sujet général : ${topic}`;
+  if (unique.length === 0) {
+    throw new Error('NO_NEWS');
+  }
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 1500,
     messages: [{
       role: 'user',
-      content: `Tu es un RECHERCHISTE sportif pour la tribune « ${communityName} ».
+      content: `Tu es un RECHERCHISTE sportif pour une tribune sur le sujet suivant : ${escapeForPrompt(communityName)}.
 
 Voici les nouvelles récentes (français et anglais) :
-${newsContext}
+${unique.join('\n')}
 
 MISSION :
 - Compile un dossier de recherche structuré en français
@@ -102,6 +148,7 @@ MISSION :
 - Identifie l'angle le plus intéressant pour un article d'opinion
 - Note les SOURCES avec leurs liens
 - Si une info est incertaine, marque-la comme « à vérifier »
+- N'invente AUCUN fait, citation ou statistique
 
 Format : texte structuré avec sections (Faits clés, Contexte, Angle suggéré, Sources)
 Ne fais PAS d'article, juste le dossier de recherche.`,
@@ -120,42 +167,43 @@ async function agentWrite(
   communityName: string,
   instructions: string,
 ): Promise<string> {
+  const escapedInstructions = instructions ? escapeForPrompt(instructions) : '';
+
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 2048,
+    max_tokens: 2500,
     messages: [{
       role: 'user',
-      content: `Tu es le RÉDACTEUR « ${authorName || 'chroniqueur'} » pour la tribune « ${communityName} ».
-${authorStyle ? `\nTon style : ${authorStyle}` : ''}
+      content: `Tu es le RÉDACTEUR ${authorName ? `« ${escapeForPrompt(authorName)} »` : ''} pour une tribune sur ${escapeForPrompt(communityName)}.
+${authorStyle ? `\nTon style éditorial : ${authorStyle}` : '\nTon style : chroniqueur sportif québécois engagé.'}
 
-Voici le dossier de recherche préparé par ton recherchiste :
+Voici le dossier de recherche :
 ---
 ${research}
 ---
 
 MISSION :
 - Écris un article d'OPINION original de 400-600 mots en français québécois
-- Adapte le ton et le style à ta personnalité d'auteur
-- Varie tes tournures de phrases (pas toujours les mêmes débuts de paragraphe)
+- Adapte le ton à ta personnalité d'auteur
+- Varie tes tournures (pas toujours les mêmes débuts de paragraphe)
 - Base-toi UNIQUEMENT sur les faits du dossier, n'invente RIEN
 - Si un fait est marqué « à vérifier », ne l'inclus pas
-- Utilise des guillemets français « » jamais des guillemets doubles "
+- Utilise des guillemets français « » jamais des guillemets doubles
 - HTML : <p>, <h2>, <h3>, <strong>, <em>, <ul>, <li>, <blockquote>
 - PAS de <h1>, pas de <html>/<head>/<body>
-- Ajoute les sources en fin d'article : <h3>Sources</h3><ul><li><a href="...">...</a></li></ul>
+- Ajoute les sources en fin d'article : <h3>Sources</h3><ul><li><a href="lien">titre</a></li></ul>
 - Termine par : <p><em>Cet article a été rédigé avec l'assistance de l'intelligence artificielle et révisé par notre équipe éditoriale.</em></p>
-${instructions ? `\nINSTRUCTIONS DE L'AUTEUR : ${instructions}` : ''}
+${escapedInstructions ? `\nConsigne supplémentaire de style : ${escapedInstructions}` : ''}
 
-Réponds UNIQUEMENT en JSON valide :
-{"title":"Titre accrocheur max 200 car","excerpt":"Résumé SEO 120-155 car","body":"<p>HTML ici</p>"}
-Utilise « » pas " dans le texte.`,
+Réponds UNIQUEMENT en JSON valide, rien d'autre :
+{"title":"Titre accrocheur max 200 car","excerpt":"Résumé SEO 120-155 car","body":"<p>HTML ici</p>"}`,
     }],
   });
 
   return extractText(message);
 }
 
-// ─── AGENT 3: VERIFICATEUR ANTI-PLAGIAT ───
+// ─── AGENT 3: VERIFICATEUR ───
 async function agentVerify(
   client: Anthropic,
   articleJson: string,
@@ -163,7 +211,7 @@ async function agentVerify(
 ): Promise<string> {
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 2048,
+    max_tokens: 2500,
     messages: [{
       role: 'user',
       content: `Tu es un VÉRIFICATEUR anti-plagiat et qualité.
@@ -171,19 +219,18 @@ async function agentVerify(
 ARTICLE SOUMIS :
 ${articleJson}
 
-DOSSIER DE RECHERCHE ORIGINAL :
+DOSSIER DE RECHERCHE :
 ${research}
 
 MISSION :
-1. PLAGIAT : Vérifie qu'aucune phrase n'est copiée mot pour mot des sources. Si oui, reformule.
-2. FAITS : Vérifie que l'article ne contient aucun fait inventé absent du dossier. Si oui, retire-le.
-3. STYLE : Vérifie que le ton est cohérent du début à la fin. Corrige les incohérences.
-4. QUALITÉ : Améliore les transitions, supprime les répétitions, renforce les punchlines.
-5. JSON : Assure-toi que le JSON est VALIDE (guillemets échappés, pas de retour à la ligne non-échappé dans les strings).
+1. PLAGIAT : Aucune phrase ne doit être copiée mot pour mot des sources. Reformule si nécessaire.
+2. FAITS : Retire tout fait absent du dossier de recherche. Aucune invention.
+3. STYLE : Le ton doit être cohérent du début à la fin.
+4. QUALITÉ : Améliore les transitions, supprime les répétitions.
+5. JSON : Le JSON retourné doit être VALIDE. Utilise « » pas des guillemets doubles dans le texte.
 
-Retourne l'article corrigé en JSON VALIDE strict :
+Retourne l'article corrigé en JSON strict :
 {"title":"...","excerpt":"...","body":"<p>...</p>"}
-Utilise « » pas " dans le texte. Échappe les guillemets dans le HTML.
 Réponds UNIQUEMENT avec le JSON.`,
     }],
   });
@@ -191,7 +238,7 @@ Réponds UNIQUEMENT avec le JSON.`,
   return extractText(message);
 }
 
-// ─── AGENT 4: EDITEUR DE STYLE ───
+// ─── AGENT 4: EDITEUR ───
 async function agentPolish(
   client: Anthropic,
   articleJson: string,
@@ -200,26 +247,26 @@ async function agentPolish(
 ): Promise<string> {
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 2048,
+    max_tokens: 2500,
     messages: [{
       role: 'user',
-      content: `Tu es l'ÉDITEUR EN CHEF. Tu fais la passe finale.
+      content: `Tu es l'ÉDITEUR EN CHEF. Passe finale.
 
 ARTICLE :
 ${articleJson}
 
-AUTEUR : ${authorName || 'chroniqueur'}
-STYLE ATTENDU : ${authorStyle || 'éditorial sportif québécois'}
+AUTEUR : ${escapeForPrompt(authorName || 'chroniqueur')}
+STYLE : ${authorStyle || 'éditorial sportif québécois'}
 
-MISSION FINALE :
-1. Le titre est-il vraiment accrocheur ? Si non, améliore-le.
-2. L'excerpt SEO fait-il 120-155 caractères ? Ajuste si nécessaire.
-3. L'ouverture accroche-t-elle dès la première phrase ? Renforce si faible.
-4. La conclusion est-elle mémorable ? Améliore si plate.
-5. Le vocabulaire est-il varié ? Remplace les mots répétés.
-6. Le HTML est-il propre ? (pas de balises vides, pas de <br> inutiles)
+MISSION :
+1. Le titre est-il accrocheur et < 200 caractères ? Améliore si nécessaire.
+2. L'excerpt SEO fait-il 120-155 caractères ? Ajuste.
+3. L'ouverture accroche dès la première phrase ? Renforce si faible.
+4. La conclusion est mémorable ? Améliore si plate.
+5. Le vocabulaire est varié ? Remplace les mots répétés.
+6. Le HTML est propre ? Pas de balises vides.
 
-Retourne l'article FINAL en JSON VALIDE strict :
+Retourne l'article FINAL en JSON strict :
 {"title":"...","excerpt":"...","body":"<p>...</p>"}
 Utilise « » pas " dans le texte.
 Réponds UNIQUEMENT avec le JSON.`,
@@ -248,9 +295,9 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const topic = sanitize(body.topic ?? '', MAX_TOPIC_LENGTH);
-    const instructions = sanitize(body.instructions ?? '', MAX_INSTRUCTIONS_LENGTH);
-    const communityName = sanitize(body.communityName ?? '', 100);
+    const topic = sanitize(body.topic ?? '', 200);
+    const instructions = sanitize(body.instructions ?? '', 500);
+    const communityName = sanitize(body.communityName ?? 'Sport', 100);
     const authorStyle = typeof body.authorStyle === 'string' ? body.authorStyle.slice(0, 500) : '';
     const authorName = sanitize(body.authorName ?? '', 100);
 
@@ -265,33 +312,31 @@ export async function POST(request: Request) {
 
     const client = new Anthropic({ apiKey });
 
-    // Agent 1: Recherchiste — compile les faits FR + EN
+    // Agent 1: Recherchiste
     let research: string;
     try {
       research = await agentResearch(client, topic, communityName);
     } catch (err) {
       if (err instanceof Error && err.message === 'SERVICE_UNAVAILABLE') {
-        return NextResponse.json(
-          { error: 'Service de nouvelles indisponible. Réessayez.' },
-          { status: 503 },
-        );
+        return NextResponse.json({ error: 'Service de nouvelles indisponible.' }, { status: 503 });
+      }
+      if (err instanceof Error && err.message === 'NO_NEWS') {
+        return NextResponse.json({ error: 'Aucune nouvelle trouvée pour ce sujet.' }, { status: 404 });
       }
       throw err;
     }
 
-    // Agent 2: Rédacteur — écrit l'article dans le style de l'auteur
+    // Agent 2: Rédacteur
     const draft = await agentWrite(client, research, authorName, authorStyle, communityName, instructions);
 
-    // Agent 3: Vérificateur — anti-plagiat + faits
+    // Agent 3: Vérificateur
     const verified = await agentVerify(client, draft, research);
 
-    // Agent 4: Éditeur — polish final (titre, style, SEO)
+    // Agent 4: Éditeur
     const polished = await agentPolish(client, verified, authorName, authorStyle);
 
-    // Parse final result
-    const parsed = extractJson<{ title?: string; excerpt?: string; body?: string }>(polished)
-      ?? extractJson<{ title?: string; excerpt?: string; body?: string }>(verified)
-      ?? extractJson<{ title?: string; excerpt?: string; body?: string }>(draft);
+    // Parse — try each agent's output from best to worst
+    const parsed = extractJson(polished) ?? extractJson(verified) ?? extractJson(draft);
 
     if (!parsed || !parsed.title || !parsed.body) {
       return NextResponse.json({ error: 'Génération échouée. Réessayez.' }, { status: 500 });

@@ -64,6 +64,7 @@ export function ArticleEditor({
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiSuggesting, setAiSuggesting] = useState(false);
   const [aiTopics, setAiTopics] = useState<{ title: string; description: string; topic: string }[]>([]);
+  const aiAbortRef = useRef<AbortController | null>(null);
   const supabase = useSupabase();
   const { coverPreview, coverPositionY, setCoverPositionY, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
     supabase, selectedCommunityId, existingArticle?.cover_image_url ?? null, '', existingArticle?.cover_position_y ?? 50,
@@ -137,18 +138,30 @@ export function ArticleEditor({
     }
   }
 
+  function handleCancelAi() {
+    aiAbortRef.current?.abort();
+    aiAbortRef.current = null;
+    setAiGenerating(false);
+    setAiSuggesting(false);
+  }
+
   async function handleSelectTopicAndGenerate(selectedTopic: string) {
+    if (aiGenerating) return; // Prevent double-click
     setAiTopic(selectedTopic);
     setAiTopics([]);
-    // Trigger generation with the selected topic
     setAiGenerating(true);
     setError(null);
+
+    const controller = new AbortController();
+    aiAbortRef.current = controller;
+
     try {
       const communityName = communities.find((c) => c.id === selectedCommunityId)?.name ?? communitySlug;
       const authorData = authorNameOverride ? getContentAuthor(authorNameOverride) : null;
       const res = await fetch('/api/articles/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           topic: selectedTopic.slice(0, 200),
           communityName,
@@ -161,6 +174,7 @@ export function ArticleEditor({
       if (!res.ok) {
         if (res.status === 429) setError('Limite atteinte (10/heure). Réessayez plus tard.');
         else if (res.status === 503) setError('Service indisponible. Réessayez.');
+        else if (res.status === 404) setError('Aucune nouvelle trouvée pour ce sujet.');
         else setError(data.error ?? 'Erreur lors de la génération');
         return;
       }
@@ -172,10 +186,12 @@ export function ArticleEditor({
       if (data.body && editor) editor.commands.setContent(data.body);
       setShowAiPanel(false);
       setAiTopic('');
-    } catch {
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return; // User cancelled
       setError('Erreur réseau. Vérifiez votre connexion.');
     } finally {
       setAiGenerating(false);
+      aiAbortRef.current = null;
     }
   }
 
@@ -462,6 +478,12 @@ export function ArticleEditor({
                     <p>4. Éditeur : polish final</p>
                   </div>
                   <p className="text-center text-xs text-purple-300">~15-20 secondes</p>
+                  <button
+                    onClick={handleCancelAi}
+                    className="mx-auto block rounded-lg border border-purple-300 dark:border-purple-700 px-4 py-1.5 text-xs text-purple-500 transition hover:bg-purple-100 dark:hover:bg-purple-900"
+                  >
+                    Annuler
+                  </button>
                 </div>
               )}
 
