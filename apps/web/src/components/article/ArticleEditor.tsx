@@ -62,6 +62,8 @@ export function ArticleEditor({
   const [aiTopic, setAiTopic] = useState('');
   const [aiInstructions, setAiInstructions] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiSuggesting, setAiSuggesting] = useState(false);
+  const [aiTopics, setAiTopics] = useState<{ title: string; description: string; topic: string }[]>([]);
   const supabase = useSupabase();
   const { coverPreview, coverPositionY, setCoverPositionY, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
     supabase, selectedCommunityId, existingArticle?.cover_image_url ?? null, '', existingArticle?.cover_position_y ?? 50,
@@ -109,6 +111,72 @@ export function ArticleEditor({
   function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const err = onCoverChange(e);
     if (err) setError(err);
+  }
+
+  async function handleSuggestTopics() {
+    setAiSuggesting(true);
+    setError(null);
+    setAiTopics([]);
+    try {
+      const communityName = communities.find((c) => c.id === selectedCommunityId)?.name ?? communitySlug;
+      const res = await fetch('/api/articles/suggest-topics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ communityName }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? 'Erreur lors de la recherche de sujets');
+        return;
+      }
+      setAiTopics(data.topics ?? []);
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion.');
+    } finally {
+      setAiSuggesting(false);
+    }
+  }
+
+  async function handleSelectTopicAndGenerate(selectedTopic: string) {
+    setAiTopic(selectedTopic);
+    setAiTopics([]);
+    // Trigger generation with the selected topic
+    setAiGenerating(true);
+    setError(null);
+    try {
+      const communityName = communities.find((c) => c.id === selectedCommunityId)?.name ?? communitySlug;
+      const authorData = authorNameOverride ? getContentAuthor(authorNameOverride) : null;
+      const res = await fetch('/api/articles/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: selectedTopic.slice(0, 200),
+          communityName,
+          authorStyle: authorData?.style || undefined,
+          authorName: authorData?.name || undefined,
+          instructions: aiInstructions.trim().slice(0, 500) || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 429) setError('Limite atteinte (10/heure). Réessayez plus tard.');
+        else if (res.status === 503) setError('Service indisponible. Réessayez.');
+        else setError(data.error ?? 'Erreur lors de la génération');
+        return;
+      }
+      if (data.title) {
+        setTitle(data.title);
+        if (!slugTouched) setCustomSlug(slugify(data.title).slice(0, 60));
+      }
+      if (data.excerpt) setExcerpt(data.excerpt);
+      if (data.body && editor) editor.commands.setContent(data.body);
+      setShowAiPanel(false);
+      setAiTopic('');
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion.');
+    } finally {
+      setAiGenerating(false);
+    }
   }
 
   async function handleAiGenerate() {
@@ -324,46 +392,91 @@ export function ArticleEditor({
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Génération par IA</p>
                 <button
-                  onClick={() => { setShowAiPanel(false); setAiTopic(''); }}
+                  onClick={() => { setShowAiPanel(false); setAiTopic(''); setAiTopics([]); }}
                   className="text-xs text-purple-400 hover:text-purple-600"
                 >
                   Fermer
                 </button>
               </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={aiTopic}
-                  onChange={(e) => setAiTopic(e.target.value.slice(0, 200))}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !aiGenerating) handleAiGenerate(); }}
-                  placeholder="Ex: Tiger Woods Masters 2026, Canadiens séries..."
-                  className="flex-1 rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none"
-                  maxLength={200}
-                  disabled={aiGenerating}
-                />
-                <button
-                  onClick={handleAiGenerate}
-                  disabled={aiGenerating || !aiTopic.trim()}
-                  className="shrink-0 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-700 disabled:opacity-50"
-                >
-                  {aiGenerating ? 'Génération...' : 'Générer'}
-                </button>
-              </div>
+
+              {/* Instructions optionnelles */}
               <textarea
                 value={aiInstructions}
                 onChange={(e) => setAiInstructions(e.target.value.slice(0, 500))}
-                placeholder="Instructions optionnelles : ton plus sarcastique, focus sur les échanges, parle des chances en séries, régénère avec plus d'opinion..."
-                className="mt-2 w-full rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none"
+                placeholder="Instructions optionnelles : ton plus sarcastique, focus sur les échanges, parle des chances en séries..."
+                className="mb-3 w-full rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none"
                 rows={2}
                 maxLength={500}
-                disabled={aiGenerating}
+                disabled={aiSuggesting || aiGenerating}
               />
-              <p className="mt-2 text-xs text-purple-400">
-                {aiGenerating
-                  ? 'Recherche de nouvelles et génération en cours...'
-                  : "L'IA va chercher les nouvelles récentes et écrire un brouillon éditorial. Tu pourras le modifier avant de publier."
-                }
-              </p>
+
+              {/* Bouton trouver des sujets */}
+              {aiTopics.length === 0 && !aiGenerating && (
+                <button
+                  onClick={handleSuggestTopics}
+                  disabled={aiSuggesting}
+                  className="w-full rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {aiSuggesting ? 'Recherche de sujets...' : 'Trouver des sujets'}
+                </button>
+              )}
+
+              {/* Liste des sujets suggeres */}
+              {aiTopics.length > 0 && !aiGenerating && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-purple-600 dark:text-purple-400">Choisissez un sujet :</p>
+                  {aiTopics.map((t, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSelectTopicAndGenerate(t.topic)}
+                      className="w-full rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] p-3 text-left transition hover:border-purple-400 hover:shadow-sm"
+                    >
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t.title}</p>
+                      <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{t.description}</p>
+                    </button>
+                  ))}
+                  <button
+                    onClick={handleSuggestTopics}
+                    disabled={aiSuggesting}
+                    className="w-full rounded-lg border border-purple-200 dark:border-purple-700 px-3 py-2 text-xs text-purple-500 transition hover:bg-purple-100 dark:hover:bg-purple-900 disabled:opacity-50"
+                  >
+                    {aiSuggesting ? 'Recherche...' : 'Chercher d\'autres sujets'}
+                  </button>
+                </div>
+              )}
+
+              {/* Generation en cours */}
+              {aiGenerating && (
+                <div className="flex items-center justify-center gap-2 py-4 text-sm text-purple-600 dark:text-purple-400">
+                  <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Rédaction de l'article en cours...
+                </div>
+              )}
+
+              {/* Champ sujet manuel (fallback) */}
+              {aiTopics.length === 0 && !aiSuggesting && !aiGenerating && (
+                <div className="mt-3 flex gap-2">
+                  <input
+                    type="text"
+                    value={aiTopic}
+                    onChange={(e) => setAiTopic(e.target.value.slice(0, 200))}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !aiGenerating) handleAiGenerate(); }}
+                    placeholder="Ou entrez un sujet manuellement..."
+                    className="flex-1 rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-xs text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none"
+                    maxLength={200}
+                  />
+                  <button
+                    onClick={handleAiGenerate}
+                    disabled={!aiTopic.trim()}
+                    className="shrink-0 rounded-lg bg-purple-500 px-3 py-2 text-xs font-medium text-white transition hover:bg-purple-600 disabled:opacity-50"
+                  >
+                    Générer
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
