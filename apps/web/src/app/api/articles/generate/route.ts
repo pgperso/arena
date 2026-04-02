@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    const { topic, communityName, instructions } = await request.json();
+    const { topic, communityName, authorStyle, authorName, instructions } = await request.json();
     if (!topic || typeof topic !== 'string' || topic.trim().length < 2) {
       return NextResponse.json({ error: 'Sujet requis (min 2 caractères)' }, { status: 400 });
     }
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
         {
           role: 'user',
           content: `Tu es un chroniqueur sportif québécois pour la tribune "${communityName || 'sportive'}".
+${authorStyle ? `\nTu écris sous le pseudonyme "${authorName}". Ton style : ${authorStyle}\nAdapte TOUT l'article à ce style et cette personnalité.\n` : ''}
 Écris un article d'opinion original basé sur ces nouvelles récentes :
 
 ${newsContext}

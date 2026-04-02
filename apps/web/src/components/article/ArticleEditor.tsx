@@ -10,10 +10,10 @@ import { useSupabase } from '@/hooks/useSupabase';
 import { useCoverUpload } from '@/hooks/useCoverUpload';
 import { createArticle, updateArticle } from '@/services/articleService';
 import { slugify } from '@/lib/slugify';
-import { CONTENT_AUTHORS as AUTHORS } from '@/lib/contentAuthors';
+import { CONTENT_AUTHORS as AUTHORS, getContentAuthor } from '@/lib/contentAuthors';
 
 const AUTHOR_OPTIONS = [
-  { name: 'Mon profil', initials: '✓', color: '#0B4870' },
+  { name: 'Mon profil', initials: '✓', color: '#0B4870', style: '' },
   ...AUTHORS,
 ];
 
@@ -117,10 +117,17 @@ export function ArticleEditor({
     setError(null);
     try {
       const communityName = communities.find((c) => c.id === selectedCommunityId)?.name ?? communitySlug;
+      const authorData = authorNameOverride ? getContentAuthor(authorNameOverride) : null;
       const res = await fetch('/api/articles/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: aiTopic.trim(), communityName, instructions: aiInstructions.trim() || undefined }),
+        body: JSON.stringify({
+          topic: aiTopic.trim(),
+          communityName,
+          authorStyle: authorData?.style || undefined,
+          authorName: authorData?.name || undefined,
+          instructions: aiInstructions.trim() || undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -238,7 +245,55 @@ export function ArticleEditor({
         </div>
       )}
 
-      {/* AI Generation */}
+      {/* Step 1: Tribune selector */}
+      {!isEditMode && communities.length > 1 && (
+        <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-3 py-3">
+          <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">1. Publier dans :</p>
+          <select
+            value={selectedCommunityId}
+            onChange={(e) => {
+              const id = Number(e.target.value);
+              setSelectedCommunityId(id);
+              const comm = communities.find((c) => c.id === id);
+              if (comm) setSelectedCommunitySlug(comm.slug);
+            }}
+            className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+          >
+            {communities.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Step 2: Author selector */}
+      <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-3 py-3">
+        <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">{!isEditMode && communities.length > 1 ? '2.' : '1.'} Publier en tant que :</p>
+        <div className="flex flex-wrap gap-2">
+          {AUTHOR_OPTIONS.map((author) => (
+            <button
+              key={author.name}
+              type="button"
+              onClick={() => setAuthorNameOverride(author.name === 'Mon profil' ? '' : author.name)}
+              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
+                (authorNameOverride === '' && author.name === 'Mon profil') || authorNameOverride === author.name
+                  ? 'border-brand-blue bg-brand-blue/5 font-medium text-brand-blue'
+                  : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:border-gray-600 hover:bg-white dark:bg-[#1e1e1e]'
+              }`}
+            >
+              <span
+                className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                style={{ backgroundColor: author.color }}
+              >
+                {author.initials}
+              </span>
+              {author.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Step 3: AI Generation */}
       {!isEditMode && (
         <div className="mb-4">
           {!showAiPanel ? (
@@ -418,27 +473,6 @@ export function ArticleEditor({
         </div>
       </div>
 
-      {/* Tribune selector (new articles only — can't change after publish) */}
-      {!isEditMode && communities.length > 1 && (
-        <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-3 py-3">
-          <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">Publier dans :</p>
-          <select
-            value={selectedCommunityId}
-            onChange={(e) => {
-              const id = Number(e.target.value);
-              setSelectedCommunityId(id);
-              const comm = communities.find((c) => c.id === id);
-              if (comm) setSelectedCommunitySlug(comm.slug);
-            }}
-            className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-          >
-            {communities.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </div>
-      )}
-
       {/* Excerpt — critical for SEO (meta description) */}
       <div className="mb-4">
         <div className="flex items-center justify-between">
@@ -455,33 +489,6 @@ export function ArticleEditor({
           className="mt-1 w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-300 dark:placeholder-gray-600 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
           maxLength={200}
         />
-      </div>
-
-      {/* Publish as selector */}
-      <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-3 py-3">
-        <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">Publier en tant que :</p>
-        <div className="flex flex-wrap gap-2">
-          {AUTHOR_OPTIONS.map((author) => (
-            <button
-              key={author.name}
-              type="button"
-              onClick={() => setAuthorNameOverride(author.name === 'Mon profil' ? '' : author.name)}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                (authorNameOverride === '' && author.name === 'Mon profil') || authorNameOverride === author.name
-                  ? 'border-brand-blue bg-brand-blue/5 font-medium text-brand-blue'
-                  : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:border-gray-600 hover:bg-white dark:bg-[#1e1e1e]'
-              }`}
-            >
-              <span
-                className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                style={{ backgroundColor: author.color }}
-              >
-                {author.initials}
-              </span>
-              {author.name}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Toolbar */}
