@@ -191,8 +191,8 @@ MISSION :
 - Utilise des guillemets français « » jamais des guillemets doubles
 - HTML : <p>, <h2>, <h3>, <strong>, <em>, <ul>, <li>, <blockquote>
 - PAS de <h1>, pas de <html>/<head>/<body>
-- Ajoute les sources en fin d'article : <h3>Sources</h3><ul><li><a href="lien">titre</a></li></ul>
-- Termine par : <p><em>Cet article a été rédigé avec l'assistance de l'intelligence artificielle et révisé par notre équipe éditoriale.</em></p>
+- NE PAS ajouter de section sources ni de mention IA à la fin de l'article
+- L'article doit se terminer naturellement par une conclusion éditoriale forte
 ${escapedInstructions ? `\nConsigne supplémentaire de style : ${escapedInstructions}` : ''}
 
 Réponds UNIQUEMENT en JSON valide, rien d'autre :
