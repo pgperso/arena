@@ -189,6 +189,7 @@ MISSION :
 - Base-toi UNIQUEMENT sur les faits du dossier, n'invente RIEN
 - Si un fait est marqué « à vérifier », ne l'inclus pas
 - Utilise des guillemets français « » jamais des guillemets doubles
+- N'utilise JAMAIS le tiret cadratin (—) ni le tiret demi-cadratin (–). Utilise uniquement le tiret court (-) ou reformule la phrase
 - HTML : <p>, <h2>, <h3>, <strong>, <em>, <ul>, <li>, <blockquote>
 - PAS de <h1>, pas de <html>/<head>/<body>
 - NE PAS ajouter de section sources ni de mention IA à la fin de l'article
@@ -342,8 +343,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Génération échouée. Réessayez.' }, { status: 500 });
     }
 
+    // Strip em dashes and en dashes that AI loves to use
+    const cleanBody = parsed.body.replace(/[—–]/g, '-');
+    const cleanTitle = parsed.title.replace(/[—–]/g, '-');
+    const cleanExcerpt = (parsed.excerpt ?? '').replace(/[—–]/g, '-');
+
     return NextResponse.json(
-      { title: parsed.title, excerpt: parsed.excerpt ?? '', body: parsed.body },
+      { title: cleanTitle, excerpt: cleanExcerpt, body: cleanBody },
       { headers: { 'X-RateLimit-Remaining': String(remaining) } },
     );
   } catch (err) {
