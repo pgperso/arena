@@ -447,12 +447,21 @@ export function ArticleEditor({
 
               {/* Generation en cours */}
               {aiGenerating && (
-                <div className="flex items-center justify-center gap-2 py-4 text-sm text-purple-600 dark:text-purple-400">
-                  <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Rédaction de l'article en cours...
+                <div className="space-y-2 py-4">
+                  <div className="flex items-center justify-center gap-2 text-sm text-purple-600 dark:text-purple-400">
+                    <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Génération en cours...
+                  </div>
+                  <div className="space-y-1 text-center text-xs text-purple-400">
+                    <p>1. Recherchiste : collecte des nouvelles FR + EN</p>
+                    <p>2. Rédacteur : écriture dans le style de l'auteur</p>
+                    <p>3. Vérificateur : anti-plagiat et faits</p>
+                    <p>4. Éditeur : polish final</p>
+                  </div>
+                  <p className="text-center text-xs text-purple-300">~15-20 secondes</p>
                 </div>
               )}
 
