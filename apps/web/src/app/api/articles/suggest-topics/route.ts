@@ -67,16 +67,38 @@ N'utilise PAS de guillemets doubles dans le texte, utilise « » à la place.`,
       str = str.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
     }
 
-    // Extract array
-    const arrMatch = str.match(/\[[\s\S]*\]/);
-    if (!arrMatch) {
-      return NextResponse.json({ error: 'Format invalide. Réessayez.' }, { status: 500 });
+    // Extract array — try multiple strategies
+    let topics: { title: string; description: string; topic: string }[] = [];
+
+    // Strategy 1: direct parse
+    try {
+      topics = JSON.parse(str);
+    } catch { /* fall through */ }
+
+    // Strategy 2: extract array with regex
+    if (!Array.isArray(topics) || topics.length === 0) {
+      const arrMatch = str.match(/\[[\s\S]*\]/);
+      if (arrMatch) {
+        try {
+          topics = JSON.parse(arrMatch[0]);
+        } catch { /* fall through */ }
+      }
     }
 
-    let topics: { title: string; description: string; topic: string }[];
-    try {
-      topics = JSON.parse(arrMatch[0]);
-    } catch {
+    // Strategy 3: extract individual objects
+    if (!Array.isArray(topics) || topics.length === 0) {
+      const objRegex = /\{[^{}]*"title"[^{}]*\}/g;
+      let objMatch;
+      const extracted: typeof topics = [];
+      while ((objMatch = objRegex.exec(str)) !== null) {
+        try {
+          extracted.push(JSON.parse(objMatch[0]));
+        } catch { /* skip malformed */ }
+      }
+      if (extracted.length > 0) topics = extracted;
+    }
+
+    if (!Array.isArray(topics) || topics.length === 0) {
       return NextResponse.json({ error: 'Format invalide. Réessayez.' }, { status: 500 });
     }
 
