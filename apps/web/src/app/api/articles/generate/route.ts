@@ -11,6 +11,41 @@ const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const MAX_TOPIC_LENGTH = 200;
 const MAX_INSTRUCTIONS_LENGTH = 500;
 
+/** Robustly extract JSON from Claude's response, handling code blocks and broken quotes */
+function extractJson(raw: string): { title?: string; excerpt?: string; body?: string } | null {
+  let str = raw.trim();
+
+  // Strip markdown code blocks
+  if (str.startsWith('```')) {
+    str = str.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+  }
+
+  // Try direct parse first
+  try {
+    return JSON.parse(str);
+  } catch { /* fall through */ }
+
+  // Try extracting JSON object with regex (handles text before/after)
+  const match = str.match(/\{[\s\S]*\}/);
+  if (match) {
+    try {
+      return JSON.parse(match[0]);
+    } catch { /* fall through */ }
+  }
+
+  // Last resort: extract fields manually with regex
+  const title = str.match(/"title"\s*:\s*"((?:[^"\\]|\\.)*)"/)?.[1]?.replace(/\\"/g, '"');
+  const excerpt = str.match(/"excerpt"\s*:\s*"((?:[^"\\]|\\.)*)"/)?.[1]?.replace(/\\"/g, '"');
+  const bodyMatch = str.match(/"body"\s*:\s*"([\s\S]*)"\s*\}?\s*$/);
+  const body = bodyMatch?.[1]?.replace(/\\"/g, '"').replace(/\\n/g, '\n');
+
+  if (title && body) {
+    return { title, excerpt: excerpt ?? '', body };
+  }
+
+  return null;
+}
+
 function checkRateLimit(userId: string): { allowed: boolean; remaining: number } {
   const now = Date.now();
   const entry = rateLimitMap.get(userId);
@@ -106,14 +141,12 @@ RÈGLES :
 - À la fin de l'article, ajoute une section "Sources" avec les liens des nouvelles utilisées sous forme de liste HTML (<ul><li><a>)
 - Termine avec un paragraphe discret en italique : <p><em>Cet article a été rédigé avec l'assistance de l'intelligence artificielle et révisé par notre équipe éditoriale.</em></p>
 ${instructions ? `\nINSTRUCTIONS SUPPLÉMENTAIRES :\n${instructions}\n` : ''}
-Réponds en JSON strict avec cette structure :
-{
-  "title": "Titre accrocheur (max 200 caractères)",
-  "excerpt": "Résumé SEO (120-155 caractères, pas de guillemets doubles)",
-  "body": "<p>Contenu HTML ici...</p>"
-}
-
-Réponds UNIQUEMENT avec le JSON, rien d'autre.`,
+IMPORTANT pour le format JSON :
+- Réponds UNIQUEMENT avec du JSON valide, rien d'autre
+- Échappe les guillemets doubles dans le HTML avec \\"
+- N'utilise PAS de guillemets doubles dans le texte, utilise des guillemets français « » à la place
+- Structure :
+{"title":"Titre accrocheur","excerpt":"Résumé SEO 120-155 car","body":"<p>Contenu HTML...</p>"}`,
         },
       ],
     });
@@ -124,21 +157,10 @@ Réponds UNIQUEMENT avec le JSON, rien d'autre.`,
       return NextResponse.json({ error: 'Réponse IA invalide' }, { status: 500 });
     }
 
-    // Parse JSON from response (handle potential markdown code blocks)
-    let jsonStr = textBlock.text.trim();
-    if (jsonStr.startsWith('```')) {
-      jsonStr = jsonStr.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
-    }
-
-    let parsed: { title?: string; excerpt?: string; body?: string };
-    try {
-      parsed = JSON.parse(jsonStr);
-    } catch {
+    // Parse JSON — robust extraction
+    const parsed = extractJson(textBlock.text);
+    if (!parsed || !parsed.title || !parsed.body) {
       return NextResponse.json({ error: 'Format de réponse IA invalide. Réessayez.' }, { status: 500 });
-    }
-
-    if (!parsed.title || !parsed.body) {
-      return NextResponse.json({ error: 'Contenu généré incomplet. Réessayez.' }, { status: 500 });
     }
 
     return NextResponse.json(
