@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     // Fetch recent news
     const news = await fetchRecentNews(topic.trim());
     const newsContext = news.length > 0
-      ? news.map((n, i) => `${i + 1}. ${n.title} (${n.pubDate})`).join('\n')
+      ? news.map((n, i) => `${i + 1}. ${n.title} (${n.pubDate}) — ${n.link}`).join('\n')
       : `Aucune nouvelle trouvée. Écris un article général sur : ${topic}`;
 
     // Call Claude Haiku
@@ -45,11 +45,14 @@ ${newsContext}
 RÈGLES :
 - Écris en français québécois naturel, ton éditorial/chronique (pas un article encyclopédique)
 - Ne copie JAMAIS mot pour mot les titres ou le contenu des sources
+- N'INVENTE JAMAIS de citations, statistiques, scores ou faits précis que tu ne peux pas confirmer à partir des titres fournis. Si tu n'es pas certain d'un fait, ne l'inclus pas ou précise que c'est à vérifier.
 - Donne ton opinion, analyse, mets du contexte
 - 400-600 mots
 - HTML compatible TipTap : utilise <p>, <h2>, <h3>, <strong>, <em>, <ul>, <li>, <blockquote>
 - PAS de <h1> (le titre est séparé)
 - PAS de balises <html>, <head>, <body>
+- À la fin de l'article, ajoute une section "Sources" avec les liens des nouvelles utilisées sous forme de liste HTML (<ul><li><a>)
+- Termine avec un paragraphe discret en italique : <p><em>Cet article a été rédigé avec l'assistance de l'intelligence artificielle et révisé par notre équipe éditoriale.</em></p>
 
 Réponds en JSON strict avec cette structure :
 {
