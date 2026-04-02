@@ -122,29 +122,42 @@ export function ArticleEditor({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          topic: aiTopic.trim(),
+          topic: aiTopic.trim().slice(0, 200),
           communityName,
           authorStyle: authorData?.style || undefined,
           authorName: authorData?.name || undefined,
-          instructions: aiInstructions.trim() || undefined,
+          instructions: aiInstructions.trim().slice(0, 500) || undefined,
         }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? 'Erreur lors de la génération');
+        if (res.status === 429) {
+          setError('Limite atteinte (10/heure). Réessayez plus tard.');
+        } else if (res.status === 503) {
+          setError('Service de nouvelles indisponible. Réessayez.');
+        } else {
+          setError(data.error ?? 'Erreur lors de la génération');
+        }
         return;
       }
-      // Pre-fill editor
+      // Pre-fill editor with sanitized content
       if (data.title) {
         setTitle(data.title);
         if (!slugTouched) setCustomSlug(slugify(data.title).slice(0, 60));
       }
       if (data.excerpt) setExcerpt(data.excerpt);
-      if (data.body && editor) editor.commands.setContent(data.body);
+      if (data.body && editor) {
+        // TipTap sanitizes HTML on setContent — safe to pass directly
+        editor.commands.setContent(data.body);
+      }
       setShowAiPanel(false);
       setAiTopic('');
-    } catch {
-      setError('Erreur de connexion au service IA');
+    } catch (err) {
+      if (err instanceof TypeError) {
+        setError('Erreur réseau. Vérifiez votre connexion.');
+      } else {
+        setError('Erreur serveur. Réessayez plus tard.');
+      }
     } finally {
       setAiGenerating(false);
     }
@@ -321,10 +334,11 @@ export function ArticleEditor({
                 <input
                   type="text"
                   value={aiTopic}
-                  onChange={(e) => setAiTopic(e.target.value)}
+                  onChange={(e) => setAiTopic(e.target.value.slice(0, 200))}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !aiGenerating) handleAiGenerate(); }}
                   placeholder="Ex: Tiger Woods Masters 2026, Canadiens séries..."
                   className="flex-1 rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none"
+                  maxLength={200}
                   disabled={aiGenerating}
                 />
                 <button
@@ -337,14 +351,18 @@ export function ArticleEditor({
               </div>
               <textarea
                 value={aiInstructions}
-                onChange={(e) => setAiInstructions(e.target.value)}
+                onChange={(e) => setAiInstructions(e.target.value.slice(0, 500))}
                 placeholder="Instructions optionnelles : ton plus sarcastique, focus sur les échanges, parle des chances en séries, régénère avec plus d'opinion..."
                 className="mt-2 w-full rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none"
                 rows={2}
+                maxLength={500}
                 disabled={aiGenerating}
               />
               <p className="mt-2 text-xs text-purple-400">
-                L'IA va chercher les nouvelles récentes et écrire un brouillon éditorial. Tu pourras le modifier avant de publier.
+                {aiGenerating
+                  ? 'Recherche de nouvelles et génération en cours...'
+                  : "L'IA va chercher les nouvelles récentes et écrire un brouillon éditorial. Tu pourras le modifier avant de publier."
+                }
               </p>
             </div>
           )}
