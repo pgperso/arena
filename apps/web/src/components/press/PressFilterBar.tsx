@@ -40,8 +40,8 @@ export function PressFilterBar({
   ];
 
   return (
-    <div className="border-b border-gray-200 py-3 dark:border-gray-700">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         {/* Filter pills */}
         <div className="flex gap-2 overflow-x-auto">
           {filters.map(({ key, label }) => (
