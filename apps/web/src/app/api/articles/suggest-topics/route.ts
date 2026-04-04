@@ -16,6 +16,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const communityName = (body.communityName ?? 'sport').trim();
     const directives = (typeof body.directives === 'string' ? body.directives : '').trim().slice(0, 1000);
+    const isTaverne = body.isTaverne === true;
 
     // Fetch URLs from directives in parallel with news
     const directiveUrls = directives ? extractUrls(directives) : [];
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
       messages: [
         {
           role: 'user',
-          content: `${directives ? '' : `Voici les nouvelles récentes pour "${communityName}" :\n\n${newsContext}\n\n`}${directives ? `${directivesBlock}\n\n${newsContext ? `Nouvelles récentes pour contexte :\n${newsContext}\n\n` : ''}` : ''}Propose exactement 4 angles d'article d'opinion sportive en français québécois.
+          content: `${directives ? '' : `Voici les nouvelles récentes pour "${communityName}" :\n\n${newsContext}\n\n`}${directives ? `${directivesBlock}\n\n${newsContext ? `Nouvelles récentes pour contexte :\n${newsContext}\n\n` : ''}` : ''}Propose exactement 4 angles d'article d'opinion ${isTaverne ? '' : 'sportive '}en français québécois.
 Pour chaque angle, donne un titre accrocheur et une description de 1-2 phrases de l'angle éditorial.
 Choisis les sujets les plus intéressants, controversés ou d'actualité brûlante.
 

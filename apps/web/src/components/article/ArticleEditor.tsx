@@ -123,7 +123,7 @@ export function ArticleEditor({
       const res = await fetch('/api/articles/suggest-topics', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ communityName, directives: aiDirectives.trim() || undefined }),
+        body: JSON.stringify({ communityName, directives: aiDirectives.trim() || undefined, isTaverne: selectedCommunitySlug === 'la-taverne' }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -173,6 +173,7 @@ export function ArticleEditor({
           authorStyle: authorData?.style || undefined,
           authorName: authorData?.name || undefined,
           directives: aiDirectives.trim().slice(0, 1000) || undefined,
+          isTaverne: selectedCommunitySlug === 'la-taverne',
         }),
       });
       const data = await res.json();
@@ -216,6 +217,7 @@ export function ArticleEditor({
           authorStyle: authorData?.style || undefined,
           authorName: authorData?.name || undefined,
           directives: aiDirectives.trim().slice(0, 1000) || undefined,
+          isTaverne: selectedCommunitySlug === 'la-taverne',
         }),
       });
       const data = await res.json();
@@ -357,7 +359,11 @@ export function ArticleEditor({
               const id = Number(e.target.value);
               setSelectedCommunityId(id);
               const comm = communities.find((c) => c.id === id);
-              if (comm) setSelectedCommunitySlug(comm.slug);
+              if (comm) {
+                setSelectedCommunitySlug(comm.slug);
+                // Reset to personal profile when switching to La Taverne
+                if (comm.slug === 'la-taverne') setAuthorNameOverride('');
+              }
             }}
             className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
           >
@@ -368,32 +374,40 @@ export function ArticleEditor({
         </div>
       )}
 
-      {/* Step 2: Author selector */}
-      <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-3 py-3">
-        <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">{!isEditMode && communities.length > 1 ? '2.' : '1.'} Publier en tant que :</p>
-        <div className="flex flex-wrap gap-2">
-          {AUTHOR_OPTIONS.map((author) => (
-            <button
-              key={author.name}
-              type="button"
-              onClick={() => setAuthorNameOverride(author.name === 'Mon profil' ? '' : author.name)}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                (authorNameOverride === '' && author.name === 'Mon profil') || authorNameOverride === author.name
-                  ? 'border-brand-blue bg-brand-blue/5 font-medium text-brand-blue'
-                  : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:border-gray-600 hover:bg-white dark:bg-[#1e1e1e]'
-              }`}
-            >
-              <span
-                className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                style={{ backgroundColor: author.color }}
+      {/* Step 2: Author selector (hidden for La Taverne — personal profile only) */}
+      {selectedCommunitySlug !== 'la-taverne' ? (
+        <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-3 py-3">
+          <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">{!isEditMode && communities.length > 1 ? '2.' : '1.'} Publier en tant que :</p>
+          <div className="flex flex-wrap gap-2">
+            {AUTHOR_OPTIONS.map((author) => (
+              <button
+                key={author.name}
+                type="button"
+                onClick={() => setAuthorNameOverride(author.name === 'Mon profil' ? '' : author.name)}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
+                  (authorNameOverride === '' && author.name === 'Mon profil') || authorNameOverride === author.name
+                    ? 'border-brand-blue bg-brand-blue/5 font-medium text-brand-blue'
+                    : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:border-gray-600 hover:bg-white dark:bg-[#1e1e1e]'
+                }`}
               >
-                {author.initials}
-              </span>
-              {author.name}
-            </button>
-          ))}
+                <span
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                  style={{ backgroundColor: author.color }}
+                >
+                  {author.initials}
+                </span>
+                {author.name}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="mb-4 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-3 py-3">
+          <p className="text-sm text-amber-700 dark:text-amber-300">
+            🍺 La Taverne — publié sous votre profil personnel. Tous les sujets sont permis!
+          </p>
+        </div>
+      )}
 
       {/* Step 3: AI Generation */}
       {!isEditMode && (
