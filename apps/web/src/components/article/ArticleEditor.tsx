@@ -64,6 +64,9 @@ export function ArticleEditor({
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiSuggesting, setAiSuggesting] = useState(false);
   const [aiTopics, setAiTopics] = useState<{ title: string; description: string; topic: string }[]>([]);
+  const [aiGenerated, setAiGenerated] = useState(false);
+  const [aiRefinePrompt, setAiRefinePrompt] = useState('');
+  const [aiRefining, setAiRefining] = useState(false);
   const aiAbortRef = useRef<AbortController | null>(null);
   const supabase = useSupabase();
   const { coverPreview, coverPositionY, setCoverPositionY, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
@@ -190,8 +193,8 @@ export function ArticleEditor({
       }
       if (data.excerpt) setExcerpt(data.excerpt);
       if (data.body && editor) editor.commands.setContent(data.body);
-      setShowAiPanel(false);
-      setAiTopic('');
+      setAiGenerated(true);
+      setAiRefinePrompt('');
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return; // User cancelled
       setError('Erreur réseau. Vérifiez votre connexion.');
@@ -241,8 +244,8 @@ export function ArticleEditor({
         // TipTap sanitizes HTML on setContent — safe to pass directly
         editor.commands.setContent(data.body);
       }
-      setShowAiPanel(false);
-      setAiTopic('');
+      setAiGenerated(true);
+      setAiRefinePrompt('');
     } catch (err) {
       if (err instanceof TypeError) {
         setError('Erreur réseau. Vérifiez votre connexion.');
@@ -251,6 +254,41 @@ export function ArticleEditor({
       }
     } finally {
       setAiGenerating(false);
+    }
+  }
+
+  async function handleAiRefine() {
+    if (!aiRefinePrompt.trim() || !editor) return;
+    setAiRefining(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/articles/refine', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          excerpt,
+          body: editor.getHTML(),
+          instructions: aiRefinePrompt.trim(),
+          isTaverne: selectedCommunitySlug === 'la-taverne',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? 'Erreur lors de l\'amélioration');
+        return;
+      }
+      if (data.title) {
+        setTitle(data.title);
+        if (!slugTouched) setCustomSlug(slugify(data.title).slice(0, 60));
+      }
+      if (data.excerpt) setExcerpt(data.excerpt);
+      if (data.body) editor.commands.setContent(data.body);
+      setAiRefinePrompt('');
+    } catch {
+      setError('Erreur réseau. Réessayez.');
+    } finally {
+      setAiRefining(false);
     }
   }
 
@@ -427,7 +465,7 @@ export function ArticleEditor({
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Génération par IA</p>
                 <button
-                  onClick={() => { setShowAiPanel(false); setAiTopic(''); setAiTopics([]); }}
+                  onClick={() => { setShowAiPanel(false); setAiTopic(''); setAiTopics([]); setAiGenerated(false); }}
                   className="text-xs text-purple-400 hover:text-purple-600"
                 >
                   Fermer
@@ -516,8 +554,50 @@ export function ArticleEditor({
                 </div>
               )}
 
+              {/* Refine section — after article is generated */}
+              {aiGenerated && !aiGenerating && !aiRefining && aiTopics.length === 0 && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs font-medium text-green-600 dark:text-green-400">Article généré. Donnez des instructions pour l'améliorer :</p>
+                  <textarea
+                    value={aiRefinePrompt}
+                    onChange={(e) => setAiRefinePrompt(e.target.value.slice(0, 1000))}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && aiRefinePrompt.trim()) { e.preventDefault(); handleAiRefine(); } }}
+                    placeholder={"Ex: « Rends le plus percutant », « Ajoute une section sur... », « Change le titre pour... »"}
+                    className="w-full rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none"
+                    rows={2}
+                    maxLength={1000}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleAiRefine}
+                      disabled={!aiRefinePrompt.trim()}
+                      className="flex-1 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-700 disabled:opacity-50"
+                    >
+                      Améliorer
+                    </button>
+                    <button
+                      onClick={() => { setAiGenerated(false); setAiTopics([]); setAiTopic(''); }}
+                      className="rounded-lg border border-purple-200 dark:border-purple-700 px-4 py-2 text-sm text-purple-500 transition hover:bg-purple-100 dark:hover:bg-purple-900"
+                    >
+                      Nouveau sujet
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Refining spinner */}
+              {aiRefining && (
+                <div className="flex items-center justify-center gap-2 py-4 text-sm text-purple-600 dark:text-purple-400">
+                  <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Amélioration en cours...
+                </div>
+              )}
+
               {/* Champ sujet manuel ou editable */}
-              {aiTopics.length === 0 && !aiSuggesting && !aiGenerating && (
+              {!aiGenerated && aiTopics.length === 0 && !aiSuggesting && !aiGenerating && (
                 <div className="mt-3 flex gap-2">
                   <input
                     type="text"
