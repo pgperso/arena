@@ -67,6 +67,7 @@ export default async function PressGalleryPage({
 
   let featuredItems: Awaited<ReturnType<typeof fetchFeaturedItems>> = [];
   let initialResult: Awaited<ReturnType<typeof fetchPressGalleryItems>> = { items: [], nextCursor: null };
+  let taverneItems: Awaited<ReturnType<typeof fetchPressGalleryItems>>['items'] = [];
   let communities: { id: number; name: string; slug: string; logo_url: string | null }[] = [];
   let userId: string | null = null;
 
@@ -93,12 +94,28 @@ export default async function PressGalleryPage({
     // Exclude featured article IDs from the grid
     const excludeIds = featuredItems.map((i) => i.id);
 
-    initialResult = await fetchPressGalleryItems(supabase, {
-      filter: 'all',
-      sort: 'latest',
-      limit: 12,
-      excludeIds,
-    });
+    // Fetch La Taverne articles separately
+    const taverne = communities.find((c) => c.slug === 'la-taverne');
+
+    const [mainResult, taverneResult] = await Promise.all([
+      fetchPressGalleryItems(supabase, {
+        filter: 'all',
+        sort: 'latest',
+        limit: 12,
+        excludeIds,
+      }),
+      taverne
+        ? fetchPressGalleryItems(supabase, {
+            filter: 'articles',
+            sort: 'latest',
+            communityId: taverne.id,
+            limit: 6,
+          })
+        : Promise.resolve({ items: [], nextCursor: null }),
+    ]);
+
+    initialResult = mainResult;
+    taverneItems = taverneResult.items;
   } catch {
     // Graceful degradation: render with empty data
   }
@@ -158,6 +175,7 @@ export default async function PressGalleryPage({
         initialItems={initialResult.items}
         initialCursor={initialResult.nextCursor}
         featuredItems={featuredItems}
+        taverneItems={taverneItems}
         communities={communities}
         userId={userId}
       />

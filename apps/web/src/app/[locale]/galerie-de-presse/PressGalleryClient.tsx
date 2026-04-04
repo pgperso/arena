@@ -27,6 +27,7 @@ interface PressGalleryClientProps {
   initialItems: PressGalleryItem[];
   initialCursor: string | null;
   featuredItems: PressGalleryItem[];
+  taverneItems: PressGalleryItem[];
   communities: Community[];
   userId: string | null;
 }
@@ -41,6 +42,7 @@ export function PressGalleryClient({
   initialItems,
   initialCursor,
   featuredItems,
+  taverneItems,
   communities,
 }: PressGalleryClientProps) {
   const t = useTranslations('pressGallery');
@@ -224,6 +226,28 @@ export function PressGalleryClient({
                   {loading ? t('loading') : t('loadMore')}
                 </button>
               </div>
+            )}
+
+            {/* La Taverne section */}
+            {taverneItems.length > 0 && (
+              <section className="mt-12 border-t border-gray-200 pt-8 dark:border-gray-700">
+                <div className="mb-5 flex items-center gap-3">
+                  <span className="text-2xl">🍺</span>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 md:text-2xl">
+                      {t('taverne')}
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {t('taverneSubtitle')}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {taverneItems.map((item) => (
+                    <PressContentCard key={`taverne-${item.type}-${item.id}`} item={item} />
+                  ))}
+                </div>
+              </section>
             )}
           </div>
 
