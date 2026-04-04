@@ -91,9 +91,10 @@ export function PressGalleryClient({
 
   const heroMode = useMemo(() => {
     if (visibleFeatured.length === 0) return 'hidden' as const;
-    if (filter === 'all' && sort === 'latest' && communityId === undefined && category === 'all') return 'full' as const;
+    // Full hero for main category views (no community filter, latest sort)
+    if (sort === 'latest' && communityId === undefined && filter === 'all') return 'full' as const;
     return 'compact' as const;
-  }, [visibleFeatured, filter, sort, communityId, category]);
+  }, [visibleFeatured, sort, communityId, filter]);
 
   const fetchItems = useCallback(
     async (
