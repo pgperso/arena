@@ -38,6 +38,7 @@ export interface ArticleComment {
 interface FetchOptions {
   filter: 'all' | 'articles' | 'podcasts';
   communityId?: number;
+  excludeCommunityId?: number;
   sort: 'latest' | 'trending';
   cursor?: string;
   limit: number;
@@ -95,10 +96,11 @@ export async function fetchPressGalleryItems(
   supabase: SupabaseClient<Database>,
   options: FetchOptions,
 ): Promise<FetchResult> {
-  const { filter, communityId, sort, cursor, limit, excludeIds } = options;
+  const { filter, communityId, excludeCommunityId, sort, cursor, limit, excludeIds } = options;
+  const internalOpts = { communityId, excludeCommunityId, sort, cursor, limit, excludeIds };
 
   if (filter === 'articles') {
-    const items = await fetchArticles(supabase, { communityId, sort, cursor, limit, excludeIds });
+    const items = await fetchArticles(supabase, internalOpts);
     return {
       items,
       nextCursor: items.length > 0 ? items[items.length - 1].publishedAt : null,
@@ -106,7 +108,7 @@ export async function fetchPressGalleryItems(
   }
 
   if (filter === 'podcasts') {
-    const items = await fetchPodcasts(supabase, { communityId, sort, cursor, limit, excludeIds });
+    const items = await fetchPodcasts(supabase, internalOpts);
     return {
       items,
       nextCursor: items.length > 0 ? items[items.length - 1].publishedAt : null,
@@ -115,8 +117,8 @@ export async function fetchPressGalleryItems(
 
   // filter === 'all': fetch both, merge, take first `limit`
   const [articles, podcasts] = await Promise.all([
-    fetchArticles(supabase, { communityId, sort, cursor, limit, excludeIds }),
-    fetchPodcasts(supabase, { communityId, sort, cursor, limit, excludeIds }),
+    fetchArticles(supabase, internalOpts),
+    fetchPodcasts(supabase, internalOpts),
   ]);
 
   const merged = [...articles, ...podcasts];
@@ -137,6 +139,7 @@ export async function fetchPressGalleryItems(
 
 interface InternalFetchOptions {
   communityId?: number;
+  excludeCommunityId?: number;
   sort: 'latest' | 'trending';
   cursor?: string;
   limit: number;
@@ -147,7 +150,7 @@ async function fetchArticles(
   supabase: SupabaseClient<Database>,
   options: InternalFetchOptions,
 ): Promise<PressGalleryItem[]> {
-  const { communityId, sort, cursor, limit, excludeIds } = options;
+  const { communityId, excludeCommunityId, sort, cursor, limit, excludeIds } = options;
 
   let q = supabase
     .from('articles')
@@ -156,6 +159,7 @@ async function fetchArticles(
     .eq('is_removed', false);
 
   if (communityId) q = q.eq('community_id', communityId);
+  if (excludeCommunityId) q = q.neq('community_id', excludeCommunityId);
   if (excludeIds && excludeIds.length > 0) {
     q = q.not('id', 'in', `(${excludeIds.join(',')})`);
   }
@@ -177,7 +181,7 @@ async function fetchPodcasts(
   supabase: SupabaseClient<Database>,
   options: InternalFetchOptions,
 ): Promise<PressGalleryItem[]> {
-  const { communityId, sort, cursor, limit, excludeIds } = options;
+  const { communityId, excludeCommunityId, sort, cursor, limit, excludeIds } = options;
 
   let q = supabase
     .from('podcasts')
@@ -186,6 +190,7 @@ async function fetchPodcasts(
     .or('is_removed.eq.false,is_removed.is.null');
 
   if (communityId) q = q.eq('community_id', communityId);
+  if (excludeCommunityId) q = q.neq('community_id', excludeCommunityId);
   if (excludeIds && excludeIds.length > 0) {
     q = q.not('id', 'in', `(${excludeIds.join(',')})`);
   }

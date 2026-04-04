@@ -15,6 +15,7 @@ import {
 
 type FilterType = 'all' | 'articles' | 'podcasts';
 type SortType = 'latest' | 'trending';
+type CategoryType = 'all' | 'sport' | 'taverne';
 
 interface Community {
   id: number;
@@ -58,7 +59,14 @@ export function PressGalleryClient({
   const [hasMore, setHasMore] = useState(initialItems.length >= PAGE_SIZE);
   const [filter, setFilter] = useState<FilterType>('all');
   const [sort, setSort] = useState<SortType>('latest');
+  const [category, setCategory] = useState<CategoryType>('all');
   const [communityId, setCommunityId] = useState<number | undefined>(undefined);
+
+  // Resolve La Taverne community ID for category filtering
+  const taverneCommunityId = useMemo(
+    () => communities.find((c) => c.slug === 'la-taverne')?.id,
+    [communities],
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,9 +78,9 @@ export function PressGalleryClient({
     // Hide hero if filtering to podcasts and all featured are articles (or vice versa)
     if (filter === 'podcasts' && featuredItems.every((i) => i.type === 'article')) return 'hidden' as const;
     if (filter === 'articles' && featuredItems.every((i) => i.type === 'podcast')) return 'hidden' as const;
-    if (filter === 'all' && sort === 'latest' && communityId === undefined) return 'full' as const;
+    if (filter === 'all' && sort === 'latest' && communityId === undefined && category === 'all') return 'full' as const;
     return 'compact' as const;
-  }, [featuredItems, filter, sort, communityId]);
+  }, [featuredItems, filter, sort, communityId, category]);
 
   // Filter featured items to match current filter
   const visibleFeatured = useMemo(() => {
@@ -85,6 +93,7 @@ export function PressGalleryClient({
     async (
       f: FilterType,
       s: SortType,
+      cat: CategoryType,
       cId: number | undefined,
       cur: string | null,
       append: boolean,
@@ -96,11 +105,16 @@ export function PressGalleryClient({
       setLoading(true);
       setError(null);
 
+      // Category → communityId / excludeCommunityId mapping
+      const effectiveCommunityId = cat === 'taverne' ? taverneCommunityId : cId;
+      const excludeCommunityId = cat === 'sport' ? taverneCommunityId : undefined;
+
       try {
         const data = await fetchPressGalleryItems(supabase, {
           filter: f,
           sort: s,
-          communityId: cId,
+          communityId: effectiveCommunityId,
+          excludeCommunityId,
           cursor: cur ?? undefined,
           limit: PAGE_SIZE,
           excludeIds: heroIds,
@@ -122,7 +136,7 @@ export function PressGalleryClient({
         if (!controller.signal.aborted) setLoading(false);
       }
     },
-    [supabase, heroIds, t],
+    [supabase, heroIds, taverneCommunityId, t],
   );
 
   const handleFilterChange = (f: FilterType) => {
@@ -130,7 +144,7 @@ export function PressGalleryClient({
     setItems([]);
     setCursor(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    fetchItems(f, sort, communityId, null, false);
+    fetchItems(f, sort, category, communityId, null, false);
   };
 
   const handleSortChange = (s: SortType) => {
@@ -138,7 +152,16 @@ export function PressGalleryClient({
     setItems([]);
     setCursor(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    fetchItems(filter, s, communityId, null, false);
+    fetchItems(filter, s, category, communityId, null, false);
+  };
+
+  const handleCategoryChange = (cat: CategoryType) => {
+    setCategory(cat);
+    setCommunityId(undefined); // Reset community filter on category change
+    setItems([]);
+    setCursor(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    fetchItems(filter, sort, cat, undefined, null, false);
   };
 
   const handleCommunityChange = (cId: number | undefined) => {
@@ -146,11 +169,11 @@ export function PressGalleryClient({
     setItems([]);
     setCursor(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    fetchItems(filter, sort, cId, null, false);
+    fetchItems(filter, sort, category, cId, null, false);
   };
 
   const handleLoadMore = () => {
-    fetchItems(filter, sort, communityId, cursor, true);
+    fetchItems(filter, sort, category, communityId, cursor, true);
   };
 
   return (
@@ -165,10 +188,12 @@ export function PressGalleryClient({
             <PressFilterBar
               filter={filter}
               sort={sort}
+              category={category}
               communityId={communityId}
               communities={communities}
               onFilterChange={handleFilterChange}
               onSortChange={handleSortChange}
+              onCategoryChange={handleCategoryChange}
               onCommunityChange={handleCommunityChange}
             />
           </div>

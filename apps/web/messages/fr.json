@@ -259,7 +259,9 @@
     "article": "Article",
     "description": "Tous les articles et podcasts sportifs de la communauté, au même endroit.",
     "taverne": "La Taverne",
-    "taverneSubtitle": "Articles et discussions hors-sport, pour jaser de tout et de rien."
+    "taverneSubtitle": "Articles et discussions hors-sport, pour jaser de tout et de rien.",
+    "catSport": "Sport",
+    "catTaverne": "Actualité"
   },
   "footer": {
     "rights": "Tous droits réservés.",

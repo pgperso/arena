@@ -253,7 +253,9 @@
     "article": "Article",
     "description": "All sports articles and podcasts from the community, in one place.",
     "taverne": "La Taverne",
-    "taverneSubtitle": "Off-topic articles and discussions, just for fun."
+    "taverneSubtitle": "Off-topic articles and discussions, just for fun.",
+    "catSport": "Sports",
+    "catTaverne": "News"
   },
   "footer": {
     "rights": "All rights reserved.",
