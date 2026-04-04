@@ -40,4 +40,6 @@ original-code/
 
 # Import data (sensitive)
 membre.csv
+chronique.csv
 import-results.log
+import-chroniques.log
