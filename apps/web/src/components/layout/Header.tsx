@@ -85,7 +85,7 @@ export function Header() {
         <div className="hidden items-center gap-3 md:flex">
           <Link
             href={user ? '/tribunes' : '/login'}
-            className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-bold text-white transition hover:bg-red-700"
           >
             Tribunes
           </Link>
