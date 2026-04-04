@@ -103,7 +103,7 @@ export function PressFilterBar({
                   e.target.value ? Number(e.target.value) : undefined,
                 )
               }
-              className="rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 dark:border-gray-600 dark:bg-[#1e1e1e] dark:text-gray-300"
+              className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-[#1e1e1e] dark:text-gray-300"
             >
               <option value="">{t('allCommunities')}</option>
               {filteredCommunities.map((c) => (
@@ -117,7 +117,7 @@ export function PressFilterBar({
           <div className="flex rounded-lg border border-gray-300 dark:border-gray-600">
             <button
               onClick={() => onSortChange('latest')}
-              className={`px-2 py-1 text-xs font-medium transition-colors ${
+              className={`px-3 py-1.5 text-sm font-medium transition-colors ${
                 sort === 'latest'
                   ? 'bg-brand-blue text-white'
                   : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
@@ -127,7 +127,7 @@ export function PressFilterBar({
             </button>
             <button
               onClick={() => onSortChange('trending')}
-              className={`px-2 py-1 text-xs font-medium transition-colors ${
+              className={`px-3 py-1.5 text-sm font-medium transition-colors ${
                 sort === 'trending'
                   ? 'bg-brand-blue text-white'
                   : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
