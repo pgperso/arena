@@ -251,7 +251,9 @@
     "deleteComment": "Delete",
     "podcast": "Podcast",
     "article": "Article",
-    "description": "All sports articles and podcasts from the community, in one place."
+    "description": "All sports articles and podcasts from the community, in one place.",
+    "taverne": "La Taverne",
+    "taverneSubtitle": "Off-topic articles and discussions, just for fun."
   },
   "footer": {
     "rights": "All rights reserved.",
