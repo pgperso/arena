@@ -193,7 +193,7 @@ export function PressGalleryClient({
         <AdBanner slotId="press-hero-banner" className="my-6" />
 
         {/* Content + sidebar */}
-        <div className="flex gap-8">
+        <div className="flex gap-6">
           {/* Main content — unified grid */}
           <div className="flex-1 min-w-0">
             {items.length > 0 && (
