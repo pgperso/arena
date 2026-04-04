@@ -112,6 +112,7 @@ async function agentResearch(
   directives: string,
   directiveUrlContents: string,
   newsLines: string[],
+  isTaverne: boolean,
 ): Promise<string> {
   const directivesBlock = directives
     ? `\nDIRECTIVES PRIORITAIRES de l'utilisateur :\n${escapeForPrompt(directives)}\n${directiveUrlContents ? `\nContenu des liens fournis par l'utilisateur :\n${directiveUrlContents}` : ''}\n\nCes directives sont ta SOURCE PRINCIPALE. Utilise-les en priorité pour orienter ton dossier. Les nouvelles récentes ci-dessous servent de complément.\n`
@@ -126,7 +127,7 @@ async function agentResearch(
     max_tokens: 1500,
     messages: [{
       role: 'user',
-      content: `Tu es un RECHERCHISTE sportif pour une tribune sur le sujet suivant : ${escapeForPrompt(communityName)}.
+      content: `Tu es un RECHERCHISTE ${isTaverne ? '' : 'sportif '}pour une tribune sur le sujet suivant : ${escapeForPrompt(communityName)}.
 ${directivesBlock}${newsBlock}
 
 MISSION :
@@ -156,6 +157,7 @@ async function agentWrite(
   authorStyle: string,
   communityName: string,
   directives: string,
+  isTaverne: boolean,
 ): Promise<string> {
   const escapedDirectives = directives ? escapeForPrompt(directives) : '';
 
@@ -165,7 +167,7 @@ async function agentWrite(
     messages: [{
       role: 'user',
       content: `Tu es le RÉDACTEUR ${authorName ? `« ${escapeForPrompt(authorName)} »` : ''} pour une tribune sur ${escapeForPrompt(communityName)}.
-${authorStyle ? `\nTon style éditorial : ${authorStyle}` : '\nTon style : chroniqueur sportif québécois engagé.'}
+${authorStyle ? `\nTon style éditorial : ${authorStyle}` : `\nTon style : chroniqueur ${isTaverne ? '' : 'sportif '}québécois engagé.`}
 ${escapedDirectives ? `\nDIRECTIVES PRIORITAIRES de l'utilisateur :\n${escapedDirectives}\n\nCes directives sont PRIORITAIRES. L'article DOIT respecter ces consignes (angle, sujet, ton, éléments à inclure). Combine-les avec les faits du dossier de recherche.` : ''}
 
 Voici le dossier de recherche :
@@ -263,6 +265,7 @@ async function agentPolish(
   articleJson: string,
   authorName: string,
   authorStyle: string,
+  isTaverne: boolean,
 ): Promise<string> {
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
@@ -275,7 +278,7 @@ ARTICLE :
 ${articleJson}
 
 AUTEUR : ${escapeForPrompt(authorName || 'chroniqueur')}
-STYLE ATTENDU : ${authorStyle || 'éditorial sportif québécois'}
+STYLE ATTENDU : ${authorStyle || `éditorial ${isTaverne ? '' : 'sportif '}québécois`}
 
 MISSION :
 1. VOIX DE L'AUTEUR (PRIORITÉ) : Relis le style attendu ci-dessus. L'article doit SONNER comme cet auteur. Si Rex Paquette est provocateur et sarcastique, l'article doit être provocateur et sarcastique. Si Maika Blitz est passionnée et émotionnelle, l'article doit vibrer d'émotion. Ajuste le vocabulaire, les tournures et l'attitude pour coller au personnage.
@@ -321,6 +324,7 @@ export async function POST(request: Request) {
     const communityName = sanitize(body.communityName ?? 'Sport', 100);
     const authorStyle = typeof body.authorStyle === 'string' ? body.authorStyle.slice(0, 500) : '';
     const authorName = sanitize(body.authorName ?? '', 100);
+    const isTaverne = body.isTaverne === true;
 
     if (topic.length < 2) {
       return NextResponse.json({ error: 'Sujet requis (min 2 caractères)' }, { status: 400 });
@@ -372,16 +376,16 @@ export async function POST(request: Request) {
     }
 
     // Agent 1: Recherchiste
-    const research = await agentResearch(client, communityName, directives, directiveUrlContents, uniqueNews);
+    const research = await agentResearch(client, communityName, directives, directiveUrlContents, uniqueNews, isTaverne);
 
     // Agent 2: Rédacteur
-    const draft = await agentWrite(client, research, authorName, authorStyle, communityName, directives);
+    const draft = await agentWrite(client, research, authorName, authorStyle, communityName, directives, isTaverne);
 
     // Agent 3: Vérificateur
     const verified = await agentVerify(client, draft, research, newsTitles, authorName, authorStyle);
 
     // Agent 4: Éditeur
-    const polished = await agentPolish(client, verified, authorName, authorStyle);
+    const polished = await agentPolish(client, verified, authorName, authorStyle, isTaverne);
 
     // Parse — try each agent's output from best to worst
     const parsed = extractJson(polished) ?? extractJson(verified) ?? extractJson(draft);
