@@ -61,7 +61,7 @@ export function Header() {
               </svg>
             </Link>
           )}
-          <Link href={user ? "/tribunes" : "/"} className="flex items-center gap-1.5 sm:gap-2">
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
             <Image
               src="/images/fanstribune.webp"
               alt="La tribune des fans"
@@ -83,6 +83,13 @@ export function Header() {
 
         {/* Language + Desktop auth */}
         <div className="hidden items-center gap-3 md:flex">
+          <Link
+            href={user ? '/tribunes' : '/login'}
+            className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            Tribunes
+          </Link>
+          <div className="h-4 w-px bg-gray-200 dark:bg-gray-700" />
           <button
             onClick={toggleDark}
             className="rounded-md p-1.5 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
