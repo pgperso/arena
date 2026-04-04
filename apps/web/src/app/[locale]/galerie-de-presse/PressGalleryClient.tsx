@@ -5,8 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useSupabase } from '@/hooks/useSupabase';
 import { HeroSection } from '@/components/press/HeroSection';
 import { PressFilterBar } from '@/components/press/PressFilterBar';
-import { PressArticleCard } from '@/components/press/PressArticleCard';
-import { PressPodcastCard } from '@/components/press/PressPodcastCard';
+import { PressContentCard } from '@/components/press/PressContentCard';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { AdSlot } from '@/components/ads/AdSlot';
 import {
@@ -34,6 +33,10 @@ interface PressGalleryClientProps {
 
 const PAGE_SIZE = 12;
 
+// Pattern: 2 large cards, then 6 standard (3-col), then ad, repeat
+const PATTERN_SIZE = 8;
+const FEATURE_DUO_SIZE = 2;
+
 export function PressGalleryClient({
   initialItems,
   initialCursor,
@@ -48,9 +51,6 @@ export function PressGalleryClient({
     [featuredItems],
   );
 
-  const hero = featuredItems.length > 0 ? featuredItems[0] : null;
-  const secondaryItems = featuredItems.slice(1);
-
   const [items, setItems] = useState<PressGalleryItem[]>(initialItems);
   const [cursor, setCursor] = useState<string | null>(initialCursor);
   const [hasMore, setHasMore] = useState(initialItems.length >= PAGE_SIZE);
@@ -62,6 +62,23 @@ export function PressGalleryClient({
 
   const abortRef = useRef<AbortController | null>(null);
 
+  // Hero mode: full when defaults, compact when filtered, hidden when no featured
+  const heroMode = useMemo(() => {
+    if (featuredItems.length === 0) return 'hidden' as const;
+    // Hide hero if filtering to podcasts and all featured are articles (or vice versa)
+    if (filter === 'podcasts' && featuredItems.every((i) => i.type === 'article')) return 'hidden' as const;
+    if (filter === 'articles' && featuredItems.every((i) => i.type === 'podcast')) return 'hidden' as const;
+    if (filter === 'all' && sort === 'latest' && communityId === undefined) return 'full' as const;
+    return 'compact' as const;
+  }, [featuredItems, filter, sort, communityId]);
+
+  // Filter featured items to match current filter
+  const visibleFeatured = useMemo(() => {
+    if (filter === 'articles') return featuredItems.filter((i) => i.type === 'article');
+    if (filter === 'podcasts') return featuredItems.filter((i) => i.type === 'podcast');
+    return featuredItems;
+  }, [featuredItems, filter]);
+
   const fetchItems = useCallback(
     async (
       f: FilterType,
@@ -70,10 +87,7 @@ export function PressGalleryClient({
       cur: string | null,
       append: boolean,
     ) => {
-      // Abort any in-flight request
-      if (abortRef.current) {
-        abortRef.current.abort();
-      }
+      if (abortRef.current) abortRef.current.abort();
       const controller = new AbortController();
       abortRef.current = controller;
 
@@ -90,7 +104,6 @@ export function PressGalleryClient({
           excludeIds: heroIds,
         });
 
-        // Check if this request was aborted
         if (controller.signal.aborted) return;
 
         if (append) {
@@ -102,13 +115,9 @@ export function PressGalleryClient({
         setCursor(data.nextCursor);
       } catch (err) {
         if (controller.signal.aborted) return;
-        setError(
-          err instanceof Error ? err.message : t('errorLoading'),
-        );
+        setError(err instanceof Error ? err.message : t('errorLoading'));
       } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
+        if (!controller.signal.aborted) setLoading(false);
       }
     },
     [supabase, heroIds, t],
@@ -142,14 +151,10 @@ export function PressGalleryClient({
     fetchItems(filter, sort, communityId, cursor, true);
   };
 
-  // Only show hero section on default filter state
-  const showHero =
-    filter === 'all' && sort === 'latest' && communityId === undefined;
-
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-y-auto">
       <div className="mx-auto w-full max-w-7xl px-4 py-6">
-        {/* Header + Filter bar — sticky together */}
+        {/* Header + Filter bar — sticky */}
         <div className="sticky top-0 z-20 -mx-4 bg-white/95 px-4 pt-4 pb-0 backdrop-blur-sm dark:bg-[#1e1e1e]/95">
           <div className="flex items-center gap-3">
             <button
@@ -186,8 +191,8 @@ export function PressGalleryClient({
         )}
 
         {/* Hero section */}
-        {showHero && (
-          <HeroSection hero={hero} secondary={secondaryItems} />
+        {heroMode !== 'hidden' && (
+          <HeroSection featuredItems={visibleFeatured} mode={heroMode} />
         )}
 
         {/* Ad banner after hero */}
@@ -195,61 +200,11 @@ export function PressGalleryClient({
 
         {/* Content + sidebar */}
         <div className="flex gap-8">
-          {/* Main content */}
+          {/* Main content — unified grid */}
           <div className="flex-1 min-w-0">
-            {(() => {
-              const articleItems = items.filter((i) => i.type === 'article');
-              const podcastItems = items.filter((i) => i.type === 'podcast');
-              const showArticles = filter !== 'podcasts' && articleItems.length > 0;
-              const showPodcasts = filter !== 'articles' && podcastItems.length > 0;
-
-              return (
-                <>
-                  {/* Articles section */}
-                  {showArticles && (
-                    <>
-                      <h2 className="mb-5 text-xl font-bold text-gray-900 dark:text-gray-100 md:text-2xl">
-                        {filter === 'all' ? t('articles') : t('latest')}
-                      </h2>
-                      {(() => {
-                        const chunks: PressGalleryItem[][] = [];
-                        for (let i = 0; i < articleItems.length; i += 6) {
-                          chunks.push(articleItems.slice(i, i + 6));
-                        }
-                        return chunks.map((chunk, chunkIdx) => (
-                          <div key={`chunk-${chunkIdx}`}>
-                            {chunkIdx > 0 && (
-                              <div className="my-6">
-                                <AdSlot slotId={`feed-ad-press-${chunkIdx}`} format="in-feed" layoutKey="-6t+ed+2i-1n-4w" />
-                              </div>
-                            )}
-                            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                              {chunk.map((item) => (
-                                <PressArticleCard key={`article-${item.id}`} item={item} />
-                              ))}
-                            </div>
-                          </div>
-                        ));
-                      })()}
-                    </>
-                  )}
-
-                  {/* Podcasts section */}
-                  {showPodcasts && (
-                    <>
-                      <h2 className="mt-10 mb-5 text-xl font-bold text-gray-900 dark:text-gray-100 md:text-2xl">
-                        {t('podcasts')}
-                      </h2>
-                      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {podcastItems.map((item) => (
-                          <PressPodcastCard key={`podcast-${item.id}`} item={item} />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </>
-              );
-            })()}
+            {items.length > 0 && (
+              <PatternGrid items={items} />
+            )}
 
             {/* No results */}
             {!loading && items.length === 0 && !error && (
@@ -280,6 +235,64 @@ export function PressGalleryClient({
           </aside>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── Pattern Grid: 2 large + 6 standard + ad, repeat ───
+
+function PatternGrid({ items }: { items: PressGalleryItem[] }) {
+  const chunks: { type: 'feature' | 'standard' | 'ad'; items: PressGalleryItem[] }[] = [];
+  let idx = 0;
+
+  while (idx < items.length) {
+    // Feature duo (2 large cards)
+    const featureEnd = Math.min(idx + FEATURE_DUO_SIZE, items.length);
+    chunks.push({ type: 'feature', items: items.slice(idx, featureEnd) });
+    idx = featureEnd;
+
+    // Standard grid (up to 6 cards)
+    if (idx < items.length) {
+      const standardEnd = Math.min(idx + (PATTERN_SIZE - FEATURE_DUO_SIZE), items.length);
+      chunks.push({ type: 'standard', items: items.slice(idx, standardEnd) });
+      idx = standardEnd;
+    }
+
+    // Ad slot between cycles
+    if (idx < items.length) {
+      chunks.push({ type: 'ad', items: [] });
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {chunks.map((chunk, i) => {
+        if (chunk.type === 'ad') {
+          return (
+            <div key={`ad-${i}`} className="my-6">
+              <AdSlot slotId={`feed-ad-press-${i}`} format="in-feed" layoutKey="-6t+ed+2i-1n-4w" />
+            </div>
+          );
+        }
+
+        if (chunk.type === 'feature') {
+          return (
+            <div key={`feature-${i}`} className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {chunk.items.map((item) => (
+                <PressContentCard key={`${item.type}-${item.id}`} item={item} variant="large" />
+              ))}
+            </div>
+          );
+        }
+
+        return (
+          <div key={`standard-${i}`} className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {chunk.items.map((item) => (
+              <PressContentCard key={`${item.type}-${item.id}`} item={item} />
+            ))}
+          </div>
+        );
+      })}
     </div>
   );
 }
