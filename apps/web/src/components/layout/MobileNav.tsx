@@ -21,7 +21,7 @@ export function MobileNav({ isOpen, onClose, user, username, onLogout }: MobileN
     <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] md:hidden">
       <nav className="flex flex-col px-4 py-3">
         <Link
-          href="/"
+          href={user ? '/tribunes' : '/login'}
           className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e]"
           onClick={onClose}
         >
