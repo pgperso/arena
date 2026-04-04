@@ -72,22 +72,28 @@ export function PressGalleryClient({
 
   const abortRef = useRef<AbortController | null>(null);
 
-  // Hero mode: full when defaults, compact when filtered, hidden when no featured
+  // heroMode is computed after visibleFeatured (below)
+
+  // Filter featured items to match current category + type filter
+  const visibleFeatured = useMemo(() => {
+    let items = featuredItems;
+    // Category filter
+    if (category === 'sport' && taverneCommunityId) {
+      items = items.filter((i) => i.communityId !== taverneCommunityId);
+    } else if (category === 'taverne' && taverneCommunityId) {
+      items = items.filter((i) => i.communityId === taverneCommunityId);
+    }
+    // Type filter
+    if (filter === 'articles') items = items.filter((i) => i.type === 'article');
+    if (filter === 'podcasts') items = items.filter((i) => i.type === 'podcast');
+    return items;
+  }, [featuredItems, filter, category, taverneCommunityId]);
+
   const heroMode = useMemo(() => {
-    if (featuredItems.length === 0) return 'hidden' as const;
-    // Hide hero if filtering to podcasts and all featured are articles (or vice versa)
-    if (filter === 'podcasts' && featuredItems.every((i) => i.type === 'article')) return 'hidden' as const;
-    if (filter === 'articles' && featuredItems.every((i) => i.type === 'podcast')) return 'hidden' as const;
+    if (visibleFeatured.length === 0) return 'hidden' as const;
     if (filter === 'all' && sort === 'latest' && communityId === undefined && category === 'all') return 'full' as const;
     return 'compact' as const;
-  }, [featuredItems, filter, sort, communityId, category]);
-
-  // Filter featured items to match current filter
-  const visibleFeatured = useMemo(() => {
-    if (filter === 'articles') return featuredItems.filter((i) => i.type === 'article');
-    if (filter === 'podcasts') return featuredItems.filter((i) => i.type === 'podcast');
-    return featuredItems;
-  }, [featuredItems, filter]);
+  }, [visibleFeatured, filter, sort, communityId, category]);
 
   const fetchItems = useCallback(
     async (
