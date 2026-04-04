@@ -67,7 +67,7 @@ export function PressFilterBar({
               onClick={() => onCategoryChange(key)}
               className={`shrink-0 rounded-full px-3 py-1 text-sm font-bold transition-colors ${
                 category === key
-                  ? 'bg-red-600 text-white'
+                  ? 'bg-brand-red text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
               }`}
             >
