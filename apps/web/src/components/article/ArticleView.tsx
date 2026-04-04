@@ -115,7 +115,7 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
   return (
     <div className="flex justify-center gap-8 px-4 py-6">
       {/* Main article content */}
-      <article className="max-w-3xl flex-1 overflow-hidden">
+      <article className="w-full max-w-4xl flex-1 overflow-hidden">
         {/* Back button — returns to previous page (gallery or tribune) */}
         <button
           onClick={handleBack}
