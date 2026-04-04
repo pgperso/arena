@@ -10,10 +10,10 @@ import { useSupabase } from '@/hooks/useSupabase';
 import { useCoverUpload } from '@/hooks/useCoverUpload';
 import { createArticle, updateArticle } from '@/services/articleService';
 import { slugify } from '@/lib/slugify';
-import { CONTENT_AUTHORS as AUTHORS } from '@/lib/contentAuthors';
+import { CONTENT_AUTHORS as AUTHORS, getContentAuthor } from '@/lib/contentAuthors';
 
 const AUTHOR_OPTIONS = [
-  { name: 'Mon profil', initials: '✓', color: '#0B4870' },
+  { name: 'Mon profil', initials: '✓', color: '#0B4870', style: '' },
   ...AUTHORS,
 ];
 
@@ -58,6 +58,13 @@ export function ArticleEditor({
   const [error, setError] = useState<string | null>(null);
   const [authorNameOverride, setAuthorNameOverride] = useState(existingArticle?.author_name_override ?? '');
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showAiPanel, setShowAiPanel] = useState(false);
+  const [aiTopic, setAiTopic] = useState('');
+  const [aiInstructions, setAiInstructions] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiSuggesting, setAiSuggesting] = useState(false);
+  const [aiTopics, setAiTopics] = useState<{ title: string; description: string; topic: string }[]>([]);
+  const aiAbortRef = useRef<AbortController | null>(null);
   const supabase = useSupabase();
   const { coverPreview, coverPositionY, setCoverPositionY, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
     supabase, selectedCommunityId, existingArticle?.cover_image_url ?? null, '', existingArticle?.cover_position_y ?? 50,
@@ -105,6 +112,139 @@ export function ArticleEditor({
   function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const err = onCoverChange(e);
     if (err) setError(err);
+  }
+
+  async function handleSuggestTopics() {
+    setAiSuggesting(true);
+    setError(null);
+    setAiTopics([]);
+    try {
+      const communityName = communities.find((c) => c.id === selectedCommunityId)?.name ?? communitySlug;
+      const res = await fetch('/api/articles/suggest-topics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ communityName }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? 'Erreur lors de la recherche de sujets');
+        return;
+      }
+      setAiTopics(data.topics ?? []);
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion.');
+    } finally {
+      setAiSuggesting(false);
+    }
+  }
+
+  function handleCancelAi() {
+    aiAbortRef.current?.abort();
+    aiAbortRef.current = null;
+    setAiGenerating(false);
+    setAiSuggesting(false);
+  }
+
+  async function handleSelectTopicAndGenerate(selectedTopic: string) {
+    if (aiGenerating) return; // Prevent double-click
+    setAiTopic(selectedTopic);
+    setAiTopics([]);
+    setAiGenerating(true);
+    setError(null);
+
+    const controller = new AbortController();
+    aiAbortRef.current = controller;
+
+    try {
+      const communityName = communities.find((c) => c.id === selectedCommunityId)?.name ?? communitySlug;
+      const authorData = authorNameOverride ? getContentAuthor(authorNameOverride) : null;
+      const res = await fetch('/api/articles/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          topic: selectedTopic.slice(0, 200),
+          communityName,
+          authorStyle: authorData?.style || undefined,
+          authorName: authorData?.name || undefined,
+          instructions: aiInstructions.trim().slice(0, 500) || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 429) setError('Limite atteinte (10/heure). Réessayez plus tard.');
+        else if (res.status === 503) setError('Service indisponible. Réessayez.');
+        else if (res.status === 404) setError('Aucune nouvelle trouvée pour ce sujet.');
+        else setError(data.error ?? 'Erreur lors de la génération');
+        return;
+      }
+      if (data.title) {
+        setTitle(data.title);
+        if (!slugTouched) setCustomSlug(slugify(data.title).slice(0, 60));
+      }
+      if (data.excerpt) setExcerpt(data.excerpt);
+      if (data.body && editor) editor.commands.setContent(data.body);
+      setShowAiPanel(false);
+      setAiTopic('');
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return; // User cancelled
+      setError('Erreur réseau. Vérifiez votre connexion.');
+    } finally {
+      setAiGenerating(false);
+      aiAbortRef.current = null;
+    }
+  }
+
+  async function handleAiGenerate() {
+    if (!aiTopic.trim()) return;
+    setAiGenerating(true);
+    setError(null);
+    try {
+      const communityName = communities.find((c) => c.id === selectedCommunityId)?.name ?? communitySlug;
+      const authorData = authorNameOverride ? getContentAuthor(authorNameOverride) : null;
+      const res = await fetch('/api/articles/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: aiTopic.trim().slice(0, 200),
+          communityName,
+          authorStyle: authorData?.style || undefined,
+          authorName: authorData?.name || undefined,
+          instructions: aiInstructions.trim().slice(0, 500) || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 429) {
+          setError('Limite atteinte (10/heure). Réessayez plus tard.');
+        } else if (res.status === 503) {
+          setError('Service de nouvelles indisponible. Réessayez.');
+        } else {
+          setError(data.error ?? 'Erreur lors de la génération');
+        }
+        return;
+      }
+      // Pre-fill editor with sanitized content
+      if (data.title) {
+        setTitle(data.title);
+        if (!slugTouched) setCustomSlug(slugify(data.title).slice(0, 60));
+      }
+      if (data.excerpt) setExcerpt(data.excerpt);
+      if (data.body && editor) {
+        // TipTap sanitizes HTML on setContent — safe to pass directly
+        editor.commands.setContent(data.body);
+      }
+      setShowAiPanel(false);
+      setAiTopic('');
+    } catch (err) {
+      if (err instanceof TypeError) {
+        setError('Erreur réseau. Vérifiez votre connexion.');
+      } else {
+        setError('Erreur serveur. Réessayez plus tard.');
+      }
+    } finally {
+      setAiGenerating(false);
+    }
   }
 
   const handleSave = useCallback(async (publish: boolean) => {
@@ -199,6 +339,177 @@ export function ArticleEditor({
       {error && (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
+        </div>
+      )}
+
+      {/* Step 1: Tribune selector */}
+      {!isEditMode && communities.length > 1 && (
+        <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-3 py-3">
+          <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">1. Publier dans :</p>
+          <select
+            value={selectedCommunityId}
+            onChange={(e) => {
+              const id = Number(e.target.value);
+              setSelectedCommunityId(id);
+              const comm = communities.find((c) => c.id === id);
+              if (comm) setSelectedCommunitySlug(comm.slug);
+            }}
+            className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+          >
+            {communities.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Step 2: Author selector */}
+      <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-3 py-3">
+        <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">{!isEditMode && communities.length > 1 ? '2.' : '1.'} Publier en tant que :</p>
+        <div className="flex flex-wrap gap-2">
+          {AUTHOR_OPTIONS.map((author) => (
+            <button
+              key={author.name}
+              type="button"
+              onClick={() => setAuthorNameOverride(author.name === 'Mon profil' ? '' : author.name)}
+              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
+                (authorNameOverride === '' && author.name === 'Mon profil') || authorNameOverride === author.name
+                  ? 'border-brand-blue bg-brand-blue/5 font-medium text-brand-blue'
+                  : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:border-gray-600 hover:bg-white dark:bg-[#1e1e1e]'
+              }`}
+            >
+              <span
+                className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                style={{ backgroundColor: author.color }}
+              >
+                {author.initials}
+              </span>
+              {author.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Step 3: AI Generation */}
+      {!isEditMode && (
+        <div className="mb-4">
+          {!showAiPanel ? (
+            <button
+              onClick={() => setShowAiPanel(true)}
+              className="flex items-center gap-2 rounded-lg border border-purple-200 bg-purple-50 dark:bg-purple-950 dark:border-purple-800 px-4 py-2.5 text-sm font-medium text-purple-700 dark:text-purple-300 transition hover:bg-purple-100 dark:hover:bg-purple-900"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456Z" />
+              </svg>
+              Générer avec l'IA
+            </button>
+          ) : (
+            <div className="rounded-lg border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950 p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Génération par IA</p>
+                <button
+                  onClick={() => { setShowAiPanel(false); setAiTopic(''); setAiTopics([]); }}
+                  className="text-xs text-purple-400 hover:text-purple-600"
+                >
+                  Fermer
+                </button>
+              </div>
+
+              {/* Instructions optionnelles */}
+              <textarea
+                value={aiInstructions}
+                onChange={(e) => setAiInstructions(e.target.value.slice(0, 500))}
+                placeholder="Instructions optionnelles : ton plus sarcastique, focus sur les échanges, parle des chances en séries..."
+                className="mb-3 w-full rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none"
+                rows={2}
+                maxLength={500}
+                disabled={aiSuggesting || aiGenerating}
+              />
+
+              {/* Bouton trouver des sujets */}
+              {aiTopics.length === 0 && !aiGenerating && (
+                <button
+                  onClick={handleSuggestTopics}
+                  disabled={aiSuggesting}
+                  className="w-full rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {aiSuggesting ? 'Recherche de sujets...' : 'Trouver des sujets'}
+                </button>
+              )}
+
+              {/* Liste des sujets suggeres */}
+              {aiTopics.length > 0 && !aiGenerating && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-purple-600 dark:text-purple-400">Choisissez un sujet :</p>
+                  {aiTopics.map((t, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSelectTopicAndGenerate(t.topic)}
+                      className="w-full rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] p-3 text-left transition hover:border-purple-400 hover:shadow-sm"
+                    >
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t.title}</p>
+                      <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{t.description}</p>
+                    </button>
+                  ))}
+                  <button
+                    onClick={handleSuggestTopics}
+                    disabled={aiSuggesting}
+                    className="w-full rounded-lg border border-purple-200 dark:border-purple-700 px-3 py-2 text-xs text-purple-500 transition hover:bg-purple-100 dark:hover:bg-purple-900 disabled:opacity-50"
+                  >
+                    {aiSuggesting ? 'Recherche...' : 'Chercher d\'autres sujets'}
+                  </button>
+                </div>
+              )}
+
+              {/* Generation en cours */}
+              {aiGenerating && (
+                <div className="space-y-2 py-4">
+                  <div className="flex items-center justify-center gap-2 text-sm text-purple-600 dark:text-purple-400">
+                    <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Génération en cours...
+                  </div>
+                  <div className="space-y-1 text-center text-xs text-purple-400">
+                    <p>1. Recherchiste : collecte des nouvelles FR + EN</p>
+                    <p>2. Rédacteur : écriture dans le style de l'auteur</p>
+                    <p>3. Vérificateur : anti-plagiat et faits</p>
+                    <p>4. Éditeur : polish final</p>
+                  </div>
+                  <p className="text-center text-xs text-purple-300">~15-20 secondes</p>
+                  <button
+                    onClick={handleCancelAi}
+                    className="mx-auto block rounded-lg border border-purple-300 dark:border-purple-700 px-4 py-1.5 text-xs text-purple-500 transition hover:bg-purple-100 dark:hover:bg-purple-900"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              )}
+
+              {/* Champ sujet manuel (fallback) */}
+              {aiTopics.length === 0 && !aiSuggesting && !aiGenerating && (
+                <div className="mt-3 flex gap-2">
+                  <input
+                    type="text"
+                    value={aiTopic}
+                    onChange={(e) => setAiTopic(e.target.value.slice(0, 200))}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !aiGenerating) handleAiGenerate(); }}
+                    placeholder="Ou entrez un sujet manuellement..."
+                    className="flex-1 rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-xs text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none"
+                    maxLength={200}
+                  />
+                  <button
+                    onClick={handleAiGenerate}
+                    disabled={!aiTopic.trim()}
+                    className="shrink-0 rounded-lg bg-purple-500 px-3 py-2 text-xs font-medium text-white transition hover:bg-purple-600 disabled:opacity-50"
+                  >
+                    Générer
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -324,27 +635,6 @@ export function ArticleEditor({
         </div>
       </div>
 
-      {/* Tribune selector (new articles only — can't change after publish) */}
-      {!isEditMode && communities.length > 1 && (
-        <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-3 py-3">
-          <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">Publier dans :</p>
-          <select
-            value={selectedCommunityId}
-            onChange={(e) => {
-              const id = Number(e.target.value);
-              setSelectedCommunityId(id);
-              const comm = communities.find((c) => c.id === id);
-              if (comm) setSelectedCommunitySlug(comm.slug);
-            }}
-            className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-          >
-            {communities.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </div>
-      )}
-
       {/* Excerpt — critical for SEO (meta description) */}
       <div className="mb-4">
         <div className="flex items-center justify-between">
@@ -361,33 +651,6 @@ export function ArticleEditor({
           className="mt-1 w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-300 dark:placeholder-gray-600 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
           maxLength={200}
         />
-      </div>
-
-      {/* Publish as selector */}
-      <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-3 py-3">
-        <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">Publier en tant que :</p>
-        <div className="flex flex-wrap gap-2">
-          {AUTHOR_OPTIONS.map((author) => (
-            <button
-              key={author.name}
-              type="button"
-              onClick={() => setAuthorNameOverride(author.name === 'Mon profil' ? '' : author.name)}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                (authorNameOverride === '' && author.name === 'Mon profil') || authorNameOverride === author.name
-                  ? 'border-brand-blue bg-brand-blue/5 font-medium text-brand-blue'
-                  : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:border-gray-600 hover:bg-white dark:bg-[#1e1e1e]'
-              }`}
-            >
-              <span
-                className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                style={{ backgroundColor: author.color }}
-              >
-                {author.initials}
-              </span>
-              {author.name}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Toolbar */}
