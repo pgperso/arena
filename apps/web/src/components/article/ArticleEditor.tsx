@@ -60,7 +60,7 @@ export function ArticleEditor({
   const [showConfirm, setShowConfirm] = useState(false);
   const [showAiPanel, setShowAiPanel] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
-  const [aiInstructions, setAiInstructions] = useState('');
+  const [aiDirectives, setAiDirectives] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiSuggesting, setAiSuggesting] = useState(false);
   const [aiTopics, setAiTopics] = useState<{ title: string; description: string; topic: string }[]>([]);
@@ -123,7 +123,7 @@ export function ArticleEditor({
       const res = await fetch('/api/articles/suggest-topics', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ communityName }),
+        body: JSON.stringify({ communityName, directives: aiDirectives.trim() || undefined }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -145,9 +145,14 @@ export function ArticleEditor({
     setAiSuggesting(false);
   }
 
-  async function handleSelectTopicAndGenerate(selectedTopic: string) {
+  async function handleSelectTopicAndGenerate(selectedTopic: string, editBeforeGenerate = false) {
     if (aiGenerating) return; // Prevent double-click
     setAiTopic(selectedTopic);
+    if (editBeforeGenerate) {
+      // Let user edit the topic before generating
+      setAiTopics([]);
+      return;
+    }
     setAiTopics([]);
     setAiGenerating(true);
     setError(null);
@@ -167,7 +172,7 @@ export function ArticleEditor({
           communityName,
           authorStyle: authorData?.style || undefined,
           authorName: authorData?.name || undefined,
-          instructions: aiInstructions.trim().slice(0, 500) || undefined,
+          directives: aiDirectives.trim().slice(0, 1000) || undefined,
         }),
       });
       const data = await res.json();
@@ -210,7 +215,7 @@ export function ArticleEditor({
           communityName,
           authorStyle: authorData?.style || undefined,
           authorName: authorData?.name || undefined,
-          instructions: aiInstructions.trim().slice(0, 500) || undefined,
+          directives: aiDirectives.trim().slice(0, 1000) || undefined,
         }),
       });
       const data = await res.json();
@@ -415,14 +420,14 @@ export function ArticleEditor({
                 </button>
               </div>
 
-              {/* Instructions optionnelles */}
+              {/* Directives optionnelles */}
               <textarea
-                value={aiInstructions}
-                onChange={(e) => setAiInstructions(e.target.value.slice(0, 500))}
-                placeholder="Instructions optionnelles : ton plus sarcastique, focus sur les échanges, parle des chances en séries..."
+                value={aiDirectives}
+                onChange={(e) => setAiDirectives(e.target.value.slice(0, 1000))}
+                placeholder={"Directives (optionnel) : collez des liens, décrivez un angle, donnez des consignes...\nEx: « Parle de l'échange de Caufield, ton sarcastique »\nEx: « https://www.rds.ca/article-xyz — fais un article sur ça »"}
                 className="mb-3 w-full rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none"
-                rows={2}
-                maxLength={500}
+                rows={3}
+                maxLength={1000}
                 disabled={aiSuggesting || aiGenerating}
               />
 
@@ -442,14 +447,24 @@ export function ArticleEditor({
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-purple-600 dark:text-purple-400">Choisissez un sujet :</p>
                   {aiTopics.map((t, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSelectTopicAndGenerate(t.topic)}
-                      className="w-full rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] p-3 text-left transition hover:border-purple-400 hover:shadow-sm"
-                    >
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t.title}</p>
-                      <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{t.description}</p>
-                    </button>
+                    <div key={i} className="flex gap-1.5">
+                      <button
+                        onClick={() => handleSelectTopicAndGenerate(t.topic)}
+                        className="flex-1 rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] p-3 text-left transition hover:border-purple-400 hover:shadow-sm"
+                      >
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t.title}</p>
+                        <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{t.description}</p>
+                      </button>
+                      <button
+                        onClick={() => handleSelectTopicAndGenerate(t.topic, true)}
+                        title="Modifier avant de générer"
+                        className="shrink-0 self-center rounded-lg border border-purple-200 dark:border-purple-700 p-2 text-purple-400 transition hover:bg-purple-100 dark:hover:bg-purple-900 hover:text-purple-600"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                        </svg>
+                      </button>
+                    </div>
                   ))}
                   <button
                     onClick={handleSuggestTopics}
@@ -487,7 +502,7 @@ export function ArticleEditor({
                 </div>
               )}
 
-              {/* Champ sujet manuel (fallback) */}
+              {/* Champ sujet manuel ou editable */}
               {aiTopics.length === 0 && !aiSuggesting && !aiGenerating && (
                 <div className="mt-3 flex gap-2">
                   <input
@@ -495,14 +510,14 @@ export function ArticleEditor({
                     value={aiTopic}
                     onChange={(e) => setAiTopic(e.target.value.slice(0, 200))}
                     onKeyDown={(e) => { if (e.key === 'Enter' && !aiGenerating) handleAiGenerate(); }}
-                    placeholder="Ou entrez un sujet manuellement..."
-                    className="flex-1 rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-xs text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none"
+                    placeholder="Entrez ou modifiez le sujet..."
+                    className="flex-1 rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-[#1e1e1e] px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none"
                     maxLength={200}
                   />
                   <button
                     onClick={handleAiGenerate}
                     disabled={!aiTopic.trim()}
-                    className="shrink-0 rounded-lg bg-purple-500 px-3 py-2 text-xs font-medium text-white transition hover:bg-purple-600 disabled:opacity-50"
+                    className="shrink-0 rounded-lg bg-purple-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-purple-600 disabled:opacity-50"
                   >
                     Générer
                   </button>

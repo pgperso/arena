@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@/lib/supabase/server';
 import { fetchRecentNews } from '@/lib/newsSearch';
+import { fetchUrlContent, extractUrls } from '@/lib/fetchUrlContent';
 
 // ─── Rate Limiting ───
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -31,12 +32,11 @@ function sanitize(input: string, max: number): string {
 }
 
 /** Escape input that goes into prompt to prevent injection */
-function escapeForPrompt(input: string): string {
+function escapeForPrompt(input: string, maxLen = 1000): string {
   return input
-    .replace(/\n/g, ' ')           // No newlines (prompt structure)
     .replace(/["""]/g, '«»')       // Replace quotes
     .replace(/\\/g, '')            // Remove backslashes
-    .slice(0, 500);
+    .slice(0, maxLen);
 }
 
 // ─── Helpers ───
@@ -108,28 +108,18 @@ function deduplicateNews(items: string[]): string[] {
 // ─── AGENT 1: RECHERCHISTE ───
 async function agentResearch(
   client: Anthropic,
-  topic: string,
   communityName: string,
+  directives: string,
+  directiveUrlContents: string,
+  newsLines: string[],
 ): Promise<string> {
-  const [newsFr, newsEn] = await Promise.all([
-    fetchRecentNews(topic),
-    fetchRecentNews(`${topic} latest news`),
-  ]);
+  const directivesBlock = directives
+    ? `\nDIRECTIVES PRIORITAIRES de l'utilisateur :\n${escapeForPrompt(directives)}\n${directiveUrlContents ? `\nContenu des liens fournis par l'utilisateur :\n${directiveUrlContents}` : ''}\n\nCes directives sont ta SOURCE PRINCIPALE. Utilise-les en priorité pour orienter ton dossier. Les nouvelles récentes ci-dessous servent de complément.\n`
+    : '';
 
-  if (newsFr === null && newsEn === null) {
-    throw new Error('SERVICE_UNAVAILABLE');
-  }
-
-  const allNews = [
-    ...(newsFr ?? []).map((n) => `[FR] ${n.title} (${n.pubDate}) — ${n.link}`),
-    ...(newsEn ?? []).map((n) => `[EN] ${n.title} (${n.pubDate}) — ${n.link}`),
-  ];
-
-  const unique = deduplicateNews(allNews).slice(0, 12);
-
-  if (unique.length === 0) {
-    throw new Error('NO_NEWS');
-  }
+  const newsBlock = newsLines.length > 0
+    ? `\nNouvelles récentes (français et anglais) :\n${newsLines.join('\n')}`
+    : '';
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
@@ -137,20 +127,20 @@ async function agentResearch(
     messages: [{
       role: 'user',
       content: `Tu es un RECHERCHISTE sportif pour une tribune sur le sujet suivant : ${escapeForPrompt(communityName)}.
-
-Voici les nouvelles récentes (français et anglais) :
-${unique.join('\n')}
+${directivesBlock}${newsBlock}
 
 MISSION :
 - Compile un dossier de recherche structuré en français
 - Extrais les FAITS VÉRIFIABLES : dates, scores, noms, événements
+- REFORMULE TOUT dans tes propres mots. Ne recopie JAMAIS les titres ou phrases des sources. Résume les faits, ne cite pas.
 - Traduis les informations anglaises en français
+- Les sources [X/Twitter] contiennent des réactions et opinions en temps réel - note les prises de position intéressantes, controverses et débats chauds
 - Identifie l'angle le plus intéressant pour un article d'opinion
-- Note les SOURCES avec leurs liens
+- Note les SOURCES avec leurs liens (mais PAS leurs titres exacts)
 - Si une info est incertaine, marque-la comme « à vérifier »
 - N'invente AUCUN fait, citation ou statistique
 
-Format : texte structuré avec sections (Faits clés, Contexte, Angle suggéré, Sources)
+Format : texte structuré avec sections (Faits clés, Contexte, Réactions X/Twitter, Angle suggéré, Sources)
 Ne fais PAS d'article, juste le dossier de recherche.`,
     }],
   });
@@ -165,9 +155,9 @@ async function agentWrite(
   authorName: string,
   authorStyle: string,
   communityName: string,
-  instructions: string,
+  directives: string,
 ): Promise<string> {
-  const escapedInstructions = instructions ? escapeForPrompt(instructions) : '';
+  const escapedDirectives = directives ? escapeForPrompt(directives) : '';
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
@@ -176,6 +166,7 @@ async function agentWrite(
       role: 'user',
       content: `Tu es le RÉDACTEUR ${authorName ? `« ${escapeForPrompt(authorName)} »` : ''} pour une tribune sur ${escapeForPrompt(communityName)}.
 ${authorStyle ? `\nTon style éditorial : ${authorStyle}` : '\nTon style : chroniqueur sportif québécois engagé.'}
+${escapedDirectives ? `\nDIRECTIVES PRIORITAIRES de l'utilisateur :\n${escapedDirectives}\n\nCes directives sont PRIORITAIRES. L'article DOIT respecter ces consignes (angle, sujet, ton, éléments à inclure). Combine-les avec les faits du dossier de recherche.` : ''}
 
 Voici le dossier de recherche :
 ---
@@ -188,13 +179,21 @@ MISSION :
 - Varie tes tournures (pas toujours les mêmes débuts de paragraphe)
 - Base-toi UNIQUEMENT sur les faits du dossier, n'invente RIEN
 - Si un fait est marqué « à vérifier », ne l'inclus pas
+
+ORIGINALITÉ (CRITIQUE) :
+- JAMAIS de phrase copiée d'une source. Reformule TOUT avec ta propre voix.
+- N'utilise AUCUN titre de nouvelle comme titre ou phrase de ton article.
+- Maximum 3 mots consécutifs identiques à une source. Au-delà, reformule.
+- Écris comme un chroniqueur qui a digéré l'info et donne SON opinion, pas comme un journaliste qui rapporte.
+- Évite les formulations journalistiques génériques (« force est de constater », « il va sans dire », « à l'heure où »).
+
+FORMAT :
 - Utilise des guillemets français « » jamais des guillemets doubles
 - N'utilise JAMAIS le tiret cadratin (—) ni le tiret demi-cadratin (–). Utilise uniquement le tiret court (-) ou reformule la phrase
 - HTML : <p>, <h2>, <h3>, <strong>, <em>, <ul>, <li>, <blockquote>
 - PAS de <h1>, pas de <html>/<head>/<body>
 - NE PAS ajouter de section sources ni de mention IA à la fin de l'article
 - L'article doit se terminer naturellement par une conclusion éditoriale forte
-${escapedInstructions ? `\nConsigne supplémentaire de style : ${escapedInstructions}` : ''}
 
 Réponds UNIQUEMENT en JSON valide, rien d'autre :
 {"title":"Titre accrocheur max 200 car","excerpt":"Résumé SEO 120-155 car","body":"<p>HTML ici</p>"}`,
@@ -209,24 +208,43 @@ async function agentVerify(
   client: Anthropic,
   articleJson: string,
   research: string,
+  newsTitles: string[],
+  authorName: string,
+  authorStyle: string,
 ): Promise<string> {
+  const sourceTitles = newsTitles.length > 0
+    ? `\nTITRES ORIGINAUX DES SOURCES (pour comparaison anti-plagiat) :\n${newsTitles.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n`
+    : '';
+
+  const styleBlock = authorStyle
+    ? `\nAUTEUR : ${escapeForPrompt(authorName || 'chroniqueur')}\nSTYLE ATTENDU : ${authorStyle}\n`
+    : '';
+
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 2500,
     messages: [{
       role: 'user',
-      content: `Tu es un VÉRIFICATEUR anti-plagiat et qualité.
+      content: `Tu es un VÉRIFICATEUR anti-plagiat STRICT et qualité.
 
 ARTICLE SOUMIS :
 ${articleJson}
 
 DOSSIER DE RECHERCHE :
 ${research}
-
+${sourceTitles}${styleBlock}
 MISSION :
-1. PLAGIAT : Aucune phrase ne doit être copiée mot pour mot des sources. Reformule si nécessaire.
+1. PLAGIAT (PRIORITÉ ABSOLUE) :
+   - Compare chaque phrase de l'article avec les titres des sources ci-dessus.
+   - Si plus de 3 mots consécutifs sont identiques à un titre source, REFORMULE la phrase complètement.
+   - Le titre de l'article ne doit ressembler à AUCUN titre source. Change-le si c'est le cas.
+   - L'article doit sonner comme une OPINION PERSONNELLE, pas comme un résumé de nouvelles.
+   - Élimine les formulations journalistiques clichées.
 2. FAITS : Retire tout fait absent du dossier de recherche. Aucune invention.
-3. STYLE : Le ton doit être cohérent du début à la fin.
+3. STYLE DE L'AUTEUR (IMPORTANT) :
+   - L'article DOIT correspondre au style de l'auteur décrit ci-dessus.
+   - Si le ton ne correspond pas (ex: un article trop sérieux pour Rex Paquette qui doit être provocateur), RÉÉCRIS les passages pour coller au personnage.
+   - Le vocabulaire, le niveau de langue et l'attitude doivent refléter la personnalité de l'auteur.
 4. QUALITÉ : Améliore les transitions, supprime les répétitions.
 5. JSON : Le JSON retourné doit être VALIDE. Utilise « » pas des guillemets doubles dans le texte.
 
@@ -257,15 +275,17 @@ ARTICLE :
 ${articleJson}
 
 AUTEUR : ${escapeForPrompt(authorName || 'chroniqueur')}
-STYLE : ${authorStyle || 'éditorial sportif québécois'}
+STYLE ATTENDU : ${authorStyle || 'éditorial sportif québécois'}
 
 MISSION :
-1. Le titre est-il accrocheur et < 200 caractères ? Améliore si nécessaire.
-2. L'excerpt SEO fait-il 120-155 caractères ? Ajuste.
-3. L'ouverture accroche dès la première phrase ? Renforce si faible.
-4. La conclusion est mémorable ? Améliore si plate.
-5. Le vocabulaire est varié ? Remplace les mots répétés.
-6. Le HTML est propre ? Pas de balises vides.
+1. VOIX DE L'AUTEUR (PRIORITÉ) : Relis le style attendu ci-dessus. L'article doit SONNER comme cet auteur. Si Rex Paquette est provocateur et sarcastique, l'article doit être provocateur et sarcastique. Si Maika Blitz est passionnée et émotionnelle, l'article doit vibrer d'émotion. Ajuste le vocabulaire, les tournures et l'attitude pour coller au personnage.
+2. ORIGINALITÉ : L'article sonne-t-il comme une chronique personnelle ou comme un résumé de nouvelles ? Si c'est trop « journalistique », injecte plus de personnalité et d'opinion dans le style de l'auteur.
+3. Le titre est-il accrocheur, original et < 200 caractères ? Il doit refléter le ton de l'auteur (provocateur, analytique, passionné, critique selon le cas).
+4. L'excerpt SEO fait-il 120-155 caractères ? Ajuste.
+5. L'ouverture accroche dès la première phrase ? Renforce si faible.
+6. La conclusion est mémorable ? Améliore si plate.
+7. Le vocabulaire est varié ? Remplace les mots répétés et les clichés journalistiques.
+8. Le HTML est propre ? Pas de balises vides.
 
 Retourne l'article FINAL en JSON strict :
 {"title":"...","excerpt":"...","body":"<p>...</p>"}
@@ -297,7 +317,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const topic = sanitize(body.topic ?? '', 200);
-    const instructions = sanitize(body.instructions ?? '', 500);
+    const directives = sanitize(body.directives ?? body.instructions ?? '', 1000);
     const communityName = sanitize(body.communityName ?? 'Sport', 100);
     const authorStyle = typeof body.authorStyle === 'string' ? body.authorStyle.slice(0, 500) : '';
     const authorName = sanitize(body.authorName ?? '', 100);
@@ -313,25 +333,52 @@ export async function POST(request: Request) {
 
     const client = new Anthropic({ apiKey });
 
-    // Agent 1: Recherchiste
-    let research: string;
-    try {
-      research = await agentResearch(client, topic, communityName);
-    } catch (err) {
-      if (err instanceof Error && err.message === 'SERVICE_UNAVAILABLE') {
-        return NextResponse.json({ error: 'Service de nouvelles indisponible.' }, { status: 503 });
-      }
-      if (err instanceof Error && err.message === 'NO_NEWS') {
-        return NextResponse.json({ error: 'Aucune nouvelle trouvée pour ce sujet.' }, { status: 404 });
-      }
-      throw err;
+    // Fetch URL content from directives in parallel
+    const directiveUrls = directives ? extractUrls(directives) : [];
+    const urlContents = await Promise.all(
+      directiveUrls.slice(0, 3).map((url) => fetchUrlContent(url)),
+    );
+    const directiveUrlContents = urlContents
+      .map((content, i) => content ? `--- ${directiveUrls[i]} ---\n${content}` : null)
+      .filter(Boolean)
+      .join('\n\n');
+
+    // Fetch all news sources in parallel (used by recherchiste + vérificateur)
+    const [newsFr, newsEn, newsX] = await Promise.all([
+      fetchRecentNews(topic),
+      fetchRecentNews(`${topic} latest news`),
+      fetchRecentNews(`${topic} site:x.com OR site:twitter.com`),
+    ]);
+
+    if (newsFr === null && newsEn === null && newsX === null && !directives) {
+      return NextResponse.json({ error: 'Service de nouvelles indisponible.' }, { status: 503 });
     }
 
+    const allNewsLines = [
+      ...(newsFr ?? []).map((n) => `[FR] ${n.title} (${n.pubDate}) — ${n.link}`),
+      ...(newsEn ?? []).map((n) => `[EN] ${n.title} (${n.pubDate}) — ${n.link}`),
+      ...(newsX ?? []).map((n) => `[X/Twitter] ${n.title} (${n.pubDate}) — ${n.link}`),
+    ];
+    const uniqueNews = deduplicateNews(allNewsLines).slice(0, 15);
+
+    const newsTitles = [
+      ...(newsFr ?? []).map((n) => n.title),
+      ...(newsEn ?? []).map((n) => n.title),
+      ...(newsX ?? []).map((n) => n.title),
+    ].slice(0, 20);
+
+    if (uniqueNews.length === 0 && !directives) {
+      return NextResponse.json({ error: 'Aucune nouvelle trouvée pour ce sujet.' }, { status: 404 });
+    }
+
+    // Agent 1: Recherchiste
+    const research = await agentResearch(client, communityName, directives, directiveUrlContents, uniqueNews);
+
     // Agent 2: Rédacteur
-    const draft = await agentWrite(client, research, authorName, authorStyle, communityName, instructions);
+    const draft = await agentWrite(client, research, authorName, authorStyle, communityName, directives);
 
     // Agent 3: Vérificateur
-    const verified = await agentVerify(client, draft, research);
+    const verified = await agentVerify(client, draft, research, newsTitles, authorName, authorStyle);
 
     // Agent 4: Éditeur
     const polished = await agentPolish(client, verified, authorName, authorStyle);

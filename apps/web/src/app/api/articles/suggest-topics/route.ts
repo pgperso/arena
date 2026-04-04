@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@/lib/supabase/server';
 import { fetchRecentNews } from '@/lib/newsSearch';
+import { fetchUrlContent, extractUrls } from '@/lib/fetchUrlContent';
 
 export async function POST(request: Request) {
   try {
@@ -12,19 +13,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    const { communityName } = await request.json();
-    const topic = (communityName ?? 'sport').trim();
+    const body = await request.json();
+    const communityName = (body.communityName ?? 'sport').trim();
+    const directives = (typeof body.directives === 'string' ? body.directives : '').trim().slice(0, 1000);
 
-    // Fetch recent news for the community topic
-    const news = await fetchRecentNews(topic);
-    if (news === null || news.length === 0) {
+    // Fetch URLs from directives in parallel with news
+    const directiveUrls = directives ? extractUrls(directives) : [];
+    const [news, newsX, ...urlContents] = await Promise.all([
+      fetchRecentNews(communityName),
+      fetchRecentNews(`${communityName} site:x.com OR site:twitter.com`),
+      ...directiveUrls.slice(0, 3).map((url) => fetchUrlContent(url)),
+    ]);
+
+    // Build URL context from fetched pages
+    const urlContext = urlContents
+      .map((content, i) => content ? `--- Contenu de ${directiveUrls[i]} ---\n${content}` : null)
+      .filter(Boolean)
+      .join('\n\n');
+
+    if ((news === null || news.length === 0) && (newsX === null || newsX.length === 0) && !directives) {
       return NextResponse.json(
         { error: 'Aucune nouvelle récente trouvée. Réessayez.' },
         { status: 503 },
       );
     }
 
-    const newsContext = news.map((n, i) => `${i + 1}. ${n.title} (${n.pubDate})`).join('\n');
+    const allItems = [
+      ...(news ?? []).map((n, i) => `${i + 1}. ${n.title} (${n.pubDate})`),
+      ...(newsX ?? []).map((n, i) => `[X/Twitter] ${n.title} (${n.pubDate})`),
+    ];
+    const newsContext = allItems.join('\n');
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
@@ -33,17 +51,17 @@ export async function POST(request: Request) {
 
     const client = new Anthropic({ apiKey });
 
+    const directivesBlock = directives
+      ? `\nDIRECTIVES PRIORITAIRES de l'utilisateur :\n${directives}\n${urlContext ? `\nContenu des liens fournis :\n${urlContext}` : ''}\n\nCes directives sont PRIORITAIRES. Les suggestions doivent d'abord répondre à ces directives, puis compléter avec les nouvelles récentes si pertinent.`
+      : '';
+
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 512,
       messages: [
         {
           role: 'user',
-          content: `Voici les nouvelles récentes pour "${topic}" :
-
-${newsContext}
-
-Propose exactement 4 angles d'article d'opinion sportive en français québécois.
+          content: `${directives ? '' : `Voici les nouvelles récentes pour "${communityName}" :\n\n${newsContext}\n\n`}${directives ? `${directivesBlock}\n\n${newsContext ? `Nouvelles récentes pour contexte :\n${newsContext}\n\n` : ''}` : ''}Propose exactement 4 angles d'article d'opinion sportive en français québécois.
 Pour chaque angle, donne un titre accrocheur et une description de 1-2 phrases de l'angle éditorial.
 Choisis les sujets les plus intéressants, controversés ou d'actualité brûlante.
 

@@ -10,25 +10,25 @@ export const CONTENT_AUTHORS: ContentAuthor[] = [
     name: 'Rex Paquette',
     initials: 'RP',
     color: '#DC2626',
-    style: 'Provocateur et sarcastique. Opinions tranchées, controversé, n\'a peur de rien. Humour noir, comparaisons absurdes, punchlines. Tutoie le lecteur. Ton : chroniqueur de radio sportive trash-talk.',
+    style: 'Chroniqueur sportif homme. Ton direct et affirmé, n\'hésite pas à prendre position. Légèrement plus confrontant que ses collègues - pose les questions difficiles. Français soigné mais accessible.',
   },
   {
     name: 'DJ Labombarde',
     initials: 'DJ',
     color: '#2563EB',
-    style: 'Analytique et posé. Appuie ses opinions sur des stats et des faits. Ton professionnel et mesuré. Structuré, nuancé, n\'hésite pas à comparer les scénarios. Ton : journaliste sportif sérieux.',
+    style: 'Chroniqueur sportif homme. Axé sur l\'analyse et les statistiques. Appuie ses opinions sur des données concrètes. Ton posé et structuré, le plus factuel des quatre. Français soigné.',
   },
   {
     name: 'Maika Blitz',
     initials: 'MB',
     color: '#EAB308',
-    style: 'Passionnée et émotionnelle. Fan assumée qui écrit avec le coeur. Exclamations, enthousiasme, vit chaque match comme le dernier. Utilise des expressions québécoises. Ton : la fan #1 qui tient un blogue.',
+    style: 'Chroniqueuse sportive femme. Ton chaleureux et accessible, proche des fans. Légèrement plus expressive que ses collègues sans tomber dans l\'excès. Point de vue du partisan. Français soigné mais naturel.',
   },
   {
     name: 'Roxane Fury',
     initials: 'RF',
     color: '#7C3AED',
-    style: 'Critique et incisive. Point de vue unique, met en lumière les angles morts du sport, les enjeux sociaux et culturels. Questionne le statu quo. Ton : chroniqueuse d\'opinion engagée.',
+    style: 'Chroniqueuse sportive femme. Aborde les angles moins couverts - enjeux hors-glace, décisions d\'affaires, contexte. Ton réfléchi et nuancé. Point de vue unique qui va au-delà du match. Français soigné.',
   },
 ];
 
