@@ -18,13 +18,27 @@ export async function POST(request: Request) {
     const directives = (typeof body.directives === 'string' ? body.directives : '').trim().slice(0, 1000);
     const isTaverne = body.isTaverne === true;
 
-    // For La Taverne, search news based on directives content (not "La Taverne")
-    // Strip URLs from directives to get the actual topic text for searching
+    // Extract URLs and text from directives
     const directiveUrls = directives ? extractUrls(directives) : [];
     const directiveText = directives.replace(/https?:\/\/[^\s,;)}\]"'<>]+/g, '').trim();
-    const searchTerm = isTaverne
-      ? (directiveText || 'actualité Québec Canada') // default broad search for La Taverne
-      : communityName;
+
+    // Extract keywords from URL slugs (e.g. "patrick-roy-est-renvoye-par-les-islanders" → search terms)
+    const urlKeywords = directiveUrls
+      .map((url) => {
+        try {
+          const path = new URL(url).pathname;
+          const slug = path.split('/').pop() ?? '';
+          return slug.replace(/[-_]/g, ' ').replace(/\d{4}/g, '').trim();
+        } catch { return ''; }
+      })
+      .filter((k) => k.length > 5)
+      .join(' ');
+
+    // When directives exist, use their content for news search (not communityName)
+    const hasDirectiveContent = directiveText || urlKeywords;
+    const searchTerm = hasDirectiveContent
+      ? `${directiveText} ${urlKeywords}`.trim()
+      : (isTaverne ? 'actualité Québec Canada' : communityName);
 
     const [news, newsX, ...urlContents] = await Promise.all([
       searchTerm ? fetchRecentNews(searchTerm) : Promise.resolve(null),
