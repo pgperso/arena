@@ -73,10 +73,16 @@ export function Header() {
             {tribune ? (
               <>
                 <span className="text-base font-bold text-gray-900 dark:text-gray-100 md:hidden">{tribune.name}</span>
-                <span className="hidden text-lg font-bold text-gray-900 dark:text-gray-100 md:inline md:text-xl">{t('brand.name')}</span>
+                <div className="hidden md:block">
+                  <span className="text-lg font-bold text-gray-900 dark:text-gray-100 md:text-xl">{t('brand.name')}</span>
+                  <p className="text-[10px] leading-tight text-gray-400 dark:text-gray-500">Sports, actualités et plein d&apos;autres patentes</p>
+                </div>
               </>
             ) : (
-              <span className="text-base font-bold text-gray-900 dark:text-gray-100 sm:text-lg md:text-xl">{t('brand.name')}</span>
+              <div>
+                <span className="text-base font-bold text-gray-900 dark:text-gray-100 sm:text-lg md:text-xl">{t('brand.name')}</span>
+                <p className="hidden text-[10px] leading-tight text-gray-400 dark:text-gray-500 sm:block">Sports, actualités et plein d&apos;autres patentes</p>
+              </div>
             )}
           </Link>
         </div>
