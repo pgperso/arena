@@ -259,6 +259,11 @@ export function ArticleEditor({
 
   async function handleAiRefine() {
     if (!aiRefinePrompt.trim() || !editor) return;
+    const currentBody = editor.getHTML();
+    if (!currentBody || currentBody === '<p></p>') {
+      setError('L\'article est vide. Générez d\'abord un article.');
+      return;
+    }
     setAiRefining(true);
     setError(null);
     try {
@@ -268,7 +273,7 @@ export function ArticleEditor({
         body: JSON.stringify({
           title,
           excerpt,
-          body: editor.getHTML(),
+          body: currentBody,
           instructions: aiRefinePrompt.trim(),
           isTaverne: selectedCommunitySlug === 'la-taverne',
         }),
@@ -283,9 +288,12 @@ export function ArticleEditor({
         if (!slugTouched) setCustomSlug(slugify(data.title).slice(0, 60));
       }
       if (data.excerpt) setExcerpt(data.excerpt);
-      if (data.body) editor.commands.setContent(data.body);
+      if (data.body && data.body !== currentBody) {
+        editor.commands.setContent(data.body);
+      }
       setAiRefinePrompt('');
-    } catch {
+    } catch (err) {
+      console.error('Refine error:', err);
       setError('Erreur réseau. Réessayez.');
     } finally {
       setAiRefining(false);

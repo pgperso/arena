@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const title = (body.title ?? '').trim().slice(0, 200);
     const excerpt = (body.excerpt ?? '').trim().slice(0, 200);
-    const articleBody = (body.body ?? '').trim().slice(0, 10000);
+    const articleBody = (body.body ?? '').trim().slice(0, 15000);
     const instructions = (body.instructions ?? '').trim().slice(0, 1000);
     const isTaverne = body.isTaverne === true;
 
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 3000,
+      max_tokens: 4096,
       messages: [{
         role: 'user',
         content: `Tu es un éditeur ${isTaverne ? '' : 'sportif '}québécois. Voici un article à améliorer.
