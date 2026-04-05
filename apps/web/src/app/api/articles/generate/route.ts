@@ -114,12 +114,13 @@ async function agentResearch(
   newsLines: string[],
   isTaverne: boolean,
 ): Promise<string> {
+  const hasUrlContent = directiveUrlContents.length > 0;
   const directivesBlock = directives
-    ? `\nDIRECTIVES PRIORITAIRES de l'utilisateur :\n${escapeForPrompt(directives)}\n${directiveUrlContents ? `\nContenu des liens fournis par l'utilisateur :\n${directiveUrlContents}` : ''}\n\nCes directives sont ta SOURCE PRINCIPALE. Utilise-les en priorité pour orienter ton dossier. Les nouvelles récentes ci-dessous servent de complément.\n`
+    ? `\nDIRECTIVES PRIORITAIRES de l'utilisateur :\n${escapeForPrompt(directives)}\n${hasUrlContent ? `\nContenu des liens fournis par l'utilisateur (SOURCE PRINCIPALE DE FAITS) :\n${directiveUrlContents}\n\nATTENTION : Le contenu ci-dessus est ta SOURCE PRINCIPALE ET FIABLE de faits. Base ton dossier PRINCIPALEMENT sur ces informations. Les nouvelles récentes ci-dessous ne sont que du CONTEXTE COMPLÉMENTAIRE - ne les utilise PAS comme source de faits si elles contredisent le contenu du lien fourni.` : '\nCes directives sont ta SOURCE PRINCIPALE. Utilise-les en priorité pour orienter ton dossier. Les nouvelles récentes ci-dessous servent de complément.'}\n`
     : '';
 
   const newsBlock = newsLines.length > 0
-    ? `\nNouvelles récentes (français et anglais) :\n${newsLines.join('\n')}`
+    ? `\n${hasUrlContent ? 'Contexte complémentaire (NE PAS utiliser comme source de faits si contredit le lien ci-dessus)' : 'Nouvelles récentes (français et anglais)'} :\n${newsLines.join('\n')}`
     : '';
 
   const message = await client.messages.create({
@@ -138,8 +139,10 @@ MISSION :
 - Les sources [X/Twitter] contiennent des réactions et opinions en temps réel - note les prises de position intéressantes, controverses et débats chauds
 - Identifie l'angle le plus intéressant pour un article d'opinion
 - Note les SOURCES avec leurs liens (mais PAS leurs titres exacts)
-- Si une info est incertaine, marque-la comme « à vérifier »
+- Si une info est incertaine ou provient UNIQUEMENT des nouvelles récentes (pas du lien fourni), marque-la comme « à vérifier »
 - N'invente AUCUN fait, citation ou statistique
+- Ne MÉLANGE PAS les faits de différentes sources comme s'ils faisaient partie du même événement
+- Si un lien a été fourni par l'utilisateur, les faits de ce lien sont PRIORITAIRES et FIABLES
 
 Format : texte structuré avec sections (Faits clés, Contexte, Réactions X/Twitter, Angle suggéré, Sources)
 Ne fais PAS d'article, juste le dossier de recherche.`,
@@ -181,6 +184,7 @@ MISSION :
 - Varie tes tournures (pas toujours les mêmes débuts de paragraphe)
 - Base-toi UNIQUEMENT sur les faits du dossier, n'invente RIEN
 - Si un fait est marqué « à vérifier », ne l'inclus pas
+- N'ajoute PAS de détails, dates, scores ou noms qui ne sont pas dans le dossier
 
 ORIGINALITÉ (CRITIQUE) :
 - JAMAIS de phrase copiée d'une source. Reformule TOUT avec ta propre voix.
