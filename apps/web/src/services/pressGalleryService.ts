@@ -50,7 +50,7 @@ export interface FetchResult {
   nextCursor: string | null;
 }
 
-const ARTICLE_SELECT = 'id, title, slug, excerpt, cover_image_url, cover_position_y, like_count, view_count, published_at, author_name_override, author_id, communities!inner(id, name, slug, logo_url), members:members!articles_author_id_fkey(username, avatar_url, creator_display_name, creator_avatar_url)';
+const ARTICLE_SELECT = 'id, title, slug, excerpt, cover_image_url, cover_position_y, like_count, view_count, published_at, author_name_override, author_id, communities!inner(id, name, slug, logo_url), members:members!articles_author_id_fkey(username, first_name, last_name, avatar_url, creator_display_name, creator_avatar_url)';
 const PODCAST_SELECT = 'id, title, description, cover_image_url, like_count, duration_seconds, created_at, youtube_video_id, is_live, published_by, communities!inner(id, name, slug, logo_url), members:members!podcasts_published_by_fkey(username, avatar_url, creator_display_name, creator_avatar_url)';
 
 export async function fetchFeaturedItems(
@@ -278,7 +278,7 @@ interface ArticleRow {
   author_name_override: string | null;
   author_id: string;
   communities: { id: number; name: string; slug: string; logo_url: string | null };
-  members: { username: string; avatar_url: string | null; creator_display_name: string | null; creator_avatar_url: string | null } | null;
+  members: { username: string; first_name: string | null; last_name: string | null; avatar_url: string | null; creator_display_name: string | null; creator_avatar_url: string | null } | null;
 }
 
 interface PodcastRow {
@@ -312,7 +312,7 @@ function articleToItem(r: ArticleRow): PressGalleryItem {
     durationSeconds: null,
     publishedAt: r.published_at ?? new Date().toISOString(),
     authorId: r.author_id,
-    authorName: r.author_name_override || m?.username || 'Inconnu',
+    authorName: r.author_name_override || (m?.first_name && m?.last_name ? `${m.first_name} ${m.last_name}` : null) || m?.username || 'Inconnu',
     authorAvatarUrl: r.author_name_override ? null : (m?.avatar_url || null),
     communityId: r.communities.id,
     communityName: r.communities.name,

@@ -106,7 +106,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   // Load article with author
   const { data: articleData } = await supabase
     .from('articles')
-    .select('id, slug, title, body, excerpt, cover_image_url, cover_position_y, like_count, view_count, published_at, created_at, author_name_override, members:members!articles_author_id_fkey(id, username, avatar_url, creator_display_name, creator_avatar_url)')
+    .select('id, slug, title, body, excerpt, cover_image_url, cover_position_y, like_count, view_count, published_at, created_at, author_name_override, members:members!articles_author_id_fkey(id, username, first_name, last_name, avatar_url, creator_display_name, creator_avatar_url)')
     .eq('community_id', community.id)
     .eq('slug', articleSlug)
     .eq('is_published', true)
@@ -128,7 +128,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     published_at: string | null;
     created_at: string;
     author_name_override: string | null;
-    members: { id: string; username: string; avatar_url: string | null; creator_display_name: string | null; creator_avatar_url: string | null } | null;
+    members: { id: string; username: string; first_name: string | null; last_name: string | null; avatar_url: string | null; creator_display_name: string | null; creator_avatar_url: string | null } | null;
   };
 
   // Get current user
@@ -139,7 +139,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   // Increment view count (fire and forget)
   void (async () => { try { await supabase.rpc('increment_article_views' as never, { p_article_id: article.id } as never); } catch { /* ignore */ } })();
 
-  const authorDisplayName = article.author_name_override || article.members?.username || 'Inconnu';
+  const m = article.members;
+  const authorDisplayName = article.author_name_override || (m?.first_name && m?.last_name ? `${m.first_name} ${m.last_name}` : null) || m?.username || 'Inconnu';
   const articleUrl = `https://fanstribune.com/${locale}/tribunes/${slug}/articles/${articleSlug}`;
   const wordCount = article.body.replace(/<[^>]*>/g, '').split(/\s+/).length;
   const lang = locale === 'fr' ? 'fr-CA' : 'en-CA';
@@ -198,7 +199,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           ...article,
           author: article.members ? {
             id: article.members.id,
-            username: article.author_name_override || article.members.username,
+            username: article.author_name_override || (article.members.first_name && article.members.last_name ? `${article.members.first_name} ${article.members.last_name}` : null) || article.members.username,
             avatar_url: article.author_name_override ? null : article.members.avatar_url,
           } : { id: '', username: article.author_name_override || 'Inconnu', avatar_url: null },
         }}

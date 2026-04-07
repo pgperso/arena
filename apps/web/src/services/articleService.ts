@@ -79,11 +79,13 @@ export async function createArticle(
   if (!result.error && data.isPublished !== false) {
     const authorName = data.authorNameOverride?.trim();
     const [{ data: author }, { data: community }] = await Promise.all([
-      authorName ? Promise.resolve({ data: null }) : supabase.from('members').select('username').eq('id', data.authorId).single(),
+      authorName ? Promise.resolve({ data: null }) : supabase.from('members').select('username, first_name, last_name').eq('id', data.authorId).single(),
       supabase.from('communities').select('name, slug').eq('id', data.communityId).single(),
     ]);
+    const a = author as { username: string; first_name: string | null; last_name: string | null } | null;
     const displayName = authorName
-      || (author as { username: string } | null)?.username
+      || (a?.first_name && a?.last_name ? `${a.first_name} ${a.last_name}` : null)
+      || a?.username
       || 'Inconnu';
     if (community) {
       const communitySlug = (community as { slug: string }).slug;
