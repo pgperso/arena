@@ -256,7 +256,7 @@ export function PressGalleryClient({
             {taverneItems.length > 0 && (
               <section className="mt-12 border-t border-gray-200 pt-8 dark:border-gray-700">
                 <div className="mb-5 flex items-center gap-3">
-                  <span className="text-2xl">🍺</span>
+                  <span className="text-5xl">🍺</span>
                   <div>
                     <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 md:text-2xl">
                       {t('taverne')}
