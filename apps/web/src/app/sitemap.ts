@@ -23,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const entries: MetadataRoute.Sitemap = [
     { ...withAlternates('/'), lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
-    { ...withAlternates('/tribunes'), lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { ...withAlternates('/galerie-de-presse'), lastModified: new Date(), changeFrequency: 'hourly', priority: 0.95 },
     { ...withAlternates('/politique-confidentialite'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
     { ...withAlternates('/galerie-de-presse'), lastModified: new Date(), changeFrequency: 'daily' as const, priority: 0.85 },
     { ...withAlternates('/a-propos'), lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.5 },
@@ -31,23 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { ...withAlternates('/contact'), lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.4 },
   ];
 
-  // Communities
-  const { data: communities } = await supabase
-    .from('communities')
-    .select('slug, updated_at')
-    .eq('is_active', true)
-    .limit(1000);
-
-  if (communities) {
-    for (const c of communities) {
-      entries.push({
-        ...withAlternates(`/tribunes/${c.slug}`),
-        lastModified: c.updated_at ? new Date(c.updated_at) : new Date(),
-        changeFrequency: 'daily',
-        priority: 0.8,
-      });
-    }
-  }
+  // Communities excluded from sitemap — chat pages are auth-gated thin content for Google
 
   // Articles
   const { data: articles } = await supabase
@@ -65,7 +49,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           ...withAlternates(`/tribunes/${communitySlug.slug}/articles/${a.slug}`),
           lastModified: a.updated_at ? new Date(a.updated_at) : new Date(),
           changeFrequency: 'weekly',
-          priority: 0.7,
+          priority: 0.9,
         });
       }
     }

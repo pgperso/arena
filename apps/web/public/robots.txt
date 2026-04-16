@@ -1,6 +1,12 @@
 # Search engines
 User-agent: *
 Allow: /
+Allow: /fr/galerie-de-presse
+Allow: /en/galerie-de-presse
+Allow: /fr/tribunes/*/articles/
+Allow: /en/tribunes/*/articles/
+Allow: /fr/tribunes/*/podcasts/
+Allow: /en/tribunes/*/podcasts/
 Disallow: /api/
 Disallow: /vestiaire/
 Disallow: /admin/
@@ -8,6 +14,8 @@ Disallow: /login
 Disallow: /register
 Disallow: /reset-password
 Disallow: /update-password
+Disallow: /fr/tribunes/*/
+Disallow: /en/tribunes/*/
 
 Sitemap: https://fanstribune.com/sitemap.xml
 
