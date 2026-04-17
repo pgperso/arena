@@ -9,15 +9,33 @@ import { createClient } from '@/lib/supabase/client';
 export function LoginForm() {
   const t = useTranslations('auth');
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  async function resolveIdentifierToEmail(raw: string): Promise<string | null> {
+    const trimmed = raw.trim();
+    if (trimmed.includes('@')) return trimmed;
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc('get_email_from_username', {
+      uname: trimmed,
+    });
+    if (error || !data) return null;
+    return data;
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
+    const email = await resolveIdentifierToEmail(identifier);
+    if (!email) {
+      setError(t('invalidCredentials'));
+      setLoading(false);
+      return;
+    }
 
     const supabase = createClient();
     const { error: authError } = await supabase.auth.signInWithPassword({
@@ -26,7 +44,7 @@ export function LoginForm() {
     });
 
     if (authError) {
-      setError('Courriel ou mot de passe incorrect');
+      setError(t('invalidCredentials'));
       setLoading(false);
       return;
     }
@@ -37,22 +55,27 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="rounded-lg border border-brand-blue/30 bg-brand-blue/5 px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+        {t('legacyImportNotice')}
+      </div>
+
       {error && (
         <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
 
       <div>
-        <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {t('email')}
+        <label htmlFor="identifier" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          {t('identifier')}
         </label>
         <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          id="identifier"
+          type="text"
+          autoComplete="username"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
           required
           className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue focus:outline-none"
-          placeholder={t('emailPlaceholder')}
+          placeholder={t('identifierPlaceholder')}
         />
       </div>
 
@@ -63,6 +86,7 @@ export function LoginForm() {
         <input
           id="password"
           type="password"
+          autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
