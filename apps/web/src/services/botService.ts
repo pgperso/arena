@@ -24,7 +24,7 @@ const JOIN_ANNOUNCEMENTS = [
 
 // ── Article announcements ──
 
-const GALLERY_URL = 'https://fanstribune.com/fr/galerie-de-presse';
+const GALLERY_URL = 'https://fanstribune.com/fr';
 
 const ARTICLE_ANNOUNCEMENTS = [
   (u: string, c: string, t: string, url: string) => `📰 Nouvel article dans ${c} : "${t}" par ${u}. À lire dans la Galerie de presse ! ${url}`,

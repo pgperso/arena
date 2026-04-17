@@ -107,7 +107,7 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
 
                 {/* Galerie de presse */}
                 <Link
-                  href="/galerie-de-presse"
+                  href="/"
                   className="flex items-center gap-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-5 transition hover:border-brand-blue/30 hover:shadow-md sm:p-6"
                 >
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-red-50 dark:bg-red-950">

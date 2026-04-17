@@ -22,13 +22,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
 
   const entries: MetadataRoute.Sitemap = [
-    { ...withAlternates('/'), lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
-    { ...withAlternates('/galerie-de-presse'), lastModified: new Date(), changeFrequency: 'hourly', priority: 0.95 },
-    { ...withAlternates('/politique-confidentialite'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
-    { ...withAlternates('/galerie-de-presse'), lastModified: new Date(), changeFrequency: 'daily' as const, priority: 0.85 },
+    { ...withAlternates('/'), lastModified: new Date(), changeFrequency: 'hourly', priority: 1 },
     { ...withAlternates('/a-propos'), lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.5 },
-    { ...withAlternates('/conditions-utilisation'), lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.3 },
     { ...withAlternates('/contact'), lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.4 },
+    { ...withAlternates('/conditions-utilisation'), lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.3 },
+    { ...withAlternates('/politique-confidentialite'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
+    { ...withAlternates('/mentions-legales'), lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
   ];
 
   // Communities excluded from sitemap — chat pages are auth-gated thin content for Google

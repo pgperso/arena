@@ -268,7 +268,8 @@
     "about": "À propos",
     "contact": "Contact",
     "terms": "Conditions d'utilisation",
-    "privacy": "Confidentialité"
+    "privacy": "Confidentialité",
+    "legal": "Mentions légales"
   },
   "errors": {
     "notFound": "Page introuvable",
