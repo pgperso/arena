@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation';
 import { useLocale } from 'next-intl';
 
 const COOKIE_KEY = 'ft_cookie_consent';
+const CONSENT_ACCEPTED_EVENT = 'ft-cookie-consent-accepted';
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
@@ -19,6 +20,7 @@ export function CookieConsent() {
   function accept() {
     localStorage.setItem(COOKIE_KEY, 'accepted');
     setVisible(false);
+    window.dispatchEvent(new CustomEvent(CONSENT_ACCEPTED_EVENT));
   }
 
   function decline() {

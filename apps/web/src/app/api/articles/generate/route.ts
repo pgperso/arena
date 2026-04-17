@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@/lib/supabase/server';
 import { fetchRecentNews } from '@/lib/newsSearch';
 import { fetchUrlContent, extractUrls } from '@/lib/fetchUrlContent';
+import { sanitizeArticleHtml, sanitizeArticleText } from '@/lib/sanitizeArticleHtml';
 
 // ─── Rate Limiting ───
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -398,10 +399,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Génération échouée. Réessayez.' }, { status: 500 });
     }
 
-    // Strip em dashes and en dashes that AI loves to use
-    const cleanBody = parsed.body.replace(/[—–]/g, '-');
-    const cleanTitle = parsed.title.replace(/[—–]/g, '-');
-    const cleanExcerpt = (parsed.excerpt ?? '').replace(/[—–]/g, '-');
+    // Strip em/en dashes that AI overuses, then sanitize HTML server-side
+    const cleanBody = sanitizeArticleHtml(parsed.body.replace(/[—–]/g, '-'));
+    const cleanTitle = sanitizeArticleText(parsed.title.replace(/[—–]/g, '-'));
+    const cleanExcerpt = sanitizeArticleText((parsed.excerpt ?? '').replace(/[—–]/g, '-'));
 
     return NextResponse.json(
       { title: cleanTitle, excerpt: cleanExcerpt, body: cleanBody },

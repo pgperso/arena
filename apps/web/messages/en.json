@@ -1,6 +1,18 @@
 {
   "brand": {
-    "name": "Fans Tribune"
+    "name": "Fans Tribune",
+    "tagline": "Sports, news and all kinds of stuff"
+  },
+  "a11y": {
+    "toggleDarkMode": "Toggle dark mode",
+    "enableDarkMode": "Enable dark mode",
+    "enableLightMode": "Enable light mode",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "switchLanguage": "Switch language",
+    "userMenu": "User menu",
+    "back": "Back",
+    "skipToContent": "Skip to main content"
   },
   "common": {
     "cancel": "Cancel",

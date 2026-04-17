@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@/lib/supabase/server';
 import { fetchRecentNews } from '@/lib/newsSearch';
 import { fetchUrlContent, extractUrls } from '@/lib/fetchUrlContent';
+import { sanitizeArticleText } from '@/lib/sanitizeArticleHtml';
 
 export async function POST(request: Request) {
   try {
@@ -141,10 +142,15 @@ N'utilise PAS de guillemets doubles dans le texte, utilise « » à la place.`,
       return NextResponse.json({ error: 'Format invalide. Réessayez.' }, { status: 500 });
     }
 
-    // Validate
+    // Validate + sanitize each field (strip any HTML that could come from prompt injection)
     const valid = topics
       .filter((t) => t.title && t.description && t.topic)
-      .slice(0, 4);
+      .slice(0, 4)
+      .map((t) => ({
+        title: sanitizeArticleText(t.title),
+        description: sanitizeArticleText(t.description),
+        topic: sanitizeArticleText(t.topic),
+      }));
 
     if (valid.length === 0) {
       return NextResponse.json({ error: 'Aucun sujet trouvé. Réessayez.' }, { status: 500 });

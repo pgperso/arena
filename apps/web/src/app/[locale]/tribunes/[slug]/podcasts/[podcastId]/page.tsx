@@ -161,9 +161,8 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `https://fanstribune.com/${locale}` },
-        { '@type': 'ListItem', position: 2, name: 'Tribunes', item: `https://fanstribune.com/${locale}/tribunes` },
-        { '@type': 'ListItem', position: 3, name: community.name, item: `https://fanstribune.com/${locale}/tribunes/${slug}` },
-        { '@type': 'ListItem', position: 4, name: podcast.title },
+        { '@type': 'ListItem', position: 2, name: community.name, item: `https://fanstribune.com/${locale}/tribunes/${slug}` },
+        { '@type': 'ListItem', position: 3, name: podcast.title },
       ],
     },
   ];

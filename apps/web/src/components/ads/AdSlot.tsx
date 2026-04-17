@@ -144,7 +144,7 @@ function AdSlotLive({ slotId, format = 'rectangle', className = '', layoutKey }:
           data-full-width-responsive="true"
         />
       ) : (
-        <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400">Publicité</p>
+        <p className="text-xs font-medium uppercase tracking-wider text-gray-400">Publicité</p>
       )}
     </div>
   );
@@ -175,7 +175,7 @@ export function AdSlotPlaceholder({
       }
     >
       <div className="text-center">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400">Publicité</p>
+        <p className="text-xs font-medium uppercase tracking-wider text-gray-400">Publicité</p>
         {label && <p className="mt-0.5 text-[10px] text-gray-300">{label}</p>}
       </div>
     </div>

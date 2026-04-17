@@ -5,11 +5,49 @@ import { setRequestLocale } from 'next-intl/server';
 import { VestiaireClient } from './VestiaireClient';
 import type { Database } from '@arena/supabase-client';
 
-export const metadata: Metadata = {
-  title: 'Mon vestiaire',
-  description: 'Gérez votre profil, vos tribunes et vos publications.',
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const isFr = locale === 'fr';
+  const title = isFr
+    ? 'Mon vestiaire | La tribune des fans'
+    : 'My locker | Fans Tribune';
+  const description = isFr
+    ? 'Gérez votre profil, vos tribunes et vos publications.'
+    : 'Manage your profile, your tribunes and your publications.';
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'profile',
+      url: `https://fanstribune.com/${locale}/vestiaire`,
+      siteName: 'La tribune des fans',
+      locale: isFr ? 'fr_CA' : 'en_CA',
+      images: [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 }],
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+      images: ['https://fanstribune.com/images/fanstribune.webp'],
+    },
+    alternates: {
+      canonical: `https://fanstribune.com/${locale}/vestiaire`,
+      languages: {
+        'fr-CA': 'https://fanstribune.com/fr/vestiaire',
+        'en-CA': 'https://fanstribune.com/en/vestiaire',
+        'x-default': 'https://fanstribune.com/fr/vestiaire',
+      },
+    },
+    robots: { index: false, follow: false },
+  };
+}
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'];
 

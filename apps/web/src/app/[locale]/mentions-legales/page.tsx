@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { AdSlot } from '@/components/ads/AdSlot';
 
+export const revalidate = 86400;
+
 export async function generateMetadata({
   params,
 }: {

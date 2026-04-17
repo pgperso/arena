@@ -1,11 +1,10 @@
 import { headers } from 'next/headers';
-import Script from 'next/script';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, setRequestLocale } from 'next-intl/server';
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { TribuneProvider } from '@/contexts/TribuneContext';
-import { ADSENSE_CLIENT_ID } from '@arena/shared';
+import { AdSenseLoader } from '@/components/ads/AdSenseLoader';
 import { CookieConsent } from '@/components/ui/CookieConsent';
 import { routing } from '@/i18n/routing';
 
@@ -80,6 +79,7 @@ export default async function LocaleLayout({
   const { locale } = await params;
   setRequestLocale(locale);
   const messages = await getMessages();
+  const t = await getTranslations({ locale, namespace: 'a11y' });
   const nonce = (await headers()).get('x-nonce') ?? '';
 
   return (
@@ -90,13 +90,7 @@ export default async function LocaleLayout({
         <link rel="dns-prefetch" href="https://fjcgfjgqzkswdmazkvlx.supabase.co" />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
-        <Script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-          nonce={nonce}
-        />
+        <AdSenseLoader nonce={nonce} />
         <script
           type="application/ld+json"
           nonce={nonce}
@@ -104,11 +98,17 @@ export default async function LocaleLayout({
         />
       </head>
       <body className="font-sans antialiased bg-gray-50 text-gray-900 dark:bg-[#1e1e1e] dark:text-gray-100">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-brand-blue focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg"
+        >
+          {t('skipToContent')}
+        </a>
         <NextIntlClientProvider messages={messages}>
           <TribuneProvider>
             <div className="flex flex-1 min-h-dvh flex-col">
               <Header />
-              <main className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</main>
+              <main id="main-content" className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</main>
               <Footer />
               <CookieConsent />
             </div>

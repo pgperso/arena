@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@/lib/supabase/server';
+import { sanitizeArticleHtml, sanitizeArticleText } from '@/lib/sanitizeArticleHtml';
 
 export async function POST(request: Request) {
   try {
@@ -82,9 +83,9 @@ Réponds UNIQUEMENT en JSON valide :
       return NextResponse.json({ error: 'Amélioration échouée. Réessayez.' }, { status: 500 });
     }
 
-    const cleanBody = parsed.body.replace(/[—–]/g, '-');
-    const cleanTitle = parsed.title.replace(/[—–]/g, '-');
-    const cleanExcerpt = (parsed.excerpt ?? '').replace(/[—–]/g, '-');
+    const cleanBody = sanitizeArticleHtml(parsed.body.replace(/[—–]/g, '-'));
+    const cleanTitle = sanitizeArticleText(parsed.title.replace(/[—–]/g, '-'));
+    const cleanExcerpt = sanitizeArticleText((parsed.excerpt ?? '').replace(/[—–]/g, '-'));
 
     return NextResponse.json({ title: cleanTitle, excerpt: cleanExcerpt, body: cleanBody });
   } catch (err) {

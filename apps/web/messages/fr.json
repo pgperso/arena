@@ -1,6 +1,18 @@
 {
   "brand": {
-    "name": "La tribune des fans"
+    "name": "La tribune des fans",
+    "tagline": "Sports, actualités et plein d'autres patentes"
+  },
+  "a11y": {
+    "toggleDarkMode": "Basculer le mode sombre",
+    "enableDarkMode": "Activer le mode sombre",
+    "enableLightMode": "Activer le mode clair",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "switchLanguage": "Changer de langue",
+    "userMenu": "Menu utilisateur",
+    "back": "Retour",
+    "skipToContent": "Aller au contenu principal"
   },
   "common": {
     "cancel": "Annuler",

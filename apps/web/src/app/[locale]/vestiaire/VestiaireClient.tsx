@@ -76,9 +76,7 @@ export function VestiaireClient({
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !member) return;
-    console.log('Avatar upload starting:', file.name, file.type, file.size);
     const url = await uploadAvatar(file, member.id);
-    console.log('Avatar upload result:', url);
     if (url) {
       setAvatarUrl(url);
       router.refresh();

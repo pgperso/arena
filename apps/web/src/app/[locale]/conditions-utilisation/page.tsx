@@ -2,6 +2,8 @@ import { setRequestLocale } from 'next-intl/server';
 import { AdSlot } from '@/components/ads/AdSlot';
 import type { Metadata } from 'next';
 
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
   title: 'Conditions d\'utilisation | La tribune des fans',
   description:
