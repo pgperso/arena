@@ -43,14 +43,38 @@ export function LoginForm() {
       password,
     });
 
-    if (authError) {
-      setError(t('invalidCredentials'));
-      setLoading(false);
+    if (!authError) {
+      router.push('/');
+      router.refresh();
       return;
     }
 
-    router.push('/');
-    router.refresh();
+    // Standard sign-in failed — try the legacy MD5 fallback for users imported
+    // from the old Zone Nordiques site. If the MD5 of `password` matches their
+    // stored legacy hash, the endpoint migrates them to bcrypt and we re-try.
+    const legacyRes = await fetch('/api/auth/legacy-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password }),
+    });
+
+    if (legacyRes.ok) {
+      const legacyData = (await legacyRes.json()) as { ok?: boolean };
+      if (legacyData.ok) {
+        const { error: retryError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (!retryError) {
+          router.push('/');
+          router.refresh();
+          return;
+        }
+      }
+    }
+
+    setError(t('invalidCredentials'));
+    setLoading(false);
   }
 
   return (
