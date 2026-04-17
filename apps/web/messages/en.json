@@ -262,7 +262,8 @@
     "about": "About",
     "contact": "Contact",
     "terms": "Terms of use",
-    "privacy": "Privacy"
+    "privacy": "Privacy",
+    "legal": "Legal notice"
   },
   "errors": {
     "notFound": "Page not found",

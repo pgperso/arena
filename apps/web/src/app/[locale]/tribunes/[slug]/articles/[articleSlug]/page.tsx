@@ -181,9 +181,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `https://fanstribune.com/${locale}` },
-        { '@type': 'ListItem', position: 2, name: locale === 'fr' ? 'Galerie de presse' : 'Press Gallery', item: `https://fanstribune.com/${locale}/galerie-de-presse` },
-        { '@type': 'ListItem', position: 3, name: community.name, item: `https://fanstribune.com/${locale}/tribunes/${slug}` },
-        { '@type': 'ListItem', position: 4, name: article.title },
+        { '@type': 'ListItem', position: 2, name: community.name, item: `https://fanstribune.com/${locale}/tribunes/${slug}` },
+        { '@type': 'ListItem', position: 3, name: article.title },
       ],
     },
   ];

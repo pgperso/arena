@@ -226,7 +226,7 @@ export function CommunityPageClient({
           >
             {/* Galerie de presse — always visible */}
             <Link
-              href="/galerie-de-presse"
+              href="/"
               className="flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition sm:text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
             >
               <svg className="h-5 w-5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
