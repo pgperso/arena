@@ -90,15 +90,18 @@ export async function POST(request: Request) {
       email = data;
     }
 
-    // Find the auth user by email to get their UUID.
-    const { data: users, error: listErr } = await admin.auth.admin.listUsers({ perPage: 1000 });
-    if (listErr) {
+    // Find the member by email via members_private (avoids the listUsers 1000
+    // pagination limit and is a direct indexed lookup).
+    const { data: privRow, error: privLookupErr } = await admin
+      .from('members_private')
+      .select('member_id')
+      .eq('email', email.toLowerCase())
+      .maybeSingle();
+
+    if (privLookupErr || !privRow) {
       return NextResponse.json({ ok: false }, { status: 401 });
     }
-    const authUser = users?.users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
-    if (!authUser) {
-      return NextResponse.json({ ok: false }, { status: 401 });
-    }
+    const authUser = { id: privRow.member_id };
 
     // Load the legacy hash (service role bypasses RLS).
     const { data: priv, error: privErr } = await admin
