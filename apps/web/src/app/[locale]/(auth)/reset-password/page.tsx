@@ -7,26 +7,38 @@ import { createClient } from '@/lib/supabase/client';
 
 export default function ResetPasswordPage() {
   const t = useTranslations('auth');
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  async function resolveIdentifierToEmail(raw: string): Promise<string | null> {
+    const trimmed = raw.trim();
+    if (trimmed.includes('@')) return trimmed;
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc('get_email_from_username', {
+      uname: trimmed,
+    });
+    if (error || !data || typeof data !== 'string') return null;
+    return data;
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
-    });
+    const email = await resolveIdentifierToEmail(identifier);
 
-    if (error) {
-      setError(error.message);
-    } else {
-      setSent(true);
+    // Always show success to avoid enumeration. If email is null, do nothing.
+    if (email) {
+      const supabase = createClient();
+      await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
+      });
     }
+
+    setSent(true);
     setLoading(false);
   }
 
@@ -65,19 +77,20 @@ export default function ResetPasswordPage() {
               )}
               <div>
                 <label
-                  htmlFor="email"
+                  htmlFor="identifier"
                   className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('email')}
+                  {t('identifier')}
                 </label>
                 <input
-                  id="email"
-                  type="email"
+                  id="identifier"
+                  type="text"
+                  autoComplete="username"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-                  placeholder={t('emailPlaceholder')}
+                  placeholder={t('identifierResetPlaceholder')}
                 />
               </div>
               <button
