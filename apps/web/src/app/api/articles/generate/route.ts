@@ -5,6 +5,10 @@ import { fetchRecentNews } from '@/lib/newsSearch';
 import { fetchUrlContent, extractUrls } from '@/lib/fetchUrlContent';
 import { sanitizeArticleHtml, sanitizeArticleText } from '@/lib/sanitizeArticleHtml';
 
+// 4 séquences Anthropic + fetch news/URLs = peut dépasser 30s.
+// Vercel Hobby coupe à 10s, Pro permet jusqu'à 60s via maxDuration.
+export const maxDuration = 60;
+
 // ─── Rate Limiting ───
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 10;

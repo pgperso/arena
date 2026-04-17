@@ -5,6 +5,9 @@ import { fetchRecentNews } from '@/lib/newsSearch';
 import { fetchUrlContent, extractUrls } from '@/lib/fetchUrlContent';
 import { sanitizeArticleText } from '@/lib/sanitizeArticleHtml';
 
+// Un appel Anthropic + fetch news — rarement plus de 15s, on met 30s pour marge.
+export const maxDuration = 30;
+
 export async function POST(request: Request) {
   try {
     // Authenticate
