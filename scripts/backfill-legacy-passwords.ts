@@ -105,15 +105,32 @@ async function main() {
   const rows = parseCsv(content);
   console.log(`Parsed ${rows.length} rows from membre.csv`);
 
-  // Load Supabase auth users: email → UUID
-  const { data: authUsers } = await supabase.auth.admin.listUsers({ perPage: 10000 });
+  // Load member emails from members_private (bypasses the listUsers 1000-row
+  // pagination cap and avoids a second admin API call we don't need).
   const emailToUuid = new Map<string, string>();
-  if (authUsers?.users) {
-    for (const u of authUsers.users) {
-      if (u.email) emailToUuid.set(u.email.toLowerCase(), u.id);
+  const pageSize = 1000;
+  let offset = 0;
+  while (true) {
+    const { data: page, error: pageErr } = await supabase
+      .from('members_private')
+      .select('member_id, email')
+      .not('email', 'is', null)
+      .range(offset, offset + pageSize - 1);
+
+    if (pageErr) {
+      console.error(`Failed to load members_private page at offset ${offset}:`, pageErr);
+      process.exit(1);
     }
+    if (!page || page.length === 0) break;
+
+    for (const row of page as { member_id: string; email: string | null }[]) {
+      if (row.email) emailToUuid.set(row.email.toLowerCase().trim(), row.member_id);
+    }
+
+    if (page.length < pageSize) break;
+    offset += pageSize;
   }
-  console.log(`Loaded ${emailToUuid.size} Supabase auth users\n`);
+  console.log(`Loaded ${emailToUuid.size} member emails from members_private\n`);
 
   const log: string[] = [];
   let toUpdate = 0;
