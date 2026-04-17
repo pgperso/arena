@@ -3,6 +3,8 @@ import { AdSlot } from '@/components/ads/AdSlot';
 import { AdInArticle } from '@/components/ads/AdInArticle';
 import type { Metadata } from 'next';
 
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
   title: 'À propos | La tribune des fans',
   description:

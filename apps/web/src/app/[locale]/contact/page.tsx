@@ -1,6 +1,9 @@
 import { setRequestLocale } from 'next-intl/server';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { ObfuscatedEmail } from '@/components/ui/ObfuscatedEmail';
 import type { Metadata } from 'next';
+
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: 'Contact | La tribune des fans',
@@ -62,25 +65,12 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                 ? 'Pour toute question ou demande, envoyez-nous un courriel\u00a0:'
                 : 'For any questions or inquiries, send us an email:'}
             </p>
-            <a
-              href="mailto:info@fanstribune.com"
+            <ObfuscatedEmail
+              user="info"
+              domain="fanstribune.com"
               className="inline-flex items-center gap-2 text-lg font-medium text-red-600 hover:underline"
-            >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
-                />
-              </svg>
-              info@fanstribune.com
-            </a>
+            />
+            <span className="sr-only">{isFr ? 'Adresse courriel masquée anti-spam' : 'Email address hidden from spam bots'}</span>
           </section>
 
           {/* Social */}

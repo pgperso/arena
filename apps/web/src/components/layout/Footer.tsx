@@ -13,12 +13,12 @@ export function Footer() {
         <div className="flex items-center gap-1.5 sm:gap-2">
           <Image
             src="/images/fanstribune.webp"
-            alt="La tribune des fans"
+            alt={t('brand.name')}
             width={20}
             height={20}
             className="h-5 w-5 sm:h-7 sm:w-7"
           />
-          <span className="hidden text-sm font-semibold text-gray-700 dark:text-gray-300 sm:inline">La tribune des fans</span>
+          <span className="hidden text-sm font-semibold text-gray-700 dark:text-gray-300 sm:inline">{t('brand.name')}</span>
         </div>
 
         <nav className="flex flex-wrap gap-2 sm:gap-4">

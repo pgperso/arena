@@ -54,9 +54,10 @@ export function Header() {
           {tribune && (
             <Link
               href="/tribunes"
+              aria-label={t('a11y.back')}
               className="flex items-center rounded-lg p-1 text-gray-600 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] md:hidden"
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
               </svg>
             </Link>
@@ -75,13 +76,13 @@ export function Header() {
                 <span className="text-base font-bold text-gray-900 dark:text-gray-100 md:hidden">{tribune.name}</span>
                 <div className="hidden md:block">
                   <span className="text-lg font-bold text-gray-900 dark:text-gray-100 md:text-xl">{t('brand.name')}</span>
-                  <p className="text-[10px] leading-tight text-gray-400 dark:text-gray-500">Sports, actualités et plein d&apos;autres patentes</p>
+                  <p className="text-[10px] leading-tight text-gray-400 dark:text-gray-500">{t('brand.tagline')}</p>
                 </div>
               </>
             ) : (
               <div>
                 <span className="text-base font-bold text-gray-900 dark:text-gray-100 sm:text-lg md:text-xl">{t('brand.name')}</span>
-                <p className="hidden text-[10px] leading-tight text-gray-400 dark:text-gray-500 sm:block">Sports, actualités et plein d&apos;autres patentes</p>
+                <p className="hidden text-[10px] leading-tight text-gray-400 dark:text-gray-500 sm:block">{t('brand.tagline')}</p>
               </div>
             )}
           </Link>
@@ -98,8 +99,9 @@ export function Header() {
           <div className="h-4 w-px bg-gray-200 dark:bg-gray-700" />
           <button
             onClick={toggleDark}
+            aria-label={dark ? t('a11y.enableLightMode') : t('a11y.enableDarkMode')}
+            title={dark ? t('a11y.enableLightMode') : t('a11y.enableDarkMode')}
             className="rounded-md p-1.5 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-            title={dark ? 'Mode clair' : 'Mode sombre'}
           >
             {dark ? (
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -113,6 +115,7 @@ export function Header() {
           </button>
           <a
             href={switchLocalePath}
+            aria-label={t('a11y.switchLanguage')}
             className="rounded-md px-2 py-1 text-xs font-bold text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800"
           >
             {otherLocale.toUpperCase()}
@@ -124,6 +127,9 @@ export function Header() {
             <div ref={dropdownRef} className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
+                aria-label={t('a11y.userMenu')}
+                aria-expanded={dropdownOpen}
+                aria-haspopup="menu"
                 className="flex items-center gap-2 rounded-lg px-2 py-1 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e]"
               >
                 {avatarUrl ? (
@@ -191,6 +197,7 @@ export function Header() {
         <div className="flex items-center gap-2 md:hidden">
           <button
             onClick={toggleDark}
+            aria-label={dark ? t('a11y.enableLightMode') : t('a11y.enableDarkMode')}
             className="rounded-md p-1.5 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] dark:text-gray-400 dark:hover:bg-gray-800"
           >
             {dark ? (
@@ -205,7 +212,8 @@ export function Header() {
           </button>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Menu"
+          aria-label={mobileMenuOpen ? t('a11y.closeMenu') : t('a11y.openMenu')}
+          aria-expanded={mobileMenuOpen}
         >
           <svg
             className="h-6 w-6 text-gray-600 dark:text-gray-400"

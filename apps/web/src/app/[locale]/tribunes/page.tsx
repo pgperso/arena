@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { redirect } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
@@ -6,11 +7,49 @@ import type { Database } from '@arena/supabase-client';
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'];
 
-export const metadata = {
-  title: 'Mes tribunes',
-  description: 'Accédez à vos tribunes sportives et rejoignez de nouvelles communautés.',
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const isFr = locale === 'fr';
+  const title = isFr
+    ? 'Mes tribunes | La tribune des fans'
+    : 'My tribunes | Fans Tribune';
+  const description = isFr
+    ? 'Accédez à vos tribunes sportives et rejoignez de nouvelles communautés.'
+    : 'Access your sports tribunes and join new communities.';
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      url: `https://fanstribune.com/${locale}/tribunes`,
+      siteName: 'La tribune des fans',
+      locale: isFr ? 'fr_CA' : 'en_CA',
+      images: [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['https://fanstribune.com/images/fanstribune.webp'],
+    },
+    alternates: {
+      canonical: `https://fanstribune.com/${locale}/tribunes`,
+      languages: {
+        'fr-CA': 'https://fanstribune.com/fr/tribunes',
+        'en-CA': 'https://fanstribune.com/en/tribunes',
+        'x-default': 'https://fanstribune.com/fr/tribunes',
+      },
+    },
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function TribunesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
