@@ -56,10 +56,10 @@ export function PressFilterBar({
   const filteredCommunities = communities.filter((c) => c.slug !== 'la-taverne');
 
   return (
-    <div>
+    <div className="min-w-0">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         {/* Category + Type pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto">
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           {/* Category pills */}
           {categories.map(({ key, label }) => (
             <button
@@ -94,7 +94,7 @@ export function PressFilterBar({
         </div>
 
         {/* Community dropdown + Sort */}
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           {showCommunityDropdown && filteredCommunities.length > 0 && (
             <select
               value={communityId ?? ''}
@@ -103,7 +103,7 @@ export function PressFilterBar({
                   e.target.value ? Number(e.target.value) : undefined,
                 )
               }
-              className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-[#1e1e1e] dark:text-gray-300"
+              className="min-w-0 max-w-[180px] truncate rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-[#1e1e1e] dark:text-gray-300 sm:max-w-none"
             >
               <option value="">{t('allCommunities')}</option>
               {filteredCommunities.map((c) => (
@@ -114,7 +114,7 @@ export function PressFilterBar({
             </select>
           )}
 
-          <div className="flex rounded-lg border border-gray-300 dark:border-gray-600">
+          <div className="flex shrink-0 rounded-lg border border-gray-300 dark:border-gray-600">
             <button
               onClick={() => onSortChange('latest')}
               className={`px-3 py-1.5 text-sm font-medium transition-colors ${

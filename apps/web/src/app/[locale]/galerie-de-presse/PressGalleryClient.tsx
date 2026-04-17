@@ -186,9 +186,9 @@ export function PressGalleryClient({
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-y-auto">
       {/* Second appbar — full width, sticky */}
-      <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur-sm dark:border-gray-700 dark:bg-[#1e1e1e]/95">
-        <div className="flex items-center gap-4 px-4 py-2">
-          <h1 className="shrink-0 text-lg font-bold text-gray-900 dark:text-gray-100">
+      <div className="sticky top-0 z-20 w-full border-b border-gray-200 bg-white/95 backdrop-blur-sm dark:border-gray-700 dark:bg-[#1e1e1e]/95">
+        <div className="flex items-center gap-2 px-3 py-2 sm:gap-4 sm:px-4">
+          <h1 className="hidden shrink-0 text-lg font-bold text-gray-900 dark:text-gray-100 sm:block">
             {t('title')}
           </h1>
           <div className="flex-1 min-w-0">
