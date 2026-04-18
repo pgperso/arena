@@ -1,7 +1,7 @@
 export { ROLES, PERMISSIONS, ROLE_DISPLAY_NAMES } from './roles';
 export { RESTRICTION_TYPES, RESTRICTION_DISPLAY_NAMES } from './restrictions';
 
-export const CHAT_MAX_MESSAGE_LENGTH = 1000;
+export const CHAT_MAX_MESSAGE_LENGTH = 5000;
 
 // Bot user
 export const BOT_MEMBER_ID = '00000000-0000-0000-0000-000000000001';
