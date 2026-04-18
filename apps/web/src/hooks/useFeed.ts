@@ -607,7 +607,10 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           content: hasContent ? options.content!.trim() : '',
           imageUrls: options.imageUrls,
         });
-        if (!result.success) return;
+        if (!result.success) {
+          const firstIssue = result.error.issues[0]?.message ?? 'Message invalide';
+          throw new Error(firstIssue);
+        }
       }
 
       dispatch({ type: 'SET_SENDING', sending: true });

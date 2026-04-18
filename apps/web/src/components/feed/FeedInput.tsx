@@ -20,6 +20,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
   const t = useTranslations('tribune');
   const tc = useTranslations('common');
   const [content, setContent] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { images, uploading, addImages, removeImage, clearImages, uploadAll } = useImageUpload();
@@ -28,6 +29,13 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
   useEffect(() => {
     if (autoFocus) textareaRef.current?.focus();
   }, [autoFocus]);
+
+  // Auto-dismiss the error after 4s so it doesn't linger.
+  useEffect(() => {
+    if (!error) return;
+    const id = setTimeout(() => setError(null), 4000);
+    return () => clearTimeout(id);
+  }, [error]);
 
   const handleSend = useCallback(async () => {
     const trimmed = content.trim();
@@ -38,13 +46,22 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
       imageUrls = await uploadAll(communityId, userId);
     }
 
+    const savedContent = content;
     setContent('');
     clearImages();
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
     const textarea = textareaRef.current;
-    await onSend(trimmed, imageUrls.length > 0 ? imageUrls : undefined);
+    try {
+      await onSend(trimmed, imageUrls.length > 0 ? imageUrls : undefined);
+      setError(null);
+    } catch (err) {
+      // Restore what the user typed so they can edit + retry instead of losing it.
+      setContent(savedContent);
+      const message = err instanceof Error ? err.message : 'Échec de l\u2019envoi';
+      setError(message);
+    }
     textarea?.focus();
   }, [content, disabled, uploading, images, userId, communityId, onSend, uploadAll, clearImages]);
 
@@ -187,6 +204,13 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
           )}
         </div>
       </div>
+
+      {/* Error message (auto-dismisses after 4s) */}
+      {error && (
+        <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">
+          {error}
+        </p>
+      )}
 
       {/* Character counter */}
       {content.length > CHAT_MAX_MESSAGE_LENGTH * 0.8 && (
