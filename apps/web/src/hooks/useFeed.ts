@@ -615,7 +615,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
 
       dispatch({ type: 'SET_SENDING', sending: true });
       try {
-        const { data } = await supabaseRef.current
+        const { data, error: insertError } = await supabaseRef.current
           .from('chat_messages')
           .insert({
             community_id: communityId,
@@ -626,6 +626,16 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           })
           .select(CHAT_MSG_SELECT)
           .single();
+
+        if (insertError) {
+          // Translate the common Postgres errors to something user-facing.
+          // CHECK violation on valid_message_length, rate limit trigger, etc.
+          const raw = insertError.message ?? '';
+          let friendly = 'Envoi du message impossible. Réessayez.';
+          if (raw.includes('valid_message_length')) friendly = 'Message trop long.';
+          else if (raw.toLowerCase().includes('rate limit')) friendly = 'Tu envoies des messages trop vite, ralentis un peu.';
+          throw new Error(friendly);
+        }
 
         // Optimistic: show the message immediately (don't wait for Realtime)
         if (data) {
