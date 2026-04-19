@@ -12,6 +12,8 @@ interface TribuneContextValue {
   setTribune: (info: TribuneInfo | null) => void;
   membersOpen: boolean;
   setMembersOpen: (open: boolean) => void;
+  openToolbarMessageId: number | null;
+  setOpenToolbarMessageId: (id: number | null) => void;
 }
 
 const TribuneContext = createContext<TribuneContextValue>({
@@ -19,6 +21,8 @@ const TribuneContext = createContext<TribuneContextValue>({
   setTribune: () => {},
   membersOpen: false,
   setMembersOpen: () => {},
+  openToolbarMessageId: null,
+  setOpenToolbarMessageId: () => {},
 });
 
 export function TribuneProvider({ children }: { children: React.ReactNode }) {
@@ -28,8 +32,11 @@ export function TribuneProvider({ children }: { children: React.ReactNode }) {
   const [membersOpen, setMembersOpenState] = useState(false);
   const setMembersOpen = useCallback((open: boolean) => setMembersOpenState(open), []);
 
+  const [openToolbarMessageId, setOpenToolbarMessageIdState] = useState<number | null>(null);
+  const setOpenToolbarMessageId = useCallback((id: number | null) => setOpenToolbarMessageIdState(id), []);
+
   return (
-    <TribuneContext.Provider value={{ tribune, setTribune, membersOpen, setMembersOpen }}>
+    <TribuneContext.Provider value={{ tribune, setTribune, membersOpen, setMembersOpen, openToolbarMessageId, setOpenToolbarMessageId }}>
       {children}
     </TribuneContext.Provider>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { Heart, Annoyed, MessageCircle } from 'lucide-react';
+import { Heart, ThumbsDown, MessageCircle } from 'lucide-react';
 
 interface FeedMessageStatsProps {
   likeCount: number;
@@ -26,7 +26,7 @@ export const FeedMessageStats = memo(function FeedMessageStats({
       )}
       {dislikeCount > 0 && (
         <span className="flex items-center gap-1">
-          <Annoyed className="h-3 w-3" strokeWidth={1.5} />
+          <ThumbsDown className="h-3 w-3" fill="currentColor" strokeWidth={1.5} />
           {dislikeCount}
         </span>
       )}

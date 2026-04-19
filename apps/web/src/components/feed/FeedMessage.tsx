@@ -13,6 +13,7 @@ import { FeedLinkPreview } from './FeedLinkPreview';
 import { Avatar } from '@/components/ui/Avatar';
 import { UserPopover } from '@/components/ui/UserPopover';
 import { StatusDot } from '@/components/ui/StatusDot';
+import { useTribune } from '@/contexts/TribuneContext';
 
 const STAFF_RANK_MAP: Record<string, { label: string; color: string; bg: string }> = {
   owner: { label: 'Propriétaire', color: 'text-brand-blue', bg: 'bg-brand-blue text-white' },
@@ -69,8 +70,29 @@ export const FeedMessage = memo(function FeedMessage({
   const time = formatTime(message.createdAt);
   const [editContent, setEditContent] = useState(message.content ?? '');
   const editRef = useRef<HTMLTextAreaElement>(null);
+  const messageRef = useRef<HTMLDivElement>(null);
+  const longPressTimer = useRef<number | null>(null);
   const [popoverRect, setPopoverRect] = useState<DOMRect | null>(null);
-  const [mobileToolbar, setMobileToolbar] = useState(false);
+  const { openToolbarMessageId, setOpenToolbarMessageId } = useTribune();
+  const mobileToolbar = openToolbarMessageId === message.id;
+
+  function startLongPress(e: React.PointerEvent) {
+    if (e.pointerType !== 'touch') return;
+    const target = e.target as HTMLElement;
+    if (target.closest('a, button, textarea, input')) return;
+    cancelLongPress();
+    longPressTimer.current = window.setTimeout(() => {
+      setOpenToolbarMessageId(message.id);
+      longPressTimer.current = null;
+    }, 450);
+  }
+
+  function cancelLongPress() {
+    if (longPressTimer.current !== null) {
+      window.clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }
 
   useEffect(() => {
     if (editing && editRef.current) {
@@ -79,6 +101,17 @@ export const FeedMessage = memo(function FeedMessage({
       editRef.current.selectionStart = editRef.current.value.length;
     }
   }, [editing, message.content]);
+
+  useEffect(() => {
+    if (!mobileToolbar) return;
+    function handlePointer(e: PointerEvent) {
+      if (messageRef.current && !messageRef.current.contains(e.target as Node)) {
+        setOpenToolbarMessageId(null);
+      }
+    }
+    document.addEventListener('pointerdown', handlePointer);
+    return () => document.removeEventListener('pointerdown', handlePointer);
+  }, [mobileToolbar, setOpenToolbarMessageId]);
 
   const handleUsernameClick = useCallback((e: React.MouseEvent) => {
     if (!message.memberId || isOwn) return;
@@ -170,15 +203,14 @@ export const FeedMessage = memo(function FeedMessage({
   if (isGrouped && !hasReplyContext) {
     return (
       <div
+        ref={messageRef}
         className={`group relative py-1.5 pl-[52px] pr-3 transition-colors sm:pl-[60px] sm:pr-4 ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50 dark:hover:bg-[#272525] dark:bg-[#1e1e1e]'}`}
-        onClick={(e) => {
-          // Tap-to-toggle the floating toolbar on mobile. Ignore clicks that
-          // originated inside an interactive element (links, buttons, the
-          // toolbar itself) so they aren't intercepted.
-          const target = e.target as HTMLElement;
-          if (target.closest('a, button, textarea, input')) return;
-          setMobileToolbar((v) => !v);
-        }}
+        onPointerDown={startLongPress}
+        onPointerUp={cancelLongPress}
+        onPointerMove={cancelLongPress}
+        onPointerCancel={cancelLongPress}
+        onPointerLeave={cancelLongPress}
+        onContextMenu={(e) => { if (mobileToolbar) e.preventDefault(); }}
       >
         <span className="absolute left-2 top-2 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100">
           {time}
@@ -214,12 +246,14 @@ export const FeedMessage = memo(function FeedMessage({
   // Full message
   return (
     <div
+      ref={messageRef}
       className={`group relative px-4 pt-3 pb-1 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50 dark:hover:bg-[#272525] dark:bg-[#1e1e1e]'}`}
-      onClick={(e) => {
-        const target = e.target as HTMLElement;
-        if (target.closest('a, button, textarea, input')) return;
-        setMobileToolbar((v) => !v);
-      }}
+      onPointerDown={startLongPress}
+      onPointerUp={cancelLongPress}
+      onPointerMove={cancelLongPress}
+      onPointerCancel={cancelLongPress}
+      onPointerLeave={cancelLongPress}
+      onContextMenu={(e) => { if (mobileToolbar) e.preventDefault(); }}
     >
       {hasReplyContext && (
         <div className="mb-0.5 flex items-end pl-4">

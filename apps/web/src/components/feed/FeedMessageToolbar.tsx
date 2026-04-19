@@ -2,7 +2,7 @@
 
 import { memo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Heart, Annoyed, MessageCircle, Pencil, Trash2 } from 'lucide-react';
+import { Heart, ThumbsDown, MessageCircle, Pencil, Trash2 } from 'lucide-react';
 import { useMessageReaction } from '@/hooks/useMessageReaction';
 
 interface FeedMessageToolbarProps {
@@ -87,11 +87,11 @@ export const FeedMessageToolbar = memo(function FeedMessageToolbar({
                 className={`${BTN} ${
                   isDisliked
                     ? 'text-brand-blue hover:bg-blue-50 dark:hover:bg-blue-950'
-                    : 'text-gray-500 hover:bg-gray-100 hover:text-brand-blue dark:text-gray-400 dark:hover:bg-gray-700'
+                    : 'text-gray-500 hover:bg-gray-100 hover:text-brand-blue dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
                 }`}
                 title={isDisliked ? 'Retirer le dislike' : "Je n'aime pas"}
               >
-                <Annoyed className="h-4 w-4" strokeWidth={isDisliked ? 2.5 : 1.5} />
+                <ThumbsDown className="h-4 w-4" fill={isDisliked ? 'currentColor' : 'none'} strokeWidth={1.5} />
               </button>
             </>
           )}
@@ -99,7 +99,7 @@ export const FeedMessageToolbar = memo(function FeedMessageToolbar({
             <button
               onClick={onReply}
               disabled={!userId}
-              className={`${BTN} text-gray-500 hover:bg-gray-100 hover:text-brand-blue dark:text-gray-400 dark:hover:bg-gray-700`}
+              className={`${BTN} text-gray-500 hover:bg-gray-100 hover:text-brand-blue dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white`}
               title={t('reply')}
             >
               <MessageCircle className="h-4 w-4" strokeWidth={1.5} />
