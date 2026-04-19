@@ -23,13 +23,11 @@ export function Header() {
   const { dark, toggle: toggleDark } = useDarkMode();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [tribunesOpen, setTribunesOpen] = useState(false);
   const [userTribunes, setUserTribunes] = useState<UserCommunitySummary[]>([]);
 
   const otherLocale = locale === 'fr' ? 'en' : 'fr';
   const switchLocalePath = `/${otherLocale}${pathname}`;
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const tribunesRef = useRef<HTMLDivElement>(null);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -50,17 +48,6 @@ export function Header() {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [dropdownOpen]);
-
-  useEffect(() => {
-    if (!tribunesOpen) return;
-    function handleClick(e: MouseEvent) {
-      if (tribunesRef.current && !tribunesRef.current.contains(e.target as Node)) {
-        setTribunesOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [tribunesOpen]);
 
   useEffect(() => {
     if (!user) {
@@ -116,60 +103,7 @@ export function Header() {
         {/* Language + Desktop auth */}
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
-            <div ref={tribunesRef} className="relative">
-              <button
-                onClick={() => setTribunesOpen((v) => !v)}
-                aria-expanded={tribunesOpen}
-                aria-haspopup="menu"
-                className="flex items-center gap-1 rounded-lg bg-brand-red px-3 py-1.5 text-sm font-bold text-white transition hover:bg-brand-red-dark"
-              >
-                {t('home.myTribunes')}
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                </svg>
-              </button>
-
-              {tribunesOpen && (
-                <div className="absolute left-0 top-full z-50 mt-1 w-64 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#1e1e1e]">
-                  <div className="flex flex-col gap-2 p-3">
-                    <Link
-                      href="/tribunes"
-                      onClick={() => setTribunesOpen(false)}
-                      className="block rounded-lg bg-brand-red px-3 py-2 text-center text-sm font-bold text-white transition hover:bg-brand-red-dark"
-                    >
-                      {t('home.allMyTribunes')}
-                    </Link>
-                    <Link
-                      href="/"
-                      onClick={() => setTribunesOpen(false)}
-                      className="block rounded-lg bg-brand-blue px-3 py-2 text-center text-sm font-bold text-white transition hover:bg-brand-blue-dark"
-                    >
-                      {t('pressGallery.title')}
-                    </Link>
-                  </div>
-                  {userTribunes.length > 0 && (
-                    <div className="border-t border-gray-100 dark:border-gray-800">
-                      <p className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                        {t('home.myTribunes')}
-                      </p>
-                      <ul className="max-h-64 overflow-y-auto pb-1">
-                        {userTribunes.map((c) => (
-                          <li key={c.id}>
-                            <Link
-                              href={`/tribunes/${c.slug}`}
-                              onClick={() => setTribunesOpen(false)}
-                              className="block px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
-                            >
-                              {c.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <TribunesMenu userTribunes={userTribunes} align="left" />
           ) : (
             <Link
               href="/login"
@@ -278,8 +212,9 @@ export function Header() {
           )}
         </div>
 
-        {/* Mobile: notifications + dark mode + menu */}
+        {/* Mobile: tribunes + notifications + dark mode + menu */}
         <div className="flex items-center gap-2 md:hidden">
+          {user && <TribunesMenu userTribunes={userTribunes} align="right" />}
           {user && <NotificationBell userId={user.id} />}
           <button
             onClick={toggleDark}
@@ -332,5 +267,88 @@ export function Header() {
         onLogout={handleLogout}
       />
     </header>
+  );
+}
+
+interface TribunesMenuProps {
+  userTribunes: UserCommunitySummary[];
+  align: 'left' | 'right';
+}
+
+function TribunesMenu({ userTribunes, align }: TribunesMenuProps) {
+  const t = useTranslations();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className="flex items-center gap-1 rounded-lg bg-brand-red px-3 py-1.5 text-sm font-bold text-white transition hover:bg-brand-red-dark"
+      >
+        {t('home.myTribunes')}
+        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          className={`absolute top-full z-50 mt-1 w-64 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#1e1e1e] ${
+            align === 'right' ? 'right-0' : 'left-0'
+          }`}
+        >
+          <div className="flex flex-col gap-2 p-3">
+            <Link
+              href="/tribunes"
+              onClick={() => setOpen(false)}
+              className="block rounded-lg bg-brand-red px-3 py-2 text-center text-sm font-bold text-white transition hover:bg-brand-red-dark"
+            >
+              {t('home.allMyTribunes')}
+            </Link>
+            <Link
+              href="/"
+              onClick={() => setOpen(false)}
+              className="block rounded-lg bg-brand-blue px-3 py-2 text-center text-sm font-bold text-white transition hover:bg-brand-blue-dark"
+            >
+              {t('pressGallery.title')}
+            </Link>
+          </div>
+          {userTribunes.length > 0 && (
+            <div className="border-t border-gray-100 dark:border-gray-800">
+              <p className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                {t('home.myTribunes')}
+              </p>
+              <ul className="max-h-64 overflow-y-auto pb-1">
+                {userTribunes.map((c) => (
+                  <li key={c.id}>
+                    <Link
+                      href={`/tribunes/${c.slug}`}
+                      onClick={() => setOpen(false)}
+                      className="block px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
+                    >
+                      {c.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
