@@ -765,6 +765,118 @@ export type Database = {
           },
         ];
       };
+      article_comments: {
+        Row: {
+          id: number;
+          article_id: number;
+          member_id: string;
+          content: string;
+          parent_id: number | null;
+          reply_count: number;
+          is_removed: boolean;
+          removed_at: string | null;
+          removed_by: string | null;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: number;
+          article_id: number;
+          member_id: string;
+          content: string;
+          parent_id?: number | null;
+          reply_count?: number;
+          is_removed?: boolean;
+          removed_at?: string | null;
+          removed_by?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: number;
+          article_id?: number;
+          member_id?: string;
+          content?: string;
+          parent_id?: number | null;
+          reply_count?: number;
+          is_removed?: boolean;
+          removed_at?: string | null;
+          removed_by?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'article_comments_article_id_fkey';
+            columns: ['article_id'];
+            isOneToOne: false;
+            referencedRelation: 'articles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'article_comments_member_id_fkey';
+            columns: ['member_id'];
+            isOneToOne: false;
+            referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'article_comments_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'article_comments';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      notifications: {
+        Row: {
+          id: number;
+          recipient_id: string;
+          actor_id: string | null;
+          type: 'comment_reply' | 'comment_on_article';
+          article_id: number | null;
+          comment_id: number | null;
+          is_read: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          recipient_id: string;
+          actor_id?: string | null;
+          type: 'comment_reply' | 'comment_on_article';
+          article_id?: number | null;
+          comment_id?: number | null;
+          is_read?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          recipient_id?: string;
+          actor_id?: string | null;
+          type?: 'comment_reply' | 'comment_on_article';
+          article_id?: number | null;
+          comment_id?: number | null;
+          is_read?: boolean;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notifications_recipient_id_fkey';
+            columns: ['recipient_id'];
+            isOneToOne: false;
+            referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notifications_actor_id_fkey';
+            columns: ['actor_id'];
+            isOneToOne: false;
+            referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: {

@@ -33,6 +33,9 @@ export interface ArticleComment {
   createdAt: string;
   username: string;
   avatarUrl: string | null;
+  parentId: number | null;
+  replyCount: number;
+  isRemoved: boolean;
 }
 
 interface FetchOptions {
@@ -210,21 +213,20 @@ async function fetchPodcasts(
 
 // --- Comments ---
 
-export async function fetchArticleComments(
-  supabase: SupabaseClient<Database>,
-  articleId: number,
-): Promise<ArticleComment[]> {
-  const { data } = await supabase
-    .from('article_comments' as never)
-    .select('id, article_id, member_id, content, created_at, members:members!article_comments_member_id_fkey(username, avatar_url)' as never)
-    .eq('article_id' as never, articleId as never)
-    .eq('is_removed' as never, false as never)
-    .order('created_at' as never, { ascending: true } as never)
-    .limit(100);
+type CommentRow = {
+  id: number;
+  article_id: number;
+  member_id: string;
+  content: string;
+  created_at: string;
+  parent_id: number | null;
+  reply_count: number;
+  is_removed: boolean;
+  members: { username: string; avatar_url: string | null } | null;
+};
 
-  if (!data) return [];
-
-  return (data as unknown as { id: number; article_id: number; member_id: string; content: string; created_at: string; members: { username: string; avatar_url: string | null } | null }[]).map((r) => ({
+function rowToComment(r: CommentRow): ArticleComment {
+  return {
     id: r.id,
     articleId: r.article_id,
     memberId: r.member_id,
@@ -232,35 +234,95 @@ export async function fetchArticleComments(
     createdAt: r.created_at,
     username: r.members?.username ?? 'Inconnu',
     avatarUrl: r.members?.avatar_url ?? null,
-  }));
+    parentId: r.parent_id,
+    replyCount: r.reply_count,
+    isRemoved: r.is_removed,
+  };
 }
 
+/** Fetch top-level comments for an article (no replies). */
+export async function fetchArticleComments(
+  supabase: SupabaseClient<Database>,
+  articleId: number,
+): Promise<ArticleComment[]> {
+  const { data } = await supabase
+    .from('article_comments')
+    .select('id, article_id, member_id, content, created_at, parent_id, reply_count, is_removed, members:members!article_comments_member_id_fkey(username, avatar_url)')
+    .eq('article_id', articleId)
+    .is('parent_id', null)
+    .eq('is_removed', false)
+    .order('created_at', { ascending: true })
+    .limit(100);
+
+  if (!data) return [];
+  return (data as unknown as CommentRow[]).map(rowToComment);
+}
+
+/** Fetch the replies to a specific comment. */
+export async function fetchCommentReplies(
+  supabase: SupabaseClient<Database>,
+  parentCommentId: number,
+): Promise<ArticleComment[]> {
+  const { data } = await supabase
+    .from('article_comments')
+    .select('id, article_id, member_id, content, created_at, parent_id, reply_count, is_removed, members:members!article_comments_member_id_fkey(username, avatar_url)')
+    .eq('parent_id', parentCommentId)
+    .eq('is_removed', false)
+    .order('created_at', { ascending: true })
+    .limit(200);
+
+  if (!data) return [];
+  return (data as unknown as CommentRow[]).map(rowToComment);
+}
+
+/** Create a top-level comment OR a reply to another comment. */
 export async function createArticleComment(
   supabase: SupabaseClient<Database>,
   articleId: number,
   memberId: string,
   content: string,
-): Promise<{ error: Error | null }> {
+  parentId?: number | null,
+): Promise<{ error: Error | null; id?: number }> {
   const trimmed = content.trim();
   if (!trimmed || trimmed.length > 2000) return { error: new Error('Invalid comment') };
 
-  const { error } = await supabase
-    .from('article_comments' as never)
-    .insert({ article_id: articleId, member_id: memberId, content: trimmed } as never);
+  const { data, error } = await supabase
+    .from('article_comments')
+    .insert({
+      article_id: articleId,
+      member_id: memberId,
+      content: trimmed,
+      parent_id: parentId ?? null,
+    })
+    .select('id')
+    .single();
 
-  return { error: error ? new Error(error.message) : null };
+  if (error) return { error: new Error(error.message) };
+  return { error: null, id: (data as { id: number } | null)?.id };
 }
 
+/**
+ * Soft-delete a comment. Works for :
+ *   - the comment's author (RLS "Users can update own comments")
+ *   - a community admin / moderator / owner (RLS "Moderators can moderate
+ *     comments in their community", added in migration 00049)
+ * RLS enforces the permission check; we just set is_removed + removed_by.
+ */
 export async function removeArticleComment(
   supabase: SupabaseClient<Database>,
   commentId: number,
-  memberId: string,
-): Promise<void> {
-  await supabase
-    .from('article_comments' as never)
-    .update({ is_removed: true } as never)
-    .eq('id' as never, commentId as never)
-    .eq('member_id' as never, memberId as never);
+  actingMemberId: string,
+): Promise<{ error: Error | null }> {
+  const { error } = await supabase
+    .from('article_comments')
+    .update({
+      is_removed: true,
+      removed_at: new Date().toISOString(),
+      removed_by: actingMemberId,
+    })
+    .eq('id', commentId);
+
+  return { error: error ? new Error(error.message) : null };
 }
 
 // --- Row types & converters ---

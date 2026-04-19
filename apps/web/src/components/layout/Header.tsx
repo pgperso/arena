@@ -10,6 +10,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { useTribune } from '@/contexts/TribuneContext';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { MobileNav } from './MobileNav';
+import { NotificationBell } from './NotificationBell';
 
 export function Header() {
   const router = useRouter();
@@ -124,7 +125,9 @@ export function Header() {
           {loading ? (
             <div className="h-8 w-24 animate-pulse rounded-lg bg-gray-200" />
           ) : user ? (
-            <div ref={dropdownRef} className="relative">
+            <>
+              <NotificationBell userId={user.id} />
+              <div ref={dropdownRef} className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 aria-label={t('a11y.userMenu')}
@@ -174,7 +177,8 @@ export function Header() {
                   </button>
                 </div>
               )}
-            </div>
+              </div>
+            </>
           ) : (
             <>
               <Link

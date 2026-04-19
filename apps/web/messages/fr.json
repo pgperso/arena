@@ -280,6 +280,16 @@
     "submitComment": "Publier",
     "submitting": "Publication...",
     "deleteComment": "Supprimer",
+    "moderateComment": "Retirer (modération)",
+    "reply": "Répondre",
+    "cancel": "Annuler",
+    "writeReply": "Écrire une réponse...",
+    "submitReply": "Répondre",
+    "showReplies": "{count, plural, =1 {Afficher 1 réponse} other {Afficher # réponses}}",
+    "hideReplies": "Masquer les réponses",
+    "errorLoadingComments": "Erreur de chargement des commentaires.",
+    "errorSubmittingComment": "Impossible de publier le commentaire.",
+    "errorDeletingComment": "Impossible de supprimer le commentaire.",
     "podcast": "Podcast",
     "article": "Article",
     "description": "Tous les articles et podcasts sportifs de la communauté, au même endroit.",
@@ -287,6 +297,14 @@
     "taverneSubtitle": "Articles et discussions hors-sport, pour jaser de tout et de rien.",
     "catSport": "Sport",
     "catTaverne": "Actualité"
+  },
+  "notifications": {
+    "open": "Notifications",
+    "title": "Notifications",
+    "empty": "Aucune notification pour le moment.",
+    "markAllRead": "Tout marquer comme lu",
+    "replyLabel": "{name} a répondu à ton commentaire",
+    "commentOnArticleLabel": "{name} a commenté ton article"
   },
   "footer": {
     "rights": "Tous droits réservés.",

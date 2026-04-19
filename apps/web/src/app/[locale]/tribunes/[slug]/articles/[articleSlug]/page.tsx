@@ -87,8 +87,14 @@ export async function generateMetadata({ params }: ArticlePageProps) {
   };
 }
 
-export default async function ArticlePage({ params }: ArticlePageProps) {
+interface ArticlePageSearchParams {
+  searchParams?: Promise<{ commentId?: string }>;
+}
+
+export default async function ArticlePage({ params, searchParams }: ArticlePageProps & ArticlePageSearchParams) {
   const { locale, slug, articleSlug } = await params;
+  const resolvedSearch = (await searchParams) ?? {};
+  const focusCommentId = resolvedSearch.commentId ? parseInt(resolvedSearch.commentId, 10) : null;
   setRequestLocale(locale);
   const supabase = await createClient();
 
@@ -136,6 +142,32 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Check if the viewer can moderate comments in this article's community
+  // (owner / admin / moderator). This gates the "delete any comment" UI.
+  let canModerate = false;
+  if (user) {
+    const { data: modRows } = await supabase
+      .from('community_member_roles')
+      .select('role_id, roles!inner(code)')
+      .eq('community_id', community.id)
+      .eq('member_id', user.id);
+    const codes = ((modRows ?? []) as { roles: { code: string } | null }[])
+      .map((r) => r.roles?.code)
+      .filter(Boolean);
+    canModerate = codes.some((c) => c === 'owner' || c === 'admin' || c === 'moderator');
+
+    if (!canModerate) {
+      // Global owners can moderate anywhere
+      const { data: globalOwner } = await supabase
+        .from('community_member_roles')
+        .select('id, roles!inner(code)')
+        .eq('member_id', user.id)
+        .eq('roles.code', 'owner')
+        .limit(1);
+      canModerate = ((globalOwner as unknown[] | null)?.length ?? 0) > 0;
+    }
+  }
 
   // Increment view count (fire and forget)
   void (async () => { try { await supabase.rpc('increment_article_views' as never, { p_article_id: article.id } as never); } catch { /* ignore */ } })();
@@ -206,6 +238,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         }}
         communitySlug={slug}
         userId={user?.id ?? null}
+        canModerate={canModerate}
+        focusCommentId={focusCommentId}
       />
     </div>
   );
