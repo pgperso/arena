@@ -10,7 +10,7 @@ import { useSupabase } from '@/hooks/useSupabase';
 import { useCoverUpload } from '@/hooks/useCoverUpload';
 import { createArticle, updateArticle } from '@/services/articleService';
 import { slugify } from '@/lib/slugify';
-import { CONTENT_AUTHORS as AUTHORS, getContentAuthor } from '@/lib/contentAuthors';
+import { CONTENT_AUTHORS as AUTHORS, getContentAuthor, isContentAuthor } from '@/lib/contentAuthors';
 
 const AUTHOR_OPTIONS = [
   { name: 'Mon profil', initials: '✓', color: '#0B4870', style: '' },
@@ -69,6 +69,23 @@ export function ArticleEditor({
   const [aiRefining, setAiRefining] = useState(false);
   const aiAbortRef = useRef<AbortController | null>(null);
   const supabase = useSupabase();
+
+  // AI assistance is only available when publishing as one of our fictional
+  // personas (Rex, DJ, Maika, Roxane). Any article published under the user's
+  // own profile is treated as 100% human-written and cannot use AI — this
+  // keeps is_ai_generated honest and prevents accidental mislabelling.
+  const isPersonaAuthor = isContentAuthor(authorNameOverride);
+
+  // If the user switches back to "Mon profil" while the AI panel is open,
+  // force-close it and clear any pending AI state to avoid confusion.
+  useEffect(() => {
+    if (!isPersonaAuthor) {
+      setShowAiPanel(false);
+      setAiTopic('');
+      setAiTopics([]);
+      setAiGenerated(false);
+    }
+  }, [isPersonaAuthor]);
   const { coverPreview, coverPositionY, setCoverPositionY, handleCoverChange: onCoverChange, removeCover, uploadCover } = useCoverUpload(
     supabase, selectedCommunityId, existingArticle?.cover_image_url ?? null, '', existingArticle?.cover_position_y ?? 50,
   );
@@ -317,6 +334,13 @@ export function ArticleEditor({
     const slug = (customSlug.trim() || slugify(title)).slice(0, 60) || `article-${Date.now()}`;
     const body = editor?.getHTML() ?? '';
 
+    // Rule: an article is AI-generated IF AND ONLY IF it's being published
+    // under one of our fictional personas (Rex, DJ, Maika, Roxane). This is
+    // enforced here AND matches the UI — the AI panel isn't even shown
+    // unless a persona is selected, so there's no way to write manually
+    // under a persona either (everything published as a persona is flagged).
+    const aiGeneratedForPersist = isPersonaAuthor;
+
     if (isEditMode) {
       const { error: updateError } = await updateArticle(supabase, existingArticle.id, {
         title: title.trim(),
@@ -327,9 +351,7 @@ export function ArticleEditor({
         coverPositionY,
         isPublished: publish,
         authorNameOverride: authorNameOverride.trim() || null,
-        // Only flip to true if the current editing session used AI ; otherwise
-        // leave it untouched so we don't clobber the DB value on simple edits.
-        ...(aiGenerated ? { isAiGenerated: true } : {}),
+        isAiGenerated: aiGeneratedForPersist,
       });
 
       if (updateError) {
@@ -349,7 +371,7 @@ export function ArticleEditor({
         coverPositionY,
         isPublished: publish,
         authorNameOverride: authorNameOverride.trim() || null,
-        isAiGenerated: aiGenerated,
+        isAiGenerated: aiGeneratedForPersist,
       });
 
       if (insertError) {
@@ -361,7 +383,7 @@ export function ArticleEditor({
 
     setSaving(false);
     onPublished(slug, selectedCommunitySlug);
-  }, [title, excerpt, editor, uploadCover, communityId, selectedCommunityId, selectedCommunitySlug, customSlug, authorNameOverride, userId, supabase, onPublished, isEditMode, existingArticle]);
+  }, [title, excerpt, editor, uploadCover, communityId, selectedCommunityId, selectedCommunitySlug, customSlug, authorNameOverride, isPersonaAuthor, userId, supabase, onPublished, isEditMode, existingArticle]);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -459,8 +481,8 @@ export function ArticleEditor({
         </div>
       )}
 
-      {/* Step 3: AI Generation */}
-      {!isEditMode && (
+      {/* Step 3: AI Generation — only offered when publishing as a persona. */}
+      {!isEditMode && isPersonaAuthor && (
         <div className="mb-4">
           {!showAiPanel ? (
             <button
@@ -470,7 +492,7 @@ export function ArticleEditor({
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456Z" />
               </svg>
-              Générer avec l'IA
+              Générer avec l&apos;IA
             </button>
           ) : (
             <div className="rounded-lg border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950 p-4">
