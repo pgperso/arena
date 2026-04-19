@@ -95,7 +95,7 @@ export function Header() {
             href={user ? '/tribunes' : '/login'}
             className="rounded-lg bg-brand-red px-3 py-1.5 text-sm font-bold text-white transition hover:bg-brand-red-dark"
           >
-            Tribunes
+            {t('home.myTribunes')}
           </Link>
           <div className="h-4 w-px bg-gray-200 dark:bg-gray-700" />
           <button
