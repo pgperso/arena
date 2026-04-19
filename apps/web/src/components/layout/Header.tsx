@@ -48,7 +48,7 @@ export function Header() {
   }, [dropdownOpen]);
 
   return (
-    <header className="shrink-0 border-b border-gray-200 dark:border-gray-700 dark:border-gray-800 dark:bg-[#1e1e1e]">
+    <header className="relative z-[60] shrink-0 border-b border-gray-200 bg-white dark:border-gray-700 dark:border-gray-800 dark:bg-[#1e1e1e]">
       <div className="flex h-12 items-center justify-between px-3 sm:h-14 sm:px-4 md:h-16">
         {/* Logo — on mobile in tribune: back arrow + tribune name */}
         <div className="flex items-center gap-1.5 sm:gap-2">
