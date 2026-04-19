@@ -167,9 +167,13 @@ export function NotificationBell({ userId }: NotificationBellProps) {
           ) : (
             <ul className="max-h-80 overflow-y-auto">
               {items.map((n) => {
-                const label = n.type === 'comment_reply'
-                  ? t('replyLabel', { name: n.actorUsername ?? '—' })
-                  : t('commentOnArticleLabel', { name: n.actorUsername ?? '—' });
+                const labelKey =
+                  n.type === 'comment_reply'
+                    ? 'replyLabel'
+                    : n.type === 'comment_reply_thread'
+                      ? 'replyThreadLabel'
+                      : 'commentOnArticleLabel';
+                const label = t(labelKey, { name: n.actorUsername ?? '—' });
                 return (
                   <li key={n.id}>
                     <button
