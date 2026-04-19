@@ -2,7 +2,7 @@
 
 import { memo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Heart, ThumbsDown, MessageCircle, Pencil, Trash2 } from 'lucide-react';
+import { Heart, ThumbsDown, MessageCircle, Pencil, Trash2, Copy, Check } from 'lucide-react';
 import { useMessageReaction } from '@/hooks/useMessageReaction';
 
 interface FeedMessageToolbarProps {
@@ -13,6 +13,7 @@ interface FeedMessageToolbarProps {
   isOwn: boolean;
   canModerate: boolean;
   visible: boolean;
+  copyText: string | null;
   onReply: () => void;
   onStartEdit?: () => void;
   onDelete?: () => void;
@@ -28,6 +29,7 @@ export const FeedMessageToolbar = memo(function FeedMessageToolbar({
   isOwn,
   canModerate,
   visible,
+  copyText,
   onReply,
   onStartEdit,
   onDelete,
@@ -35,6 +37,7 @@ export const FeedMessageToolbar = memo(function FeedMessageToolbar({
   const t = useTranslations('tribune');
   const tc = useTranslations('common');
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const { isLiked, isDisliked, toggleLike, toggleDislike, loading } =
     useMessageReaction(messageId, initialLikeCount, initialDislikeCount, userId);
@@ -43,6 +46,18 @@ export const FeedMessageToolbar = memo(function FeedMessageToolbar({
   const showDelete = (isOwn || canModerate) && !!onDelete;
   const showReply = !isOwn;
   const showReactions = !isOwn;
+  const showCopy = !!copyText && copyText.trim().length > 0;
+
+  async function handleCopy() {
+    if (!copyText) return;
+    try {
+      await navigator.clipboard.writeText(copyText);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* noop — clipboard may be unavailable */
+    }
+  }
 
   return (
     <div
@@ -105,7 +120,27 @@ export const FeedMessageToolbar = memo(function FeedMessageToolbar({
               <MessageCircle className="h-4 w-4" strokeWidth={1.5} />
             </button>
           )}
-          {(showEdit || showDelete) && (showReactions || showReply) && (
+          {showCopy && (showReactions || showReply) && (
+            <span className="mx-0.5 h-4 w-px bg-gray-200 dark:bg-gray-700" aria-hidden="true" />
+          )}
+          {showCopy && (
+            <button
+              onClick={handleCopy}
+              className={`${BTN} ${
+                copied
+                  ? 'text-green-500'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
+              }`}
+              title={tc('copy')}
+            >
+              {copied ? (
+                <Check className="h-4 w-4" strokeWidth={2} />
+              ) : (
+                <Copy className="h-4 w-4" strokeWidth={1.5} />
+              )}
+            </button>
+          )}
+          {(showEdit || showDelete) && (showCopy || showReactions || showReply) && (
             <span className="mx-0.5 h-4 w-px bg-gray-200 dark:bg-gray-700" aria-hidden="true" />
           )}
           {showEdit && (

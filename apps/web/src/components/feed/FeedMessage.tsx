@@ -152,6 +152,7 @@ export const FeedMessage = memo(function FeedMessage({
       isOwn={isOwn}
       canModerate={canModerate}
       visible={mobileToolbar}
+      copyText={message.content}
       onReply={() => onReply(message)}
       onStartEdit={isOwn ? onStartEdit : undefined}
       onDelete={(canModerate || isOwn) ? () => onDelete(message.id) : undefined}
@@ -204,7 +205,7 @@ export const FeedMessage = memo(function FeedMessage({
     return (
       <div
         ref={messageRef}
-        className={`group relative py-1.5 pl-[52px] pr-3 transition-colors sm:pl-[60px] sm:pr-4 ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50 dark:hover:bg-[#272525] dark:bg-[#1e1e1e]'}`}
+        className={`group relative py-1.5 pl-[52px] pr-3 transition-colors sm:pl-[60px] sm:pr-4 select-none [-webkit-touch-callout:none] md:select-text ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50 dark:hover:bg-[#272525] dark:bg-[#1e1e1e]'}`}
         onPointerDown={startLongPress}
         onPointerUp={cancelLongPress}
         onPointerMove={cancelLongPress}
@@ -247,7 +248,7 @@ export const FeedMessage = memo(function FeedMessage({
   return (
     <div
       ref={messageRef}
-      className={`group relative px-4 pt-3 pb-1 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50 dark:hover:bg-[#272525] dark:bg-[#1e1e1e]'}`}
+      className={`group relative px-4 pt-3 pb-1 transition-colors select-none [-webkit-touch-callout:none] md:select-text ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50 dark:hover:bg-[#272525] dark:bg-[#1e1e1e]'}`}
       onPointerDown={startLongPress}
       onPointerUp={cancelLongPress}
       onPointerMove={cancelLongPress}

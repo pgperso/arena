@@ -25,6 +25,7 @@
     "close": "Close",
     "send": "Send",
     "edit": "Edit",
+    "copy": "Copy",
     "remove": "Remove from feed",
     "publish": "Publish",
     "draft": "Draft",
