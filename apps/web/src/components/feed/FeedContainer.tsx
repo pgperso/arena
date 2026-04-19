@@ -19,6 +19,7 @@ import { OnlineMembers } from '@/components/chat/OnlineMembers';
 import { Nordiquometre } from './Nordiquometre';
 import { Exposmetre } from './Exposmetre';
 import { Link } from '@/i18n/navigation';
+import { useTribune } from '@/contexts/TribuneContext';
 
 const ArticleEditor = dynamic(() => import('@/components/article/ArticleEditor').then((m) => m.ArticleEditor), { ssr: false });
 const ArticleList = dynamic(() => import('@/components/article/ArticleList').then((m) => m.ArticleList), { ssr: false });
@@ -80,7 +81,7 @@ export function FeedContainer({
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [atBottom, setAtBottom] = useState(true);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
-  const [showMembers, setShowMembers] = useState(false);
+  const { membersOpen: showMembers, setMembersOpen: setShowMembers } = useTribune();
   const [showArticleEditor, setShowArticleEditor] = useState(false);
   const [showModeration, setShowModeration] = useState(false);
   const [showArticleList, setShowArticleList] = useState(false);
@@ -186,22 +187,6 @@ export function FeedContainer({
     <div className="flex h-full flex-col lg:flex-row">
       {/* Feed area */}
       <div className="relative flex flex-1 flex-col overflow-hidden dark:border-x dark:border-gray-700">
-        {/* Minimal toolbar: only a toggle to open the members/actions drawer
-            on mobile/tablet. Desktop shows the sidebar permanently on the
-            right — no toolbar needed. */}
-        <div className="flex shrink-0 items-center justify-end border-b border-gray-200 dark:border-gray-700 px-3 py-1.5 lg:hidden">
-          <button
-            onClick={() => setShowMembers(!showMembers)}
-            aria-label={t('membersOnline')}
-            aria-expanded={showMembers}
-            className="rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-1.997M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-            </svg>
-          </button>
-        </div>
-
         {/* Tab bar: Tribune / Contenu */}
         <div className="flex shrink-0 gap-1 bg-gray-100 dark:bg-[#1e1e1e] px-3 py-1.5">
           <button
