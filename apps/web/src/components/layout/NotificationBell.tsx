@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { useSupabase } from '@/hooks/useSupabase';
 import { Avatar } from '@/components/ui/Avatar';
@@ -25,7 +25,6 @@ interface NotificationBellProps {
 export function NotificationBell({ userId }: NotificationBellProps) {
   const t = useTranslations('notifications');
   const router = useRouter();
-  const locale = useLocale();
   const supabase = useSupabase();
 
   const [open, setOpen] = useState(false);
@@ -100,9 +99,11 @@ export function NotificationBell({ userId }: NotificationBellProps) {
     setUnread((c) => Math.max(c - 1, 0));
     void markNotificationRead(supabase, notif.id);
 
-    // Navigate to the article with the comment highlighted
+    // Navigate to the article with the comment highlighted. Router from
+    // @/i18n/navigation prefixes the current locale itself — we must pass
+    // a locale-less path or we'd end up with /fr/fr/... (404).
     if (notif.articleSlug && notif.communitySlug) {
-      const url = `/${locale}/tribunes/${notif.communitySlug}/articles/${notif.articleSlug}${notif.commentId ? `?commentId=${notif.commentId}` : ''}`;
+      const url = `/tribunes/${notif.communitySlug}/articles/${notif.articleSlug}${notif.commentId ? `?commentId=${notif.commentId}` : ''}`;
       setOpen(false);
       router.push(url);
     }
