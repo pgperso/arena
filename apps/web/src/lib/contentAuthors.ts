@@ -35,3 +35,18 @@ export const CONTENT_AUTHORS: ContentAuthor[] = [
 export function getContentAuthor(name: string): ContentAuthor | null {
   return CONTENT_AUTHORS.find((a) => a.name === name) ?? null;
 }
+
+/**
+ * Returns true if the given override name matches one of our fictional
+ * content authors (Rex Paquette, DJ Labombarde, Maika Blitz, Roxane Fury).
+ * These personas are exclusively used for AI-assisted articles — publishing
+ * under one of them automatically flags the article as is_ai_generated = TRUE.
+ * Any article published under a user's own profile (empty override) is
+ * treated as human-written and the AI assistance panel is not offered.
+ */
+export function isContentAuthor(name: string | null | undefined): boolean {
+  if (!name) return false;
+  const trimmed = name.trim();
+  if (!trimmed) return false;
+  return CONTENT_AUTHORS.some((a) => a.name === trimmed);
+}
