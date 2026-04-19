@@ -43,6 +43,34 @@ export async function joinCommunity(
   return result;
 }
 
+export interface UserCommunitySummary {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export async function fetchUserCommunities(
+  supabase: SupabaseClient<Database>,
+  memberId: string,
+): Promise<UserCommunitySummary[]> {
+  const { data: memberships } = await supabase
+    .from('community_members')
+    .select('community_id')
+    .eq('member_id', memberId);
+
+  const ids = (memberships ?? []).map((m) => m.community_id);
+  if (ids.length === 0) return [];
+
+  const { data } = await supabase
+    .from('communities')
+    .select('id, name, slug')
+    .in('id', ids)
+    .eq('is_active', true)
+    .order('name');
+
+  return (data ?? []) as UserCommunitySummary[];
+}
+
 export async function leaveCommunity(
   supabase: SupabaseClient<Database>,
   communityId: number,
