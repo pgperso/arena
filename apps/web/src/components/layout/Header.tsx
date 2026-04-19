@@ -246,6 +246,7 @@ export function Header() {
         onClose={() => setMobileMenuOpen(false)}
         user={user}
         username={username}
+        avatarUrl={avatarUrl}
         onLogout={handleLogout}
       />
     </header>
