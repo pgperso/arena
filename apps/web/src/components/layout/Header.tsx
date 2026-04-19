@@ -278,8 +278,9 @@ export function Header() {
           )}
         </div>
 
-        {/* Mobile: dark mode + menu */}
+        {/* Mobile: notifications + dark mode + menu */}
         <div className="flex items-center gap-2 md:hidden">
+          {user && <NotificationBell userId={user.id} />}
           <button
             onClick={toggleDark}
             aria-label={dark ? t('a11y.enableLightMode') : t('a11y.enableDarkMode')}
