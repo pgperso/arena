@@ -36,6 +36,8 @@ interface ArticleViewProps {
   };
   communitySlug: string;
   userId: string | null;
+  canModerate?: boolean;
+  focusCommentId?: number | null;
 }
 
 /**
@@ -82,7 +84,7 @@ function splitHtmlAtParagraph(html: string, wordThreshold: number): [string, str
   return [html.slice(0, cutPoint), html.slice(cutPoint)];
 }
 
-export function ArticleView({ article, communitySlug, userId }: ArticleViewProps) {
+export function ArticleView({ article, communitySlug, userId, canModerate = false, focusCommentId = null }: ArticleViewProps) {
   const locale = useLocale();
   const router = useRouter();
   const handleBack = useCallback(() => {
@@ -212,7 +214,12 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
         </div>
 
         {/* Comments */}
-        <ArticleComments articleId={article.id} userId={userId} />
+        <ArticleComments
+          articleId={article.id}
+          userId={userId}
+          canModerate={canModerate}
+          focusCommentId={focusCommentId}
+        />
       </article>
 
       {/* Sticky sidebar ad - desktop only */}
