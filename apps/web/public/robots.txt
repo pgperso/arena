@@ -1,21 +1,15 @@
 # Search engines
+# Note: /fr/tribunes and /vestiaire use meta robots: noindex on the page itself.
+# We rely on that instead of robots.txt path rules, which don't distinguish
+# /tribunes (list, auth-only) from /tribunes/[slug] (public hub) cleanly.
 User-agent: *
 Allow: /
-Allow: /fr/galerie-de-presse
-Allow: /en/galerie-de-presse
-Allow: /fr/tribunes/*/articles/
-Allow: /en/tribunes/*/articles/
-Allow: /fr/tribunes/*/podcasts/
-Allow: /en/tribunes/*/podcasts/
 Disallow: /api/
-Disallow: /vestiaire/
 Disallow: /admin/
 Disallow: /login
 Disallow: /register
 Disallow: /reset-password
 Disallow: /update-password
-Disallow: /fr/tribunes/*/
-Disallow: /en/tribunes/*/
 
 Sitemap: https://fanstribune.com/sitemap.xml
 

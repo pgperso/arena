@@ -1,50 +1,75 @@
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
+import { fetchPressGalleryItems } from '@/services/pressGalleryService';
 import { CommunityPageClient } from './CommunityPageClient';
 import type { Database } from '@arena/supabase-client';
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'];
 
+export const revalidate = 300;
+
 interface CommunityPageProps {
   params: Promise<{ slug: string; locale: string }>;
 }
 
-export async function generateMetadata({ params }: CommunityPageProps) {
-  const { slug } = await params;
+export async function generateMetadata({ params }: CommunityPageProps): Promise<Metadata> {
+  const { slug, locale } = await params;
   const supabase = await createClient();
   const { data: community } = await supabase
     .from('communities')
     .select('name, description, logo_url')
     .eq('slug', slug)
+    .eq('is_active', true)
     .single();
 
-  if (!community) return { title: 'Tribune introuvable' };
+  if (!community) return { title: 'Tribune introuvable', robots: { index: false, follow: false } };
 
   const { name, description, logo_url } = community as { name: string; description: string | null; logo_url: string | null };
-  const desc = description ?? `Rejoignez la tribune ${name} sur La tribune des fans — chat en direct, articles et podcasts.`;
+  const isFr = locale === 'fr';
+  const desc = description
+    ?? (isFr
+      ? `Articles, podcasts et discussions sur ${name}. La tribune communautaire des partisans, en direct sur La tribune des fans.`
+      : `Articles, podcasts and discussions about ${name}. The fan community tribune, live on Fans Tribune.`);
+  const title = `${name} | La tribune des fans`;
+  const url = `https://fanstribune.com/${locale}/tribunes/${slug}`;
 
   return {
-    title: name,
+    title,
     description: desc,
     openGraph: {
-      title: `${name} | La tribune des fans`,
+      title,
       description: desc,
       type: 'website',
-      images: logo_url ? [{ url: logo_url, alt: name }] : undefined,
+      url,
+      siteName: 'La tribune des fans',
+      locale: isFr ? 'fr_CA' : 'en_CA',
+      images: logo_url
+        ? [{ url: logo_url, alt: name, width: 512, height: 512 }]
+        : [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 }],
     },
     twitter: {
-      card: 'summary',
-      title: `${name} | La tribune des fans`,
+      card: 'summary_large_image',
+      title,
       description: desc,
-      images: logo_url ? [logo_url] : undefined,
+      images: logo_url ? [logo_url] : ['https://fanstribune.com/images/fanstribune.webp'],
     },
     alternates: {
-      canonical: `https://fanstribune.com/fr/tribunes/${slug}`,
+      canonical: url,
       languages: {
         'fr-CA': `https://fanstribune.com/fr/tribunes/${slug}`,
         'en-CA': `https://fanstribune.com/en/tribunes/${slug}`,
+        'x-default': `https://fanstribune.com/fr/tribunes/${slug}`,
       },
+    },
+    robots: {
+      index: true,
+      follow: true,
+      'max-snippet': -1,
+      'max-image-preview': 'large',
+      'max-video-preview': -1,
     },
   };
 }
@@ -67,6 +92,25 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
 
   const community = data as CommunityRow | null;
   if (!community) notFound();
+
+  // Load latest published articles + podcasts for this community (public hub content)
+  const [hubResult, hubPodcastsResult] = await Promise.all([
+    fetchPressGalleryItems(supabase, {
+      filter: 'articles',
+      sort: 'latest',
+      communityId: community.id,
+      limit: 12,
+    }),
+    fetchPressGalleryItems(supabase, {
+      filter: 'podcasts',
+      sort: 'latest',
+      communityId: community.id,
+      limit: 6,
+    }),
+  ]);
+
+  const hubArticles = hubResult.items;
+  const hubPodcasts = hubPodcastsResult.items;
 
   let isMember = false;
   let canModerate = false;
@@ -142,16 +186,68 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
     if (r.roles?.code) staffRoles[r.member_id] = r.roles.code;
   }
 
+  // Public JSON-LD so the hub is discoverable and structured for Google.
+  const url = `https://fanstribune.com/${locale}/tribunes/${slug}`;
+  const hubItems = [...hubArticles, ...hubPodcasts];
+  const nonce = (await headers()).get('x-nonce') ?? '';
+
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      '@id': url,
+      name: `${community.name} | La tribune des fans`,
+      description: community.description ?? `Articles, podcasts et discussions sur ${community.name}.`,
+      url,
+      inLanguage: locale === 'fr' ? 'fr-CA' : 'en-CA',
+      image: community.logo_url ?? 'https://fanstribune.com/images/fanstribune.webp',
+      publisher: {
+        '@type': 'Organization',
+        name: 'La tribune des fans',
+        url: 'https://fanstribune.com',
+        logo: { '@type': 'ImageObject', url: 'https://fanstribune.com/images/fanstribune.webp', width: 512, height: 512 },
+      },
+      mainEntity: {
+        '@type': 'ItemList',
+        itemListElement: hubItems.map((item, idx) => ({
+          '@type': 'ListItem',
+          position: idx + 1,
+          url: item.type === 'article'
+            ? `https://fanstribune.com/${locale}/tribunes/${community.slug}/articles/${item.slug}`
+            : `https://fanstribune.com/${locale}/tribunes/${community.slug}/podcasts/${item.id}`,
+          name: item.title,
+        })),
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `https://fanstribune.com/${locale}` },
+        { '@type': 'ListItem', position: 2, name: community.name, item: url },
+      ],
+    },
+  ];
+
   return (
-    <CommunityPageClient
-      key={`${community.id}-${isMember}`}
-      community={community}
-      isMember={isMember}
-      canModerate={canModerate}
-      canCreateContent={canCreateContent}
-      isMuted={isMuted}
-      userId={user?.id ?? null}
-      staffRoles={staffRoles}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        nonce={nonce}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
+      <CommunityPageClient
+        key={`${community.id}-${isMember}`}
+        community={community}
+        isMember={isMember}
+        canModerate={canModerate}
+        canCreateContent={canCreateContent}
+        isMuted={isMuted}
+        userId={user?.id ?? null}
+        staffRoles={staffRoles}
+        hubArticles={hubArticles}
+        hubPodcasts={hubPodcasts}
+      />
+    </>
   );
 }
