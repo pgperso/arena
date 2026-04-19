@@ -52,6 +52,7 @@ export function FeedContainer({
 }: FeedContainerProps) {
   const router = useRouter();
   const t = useTranslations('tribune');
+  const tc = useTranslations('common');
   const locale = useLocale();
   const { user, username, avatarUrl } = useAuth();
   const {
@@ -400,24 +401,43 @@ export function FeedContainer({
         )}
       </div>
 
-      {/* Online members sidebar */}
-      <div
-        className={`${
-          showMembers ? 'block' : 'hidden'
-        } w-full border-t border-gray-200 dark:border-gray-700 lg:block lg:w-60 lg:border-l lg:border-r lg:border-t-0`}
+      {/* Online members sidebar — permanent on lg+, slide-from-right drawer
+          on mobile/tablet with a dark backdrop */}
+      {showMembers && (
+        <div
+          onClick={() => setShowMembers(false)}
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          aria-hidden="true"
+        />
+      )}
+      <aside
+        className={`fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] transform border-l border-gray-200 bg-white shadow-xl transition-transform duration-200 dark:border-gray-700 dark:bg-[#1e1e1e] lg:static lg:w-60 lg:translate-x-0 lg:border-r lg:shadow-none ${
+          showMembers ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
+        }`}
+        aria-label={t('membersOnline')}
       >
+        {/* Close button — mobile only */}
+        <button
+          onClick={() => setShowMembers(false)}
+          aria-label={tc('close')}
+          className="absolute right-2 top-2 z-10 rounded-full p-1.5 text-gray-500 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
         <OnlineMembers
           members={onlineMembers}
           communityName={communityName}
           canModerate={canModerate}
           canCreateContent={canCreateContent}
-          onModerate={canModerate && user ? () => setShowModeration(true) : undefined}
-          onArticle={canCreateContent && user ? () => setShowArticleEditor(true) : undefined}
-          onMyArticles={canCreateContent && user ? () => setShowArticleList(true) : undefined}
-          onPodcast={canCreateContent && user ? () => setShowPodcastEditor(true) : undefined}
-          onLeave={user ? onLeave : undefined}
+          onModerate={canModerate && user ? () => { setShowModeration(true); setShowMembers(false); } : undefined}
+          onArticle={canCreateContent && user ? () => { setShowArticleEditor(true); setShowMembers(false); } : undefined}
+          onMyArticles={canCreateContent && user ? () => { setShowArticleList(true); setShowMembers(false); } : undefined}
+          onPodcast={canCreateContent && user ? () => { setShowPodcastEditor(true); setShowMembers(false); } : undefined}
+          onLeave={user && onLeave ? () => { onLeave(); setShowMembers(false); } : undefined}
         />
-      </div>
+      </aside>
 
       {/* Article editor overlay */}
       {showArticleEditor && user && (
