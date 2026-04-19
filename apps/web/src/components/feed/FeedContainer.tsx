@@ -185,82 +185,20 @@ export function FeedContainer({
     <div className="flex h-full flex-col lg:flex-row">
       {/* Feed area */}
       <div className="relative flex flex-1 flex-col overflow-hidden dark:border-x dark:border-gray-700">
-        {/* Header — compact on mobile (no name, just actions), full on desktop */}
-        <div className="flex shrink-0 items-center justify-end border-b border-gray-200 dark:border-gray-700 px-3 py-1.5 md:justify-between md:px-4 md:py-3">
-          <div className="hidden md:block">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">{communityName}</h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{t('online', { count: onlineMembers.length })}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            {/* Desktop: full buttons */}
-            {canModerate && user && (
-              <button
-                onClick={() => setShowModeration(true)}
-                className="hidden items-center gap-1 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 md:flex"
-                title={t('moderate')}
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-                </svg>
-                {t('moderate')}
-              </button>
-            )}
-            {canCreateContent && user && (
-              <>
-                <button
-                  onClick={() => setShowArticleEditor(true)}
-                  className="hidden items-center gap-1 rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100 md:flex"
-                  title={t('article')}
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                  </svg>
-                  {t('article')}
-                </button>
-                <button
-                  onClick={() => setShowArticleList(true)}
-                  className="hidden items-center gap-1 rounded-lg bg-gray-50 dark:bg-[#1e1e1e] px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] md:flex"
-                  title={t('myArticles')}
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                  </svg>
-                  {t('myArticles')}
-                </button>
-                <button
-                  onClick={() => setShowPodcastEditor(true)}
-                  className="hidden items-center gap-1 rounded-lg bg-orange-50 px-3 py-1.5 text-xs font-medium text-orange-700 transition hover:bg-orange-100 md:flex"
-                  title={t('podcast')}
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
-                  </svg>
-                  {t('podcast')}
-                </button>
-              </>
-            )}
-            {/* Mobile: ⋯ menu for admin/creator actions + leave */}
-            {user && (
-              <AdminMenu
-                canModerate={canModerate}
-                canCreateContent={canCreateContent}
-                onModerate={() => setShowModeration(true)}
-                onArticle={() => setShowArticleEditor(true)}
-                onMyArticles={() => setShowArticleList(true)}
-                onPodcast={() => setShowPodcastEditor(true)}
-                onLeave={onLeave}
-              />
-            )}
-            <button
-              onClick={() => setShowMembers(!showMembers)}
-              className="rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 lg:hidden"
-              title={t('membersOnline')}
-            >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-1.997M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-              </svg>
-            </button>
-          </div>
+        {/* Minimal toolbar: only a toggle to open the members/actions drawer
+            on mobile/tablet. Desktop shows the sidebar permanently on the
+            right — no toolbar needed. */}
+        <div className="flex shrink-0 items-center justify-end border-b border-gray-200 dark:border-gray-700 px-3 py-1.5 lg:hidden">
+          <button
+            onClick={() => setShowMembers(!showMembers)}
+            aria-label={t('membersOnline')}
+            aria-expanded={showMembers}
+            className="rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-1.997M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+            </svg>
+          </button>
         </div>
 
         {/* Tab bar: Tribune / Contenu */}
@@ -468,7 +406,17 @@ export function FeedContainer({
           showMembers ? 'block' : 'hidden'
         } w-full border-t border-gray-200 dark:border-gray-700 lg:block lg:w-60 lg:border-l lg:border-r lg:border-t-0`}
       >
-        <OnlineMembers members={onlineMembers} />
+        <OnlineMembers
+          members={onlineMembers}
+          communityName={communityName}
+          canModerate={canModerate}
+          canCreateContent={canCreateContent}
+          onModerate={canModerate && user ? () => setShowModeration(true) : undefined}
+          onArticle={canCreateContent && user ? () => setShowArticleEditor(true) : undefined}
+          onMyArticles={canCreateContent && user ? () => setShowArticleList(true) : undefined}
+          onPodcast={canCreateContent && user ? () => setShowPodcastEditor(true) : undefined}
+          onLeave={user ? onLeave : undefined}
+        />
       </div>
 
       {/* Article editor overlay */}
@@ -528,102 +476,3 @@ export function FeedContainer({
   );
 }
 
-// ── Mobile admin/creator menu ──
-
-function AdminMenu({
-  canModerate,
-  canCreateContent,
-  onModerate,
-  onArticle,
-  onMyArticles,
-  onPodcast,
-  onLeave,
-}: {
-  canModerate: boolean;
-  canCreateContent: boolean;
-  onModerate: () => void;
-  onArticle: () => void;
-  onMyArticles: () => void;
-  onPodcast: () => void;
-  onLeave?: () => void;
-}) {
-  const t = useTranslations('tribune');
-  const tc = useTranslations('community');
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="relative md:hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300"
-      >
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-        </svg>
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] py-1 shadow-lg">
-            {canModerate && (
-              <button
-                onClick={() => { setOpen(false); onModerate(); }}
-                className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-700 transition hover:bg-red-50 dark:hover:bg-red-950"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-                </svg>
-                {t('moderate')}
-              </button>
-            )}
-            {canCreateContent && (
-              <>
-                <button
-                  onClick={() => { setOpen(false); onArticle(); }}
-                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-purple-700 transition hover:bg-purple-50 dark:hover:bg-purple-950"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                  </svg>
-                  {t('article')}
-                </button>
-                <button
-                  onClick={() => { setOpen(false); onMyArticles(); }}
-                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-[#1e1e1e]"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                  </svg>
-                  {t('myArticles')}
-                </button>
-                <button
-                  onClick={() => { setOpen(false); onPodcast(); }}
-                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-orange-700 transition hover:bg-orange-50 dark:hover:bg-orange-950"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
-                  </svg>
-                  {t('podcast')}
-                </button>
-              </>
-            )}
-            {onLeave && (
-              <>
-                <div className="my-1 border-t border-gray-100" />
-                <button
-                  onClick={() => { setOpen(false); onLeave(); }}
-                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 transition hover:bg-red-50 dark:hover:bg-red-950"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.181 8.68a4.503 4.503 0 0 1 1.903 6.405m-9.768-2.782L3.56 14.06a4.5 4.5 0 0 0 6.364 6.365l3.129-3.129m5.614-5.615 1.757-1.757a4.5 4.5 0 0 0-6.364-6.365l-3.129 3.129m0 5.657-3.182-3.182" />
-                  </svg>
-                  {tc('leaveTribune')}
-                </button>
-              </>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
