@@ -51,6 +51,7 @@ export async function createArticle(
     coverPositionY?: number;
     isPublished?: boolean;
     authorNameOverride?: string | null;
+    isAiGenerated?: boolean;
   },
 ) {
   const validated = articleSchema.parse({
@@ -73,6 +74,7 @@ export async function createArticle(
     is_published: data.isPublished ?? true,
     published_at: data.isPublished !== false ? new Date().toISOString() : null,
     author_name_override: data.authorNameOverride?.trim() || null,
+    is_ai_generated: data.isAiGenerated ?? false,
   } as never);
 
   // Bot announcement when published (fire-and-forget)
@@ -110,6 +112,7 @@ export async function updateArticle(
     isPublished?: boolean;
     authorNameOverride?: string | null;
     communityId?: number;
+    isAiGenerated?: boolean;
   },
 ) {
   const validated = articleSchema.parse({
@@ -129,6 +132,7 @@ export async function updateArticle(
     cover_position_y: Math.round(data.coverPositionY ?? 50),
     author_name_override: data.authorNameOverride?.trim() || null,
     ...(data.communityId ? { community_id: data.communityId } : {}),
+    ...(data.isAiGenerated !== undefined ? { is_ai_generated: data.isAiGenerated } : {}),
     updated_at: new Date().toISOString(),
   };
 
