@@ -30,7 +30,47 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { ...withAlternates('/mentions-legales'), lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
   ];
 
-  // Communities excluded from sitemap — chat pages are auth-gated thin content for Google
+  // Public community hubs: one entry per active community that has at least
+  // one published article or podcast. The page lists those items + join CTA,
+  // indexable as CollectionPage.
+  const { data: communities } = await supabase
+    .from('communities')
+    .select('slug, updated_at')
+    .eq('is_active', true)
+    .limit(500);
+
+  if (communities) {
+    // Identify which communities actually have published content
+    const [{ data: articleCommunities }, { data: podcastCommunities }] = await Promise.all([
+      supabase
+        .from('articles')
+        .select('community_id, communities!inner(slug)')
+        .eq('is_published', true)
+        .eq('is_removed', false),
+      supabase
+        .from('podcasts')
+        .select('community_id, communities!inner(slug)')
+        .eq('is_published', true),
+    ]);
+
+    const slugsWithContent = new Set<string>();
+    for (const row of (articleCommunities ?? []) as { communities: { slug: string } | null }[]) {
+      if (row.communities?.slug) slugsWithContent.add(row.communities.slug);
+    }
+    for (const row of (podcastCommunities ?? []) as { communities: { slug: string } | null }[]) {
+      if (row.communities?.slug) slugsWithContent.add(row.communities.slug);
+    }
+
+    for (const c of communities as { slug: string; updated_at: string | null }[]) {
+      if (!slugsWithContent.has(c.slug)) continue;
+      entries.push({
+        ...withAlternates(`/tribunes/${c.slug}`),
+        lastModified: c.updated_at ? new Date(c.updated_at) : new Date(),
+        changeFrequency: 'daily',
+        priority: 0.8,
+      });
+    }
+  }
 
   // Articles
   const { data: articles } = await supabase

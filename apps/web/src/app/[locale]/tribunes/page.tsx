@@ -57,7 +57,9 @@ export default async function TribunesPage({ params }: { params: Promise<{ local
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return redirect({ href: '/login', locale });
+  // Non-logged-in visitors (including Googlebot) get sent to the home, which
+  // is the public Press Gallery, instead of a login wall.
+  if (!user) return redirect({ href: '/', locale });
 
   // Fetch user's joined communities
   const { data: memberships } = await supabase

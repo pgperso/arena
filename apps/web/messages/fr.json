@@ -142,6 +142,11 @@
     "backToTribunes": "Tribunes",
     "exitTribune": "Sortir",
     "joinToAccess": "Rejoignez cette tribune pour accéder au contenu.",
+    "recentArticles": "Articles récents",
+    "recentPodcasts": "Podcasts récents",
+    "noContentYet": "Pas encore de contenu publié dans cette tribune.",
+    "joinDiscussionTitle": "Rejoins la discussion en direct",
+    "joinDiscussionBody": "Le chat de cette tribune est réservé aux membres. Inscris-toi ou connecte-toi pour participer aux échanges en temps réel avec les autres partisans.",
     "allJoinedMessage": "Tu as déjà rejoint toutes les tribunes de cette catégorie."
   },
   "content": {

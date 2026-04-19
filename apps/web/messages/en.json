@@ -136,6 +136,11 @@
     "backToTribunes": "Tribunes",
     "exitTribune": "Exit",
     "joinToAccess": "Join this tribune to access the content.",
+    "recentArticles": "Recent articles",
+    "recentPodcasts": "Recent podcasts",
+    "noContentYet": "No content published in this tribune yet.",
+    "joinDiscussionTitle": "Join the live discussion",
+    "joinDiscussionBody": "This tribune's chat is reserved for members. Sign up or log in to join the real-time conversation with other fans.",
     "allJoinedMessage": "You've already joined all tribunes in this category."
   },
   "content": {
