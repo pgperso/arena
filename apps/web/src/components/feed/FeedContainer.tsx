@@ -201,15 +201,14 @@ export function FeedContainer({
           </button>
         </div>
 
-        {/* Tab bar: Tribune / Nordiquomètre / Exposmètre — brand blue strip,
-            brand red for the active tab */}
-        <div className="flex shrink-0 gap-1 bg-brand-blue px-3 py-1.5">
+        {/* Tab bar: Tribune / Contenu */}
+        <div className="flex shrink-0 gap-1 bg-gray-100 dark:bg-[#1e1e1e] px-3 py-1.5">
           <button
             onClick={() => setActiveTab('chat')}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
               activeTab === 'chat'
-                ? 'bg-brand-red text-white shadow-sm'
-                : 'text-white/80 hover:bg-white/10 hover:text-white'
+                ? 'bg-white dark:bg-brand-blue text-brand-blue dark:text-white shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 dark:bg-[#272525] hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -222,8 +221,8 @@ export function FeedContainer({
               onClick={() => setActiveTab('nordiquometre')}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
                 activeTab === 'nordiquometre'
-                  ? 'bg-brand-red text-white shadow-sm'
-                  : 'text-white/80 hover:bg-white/10 hover:text-white'
+                  ? 'bg-white dark:bg-brand-blue text-brand-blue dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 dark:bg-[#272525] hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -237,8 +236,8 @@ export function FeedContainer({
               onClick={() => setActiveTab('exposmetre')}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
                 activeTab === 'exposmetre'
-                  ? 'bg-brand-red text-white shadow-sm'
-                  : 'text-white/80 hover:bg-white/10 hover:text-white'
+                  ? 'bg-white dark:bg-brand-blue text-brand-blue dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 dark:bg-[#272525] hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
