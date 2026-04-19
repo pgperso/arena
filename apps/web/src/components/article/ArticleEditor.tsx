@@ -327,6 +327,9 @@ export function ArticleEditor({
         coverPositionY,
         isPublished: publish,
         authorNameOverride: authorNameOverride.trim() || null,
+        // Only flip to true if the current editing session used AI ; otherwise
+        // leave it untouched so we don't clobber the DB value on simple edits.
+        ...(aiGenerated ? { isAiGenerated: true } : {}),
       });
 
       if (updateError) {
@@ -346,6 +349,7 @@ export function ArticleEditor({
         coverPositionY,
         isPublished: publish,
         authorNameOverride: authorNameOverride.trim() || null,
+        isAiGenerated: aiGenerated,
       });
 
       if (insertError) {

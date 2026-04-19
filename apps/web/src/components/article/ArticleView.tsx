@@ -6,6 +6,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import { FeedLikeButton } from '@/components/feed/FeedLikeButton';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { AdInArticle } from '@/components/ads/AdInArticle';
+import { AiDisclosureBadge } from '@/components/article/AiDisclosureBadge';
 import { Avatar } from '@/components/ui/Avatar';
 import { ArticleComments } from '@/components/press/ArticleComments';
 import { getContentAuthor } from '@/lib/contentAuthors';
@@ -26,6 +27,7 @@ interface ArticleViewProps {
     view_count: number;
     published_at: string | null;
     created_at: string;
+    is_ai_generated?: boolean;
     author: {
       id: string;
       username: string;
@@ -163,6 +165,11 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
             </p>
           </div>
         </div>
+
+        {/* AI disclosure (required for AdSense + good faith) */}
+        {article.is_ai_generated && (
+          <AiDisclosureBadge className="mb-6" />
+        )}
 
         {/* Article body with in-article ad */}
         {bodyParts ? (

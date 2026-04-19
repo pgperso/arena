@@ -353,6 +353,7 @@ export type Database = {
           is_removed: boolean;
           removed_at: string | null;
           removed_by: string | null;
+          is_ai_generated: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -372,6 +373,7 @@ export type Database = {
           is_removed?: boolean;
           removed_at?: string | null;
           removed_by?: string | null;
+          is_ai_generated?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -391,6 +393,7 @@ export type Database = {
           is_removed?: boolean;
           removed_at?: string | null;
           removed_by?: string | null;
+          is_ai_generated?: boolean;
           created_at?: string;
           updated_at?: string;
         };
