@@ -166,11 +166,6 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
           </div>
         </div>
 
-        {/* AI disclosure (required for AdSense + good faith) */}
-        {article.is_ai_generated && (
-          <AiDisclosureBadge className="mb-6" />
-        )}
-
         {/* Article body with in-article ad */}
         {bodyParts ? (
           <>
@@ -189,6 +184,12 @@ export function ArticleView({ article, communitySlug, userId }: ArticleViewProps
             className="prose max-w-none prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-a:text-brand-blue prose-blockquote:text-gray-600 dark:prose-blockquote:text-gray-400 prose-li:text-gray-700 dark:prose-li:text-gray-300 prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
             dangerouslySetInnerHTML={{ __html: sanitizedBody }}
           />
+        )}
+
+        {/* AI disclosure — placed at the end of the article, byline-style,
+            where editorial disclosures traditionally live (WaPo, AP, Bloomberg) */}
+        {article.is_ai_generated && (
+          <AiDisclosureBadge className="mt-8" />
         )}
 
         {/* End-of-article ad */}
