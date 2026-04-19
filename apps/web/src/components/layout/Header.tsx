@@ -130,21 +130,23 @@ export function Header() {
               </button>
 
               {tribunesOpen && (
-                <div className="absolute left-0 top-full z-50 mt-1 w-56 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#1e1e1e]">
-                  <Link
-                    href="/tribunes"
-                    onClick={() => setTribunesOpen(false)}
-                    className="block px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
-                  >
-                    {t('home.myTribunes')}
-                  </Link>
-                  <Link
-                    href="/"
-                    onClick={() => setTribunesOpen(false)}
-                    className="block border-t border-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
-                  >
-                    {t('pressGallery.title')}
-                  </Link>
+                <div className="absolute left-0 top-full z-50 mt-1 w-64 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#1e1e1e]">
+                  <div className="flex flex-wrap gap-2 p-3">
+                    <Link
+                      href="/tribunes"
+                      onClick={() => setTribunesOpen(false)}
+                      className="rounded-full bg-brand-red px-3 py-1 text-xs font-bold text-white transition hover:bg-brand-red-dark"
+                    >
+                      {t('home.allMyTribunes')}
+                    </Link>
+                    <Link
+                      href="/"
+                      onClick={() => setTribunesOpen(false)}
+                      className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-white transition hover:bg-brand-blue-dark"
+                    >
+                      {t('pressGallery.title')}
+                    </Link>
+                  </div>
                   {userTribunes.length > 0 && (
                     <div className="border-t border-gray-100 dark:border-gray-800">
                       <p className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
