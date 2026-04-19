@@ -16,8 +16,6 @@ import { FeedSkeleton } from './FeedSkeleton';
 import { FeedReplyBar } from './FeedReplyBar';
 import dynamic from 'next/dynamic';
 import { OnlineMembers } from '@/components/chat/OnlineMembers';
-import { AdInFeed } from '@/components/ads/AdInFeed';
-import { FEED_AD_INTERVAL } from '@arena/shared';
 import { Nordiquometre } from './Nordiquometre';
 import { Exposmetre } from './Exposmetre';
 import { Link } from '@/i18n/navigation';
@@ -27,9 +25,7 @@ const ArticleList = dynamic(() => import('@/components/article/ArticleList').the
 const PodcastEditor = dynamic(() => import('@/components/podcast/PodcastEditor').then((m) => m.PodcastEditor), { ssr: false });
 const ModerationPanel = dynamic(() => import('@/components/moderation/ModerationPanel').then((m) => m.ModerationPanel), { ssr: false });
 
-type DisplayItem =
-  | { kind: 'feed'; item: FeedItemType; index: number }
-  | { kind: 'ad'; adIndex: number };
+type DisplayItem = { kind: 'feed'; item: FeedItemType; index: number };
 
 interface FeedContainerProps {
   communityId: number;
@@ -113,16 +109,11 @@ export function FeedContainer({
     });
   }, []);
 
-  // Interleave ads into the items list
+  // No in-feed ads inside the chat: Google AdSense policy frowns on ads
+  // placed next to real-time, unmoderated user-generated content. Sidebar
+  // and mobile anchor ads remain on the page (they're outside the feed).
   const displayItems: DisplayItem[] = useMemo(() => {
-    const result: DisplayItem[] = [];
-    items.forEach((item, i) => {
-      result.push({ kind: 'feed', item, index: i });
-      if ((i + 1) % FEED_AD_INTERVAL === 0) {
-        result.push({ kind: 'ad', adIndex: Math.floor(i / FEED_AD_INTERVAL) });
-      }
-    });
-    return result;
+    return items.map((item, i) => ({ kind: 'feed' as const, item, index: i }));
   }, [items]);
 
   // Find active live podcast for sticky player
@@ -386,10 +377,6 @@ export function FeedContainer({
                     ) : undefined,
                   }}
                   itemContent={(virtuosoIndex, displayItem) => {
-                    if (displayItem.kind === 'ad') {
-                      return <AdInFeed index={displayItem.adIndex} />;
-                    }
-
                     const { item, index } = displayItem;
                     const isGrouped = index > 0 && isGroupedMessage(item, items[index - 1]);
 
