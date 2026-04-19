@@ -2,10 +2,10 @@
 
 import { memo, useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { Trash2, Pencil } from 'lucide-react';
 import { formatTime, getMemberRank, BOT_MEMBER_ID } from '@arena/shared';
 import type { FeedMessage as FeedMessageType } from '@arena/shared';
-import { FeedActions } from './FeedActions';
+import { FeedMessageToolbar } from './FeedMessageToolbar';
+import { FeedMessageStats } from './FeedMessageStats';
 import { FeedImageGallery } from './FeedImageGallery';
 import { FeedRichContent } from './FeedRichContent';
 import { FeedReplyContext } from './FeedReplyContext';
@@ -42,55 +42,6 @@ interface FeedMessageProps {
   presenceStatus?: 'online' | 'idle';
 }
 
-function MessageToolbar({
-  isOwn,
-  canModerate,
-  confirmDelete,
-  mobileToolbar,
-  onStartEdit,
-  onDelete,
-  onConfirmDelete,
-  onCancelDelete,
-}: {
-  isOwn: boolean;
-  canModerate: boolean;
-  confirmDelete: boolean;
-  mobileToolbar: boolean;
-  onStartEdit: () => void;
-  onDelete: () => void;
-  onConfirmDelete: () => void;
-  onCancelDelete: () => void;
-}) {
-  const t = useTranslations('common');
-  return (
-    <div className={`absolute -top-3 right-4 z-10 items-center gap-1 rounded-lg bg-red-600 px-1 py-0.5 shadow-md transition ${mobileToolbar ? 'flex' : 'hidden'} md:flex md:opacity-0 md:group-hover:opacity-100`}>
-      {confirmDelete ? (
-        <span className="flex items-center gap-2 px-2 py-1 text-xs">
-          <button onClick={onConfirmDelete} className="font-bold text-white hover:text-red-200">
-            {t('delete')}
-          </button>
-          <button onClick={onCancelDelete} className="text-red-200 hover:text-white">
-            {t('cancel')}
-          </button>
-        </span>
-      ) : (
-        <>
-          {isOwn && (
-            <button onClick={onStartEdit} className="rounded-md p-2 text-white/80 transition hover:bg-red-700 hover:text-white" title={t('edit')}>
-              <Pencil className="h-4 w-4" strokeWidth={2} />
-            </button>
-          )}
-          {(canModerate || isOwn) && (
-            <button onClick={onDelete} className="rounded-md p-2 text-white/80 transition hover:bg-red-700 hover:text-white" title={t('delete')}>
-              <Trash2 className="h-4 w-4" strokeWidth={2} />
-            </button>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
 export const FeedMessage = memo(function FeedMessage({
   message,
   isOwn,
@@ -116,7 +67,6 @@ export const FeedMessage = memo(function FeedMessage({
   const rank: { label: string; color: string; bg: string } =
     (staffRole ? STAFF_RANK_MAP[staffRole] : undefined) ?? getMemberRank(message.member?.messageCount ?? 0);
   const time = formatTime(message.createdAt);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [editContent, setEditContent] = useState(message.content ?? '');
   const editRef = useRef<HTMLTextAreaElement>(null);
   const [popoverRect, setPopoverRect] = useState<DOMRect | null>(null);
@@ -157,20 +107,21 @@ export const FeedMessage = memo(function FeedMessage({
     }
   }
 
-  const showToolbar = (isOwn || canModerate) && !editing;
   const parentMessage = message.parentId ? getMessageById(message.parentId) : undefined;
   const hasReplyContext = !!(message.parentId && parentMessage);
 
-  const toolbar = showToolbar ? (
-    <MessageToolbar
+  const toolbar = !editing ? (
+    <FeedMessageToolbar
+      messageId={message.id}
+      initialLikeCount={message.likeCount}
+      initialDislikeCount={message.dislikeCount}
+      userId={userId}
       isOwn={isOwn}
       canModerate={canModerate}
-      confirmDelete={confirmDelete}
-      mobileToolbar={mobileToolbar}
-      onStartEdit={onStartEdit}
-      onDelete={() => setConfirmDelete(true)}
-      onConfirmDelete={() => { onDelete(message.id); setConfirmDelete(false); }}
-      onCancelDelete={() => setConfirmDelete(false)}
+      visible={mobileToolbar}
+      onReply={() => onReply(message)}
+      onStartEdit={isOwn ? onStartEdit : undefined}
+      onDelete={(canModerate || isOwn) ? () => onDelete(message.id) : undefined}
     />
   ) : null;
 
@@ -220,7 +171,14 @@ export const FeedMessage = memo(function FeedMessage({
     return (
       <div
         className={`group relative py-1.5 pl-[52px] pr-3 transition-colors sm:pl-[60px] sm:pr-4 ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50 dark:hover:bg-[#272525] dark:bg-[#1e1e1e]'}`}
-        onClick={() => showToolbar && setMobileToolbar((v) => !v)}
+        onClick={(e) => {
+          // Tap-to-toggle the floating toolbar on mobile. Ignore clicks that
+          // originated inside an interactive element (links, buttons, the
+          // toolbar itself) so they aren't intercepted.
+          const target = e.target as HTMLElement;
+          if (target.closest('a, button, textarea, input')) return;
+          setMobileToolbar((v) => !v);
+        }}
       >
         <span className="absolute left-2 top-2 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100">
           {time}
@@ -242,17 +200,10 @@ export const FeedMessage = memo(function FeedMessage({
         )}
 
         {!editing && (
-          <FeedActions
-            messageId={message.id}
+          <FeedMessageStats
             likeCount={message.likeCount}
             dislikeCount={message.dislikeCount}
             replyCount={message.replyCount}
-            userId={userId}
-            isOwn={isOwn}
-            canModerate={canModerate}
-            onReply={() => onReply(message)}
-            onStartEdit={isOwn ? onStartEdit : undefined}
-            onDelete={(canModerate || isOwn) ? () => onDelete(message.id) : undefined}
           />
         )}
         {popover}
@@ -264,7 +215,11 @@ export const FeedMessage = memo(function FeedMessage({
   return (
     <div
       className={`group relative px-4 pt-3 pb-1 transition-colors ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50 dark:hover:bg-[#272525] dark:bg-[#1e1e1e]'}`}
-      onClick={() => showToolbar && setMobileToolbar((v) => !v)}
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('a, button, textarea, input')) return;
+        setMobileToolbar((v) => !v);
+      }}
     >
       {hasReplyContext && (
         <div className="mb-0.5 flex items-end pl-4">
@@ -319,17 +274,10 @@ export const FeedMessage = memo(function FeedMessage({
           )}
 
           {!editing && (
-            <FeedActions
-              messageId={message.id}
+            <FeedMessageStats
               likeCount={message.likeCount}
               dislikeCount={message.dislikeCount}
               replyCount={message.replyCount}
-              userId={userId}
-              isOwn={isOwn}
-              canModerate={canModerate}
-              onReply={() => onReply(message)}
-              onStartEdit={isOwn ? onStartEdit : undefined}
-              onDelete={(canModerate || isOwn) ? () => onDelete(message.id) : undefined}
             />
           )}
         </div>
