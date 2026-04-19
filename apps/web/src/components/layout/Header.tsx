@@ -131,18 +131,18 @@ export function Header() {
 
               {tribunesOpen && (
                 <div className="absolute left-0 top-full z-50 mt-1 w-64 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#1e1e1e]">
-                  <div className="flex flex-wrap gap-2 p-3">
+                  <div className="flex flex-col gap-2 p-3">
                     <Link
                       href="/tribunes"
                       onClick={() => setTribunesOpen(false)}
-                      className="rounded-full bg-brand-red px-3 py-1 text-xs font-bold text-white transition hover:bg-brand-red-dark"
+                      className="block rounded-lg bg-brand-red px-3 py-2 text-center text-sm font-bold text-white transition hover:bg-brand-red-dark"
                     >
                       {t('home.allMyTribunes')}
                     </Link>
                     <Link
                       href="/"
                       onClick={() => setTribunesOpen(false)}
-                      className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-white transition hover:bg-brand-blue-dark"
+                      className="block rounded-lg bg-brand-blue px-3 py-2 text-center text-sm font-bold text-white transition hover:bg-brand-blue-dark"
                     >
                       {t('pressGallery.title')}
                     </Link>
