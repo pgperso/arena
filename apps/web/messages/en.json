@@ -301,6 +301,7 @@
     "empty": "No notifications yet.",
     "markAllRead": "Mark all as read",
     "replyLabel": "{name} replied to your comment",
+    "replyThreadLabel": "{name} replied in a thread you commented on",
     "commentOnArticleLabel": "{name} commented on your article"
   },
   "footer": {

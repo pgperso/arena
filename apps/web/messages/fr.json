@@ -307,6 +307,7 @@
     "empty": "Aucune notification pour le moment.",
     "markAllRead": "Tout marquer comme lu",
     "replyLabel": "{name} a répondu à ton commentaire",
+    "replyThreadLabel": "{name} a répondu dans un fil où tu as commenté",
     "commentOnArticleLabel": "{name} a commenté ton article"
   },
   "footer": {
