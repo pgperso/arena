@@ -72,6 +72,8 @@ export const FeedMessage = memo(function FeedMessage({
   const editRef = useRef<HTMLTextAreaElement>(null);
   const messageRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<number | null>(null);
+  const longPressOrigin = useRef<{ x: number; y: number } | null>(null);
+  const touchInteractionRef = useRef(false);
   const [popoverRect, setPopoverRect] = useState<DOMRect | null>(null);
   const { openToolbarMessageId, setOpenToolbarMessageId } = useTribune();
   const mobileToolbar = openToolbarMessageId === message.id;
@@ -81,17 +83,36 @@ export const FeedMessage = memo(function FeedMessage({
     const target = e.target as HTMLElement;
     if (target.closest('a, button, textarea, input')) return;
     cancelLongPress();
+    touchInteractionRef.current = true;
+    longPressOrigin.current = { x: e.clientX, y: e.clientY };
     longPressTimer.current = window.setTimeout(() => {
       setOpenToolbarMessageId(message.id);
       longPressTimer.current = null;
     }, 450);
   }
 
+  // Only cancel the long-press if the finger actually moved — Android fires
+  // spurious pointermove events with near-zero displacement that otherwise
+  // kill the timer immediately.
+  function maybeCancelOnMove(e: React.PointerEvent) {
+    if (longPressTimer.current === null || longPressOrigin.current === null) return;
+    const dx = e.clientX - longPressOrigin.current.x;
+    const dy = e.clientY - longPressOrigin.current.y;
+    if (dx * dx + dy * dy > 64) {
+      cancelLongPress();
+    }
+  }
+
   function cancelLongPress() {
     if (longPressTimer.current !== null) {
       window.clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
+      // Release the contextmenu guard only if the long-press was aborted
+      // before firing; if the timer already fired, let the guard survive
+      // long enough to suppress the native menu that will follow.
+      touchInteractionRef.current = false;
     }
+    longPressOrigin.current = null;
   }
 
   useEffect(() => {
@@ -208,10 +229,14 @@ export const FeedMessage = memo(function FeedMessage({
         className={`group relative py-1.5 pl-[52px] pr-3 transition-colors sm:pl-[60px] sm:pr-4 select-none [-webkit-touch-callout:none] md:select-text ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50 dark:hover:bg-[#272525] dark:bg-[#1e1e1e]'}`}
         onPointerDown={startLongPress}
         onPointerUp={cancelLongPress}
-        onPointerMove={cancelLongPress}
+        onPointerMove={maybeCancelOnMove}
         onPointerCancel={cancelLongPress}
-        onPointerLeave={cancelLongPress}
-        onContextMenu={(e) => { if (mobileToolbar) e.preventDefault(); }}
+        onContextMenu={(e) => {
+          if (touchInteractionRef.current || mobileToolbar) {
+            e.preventDefault();
+            touchInteractionRef.current = false;
+          }
+        }}
       >
         <span className="absolute left-2 top-2 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100">
           {time}
@@ -251,9 +276,8 @@ export const FeedMessage = memo(function FeedMessage({
       className={`group relative px-4 pt-3 pb-1 transition-colors select-none [-webkit-touch-callout:none] md:select-text ${isHighlighted ? 'message-highlight' : 'hover:bg-gray-50 dark:hover:bg-[#272525] dark:bg-[#1e1e1e]'}`}
       onPointerDown={startLongPress}
       onPointerUp={cancelLongPress}
-      onPointerMove={cancelLongPress}
+      onPointerMove={maybeCancelOnMove}
       onPointerCancel={cancelLongPress}
-      onPointerLeave={cancelLongPress}
       onContextMenu={(e) => { if (mobileToolbar) e.preventDefault(); }}
     >
       {hasReplyContext && (
