@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 
@@ -87,9 +88,9 @@ export const FeedImageGallery = memo(function FeedImageGallery({ imageUrls }: Fe
         onPrev={() => setLightboxIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : prev))}
         onNext={() => setLightboxIndex((prev) => (prev !== null && prev < imageUrls.length - 1 ? prev + 1 : prev))}
       />
-      {lightboxIndex !== null && (
+      {lightboxIndex !== null && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80"
           onClick={() => setLightboxIndex(null)}
           role="dialog"
           aria-label={t('imageViewer')}
@@ -128,7 +129,8 @@ export const FeedImageGallery = memo(function FeedImageGallery({ imageUrls }: Fe
               className="max-h-[90vh] w-auto object-contain"
             />
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
