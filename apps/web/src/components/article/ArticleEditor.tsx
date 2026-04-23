@@ -387,7 +387,7 @@ export function ArticleEditor({
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="sticky top-0 z-40 -mx-4 mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3 shadow-sm">
+      <div className="sticky top-16 z-40 -mx-4 mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           {isEditMode ? "Modifier l'article" : 'Nouvel article'}
         </h2>
@@ -862,7 +862,7 @@ export function ArticleEditor({
       )}
 
       {/* Editor */}
-      <div className="rounded-b-lg border border-gray-200 dark:border-gray-700">
+      <div className="min-h-[50vh] rounded-b-lg border border-gray-200 dark:border-gray-700 [&_.tiptap]:min-h-[50vh]">
         <EditorContent editor={editor} />
       </div>
 
