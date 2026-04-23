@@ -866,6 +866,35 @@ export function ArticleEditor({
         <EditorContent editor={editor} />
       </div>
 
+      {/* Fixed bottom action bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3">
+        <div className="mx-auto flex max-w-3xl items-center justify-end gap-2">
+          <button
+            onClick={onCancel}
+            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={() => handleSave(false)}
+            disabled={saving}
+            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+          >
+            {saving ? '...' : 'Brouillon'}
+          </button>
+          <button
+            onClick={() => setShowConfirm(true)}
+            disabled={saving}
+            className="rounded-lg bg-brand-blue px-5 py-2 text-sm font-medium text-white transition hover:bg-brand-blue-dark disabled:opacity-50"
+          >
+            {isEditMode ? 'Mettre à jour' : 'Publier'}
+          </button>
+        </div>
+      </div>
+
+      {/* Spacer so content doesn't hide behind fixed bar */}
+      <div className="h-16" />
+
       {/* Publish confirmation modal */}
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
