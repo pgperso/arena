@@ -387,7 +387,7 @@ export function ArticleEditor({
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="sticky top-16 z-40 -mx-4 mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3 shadow-sm">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           {isEditMode ? "Modifier l'article" : 'Nouvel article'}
         </h2>
@@ -798,7 +798,7 @@ export function ArticleEditor({
 
       {/* Toolbar */}
       {editor && (
-        <div className="mb-1 flex flex-wrap gap-1 rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-2 py-1.5">
+        <div className="flex flex-wrap gap-1 rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e1e1e] px-2 py-1.5">
           <ToolbarButton
             active={editor.isActive('bold')}
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -862,7 +862,7 @@ export function ArticleEditor({
       )}
 
       {/* Editor */}
-      <div className="min-h-[50vh] rounded-b-lg border border-gray-200 dark:border-gray-700 [&_.tiptap]:min-h-[50vh]">
+      <div className="rounded-b-lg border border-gray-200 dark:border-gray-700 [&_.tiptap]:min-h-[300px]">
         <EditorContent editor={editor} />
       </div>
 
