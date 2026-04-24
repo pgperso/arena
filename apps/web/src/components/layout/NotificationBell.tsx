@@ -94,8 +94,8 @@ export function NotificationBell({ userId }: NotificationBellProps) {
   }
 
   async function handleItemClick(notif: NotificationItem) {
-    // Optimistic: mark as read immediately in local state
-    setItems((prev) => prev.map((n) => (n.id === notif.id ? { ...n, isRead: true } : n)));
+    // Optimistic: drop from the unread list immediately and mark as read.
+    setItems((prev) => prev.filter((n) => n.id !== notif.id));
     setUnread((c) => Math.max(c - 1, 0));
     void markNotificationRead(supabase, notif.id);
 
@@ -110,7 +110,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
   }
 
   async function handleMarkAllRead() {
-    setItems((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setItems([]);
     setUnread(0);
     await markAllNotificationsRead(supabase, userId);
   }
