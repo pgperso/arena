@@ -59,6 +59,7 @@ export async function fetchNotifications(
       'actor:members!notifications_actor_id_fkey(username, avatar_url), ' +
       'article:articles(title, slug, communities!inner(slug))',
     )
+    .eq('is_read', false)
     .order('created_at', { ascending: false })
     .limit(limit);
 
