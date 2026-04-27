@@ -20,6 +20,13 @@ export function CookieConsent() {
   function accept() {
     localStorage.setItem(COOKIE_KEY, 'accepted');
     setVisible(false);
+    const w = window as typeof window & { gtag?: (...args: unknown[]) => void };
+    w.gtag?.('consent', 'update', {
+      ad_storage: 'granted',
+      ad_user_data: 'granted',
+      ad_personalization: 'granted',
+      analytics_storage: 'granted',
+    });
     window.dispatchEvent(new CustomEvent(CONSENT_ACCEPTED_EVENT));
   }
 
