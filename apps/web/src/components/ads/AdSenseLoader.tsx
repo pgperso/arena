@@ -1,9 +1,12 @@
-import Script from 'next/script';
 import { ADSENSE_CLIENT_ID } from '@arena/shared';
 
 // AdSense script must always load — Google's verifier bot does not accept
 // cookies, so a consent-gated load makes the site look like the code is
 // not installed and AdSense rejects the application.
+//
+// Both <script> tags are native HTML (not next/script) so they render
+// literally into the SSR HTML and are visible to AdSense crawlers that
+// don't execute JavaScript.
 //
 // Privacy is enforced via Google Consent Mode v2: defaults are 'denied'
 // in the inline script below, then upgraded to 'granted' by CookieConsent
@@ -29,12 +32,10 @@ export function AdSenseLoader({ nonce }: { nonce: string }) {
         nonce={nonce}
         dangerouslySetInnerHTML={{ __html: consentDefaultScript }}
       />
-      <Script
-        id="adsense-script"
+      <script
         async
         src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
         crossOrigin="anonymous"
-        strategy="afterInteractive"
         nonce={nonce}
       />
     </>
