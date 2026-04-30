@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { createClient } from '@/lib/supabase/server';
+import { ORIGINAL_CONTENT_CUTOFF } from '@arena/shared';
 
 export const revalidate = 3600;
 
@@ -72,12 +73,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Articles
+  // Articles — only original content. Articles imported from the legacy
+  // Zone Nordiques archive are excluded from the sitemap because the same
+  // content is already indexed at zonenordiques.com (duplicates would get
+  // fanstribune.com flagged as a scraper).
   const { data: articles } = await supabase
     .from('articles')
     .select('slug, community_id, updated_at, communities!inner(slug)')
     .eq('is_published', true)
     .eq('is_removed', false)
+    .gte('published_at', ORIGINAL_CONTENT_CUTOFF)
     .limit(5000);
 
   if (articles) {

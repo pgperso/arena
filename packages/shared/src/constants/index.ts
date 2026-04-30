@@ -36,3 +36,16 @@ export function getMemberRank(messageCount: number) {
 export const FEED_AD_INTERVAL = 25;
 export const ARTICLE_AD_WORD_THRESHOLD = 300;
 export const ADSENSE_CLIENT_ID = 'ca-pub-6197042745925907';
+
+// Articles published before this date were imported from the legacy
+// Zone Nordiques archive. The same content is already indexed at
+// zonenordiques.com, so on fanstribune.com these articles are marked
+// noindex and excluded from the sitemap to avoid being flagged as a
+// duplicate scraper by Google (which causes "low value content"
+// AdSense rejections).
+export const ORIGINAL_CONTENT_CUTOFF = '2026-01-01T00:00:00Z';
+
+export function isOriginalArticle(publishedAt: string | null | undefined): boolean {
+  if (!publishedAt) return false;
+  return publishedAt >= ORIGINAL_CONTENT_CUTOFF;
+}

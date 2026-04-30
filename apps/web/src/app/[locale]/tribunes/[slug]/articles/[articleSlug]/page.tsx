@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
+import { isOriginalArticle } from '@arena/shared';
 import { ArticleView } from '@/components/article/ArticleView';
 
 export const revalidate = 300;
@@ -78,7 +79,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
       },
     },
     robots: {
-      index: true,
+      index: isOriginalArticle(published_at),
       follow: true,
       'max-image-preview': 'large',
       'max-snippet': -1,
