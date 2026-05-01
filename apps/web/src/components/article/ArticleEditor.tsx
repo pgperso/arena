@@ -11,6 +11,28 @@ import { useCoverUpload } from '@/hooks/useCoverUpload';
 import { createArticle, updateArticle } from '@/services/articleService';
 import { slugify } from '@/lib/slugify';
 import { CONTENT_AUTHORS as AUTHORS, getContentAuthor, isContentAuthor } from '@/lib/contentAuthors';
+import { countWords, MIN_QUALITY_WORD_COUNT } from '@arena/shared';
+
+// Word count thresholds tied to Google's perceived content quality.
+// Articles below MIN_QUALITY_WORD_COUNT typically end up "Crawled,
+// currently not indexed" and hurt the site's overall quality ratio for
+// AdSense — see ORIGINAL_CONTENT_CUTOFF / isIndexableArticle in shared.
+function wordCountLevel(count: number): { label: string; tone: 'danger' | 'warn' | 'ok' | 'good' | 'great' } {
+  if (count === 0) return { label: 'Vide', tone: 'danger' };
+  if (count < 300) return { label: 'Trop court — sera ignoré par Google', tone: 'danger' };
+  if (count < MIN_QUALITY_WORD_COUNT) return { label: 'Court — risque de non-indexation par Google', tone: 'warn' };
+  if (count < 800) return { label: 'Acceptable', tone: 'ok' };
+  if (count < 1500) return { label: 'Bon — bien indexable', tone: 'good' };
+  return { label: 'Excellent', tone: 'great' };
+}
+
+const WORD_COUNT_TONE_CLASSES: Record<'danger' | 'warn' | 'ok' | 'good' | 'great', string> = {
+  danger: 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300',
+  warn: 'border-orange-300 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-300',
+  ok: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
+  good: 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/40 dark:text-green-300',
+  great: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
+};
 
 const AUTHOR_OPTIONS = [
   { name: 'Mon profil', initials: '✓', color: '#0B4870', style: '' },
@@ -128,6 +150,15 @@ export function ArticleEditor({
       },
     },
   });
+
+  const [wordCount, setWordCount] = useState(() => countWords(existingArticle?.body));
+  useEffect(() => {
+    if (!editor) return;
+    const update = () => setWordCount(countWords(editor.getHTML()));
+    update();
+    editor.on('update', update);
+    return () => { editor.off('update', update); };
+  }, [editor]);
 
   function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const err = onCoverChange(e);
@@ -866,6 +897,28 @@ export function ArticleEditor({
         <EditorContent editor={editor} />
       </div>
 
+      {/* Word count + quality indicator */}
+      {(() => {
+        const level = wordCountLevel(wordCount);
+        const toneClass = WORD_COUNT_TONE_CLASSES[level.tone];
+        const target = MIN_QUALITY_WORD_COUNT;
+        const remaining = Math.max(0, target - wordCount);
+        return (
+          <div className={`mt-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${toneClass}`}>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">{wordCount} mots</span>
+              <span className="opacity-70">·</span>
+              <span>{level.label}</span>
+            </div>
+            {remaining > 0 && (
+              <span className="opacity-80">
+                Il reste {remaining} mot{remaining > 1 ? 's' : ''} pour atteindre le seuil ({target}+) recommandé pour l&apos;indexation Google.
+              </span>
+            )}
+          </div>
+        );
+      })()}
+
       {/* Fixed bottom action bar */}
       <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3">
         <div className="mx-auto flex max-w-3xl items-center justify-end gap-2">
@@ -905,6 +958,12 @@ export function ArticleEditor({
               <CheckItem label="Tribune" value={communities.find((c) => c.id === selectedCommunityId)?.name ?? communitySlug} ok={true} />
               <CheckItem label="Auteur" value={authorNameOverride || 'Mon profil créateur'} ok={true} />
               <CheckItem label="Résumé SEO" value={excerpt.trim() ? `${excerpt.trim().length} caractères` : 'Aucun'} ok={!!excerpt.trim()} warn={!excerpt.trim()} />
+              <CheckItem
+                label="Longueur"
+                value={`${wordCount} mots${wordCount < MIN_QUALITY_WORD_COUNT ? ` — recommandé : ${MIN_QUALITY_WORD_COUNT}+ pour être indexé par Google` : ''}`}
+                ok={wordCount >= MIN_QUALITY_WORD_COUNT}
+                warn={wordCount < MIN_QUALITY_WORD_COUNT && wordCount > 0}
+              />
               <CheckItem label="Slug URL" value={customSlug || slugify(title).slice(0, 60)} ok={!!(customSlug || title)} />
               <CheckItem label="Image de couverture" value={coverPreview ? 'Oui' : 'Aucune'} ok={!!coverPreview} warn={!coverPreview} />
             </div>

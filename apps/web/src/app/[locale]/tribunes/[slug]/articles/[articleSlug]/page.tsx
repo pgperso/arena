@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
-import { isOriginalArticle } from '@arena/shared';
+import { isIndexableArticle } from '@arena/shared';
 import { ArticleView } from '@/components/article/ArticleView';
 
 export const revalidate = 300;
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 
   const { data: article } = await supabase
     .from('articles')
-    .select('title, excerpt, cover_image_url, published_at')
+    .select('title, excerpt, cover_image_url, published_at, body')
     .eq('community_id', (community as { id: number }).id)
     .eq('slug', articleSlug)
     .eq('is_published', true)
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 
   if (!article) return { title: 'Article introuvable' };
 
-  const { title, excerpt, cover_image_url, published_at } = article as { title: string; excerpt: string | null; cover_image_url: string | null; published_at: string | null };
+  const { title, excerpt, cover_image_url, published_at, body } = article as { title: string; excerpt: string | null; cover_image_url: string | null; published_at: string | null; body: string };
   const { locale: loc } = await params;
   const desc = excerpt ?? `${title} — Article sportif sur La tribune des fans. Opinions, analyses et débats.`;
   const url = `https://fanstribune.com/${loc}/tribunes/${slug}/articles/${articleSlug}`;
@@ -79,7 +79,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
       },
     },
     robots: {
-      index: isOriginalArticle(published_at),
+      index: isIndexableArticle(published_at, body),
       follow: true,
       'max-image-preview': 'large',
       'max-snippet': -1,

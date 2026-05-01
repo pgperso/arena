@@ -45,7 +45,28 @@ export const ADSENSE_CLIENT_ID = 'ca-pub-6197042745925907';
 // AdSense rejections).
 export const ORIGINAL_CONTENT_CUTOFF = '2026-01-01T00:00:00Z';
 
+// Minimum word count for an article to be considered high-quality enough
+// for indexing. Below this threshold Google tends to file articles under
+// "Crawled, currently not indexed" (judged as low value). Keeping these
+// out of the index improves the perceived quality ratio of the site for
+// AdSense reviewers.
+export const MIN_QUALITY_WORD_COUNT = 500;
+
 export function isOriginalArticle(publishedAt: string | null | undefined): boolean {
   if (!publishedAt) return false;
   return publishedAt >= ORIGINAL_CONTENT_CUTOFF;
+}
+
+export function countWords(htmlBody: string | null | undefined): number {
+  if (!htmlBody) return 0;
+  const text = htmlBody.replace(/<[^>]*>/g, ' ').replace(/&[a-z]+;/gi, ' ');
+  const words = text.split(/\s+/).filter(Boolean);
+  return words.length;
+}
+
+export function isIndexableArticle(
+  publishedAt: string | null | undefined,
+  body: string | null | undefined,
+): boolean {
+  return isOriginalArticle(publishedAt) && countWords(body) >= MIN_QUALITY_WORD_COUNT;
 }

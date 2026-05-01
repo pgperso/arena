@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { createClient } from '@/lib/supabase/server';
-import { ORIGINAL_CONTENT_CUTOFF } from '@arena/shared';
+import { ORIGINAL_CONTENT_CUTOFF, MIN_QUALITY_WORD_COUNT, countWords } from '@arena/shared';
 
 export const revalidate = 3600;
 
@@ -73,13 +73,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Articles — only original content. Articles imported from the legacy
-  // Zone Nordiques archive are excluded from the sitemap because the same
-  // content is already indexed at zonenordiques.com (duplicates would get
-  // fanstribune.com flagged as a scraper).
+  // Articles — only original AND substantial content.
+  // - Excludes articles imported from the legacy Zone Nordiques archive
+  //   (duplicates of content already indexed at zonenordiques.com).
+  // - Excludes short originals (< MIN_QUALITY_WORD_COUNT words) because
+  //   Google files those under "Crawled, currently not indexed", which
+  //   hurts the site's overall quality ratio in AdSense's eyes.
   const { data: articles } = await supabase
     .from('articles')
-    .select('slug, community_id, updated_at, communities!inner(slug)')
+    .select('slug, community_id, updated_at, body, communities!inner(slug)')
     .eq('is_published', true)
     .eq('is_removed', false)
     .gte('published_at', ORIGINAL_CONTENT_CUTOFF)
@@ -87,6 +89,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   if (articles) {
     for (const a of articles as (typeof articles)[number][]) {
+      if (countWords((a as { body?: string }).body) < MIN_QUALITY_WORD_COUNT) continue;
       const communitySlug = (a as Record<string, unknown>).communities as { slug: string } | null;
       if (communitySlug) {
         entries.push({
