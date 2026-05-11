@@ -241,6 +241,7 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
         userId={user?.id ?? null}
         canModerate={canModerate}
         focusCommentId={focusCommentId}
+        showAds={isIndexableArticle(article.published_at, article.body)}
       />
     </div>
   );

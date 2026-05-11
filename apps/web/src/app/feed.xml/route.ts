@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { ORIGINAL_CONTENT_CUTOFF } from '@arena/shared';
 
 export const revalidate = 3600;
 
@@ -6,11 +7,15 @@ export async function GET() {
   const supabase = await createClient();
   const BASE_URL = 'https://fanstribune.com';
 
+  // Imported legacy articles are noindex and excluded from the public RSS
+  // feed so crawlers / aggregators don't surface duplicates of content
+  // already published at zonenordiques.com.
   const { data: articles } = await supabase
     .from('articles')
     .select('title, slug, excerpt, published_at, cover_image_url, communities!inner(slug, name)')
     .eq('is_published', true)
     .eq('is_removed', false)
+    .gte('published_at', ORIGINAL_CONTENT_CUTOFF)
     .order('published_at', { ascending: false })
     .limit(50);
 
