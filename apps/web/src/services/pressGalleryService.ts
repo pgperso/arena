@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@arena/supabase-client';
+import { ORIGINAL_CONTENT_CUTOFF } from '@arena/shared';
 
 export interface PressGalleryItem {
   type: 'article' | 'podcast';
@@ -68,6 +69,7 @@ export async function fetchFeaturedItems(
     .eq('is_removed', false)
     .not('cover_image_url', 'is', null)
     .gte('published_at', twoDaysAgo)
+    .gte('published_at', ORIGINAL_CONTENT_CUTOFF)
     .order('view_count', { ascending: false })
     .limit(3);
 
@@ -81,13 +83,14 @@ export async function fetchFeaturedItems(
     return sorted.map((r) => articleToItem(r as unknown as ArticleRow));
   }
 
-  // Fallback: most recent 3 articles with cover image
+  // Fallback: most recent 3 original articles with cover image
   const { data: fallback } = await supabase
     .from('articles')
     .select(ARTICLE_SELECT)
     .eq('is_published', true)
     .eq('is_removed', false)
     .not('cover_image_url', 'is', null)
+    .gte('published_at', ORIGINAL_CONTENT_CUTOFF)
     .order('published_at', { ascending: false })
     .limit(3);
 
@@ -155,11 +158,18 @@ async function fetchArticles(
 ): Promise<PressGalleryItem[]> {
   const { communityId, excludeCommunityId, sort, cursor, limit, excludeIds } = options;
 
+  // Articles imported from the legacy Zone Nordiques archive (published
+  // before ORIGINAL_CONTENT_CUTOFF) are noindex and excluded from every
+  // public listing. They remain reachable by direct URL for legacy links
+  // but never appear in the home gallery, hub feeds, or category lists —
+  // otherwise the AdSense reviewer follows internal links into thin /
+  // duplicate pages and rejects the site for "low value content".
   let q = supabase
     .from('articles')
     .select(ARTICLE_SELECT)
     .eq('is_published', true)
-    .eq('is_removed', false);
+    .eq('is_removed', false)
+    .gte('published_at', ORIGINAL_CONTENT_CUTOFF);
 
   if (communityId) q = q.eq('community_id', communityId);
   if (excludeCommunityId) q = q.neq('community_id', excludeCommunityId);

@@ -38,6 +38,10 @@ interface ArticleViewProps {
   userId: string | null;
   canModerate?: boolean;
   focusCommentId?: number | null;
+  // Ads are suppressed on noindex articles (imports, short originals).
+  // Google's AdSense reviewer crawls internal links and treats ads on
+  // thin/duplicate pages as "low value content", which causes rejection.
+  showAds?: boolean;
 }
 
 /**
@@ -84,7 +88,7 @@ function splitHtmlAtParagraph(html: string, wordThreshold: number): [string, str
   return [html.slice(0, cutPoint), html.slice(cutPoint)];
 }
 
-export function ArticleView({ article, communitySlug, userId, canModerate = false, focusCommentId = null }: ArticleViewProps) {
+export function ArticleView({ article, communitySlug, userId, canModerate = false, focusCommentId = null, showAds = true }: ArticleViewProps) {
   const locale = useLocale();
   const router = useRouter();
   const handleBack = useCallback(() => {
@@ -169,7 +173,7 @@ export function ArticleView({ article, communitySlug, userId, canModerate = fals
         </div>
 
         {/* Article body with in-article ad */}
-        {bodyParts ? (
+        {bodyParts && showAds ? (
           <>
             <div
               className="prose max-w-none prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-a:text-brand-blue prose-blockquote:text-gray-600 dark:prose-blockquote:text-gray-400 prose-li:text-gray-700 dark:prose-li:text-gray-300 prose-img:max-w-full prose-img:rounded-xl prose-img:h-auto"
@@ -194,10 +198,12 @@ export function ArticleView({ article, communitySlug, userId, canModerate = fals
           <AiDisclosureBadge className="mt-8" />
         )}
 
-        {/* End-of-article ad */}
-        <div className="my-6 flex justify-center">
-          <AdSlot slotId="article-end" format="large-rectangle" />
-        </div>
+        {/* End-of-article ad — suppressed on noindex pages (see showAds prop) */}
+        {showAds && (
+          <div className="my-6 flex justify-center">
+            <AdSlot slotId="article-end" format="large-rectangle" />
+          </div>
+        )}
 
         {/* Like + Share */}
         <div className="flex items-center justify-between border-t border-gray-100 pt-4">
@@ -222,12 +228,14 @@ export function ArticleView({ article, communitySlug, userId, canModerate = fals
         />
       </article>
 
-      {/* Sticky sidebar ad - desktop only */}
-      <aside className="hidden w-[320px] flex-shrink-0 lg:block">
-        <div className="sticky top-20">
-          <AdSlot slotId="article-sidebar" format="half-page" />
-        </div>
-      </aside>
+      {/* Sticky sidebar ad - desktop only, suppressed on noindex pages */}
+      {showAds && (
+        <aside className="hidden w-[320px] flex-shrink-0 lg:block">
+          <div className="sticky top-20">
+            <AdSlot slotId="article-sidebar" format="half-page" />
+          </div>
+        </aside>
+      )}
     </div>
   );
 }
