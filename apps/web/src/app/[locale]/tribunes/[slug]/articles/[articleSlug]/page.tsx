@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
 import { isIndexableArticle, displayCommunityName } from '@arena/shared';
 import { ArticleView } from '@/components/article/ArticleView';
-import { RelatedArticles } from '@/components/article/RelatedArticles';
 
 export const revalidate = 300;
 
@@ -237,28 +236,14 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
           author: article.members ? {
             id: article.members.id,
             username: article.author_name_override || (article.members.first_name && article.members.last_name ? `${article.members.first_name} ${article.members.last_name}` : null) || article.members.username,
-            // When a persona override is used, suppress the author-page link
-            // because the byline doesn't match a real member slug. Otherwise
-            // link to the member's public author page.
-            slug: article.author_name_override ? null : article.members.username,
             avatar_url: article.author_name_override ? null : article.members.avatar_url,
-          } : { id: '', username: article.author_name_override || 'Inconnu', slug: null, avatar_url: null },
+          } : { id: '', username: article.author_name_override || 'Inconnu', avatar_url: null },
         }}
         communitySlug={slug}
-        communityName={communityDisplayName}
         userId={user?.id ?? null}
         canModerate={canModerate}
         focusCommentId={focusCommentId}
         showAds={isIndexableArticle(article.published_at, article.body)}
-        relatedSlot={
-          <RelatedArticles
-            currentArticleId={article.id}
-            communityId={community.id}
-            communitySlug={community.slug}
-            authorId={article.members?.id ?? null}
-            locale={locale}
-          />
-        }
       />
     </div>
   );
