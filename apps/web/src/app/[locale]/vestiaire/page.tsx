@@ -170,6 +170,65 @@ export default async function VestiairePage({ params }: { params: Promise<{ loca
     adminStats = stats;
   }
 
+  // Per-author metrics — surfaced in Vestiaire so writers can see their
+  // articles' reach (views, likes) instead of just a count. This is the
+  // feedback loop that pulls authors back to write another piece.
+  const { data: authoredArticles } = await supabase
+    .from('articles')
+    .select('id, slug, title, view_count, like_count, published_at, communities!inner(slug, name, name_en)')
+    .eq('author_id', user.id)
+    .eq('is_published', true)
+    .eq('is_removed', false)
+    .order('view_count', { ascending: false })
+    .limit(50);
+
+  type AuthoredRow = {
+    id: number;
+    slug: string;
+    title: string;
+    view_count: number;
+    like_count: number;
+    published_at: string | null;
+    communities: { slug: string; name: string; name_en: string | null };
+  };
+
+  const authored = (authoredArticles ?? []) as unknown as AuthoredRow[];
+  const totalViews = authored.reduce((s, a) => s + (a.view_count || 0), 0);
+  const totalLikes = authored.reduce((s, a) => s + (a.like_count || 0), 0);
+
+  // Comments received on user's articles (one query, count by article)
+  let totalComments = 0;
+  if (authored.length > 0) {
+    const ids = authored.map((a) => a.id);
+    const { count } = await supabase
+      .from('article_comments')
+      .select('id', { count: 'exact', head: true })
+      .in('article_id', ids)
+      .eq('is_removed', false);
+    totalComments = count ?? 0;
+  }
+
+  // Top 5 articles by views (already sorted by view_count desc above)
+  const topArticles = authored.slice(0, 5).map((a) => ({
+    id: a.id,
+    slug: a.slug,
+    title: a.title,
+    viewCount: a.view_count || 0,
+    likeCount: a.like_count || 0,
+    publishedAt: a.published_at,
+    communitySlug: a.communities.slug,
+    communityName: a.communities.name,
+    communityNameEn: a.communities.name_en,
+  }));
+
+  const authorMetrics = {
+    publishedCount: authored.length,
+    totalViews,
+    totalLikes,
+    totalComments,
+    topArticles,
+  };
+
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
       <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
@@ -180,6 +239,7 @@ export default async function VestiairePage({ params }: { params: Promise<{ loca
           adminStats={adminStats}
           userEmail={user.email ?? ''}
           isContentCreator={isContentCreator}
+          authorMetrics={authorMetrics}
         />
       </div>
     </div>
