@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
-import { formatTime, displayCommunityName } from '@arena/shared';
+import { formatTime } from '@arena/shared';
 import type { PressGalleryItem } from '@/services/pressGalleryService';
 
 interface PressPodcastCardProps {
@@ -15,10 +15,6 @@ export function PressPodcastCard({ item }: PressPodcastCardProps) {
   const t = useTranslations('pressGallery');
   const locale = useLocale();
   const href = `/tribunes/${item.communitySlug}/podcasts/${item.id}`;
-  const communityName = displayCommunityName(
-    { name: item.communityName, name_en: item.communityNameEn },
-    locale,
-  );
 
   const durationLabel = item.durationSeconds
     ? `${Math.round(item.durationSeconds / 60)} min`
@@ -88,14 +84,14 @@ export function PressPodcastCard({ item }: PressPodcastCardProps) {
           {item.communityLogoUrl && (
             <Image
               src={item.communityLogoUrl}
-              alt={communityName}
+              alt={item.communityName}
               width={16}
               height={16}
               className="h-4 w-4 rounded-full object-cover"
             />
           )}
           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-            {communityName}
+            {item.communityName}
           </span>
         </div>
 

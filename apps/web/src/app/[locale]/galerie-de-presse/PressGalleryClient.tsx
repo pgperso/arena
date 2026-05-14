@@ -20,7 +20,6 @@ type CategoryType = 'all' | 'sport' | 'taverne';
 interface Community {
   id: number;
   name: string;
-  name_en: string | null;
   slug: string;
   logo_url: string | null;
 }
