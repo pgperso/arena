@@ -7,7 +7,6 @@ import {
   fetchPressGalleryItems,
 } from '@/services/pressGalleryService';
 import { PressGalleryClient } from './galerie-de-presse/PressGalleryClient';
-import { CategoryNav, type CategoryNavItem } from '@/components/press/CategoryNav';
 
 export const revalidate = 300;
 
@@ -72,24 +71,18 @@ export default async function HomePage({
   let initialResult: Awaited<ReturnType<typeof fetchPressGalleryItems>> = { items: [], nextCursor: null };
   let taverneItems: Awaited<ReturnType<typeof fetchPressGalleryItems>>['items'] = [];
   let communities: { id: number; name: string; name_en: string | null; slug: string; logo_url: string | null }[] = [];
-  let categoryNav: CategoryNavItem[] = [];
   let userId: string | null = null;
 
   try {
-    const [featured, communitiesRes, categoriesRes, userRes] = await Promise.all([
+    const [featured, communitiesRes, userRes] = await Promise.all([
       fetchFeaturedItems(supabase),
       supabase
         .from('communities')
         .select('id, name, name_en, slug, logo_url')
         .eq('is_active', true)
         .order('name'),
-      supabase
-        .from('categories')
-        .select('slug, name, name_en')
-        .order('sort_order'),
       supabase.auth.getUser(),
     ]);
-    categoryNav = ((categoriesRes.data ?? []) as unknown as CategoryNavItem[]);
 
     featuredItems = featured;
     // name_en / description_en come from migration 00053. Cast through unknown
@@ -186,7 +179,6 @@ export default async function HomePage({
         nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <CategoryNav categories={categoryNav} />
       <PressGalleryClient
         initialItems={initialResult.items}
         initialCursor={initialResult.nextCursor}
