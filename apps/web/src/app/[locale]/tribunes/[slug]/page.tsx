@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
+import { displayCommunityName, displayCommunityDescription } from '@arena/shared';
 import { fetchPressGalleryItems } from '@/services/pressGalleryService';
 import { CommunityPageClient } from './CommunityPageClient';
 import type { Database } from '@arena/supabase-client';
@@ -20,14 +21,19 @@ export async function generateMetadata({ params }: CommunityPageProps): Promise<
   const supabase = await createClient();
   const { data: community } = await supabase
     .from('communities')
-    .select('name, description, logo_url')
+    .select('name, name_en, description, description_en, logo_url')
     .eq('slug', slug)
     .eq('is_active', true)
     .single();
 
   if (!community) return { title: 'Tribune introuvable', robots: { index: false, follow: false } };
 
-  const { name, description, logo_url } = community as { name: string; description: string | null; logo_url: string | null };
+  // Cast through unknown — name_en/description_en come from migration 00053;
+  // Supabase generated types haven't been regenerated yet.
+  const row = community as unknown as { name: string; name_en: string | null; description: string | null; description_en: string | null; logo_url: string | null };
+  const name = displayCommunityName(row, locale);
+  const description = displayCommunityDescription(row, locale);
+  const { logo_url } = row;
   const isFr = locale === 'fr';
   const desc = description
     ?? (isFr
@@ -83,15 +89,17 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
   const [{ data }, { data: { user } }] = await Promise.all([
     supabase
       .from('communities')
-      .select('id, name, slug, description, primary_color, logo_url, member_count, is_active, created_at')
+      .select('id, name, name_en, slug, description, description_en, primary_color, logo_url, member_count, is_active, created_at')
       .eq('slug', slug)
       .eq('is_active', true)
       .single(),
     supabase.auth.getUser(),
   ]);
 
-  const community = data as CommunityRow | null;
+  const community = data as unknown as (CommunityRow & { name_en: string | null; description_en: string | null }) | null;
   if (!community) notFound();
+  const displayName = displayCommunityName(community, locale);
+  const displayDescription = displayCommunityDescription(community, locale);
 
   // Load latest published articles + podcasts for this community (public hub content)
   const [hubResult, hubPodcastsResult] = await Promise.all([
@@ -196,8 +204,8 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
       '@id': url,
-      name: `${community.name} | La tribune des fans`,
-      description: community.description ?? `Articles, podcasts et discussions sur ${community.name}.`,
+      name: `${displayName} | La tribune des fans`,
+      description: displayDescription ?? `Articles, podcasts et discussions sur ${displayName}.`,
       url,
       inLanguage: locale === 'fr' ? 'fr-CA' : 'en-CA',
       image: community.logo_url ?? 'https://fanstribune.com/images/fanstribune.webp',
@@ -224,7 +232,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `https://fanstribune.com/${locale}` },
-        { '@type': 'ListItem', position: 2, name: community.name, item: url },
+        { '@type': 'ListItem', position: 2, name: displayName, item: url },
       ],
     },
   ];
@@ -239,6 +247,8 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
       <CommunityPageClient
         key={`${community.id}-${isMember}`}
         community={community}
+        displayName={displayName}
+        displayDescription={displayDescription}
         isMember={isMember}
         canModerate={canModerate}
         canCreateContent={canCreateContent}
