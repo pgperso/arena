@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
-import { displayCommunityName } from '@arena/shared';
 import { PodcastPlayer } from '@/components/podcast/PodcastPlayer';
 
 export const revalidate = 300;
@@ -80,14 +79,13 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
   // Verify community exists
   const { data: communityData } = await supabase
     .from('communities')
-    .select('id, slug, name, name_en')
+    .select('id, slug, name')
     .eq('slug', slug)
     .eq('is_active', true)
     .single();
 
-  const community = communityData as { id: number; slug: string; name: string; name_en: string | null } | null;
+  const community = communityData as { id: number; slug: string; name: string } | null;
   if (!community) notFound();
-  const communityDisplayName = displayCommunityName(community, locale);
 
   // Load podcast with publisher info
   const { data: podcastData } = await supabase
@@ -163,7 +161,7 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `https://fanstribune.com/${locale}` },
-        { '@type': 'ListItem', position: 2, name: communityDisplayName, item: `https://fanstribune.com/${locale}/tribunes/${slug}` },
+        { '@type': 'ListItem', position: 2, name: community.name, item: `https://fanstribune.com/${locale}/tribunes/${slug}` },
         { '@type': 'ListItem', position: 3, name: podcast.title },
       ],
     },

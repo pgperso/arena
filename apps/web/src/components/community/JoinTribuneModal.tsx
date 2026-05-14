@@ -2,18 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useSupabase } from '@/hooks/useSupabase';
 import { Avatar } from '@/components/ui/Avatar';
-import { displayCommunityName, displayCommunityDescription } from '@arena/shared';
 import Image from 'next/image';
 import type { Database } from '@arena/supabase-client';
 
 type CategoryRow = Database['public']['Tables']['categories']['Row'];
-type CommunityRow = Database['public']['Tables']['communities']['Row'] & {
-  name_en?: string | null;
-  description_en?: string | null;
-};
+type CommunityRow = Database['public']['Tables']['communities']['Row'];
 
 interface JoinTribuneModalProps {
   userId: string | null;
@@ -25,7 +21,6 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
   const supabase = useSupabase();
   const router = useRouter();
   const t = useTranslations();
-  const locale = useLocale();
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [communities, setCommunities] = useState<CommunityRow[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -35,12 +30,10 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
     async function load() {
       const [{ data: cats }, { data: coms }] = await Promise.all([
         supabase.from('categories').select('*').order('sort_order'),
-        supabase.from('communities').select('id, name, name_en, slug, description, description_en, logo_url, primary_color, member_count, category_id, is_active').eq('is_active', true),
+        supabase.from('communities').select('id, name, slug, description, logo_url, primary_color, member_count, category_id, is_active').eq('is_active', true),
       ]);
       setCategories((cats ?? []) as CategoryRow[]);
-      // name_en / description_en come from migration 00053. Cast through unknown
-      // until generated Supabase types are regenerated post-deploy.
-      setCommunities((coms ?? []) as unknown as CommunityRow[]);
+      setCommunities((coms ?? []) as CommunityRow[]);
       setLoading(false);
     }
     load();
@@ -148,10 +141,7 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                   {t('community.allJoinedMessage')}
                 </p>
               ) : (
-                filteredCommunities.map((com) => {
-                  const comName = displayCommunityName(com, locale);
-                  const comDesc = displayCommunityDescription(com, locale);
-                  return (
+                filteredCommunities.map((com) => (
                   <button
                     key={com.id}
                     onClick={() => {
@@ -162,15 +152,15 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                   >
                     <Image
                       src={com.logo_url || '/images/fanstribune.webp'}
-                      alt={comName}
+                      alt={com.name}
                       width={40}
                       height={40}
                       className="h-10 w-10 shrink-0 object-contain"
                     />
                     <div className="flex-1">
-                      <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{comName}</span>
-                      {comDesc && (
-                        <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{comDesc}</p>
+                      <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{com.name}</span>
+                      {com.description && (
+                        <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{com.description}</p>
                       )}
                       <p className="mt-0.5 text-xs text-gray-400">{t('common.members', { count: com.member_count })}</p>
                     </div>
@@ -178,8 +168,7 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                       {t('community.join')}
                     </span>
                   </button>
-                  );
-                })
+                ))
               )}
             </div>
           )}

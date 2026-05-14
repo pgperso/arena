@@ -2,8 +2,8 @@
 
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
-import { useTranslations, useLocale } from 'next-intl';
-import { formatTime, displayCommunityName } from '@arena/shared';
+import { useTranslations } from 'next-intl';
+import { formatTime } from '@arena/shared';
 import type { PressGalleryItem } from '@/services/pressGalleryService';
 
 function itemHref(item: PressGalleryItem): string {
@@ -11,13 +11,6 @@ function itemHref(item: PressGalleryItem): string {
     return `/tribunes/${item.communitySlug}/articles/${item.slug}`;
   }
   return `/tribunes/${item.communitySlug}/podcasts/${item.id}`;
-}
-
-function localizedCommunityName(item: PressGalleryItem, locale: string): string {
-  return displayCommunityName(
-    { name: item.communityName, name_en: item.communityNameEn },
-    locale,
-  );
 }
 
 interface HeroSectionProps {
@@ -61,7 +54,6 @@ export function HeroSection({ featuredItems, mode }: HeroSectionProps) {
 // ─── Single hero: full-width cinematic ───
 
 function SingleHero({ item }: { item: PressGalleryItem }) {
-  const locale = useLocale();
   return (
     <Link href={itemHref(item)} className="group relative block overflow-hidden rounded-xl">
       <div className="relative aspect-[16/9] w-full lg:aspect-[21/9]">
@@ -79,7 +71,7 @@ function SingleHero({ item }: { item: PressGalleryItem }) {
           <div className="h-full w-full bg-gray-200 dark:bg-gray-700" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        <HeroOverlay item={item} titleClass="text-2xl md:text-4xl" communityName={localizedCommunityName(item, locale)} />
+        <HeroOverlay item={item} titleClass="text-2xl md:text-4xl" />
       </div>
     </Link>
   );
@@ -88,7 +80,6 @@ function SingleHero({ item }: { item: PressGalleryItem }) {
 // ─── Duo hero: two equal overlay cards ───
 
 function DuoHero({ items }: { items: PressGalleryItem[] }) {
-  const locale = useLocale();
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {items.map((item) => (
@@ -112,7 +103,7 @@ function DuoHero({ items }: { items: PressGalleryItem[] }) {
               <div className="h-full w-full bg-gray-200 dark:bg-gray-700" />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <HeroOverlay item={item} titleClass="text-xl md:text-2xl" communityName={localizedCommunityName(item, locale)} />
+            <HeroOverlay item={item} titleClass="text-xl md:text-2xl" />
           </div>
         </Link>
       ))}
@@ -123,7 +114,6 @@ function DuoHero({ items }: { items: PressGalleryItem[] }) {
 // ─── Trio hero: ESPN layout — 1 large + 2 stacked ───
 
 function TrioHero({ hero, secondary }: { hero: PressGalleryItem; secondary: PressGalleryItem[] }) {
-  const locale = useLocale();
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       {/* Hero — spans 2 cols, 2 rows on desktop */}
@@ -146,14 +136,12 @@ function TrioHero({ hero, secondary }: { hero: PressGalleryItem; secondary: Pres
             <div className="h-full w-full bg-gray-200 dark:bg-gray-700" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-          <HeroOverlay item={hero} titleClass="text-2xl md:text-3xl" showExcerpt communityName={localizedCommunityName(hero, locale)} />
+          <HeroOverlay item={hero} titleClass="text-2xl md:text-3xl" showExcerpt />
         </div>
       </Link>
 
       {/* Secondary — vertical cards */}
-      {secondary.map((item) => {
-        const communityName = localizedCommunityName(item, locale);
-        return (
+      {secondary.map((item) => (
         <Link
           key={`${item.type}-${item.id}`}
           href={itemHref(item)}
@@ -179,14 +167,14 @@ function TrioHero({ hero, secondary }: { hero: PressGalleryItem; secondary: Pres
               {item.communityLogoUrl && (
                 <Image
                   src={item.communityLogoUrl}
-                  alt={communityName}
+                  alt={item.communityName}
                   width={16}
                   height={16}
                   className="h-4 w-4 rounded-full object-cover"
                 />
               )}
               <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
-                {communityName}
+                {item.communityName}
               </span>
             </div>
             <h4 className="line-clamp-2 text-sm font-semibold text-gray-900 group-hover:text-brand-blue dark:text-gray-100">
@@ -197,8 +185,7 @@ function TrioHero({ hero, secondary }: { hero: PressGalleryItem; secondary: Pres
             </div>
           </div>
         </Link>
-        );
-      })}
+      ))}
     </div>
   );
 }
@@ -206,16 +193,13 @@ function TrioHero({ hero, secondary }: { hero: PressGalleryItem; secondary: Pres
 // ─── Compact strip (for filtered state) ───
 
 function CompactStrip({ items, label }: { items: PressGalleryItem[]; label: string }) {
-  const locale = useLocale();
   return (
     <section className="mb-6">
       <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
         {label}
       </h3>
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-        {items.map((item) => {
-          const communityName = localizedCommunityName(item, locale);
-          return (
+        {items.map((item) => (
           <Link
             key={`${item.type}-${item.id}`}
             href={itemHref(item)}
@@ -240,14 +224,14 @@ function CompactStrip({ items, label }: { items: PressGalleryItem[]; label: stri
                 {item.communityLogoUrl && (
                   <Image
                     src={item.communityLogoUrl}
-                    alt={communityName}
+                    alt={item.communityName}
                     width={12}
                     height={12}
                     className="h-3 w-3 rounded-full object-cover"
                   />
                 )}
                 <span className="text-[10px] font-medium text-gray-400">
-                  {communityName}
+                  {item.communityName}
                 </span>
               </div>
               <h4 className="line-clamp-2 text-xs font-semibold text-gray-900 group-hover:text-brand-blue dark:text-gray-100">
@@ -255,8 +239,7 @@ function CompactStrip({ items, label }: { items: PressGalleryItem[]; label: stri
               </h4>
             </div>
           </Link>
-          );
-        })}
+        ))}
       </div>
     </section>
   );
@@ -264,21 +247,21 @@ function CompactStrip({ items, label }: { items: PressGalleryItem[]; label: stri
 
 // ─── Shared overlay for hero cards ───
 
-function HeroOverlay({ item, titleClass, showExcerpt, communityName }: { item: PressGalleryItem; titleClass: string; showExcerpt?: boolean; communityName: string }) {
+function HeroOverlay({ item, titleClass, showExcerpt }: { item: PressGalleryItem; titleClass: string; showExcerpt?: boolean }) {
   return (
     <div className="absolute inset-x-0 bottom-0 p-4 md:p-6">
       <div className="mb-2 flex items-center gap-2">
         {item.communityLogoUrl && (
           <Image
             src={item.communityLogoUrl}
-            alt={communityName}
+            alt={item.communityName}
             width={20}
             height={20}
             className="h-5 w-5 rounded-full object-cover"
           />
         )}
         <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
-          {communityName}
+          {item.communityName}
         </span>
       </div>
 

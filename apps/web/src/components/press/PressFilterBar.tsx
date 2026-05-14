@@ -1,7 +1,6 @@
 'use client';
 
-import { useTranslations, useLocale } from 'next-intl';
-import { displayCommunityName } from '@arena/shared';
+import { useTranslations } from 'next-intl';
 
 type FilterType = 'all' | 'articles' | 'podcasts';
 type SortType = 'latest' | 'trending';
@@ -10,7 +9,6 @@ type CategoryType = 'all' | 'sport' | 'taverne';
 interface Community {
   id: number;
   name: string;
-  name_en?: string | null;
   slug: string;
   logo_url: string | null;
 }
@@ -39,7 +37,6 @@ export function PressFilterBar({
   onCommunityChange,
 }: PressFilterBarProps) {
   const t = useTranslations('pressGallery');
-  const locale = useLocale();
 
   const categories: { key: CategoryType; label: string }[] = [
     { key: 'all', label: t('all') },
@@ -111,7 +108,7 @@ export function PressFilterBar({
               <option value="">{t('allCommunities')}</option>
               {filteredCommunities.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {displayCommunityName(c, locale)}
+                  {c.name}
                 </option>
               ))}
             </select>
