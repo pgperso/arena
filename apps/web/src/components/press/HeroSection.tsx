@@ -78,7 +78,7 @@ function SingleHero({ item }: { item: PressGalleryItem }) {
         ) : (
           <div className="h-full w-full bg-gray-200 dark:bg-gray-700" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/15" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <HeroOverlay item={item} titleClass="text-2xl md:text-4xl" communityName={localizedCommunityName(item, locale)} />
       </div>
     </Link>
@@ -111,7 +111,7 @@ function DuoHero({ items }: { items: PressGalleryItem[] }) {
             ) : (
               <div className="h-full w-full bg-gray-200 dark:bg-gray-700" />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/15" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
             <HeroOverlay item={item} titleClass="text-xl md:text-2xl" communityName={localizedCommunityName(item, locale)} />
           </div>
         </Link>
@@ -145,7 +145,7 @@ function TrioHero({ hero, secondary }: { hero: PressGalleryItem; secondary: Pres
           ) : (
             <div className="h-full w-full bg-gray-200 dark:bg-gray-700" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/15" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <HeroOverlay item={hero} titleClass="text-2xl md:text-3xl" showExcerpt communityName={localizedCommunityName(hero, locale)} />
         </div>
       </Link>
