@@ -52,6 +52,12 @@ export function Footer() {
           >
             {t('footer.legal')}
           </Link>
+          <Link
+            href="/normes-editoriales"
+            className="text-[10px] text-gray-500 dark:text-gray-400 transition hover:text-gray-700 dark:hover:text-gray-300 sm:text-xs"
+          >
+            {t('footer.editorialStandards')}
+          </Link>
         </nav>
 
         <p className="text-[10px] text-gray-400 sm:text-xs">
