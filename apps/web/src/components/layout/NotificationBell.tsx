@@ -172,9 +172,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
                     ? 'replyLabel'
                     : n.type === 'comment_reply_thread'
                       ? 'replyThreadLabel'
-                      : n.type === 'article_published'
-                        ? 'articlePublishedLabel'
-                        : 'commentOnArticleLabel';
+                      : 'commentOnArticleLabel';
                 const label = t(labelKey, { name: n.actorUsername ?? '—' });
                 return (
                   <li key={n.id}>

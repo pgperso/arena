@@ -1,11 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@arena/supabase-client';
 
-export type NotificationType =
-  | 'comment_reply'
-  | 'comment_reply_thread'
-  | 'comment_on_article'
-  | 'article_published';
+export type NotificationType = 'comment_reply' | 'comment_reply_thread' | 'comment_on_article';
 
 export interface NotificationItem {
   id: number;
