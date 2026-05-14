@@ -304,7 +304,8 @@
     "markAllRead": "Mark all as read",
     "replyLabel": "{name} replied to your comment",
     "replyThreadLabel": "{name} replied in a thread you commented on",
-    "commentOnArticleLabel": "{name} commented on your article"
+    "commentOnArticleLabel": "{name} commented on your article",
+    "articlePublishedLabel": "{name} published a new article"
   },
   "footer": {
     "rights": "All rights reserved.",
@@ -312,7 +313,8 @@
     "contact": "Contact",
     "terms": "Terms of use",
     "privacy": "Privacy",
-    "legal": "Legal notice"
+    "legal": "Legal notice",
+    "editorialStandards": "Editorial standards"
   },
   "errors": {
     "notFound": "Page not found",
