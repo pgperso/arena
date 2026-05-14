@@ -1,8 +1,9 @@
 'use client';
 
 import Image from 'next/image';
+import { useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { formatTime } from '@arena/shared';
+import { formatTime, displayCommunityName } from '@arena/shared';
 import type { PressGalleryItem } from '@/services/pressGalleryService';
 
 interface PressContentCardProps {
@@ -18,8 +19,13 @@ function itemHref(item: PressGalleryItem): string {
 }
 
 export function PressContentCard({ item, variant = 'standard' }: PressContentCardProps) {
+  const locale = useLocale();
   const isLarge = variant === 'large';
   const isPodcast = item.type === 'podcast';
+  const communityName = displayCommunityName(
+    { name: item.communityName, name_en: item.communityNameEn },
+    locale,
+  );
 
   return (
     <Link
@@ -85,14 +91,14 @@ export function PressContentCard({ item, variant = 'standard' }: PressContentCar
           {item.communityLogoUrl && (
             <Image
               src={item.communityLogoUrl}
-              alt={item.communityName}
+              alt={communityName}
               width={16}
               height={16}
               className="h-4 w-4 rounded-full object-cover"
             />
           )}
           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-            {item.communityName}
+            {communityName}
           </span>
         </div>
 

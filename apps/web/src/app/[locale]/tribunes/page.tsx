@@ -73,11 +73,13 @@ export default async function TribunesPage({ params }: { params: Promise<{ local
   if (joinedIds.length > 0) {
     const { data } = await supabase
       .from('communities')
-      .select('id, name, slug, description, member_count, primary_color, logo_url')
+      .select('id, name, name_en, slug, description, description_en, member_count, primary_color, logo_url')
       .in('id', joinedIds)
       .eq('is_active', true)
       .order('name');
-    communities = (data ?? []) as CommunityRow[];
+    // name_en / description_en come from migration 00053. Cast through unknown
+    // until generated Supabase types are regenerated post-deploy.
+    communities = (data ?? []) as unknown as CommunityRow[];
   }
 
   return (

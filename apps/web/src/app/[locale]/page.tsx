@@ -70,7 +70,7 @@ export default async function HomePage({
   let featuredItems: Awaited<ReturnType<typeof fetchFeaturedItems>> = [];
   let initialResult: Awaited<ReturnType<typeof fetchPressGalleryItems>> = { items: [], nextCursor: null };
   let taverneItems: Awaited<ReturnType<typeof fetchPressGalleryItems>>['items'] = [];
-  let communities: { id: number; name: string; slug: string; logo_url: string | null }[] = [];
+  let communities: { id: number; name: string; name_en: string | null; slug: string; logo_url: string | null }[] = [];
   let userId: string | null = null;
 
   try {
@@ -78,16 +78,22 @@ export default async function HomePage({
       fetchFeaturedItems(supabase),
       supabase
         .from('communities')
-        .select('id, name, slug, logo_url')
+        .select('id, name, name_en, slug, logo_url')
         .eq('is_active', true)
         .order('name'),
       supabase.auth.getUser(),
     ]);
 
     featuredItems = featured;
-    communities = (communitiesRes.data ?? []).map((c) => ({
+    // name_en / description_en come from migration 00053. Cast through unknown
+    // until generated Supabase types are regenerated post-deploy.
+    const communitiesRows = (communitiesRes.data ?? []) as unknown as Array<{
+      id: number; name: string; name_en: string | null; slug: string; logo_url: string | null;
+    }>;
+    communities = communitiesRows.map((c) => ({
       id: c.id,
       name: c.name,
+      name_en: c.name_en,
       slug: c.slug,
       logo_url: c.logo_url,
     }));
