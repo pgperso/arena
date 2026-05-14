@@ -1,13 +1,14 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { Link } from '@/i18n/navigation';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAvatarUpload } from '@/hooks/useAvatarUpload';
+import { displayCommunityName, formatTime } from '@arena/shared';
 import type { Database } from '@arena/supabase-client';
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'];
@@ -28,6 +29,26 @@ interface AdminStats {
   podcasts: number;
 }
 
+export interface AuthorMetricsTopArticle {
+  id: number;
+  slug: string;
+  title: string;
+  viewCount: number;
+  likeCount: number;
+  publishedAt: string | null;
+  communitySlug: string;
+  communityName: string;
+  communityNameEn: string | null;
+}
+
+export interface AuthorMetrics {
+  publishedCount: number;
+  totalViews: number;
+  totalLikes: number;
+  totalComments: number;
+  topArticles: AuthorMetricsTopArticle[];
+}
+
 interface VestiaireClientProps {
   member: MemberProfile | null;
   communities: CommunityRow[];
@@ -35,6 +56,7 @@ interface VestiaireClientProps {
   adminStats: Record<number, AdminStats>;
   userEmail: string;
   isContentCreator: boolean;
+  authorMetrics: AuthorMetrics;
 }
 
 export function VestiaireClient({
@@ -44,8 +66,10 @@ export function VestiaireClient({
   adminStats,
   isContentCreator,
   userEmail,
+  authorMetrics,
 }: VestiaireClientProps) {
   const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations('account');
   const tc = useTranslations('common');
   const ta = useTranslations('auth');
@@ -219,6 +243,11 @@ export function VestiaireClient({
           </div>
         </div>
       </div>
+
+      {/* Author metrics — only shown if user has published anything */}
+      {authorMetrics.publishedCount > 0 && (
+        <AuthorMetricsPanel metrics={authorMetrics} locale={locale} username={member?.username ?? null} />
+      )}
 
       {/* Communities */}
       <div>
@@ -491,6 +520,115 @@ export function VestiaireClient({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function AuthorMetricsPanel({
+  metrics,
+  locale,
+  username,
+}: {
+  metrics: AuthorMetrics;
+  locale: string;
+  username: string | null;
+}) {
+  const isFr = locale === 'fr';
+  const fmt = (n: number) => n.toLocaleString(isFr ? 'fr-CA' : 'en-CA');
+
+  return (
+    <section className="mb-8 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-5 md:p-6">
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          {isFr ? 'Mes articles — performance' : 'My articles — performance'}
+        </h2>
+        {username && (
+          <Link
+            href={`/auteurs/${username}`}
+            className="text-xs font-medium text-brand-blue hover:underline"
+          >
+            {isFr ? 'Ma page publique →' : 'My public page →'}
+          </Link>
+        )}
+      </div>
+
+      {/* Stat tiles */}
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatTile
+          label={isFr ? 'Articles publiés' : 'Published'}
+          value={fmt(metrics.publishedCount)}
+        />
+        <StatTile
+          label={isFr ? 'Vues totales' : 'Total views'}
+          value={fmt(metrics.totalViews)}
+          accent="text-brand-blue"
+        />
+        <StatTile
+          label={isFr ? "Mentions J'aime" : 'Likes'}
+          value={fmt(metrics.totalLikes)}
+        />
+        <StatTile
+          label={isFr ? 'Commentaires reçus' : 'Comments received'}
+          value={fmt(metrics.totalComments)}
+        />
+      </div>
+
+      {/* Top articles list */}
+      {metrics.topArticles.length > 0 && (
+        <div>
+          <h3 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+            {isFr ? 'Top articles (par vues)' : 'Top articles (by views)'}
+          </h3>
+          <ul className="space-y-1.5">
+            {metrics.topArticles.map((a, idx) => (
+              <li key={a.id}>
+                <Link
+                  href={`/tribunes/${a.communitySlug}/articles/${a.slug}`}
+                  className="group flex items-center gap-3 rounded-lg px-2 py-1.5 transition hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  <span className="w-4 shrink-0 text-right text-xs font-bold text-gray-400">
+                    {idx + 1}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900 group-hover:text-brand-blue dark:text-gray-100">
+                    {a.title}
+                  </span>
+                  <span className="shrink-0 text-xs text-gray-400">
+                    {displayCommunityName(
+                      { name: a.communityName, name_en: a.communityNameEn },
+                      locale,
+                    )}
+                  </span>
+                  <span className="shrink-0 text-xs tabular-nums text-gray-500 dark:text-gray-400">
+                    {fmt(a.viewCount)} {isFr ? 'vues' : 'views'}
+                  </span>
+                  {a.publishedAt && (
+                    <span className="hidden shrink-0 text-[11px] text-gray-400 sm:inline">
+                      {formatTime(a.publishedAt)}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function StatTile({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: string;
+}) {
+  return (
+    <div className="rounded-lg border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-[#181818] px-3 py-2.5">
+      <div className={`text-xl font-bold tabular-nums ${accent ?? 'text-gray-900 dark:text-gray-100'}`}>{value}</div>
+      <div className="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">{label}</div>
     </div>
   );
 }
