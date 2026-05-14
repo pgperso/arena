@@ -19,7 +19,10 @@ export interface PressGalleryItem {
   authorName: string;
   authorAvatarUrl: string | null;
   communityId: number;
+  // French name (fallback). UI must call displayCommunityName({name, name_en}, locale)
+  // before showing this — never render communityName directly on locale-aware surfaces.
   communityName: string;
+  communityNameEn: string | null;
   communitySlug: string;
   communityLogoUrl: string | null;
   isLive: boolean;
@@ -54,8 +57,8 @@ export interface FetchResult {
   nextCursor: string | null;
 }
 
-const ARTICLE_SELECT = 'id, title, slug, excerpt, cover_image_url, cover_position_y, like_count, view_count, published_at, author_name_override, author_id, communities!inner(id, name, slug, logo_url), members:members!articles_author_id_fkey(username, first_name, last_name, avatar_url, creator_display_name, creator_avatar_url)';
-const PODCAST_SELECT = 'id, title, description, cover_image_url, like_count, duration_seconds, created_at, youtube_video_id, is_live, published_by, communities!inner(id, name, slug, logo_url), members:members!podcasts_published_by_fkey(username, avatar_url, creator_display_name, creator_avatar_url)';
+const ARTICLE_SELECT = 'id, title, slug, excerpt, cover_image_url, cover_position_y, like_count, view_count, published_at, author_name_override, author_id, communities!inner(id, name, name_en, slug, logo_url), members:members!articles_author_id_fkey(username, first_name, last_name, avatar_url, creator_display_name, creator_avatar_url)';
+const PODCAST_SELECT = 'id, title, description, cover_image_url, like_count, duration_seconds, created_at, youtube_video_id, is_live, published_by, communities!inner(id, name, name_en, slug, logo_url), members:members!podcasts_published_by_fkey(username, avatar_url, creator_display_name, creator_avatar_url)';
 
 export async function fetchFeaturedItems(
   supabase: SupabaseClient<Database>,
@@ -349,7 +352,7 @@ interface ArticleRow {
   published_at: string | null;
   author_name_override: string | null;
   author_id: string;
-  communities: { id: number; name: string; slug: string; logo_url: string | null };
+  communities: { id: number; name: string; name_en: string | null; slug: string; logo_url: string | null };
   members: { username: string; first_name: string | null; last_name: string | null; avatar_url: string | null; creator_display_name: string | null; creator_avatar_url: string | null } | null;
 }
 
@@ -364,7 +367,7 @@ interface PodcastRow {
   youtube_video_id: string | null;
   is_live: boolean;
   published_by: string;
-  communities: { id: number; name: string; slug: string; logo_url: string | null };
+  communities: { id: number; name: string; name_en: string | null; slug: string; logo_url: string | null };
   members: { username: string; avatar_url: string | null; creator_display_name: string | null; creator_avatar_url: string | null } | null;
 }
 
@@ -388,6 +391,7 @@ function articleToItem(r: ArticleRow): PressGalleryItem {
     authorAvatarUrl: r.author_name_override ? null : (m?.avatar_url || null),
     communityId: r.communities.id,
     communityName: r.communities.name,
+    communityNameEn: r.communities.name_en,
     communitySlug: r.communities.slug,
     communityLogoUrl: r.communities.logo_url,
     isLive: false,
@@ -415,6 +419,7 @@ function podcastToItem(r: PodcastRow): PressGalleryItem {
     authorAvatarUrl: m?.avatar_url || null,
     communityId: r.communities.id,
     communityName: r.communities.name,
+    communityNameEn: r.communities.name_en,
     communitySlug: r.communities.slug,
     communityLogoUrl: r.communities.logo_url,
     isLive: r.is_live ?? false,

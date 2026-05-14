@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
-import { isIndexableArticle } from '@arena/shared';
+import { isIndexableArticle, displayCommunityName } from '@arena/shared';
 import { ArticleView } from '@/components/article/ArticleView';
 
 export const revalidate = 300;
@@ -37,15 +37,16 @@ export async function generateMetadata({ params }: ArticlePageProps) {
   const { locale: loc } = await params;
   const desc = excerpt ?? `${title} — Article sportif sur La tribune des fans. Opinions, analyses et débats.`;
   const url = `https://fanstribune.com/${loc}/tribunes/${slug}/articles/${articleSlug}`;
-  const communityName = (await supabase.from('communities').select('name').eq('slug', slug).single()).data as { name: string } | null;
+  const communityRow = (await supabase.from('communities').select('name, name_en').eq('slug', slug).single()).data as { name: string; name_en: string | null } | null;
+  const communityName = communityRow ? displayCommunityName(communityRow, loc) : null;
 
   return {
-    title: `${title} | ${communityName?.name ?? 'Tribune'}`,
+    title: `${title} | ${communityName ?? 'Tribune'}`,
     description: desc,
     keywords: [
       title,
-      communityName?.name,
-      `${communityName?.name ?? ''} fans`,
+      communityName,
+      `${communityName ?? ''} fans`,
       'article sportif', 'chronique sport', 'opinion sport',
       'tribune sportive', 'La tribune des fans', 'fanstribune',
       'analyse sport', 'débat sportif',
@@ -56,7 +57,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
       type: 'article',
       publishedTime: published_at ?? undefined,
       section: 'Sports',
-      tags: [communityName?.name ?? 'Sports', 'Opinion', 'Tribune'],
+      tags: [communityName ?? 'Sports', 'Opinion', 'Tribune'],
       url,
       siteName: 'La tribune des fans',
       locale: loc === 'fr' ? 'fr_CA' : 'en_CA',
@@ -102,13 +103,14 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
   // Load community
   const { data: communityData } = await supabase
     .from('communities')
-    .select('id, slug, name')
+    .select('id, slug, name, name_en')
     .eq('slug', slug)
     .eq('is_active', true)
     .single();
 
-  const community = communityData as { id: number; slug: string; name: string } | null;
+  const community = communityData as { id: number; slug: string; name: string; name_en: string | null } | null;
   if (!community) notFound();
+  const communityDisplayName = displayCommunityName(community, locale);
 
   // Load article with author
   const { data: articleData } = await supabase
@@ -215,7 +217,7 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `https://fanstribune.com/${locale}` },
-        { '@type': 'ListItem', position: 2, name: community.name, item: `https://fanstribune.com/${locale}/tribunes/${slug}` },
+        { '@type': 'ListItem', position: 2, name: communityDisplayName, item: `https://fanstribune.com/${locale}/tribunes/${slug}` },
         { '@type': 'ListItem', position: 3, name: article.title },
       ],
     },
