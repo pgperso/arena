@@ -18,6 +18,17 @@ function itemHref(item: PressGalleryItem): string {
   return `/tribunes/${item.communitySlug}/podcasts/${item.id}`;
 }
 
+// Articles published within this window get a "Nouveau" / "New" badge to
+// signal freshness — the kind of social proof RDS and The Athletic put
+// front-and-center to nudge clicks.
+const NEW_BADGE_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+function formatViews(count: number, locale: string): string {
+  if (count < 1000) return count.toString();
+  if (count < 1000000) return `${(count / 1000).toFixed(count < 10000 ? 1 : 0).replace(/\.0$/, '')}k`;
+  return `${(count / 1000000).toFixed(1).replace(/\.0$/, '')}M`.replace('.', locale === 'fr' ? ',' : '.');
+}
+
 export function PressContentCard({ item, variant = 'standard' }: PressContentCardProps) {
   const locale = useLocale();
   const isLarge = variant === 'large';
@@ -26,6 +37,9 @@ export function PressContentCard({ item, variant = 'standard' }: PressContentCar
     { name: item.communityName, name_en: item.communityNameEn },
     locale,
   );
+  const publishedAtMs = new Date(item.publishedAt).getTime();
+  const isFresh = !Number.isNaN(publishedAtMs) && Date.now() - publishedAtMs < NEW_BADGE_WINDOW_MS;
+  const authorInitial = item.authorName.trim().slice(0, 1).toUpperCase();
 
   return (
     <Link
@@ -47,6 +61,16 @@ export function PressContentCard({ item, variant = 'standard' }: PressContentCar
           />
         ) : (
           <div className="h-full w-full bg-gray-200 dark:bg-gray-700" />
+        )}
+
+        {/* Fresh-article badge — only for articles published within 24h,
+            and only when not a podcast (podcasts have their own overlay
+            slot already). Positioned top-right to mirror the LIVE badge
+            on podcasts, so the eye knows that corner = "act now". */}
+        {!isPodcast && isFresh && (
+          <span className="absolute right-2 top-2 rounded bg-brand-red px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+            {locale === 'fr' ? 'Nouveau' : 'New'}
+          </span>
         )}
 
         {/* Podcast overlay */}
@@ -114,13 +138,42 @@ export function PressContentCard({ item, variant = 'standard' }: PressContentCar
           </p>
         )}
 
-        {/* Author + date */}
+        {/* Author + date + views — denser byline so each card carries the
+            social-proof signals that best-in-class sports sites surface
+            (author identity, freshness, popularity). View count only
+            shown when ≥ 10 to avoid the "37 views" awkwardness on brand-
+            new pieces. */}
         <div className="mt-auto flex items-center gap-2 text-xs text-gray-400">
-          <span className="font-medium text-gray-600 dark:text-gray-300">
+          {item.authorAvatarUrl ? (
+            <Image
+              src={item.authorAvatarUrl}
+              alt={item.authorName}
+              width={20}
+              height={20}
+              className="h-5 w-5 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-200 text-[10px] font-bold text-gray-500 dark:bg-gray-700 dark:text-gray-300">
+              {authorInitial}
+            </span>
+          )}
+          <span className="truncate font-medium text-gray-600 dark:text-gray-300">
             {item.authorName}
           </span>
-          <span>&middot;</span>
-          <span>{formatTime(item.publishedAt)}</span>
+          <span className="shrink-0">&middot;</span>
+          <span className="shrink-0">{formatTime(item.publishedAt)}</span>
+          {item.viewCount >= 10 && (
+            <>
+              <span className="shrink-0">&middot;</span>
+              <span className="flex shrink-0 items-center gap-0.5">
+                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+                {formatViews(item.viewCount, locale)}
+              </span>
+            </>
+          )}
         </div>
       </div>
     </Link>
