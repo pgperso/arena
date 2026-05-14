@@ -8,7 +8,6 @@ import {
 } from '@/services/pressGalleryService';
 import { PressGalleryClient } from './galerie-de-presse/PressGalleryClient';
 import { CategoryNav, type CategoryNavItem } from '@/components/press/CategoryNav';
-import { TopOfWeek } from '@/components/press/TopOfWeek';
 
 export const revalidate = 300;
 
@@ -195,7 +194,6 @@ export default async function HomePage({
         taverneItems={taverneItems}
         communities={communities}
         userId={userId}
-        sidebarSlot={<TopOfWeek locale={locale} />}
       />
     </>
   );

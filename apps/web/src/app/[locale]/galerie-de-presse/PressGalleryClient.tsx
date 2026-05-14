@@ -32,11 +32,6 @@ interface PressGalleryClientProps {
   taverneItems: PressGalleryItem[];
   communities: Community[];
   userId: string | null;
-  // Server-rendered sidebar content (e.g. "Top of the week"). Rendered
-  // above the persistent sidebar ad on desktop so the SSR HTML carries
-  // crawlable links to popular articles. Hidden on mobile where the
-  // sidebar collapses.
-  sidebarSlot?: React.ReactNode;
 }
 
 const PAGE_SIZE = 12;
@@ -51,7 +46,6 @@ export function PressGalleryClient({
   featuredItems,
   taverneItems,
   communities,
-  sidebarSlot,
 }: PressGalleryClientProps) {
   const t = useTranslations('pressGallery');
   const supabase = useSupabase();
@@ -235,16 +229,6 @@ export function PressGalleryClient({
         <div className="flex gap-6">
           {/* Main content — unified grid */}
           <div className="flex-1 min-w-0">
-            {/* Section header that introduces the main feed and gives the
-                eye a rest between the hero + ad and the dense grid. */}
-            {items.length > 0 && (
-              <div className="mb-5 flex items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-700 pb-2">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                  {t('feedHeading')}
-                </h2>
-                <span className="text-xs text-gray-400">{t('feedSubheading')}</span>
-              </div>
-            )}
             {items.length > 0 && (
               <PatternGrid items={items} />
             )}
@@ -292,12 +276,9 @@ export function PressGalleryClient({
             )}
           </div>
 
-          {/* Sidebar — desktop only. Top of the week first (high-value
-              editorial signal + crawlable links), ad below. Sticky so it
-              follows the reader as they scroll the feed. */}
+          {/* Sidebar */}
           <aside className="hidden w-[320px] shrink-0 lg:block">
-            <div className="sticky top-24 space-y-4">
-              {sidebarSlot}
+            <div className="sticky top-24">
               <AdSlot slotId="press-sidebar" format="half-page" />
             </div>
           </aside>
