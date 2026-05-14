@@ -20,6 +20,10 @@ type CommunityRow = Database['public']['Tables']['communities']['Row'];
 
 interface CommunityPageClientProps {
   community: CommunityRow;
+  // Locale-aware display values resolved on the server so server & client
+  // render the same strings without re-running the helper everywhere.
+  displayName: string;
+  displayDescription: string | null;
   isMember: boolean;
   canModerate: boolean;
   canCreateContent: boolean;
@@ -32,6 +36,8 @@ interface CommunityPageClientProps {
 
 export function CommunityPageClient({
   community,
+  displayName,
+  displayDescription,
   isMember: initialIsMember,
   canModerate,
   canCreateContent,
@@ -52,14 +58,14 @@ export function CommunityPageClient({
 
   // Tell the Header we're in a tribune + track last visit for sorting
   useEffect(() => {
-    setTribune({ name: community.name, slug: community.slug });
+    setTribune({ name: displayName, slug: community.slug });
     try {
       const visits = JSON.parse(localStorage.getItem('tribune_visits') || '{}');
       visits[community.id] = Date.now();
       localStorage.setItem('tribune_visits', JSON.stringify(visits));
     } catch { /* ignore */ }
     return () => setTribune(null);
-  }, [community.name, community.slug, community.id, setTribune]);
+  }, [displayName, community.slug, community.id, setTribune]);
 
   async function handleJoin() {
     if (!userId) {
@@ -119,7 +125,7 @@ export function CommunityPageClient({
             <header className="mb-8 flex flex-col items-center gap-4 text-center md:flex-row md:items-start md:text-left">
               <Image
                 src={community.logo_url || '/images/fanstribune.webp'}
-                alt={community.name}
+                alt={displayName}
                 width={96}
                 height={96}
                 className="h-20 w-20 shrink-0 object-contain md:h-24 md:w-24"
@@ -127,11 +133,11 @@ export function CommunityPageClient({
               />
               <div className="flex-1 min-w-0">
                 <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-4xl">
-                  {community.name}
+                  {displayName}
                 </h1>
-                {community.description && (
+                {displayDescription && (
                   <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400 md:text-base">
-                    {community.description}
+                    {displayDescription}
                   </p>
                 )}
                 <p className="mt-3 text-sm text-gray-500 dark:text-gray-500">

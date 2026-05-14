@@ -1,15 +1,19 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useRouter, Link } from '@/i18n/navigation';
 import Image from 'next/image';
 import { useSupabase } from '@/hooks/useSupabase';
 import { leaveCommunity } from '@/services/communityService';
 import { JoinTribuneModal } from '@/components/community/JoinTribuneModal';
+import { displayCommunityName, displayCommunityDescription } from '@arena/shared';
 import type { Database } from '@arena/supabase-client';
 
-type CommunityRow = Database['public']['Tables']['communities']['Row'];
+type CommunityRow = Database['public']['Tables']['communities']['Row'] & {
+  name_en?: string | null;
+  description_en?: string | null;
+};
 
 interface TribunesClientProps {
   communities: CommunityRow[];
@@ -22,13 +26,14 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
   const tc = useTranslations('community');
   const tco = useTranslations('common');
   const tp = useTranslations('pressGallery');
+  const locale = useLocale();
   const router = useRouter();
   const supabase = useSupabase();
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [leaveConfirm, setLeaveConfirm] = useState<CommunityRow | null>(null);
   const [leaving, setLeaving] = useState(false);
 
-  // Sort communities by last visited (most recent first), then by name
+  // Sort communities by last visited (most recent first), then by locale-aware name
   const sortedCommunities = useMemo(() => {
     let visits: Record<string, number> = {};
     try {
@@ -38,9 +43,9 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
       const va = visits[a.id] || 0;
       const vb = visits[b.id] || 0;
       if (va !== vb) return vb - va; // most recent first
-      return a.name.localeCompare(b.name);
+      return displayCommunityName(a, locale).localeCompare(displayCommunityName(b, locale));
     });
-  }, [communities]);
+  }, [communities, locale]);
 
   async function handleLeave(community: CommunityRow) {
     setLeaving(true);
@@ -76,24 +81,27 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
           return (
             <>
               <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {taverne && (
+                {taverne && (() => {
+                  const taverneName = displayCommunityName(taverne, locale);
+                  const taverneDesc = displayCommunityDescription(taverne, locale);
+                  return (
                   <Link
                     href={`/tribunes/${taverne.slug}`}
                     className="flex items-center gap-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-5 transition hover:border-brand-blue/30 hover:shadow-md sm:p-6"
                   >
                     <Image
                       src={taverne.logo_url || '/images/fanstribune.webp'}
-                      alt={taverne.name}
+                      alt={taverneName}
                       width={56}
                       height={56}
                       className="h-14 w-14 shrink-0 rounded-lg object-contain"
                     />
                     <div className="min-w-0 flex-1">
                       <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 sm:text-lg">
-                        {taverne.name}
+                        {taverneName}
                       </h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
-                        {taverne.description}
+                        {taverneDesc}
                       </p>
                       <p className="mt-1 text-xs text-gray-400">
                         {taverne.member_count} membre{taverne.member_count !== 1 ? 's' : ''} — Ouverte à tous
@@ -103,7 +111,8 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
                       <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                     </svg>
                   </Link>
-                )}
+                  );
+                })()}
 
                 {/* Galerie de presse */}
                 <Link
@@ -131,7 +140,10 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
 
               {others.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {others.map((community) => (
+                  {others.map((community) => {
+                    const communityName = displayCommunityName(community, locale);
+                    const communityDesc = displayCommunityDescription(community, locale);
+                    return (
                     <div
                       key={community.id}
                       className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-4 sm:p-5"
@@ -139,22 +151,22 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
                       <div className="mb-3 flex items-center gap-3">
                         <Image
                           src={community.logo_url || '/images/fanstribune.webp'}
-                          alt={community.name}
+                          alt={communityName}
                           width={48}
                           height={48}
                           className="h-12 w-12 shrink-0 rounded-lg object-contain"
                         />
                         <div className="min-w-0 flex-1">
                           <h3 className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100 sm:text-base">
-                            {community.name}
+                            {communityName}
                           </h3>
                           <p className="text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
                             {community.member_count} membre{community.member_count !== 1 ? 's' : ''}
                           </p>
                         </div>
                       </div>
-                      {community.description && (
-                        <p className="mb-3 line-clamp-2 text-xs text-gray-400">{community.description}</p>
+                      {communityDesc && (
+                        <p className="mb-3 line-clamp-2 text-xs text-gray-400">{communityDesc}</p>
                       )}
                       <div className="flex gap-2">
                         <Link
@@ -177,7 +189,8 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
                         </button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : !taverne ? (
                 <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 py-16">
@@ -216,7 +229,7 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#1e1e1e] p-6 shadow-xl">
             <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-gray-100">
-              {tc('leaveTitle', { name: leaveConfirm.name })}
+              {tc('leaveTitle', { name: displayCommunityName(leaveConfirm, locale) })}
             </h3>
             <p className="mb-5 text-sm text-gray-500 dark:text-gray-400">
               {tc('leaveMessage')}
