@@ -29,7 +29,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { ...withAlternates('/conditions-utilisation'), lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.3 },
     { ...withAlternates('/politique-confidentialite'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
     { ...withAlternates('/mentions-legales'), lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
+    { ...withAlternates('/normes-editoriales'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
   ];
+
+  // Sport category hubs (/sport/hockey, /sport/baseball, ...). These are
+  // crawl-relevant topic pages that link out to all tribunes + recent
+  // articles in the category — strong internal-linking surface.
+  const { data: cats } = await supabase
+    .from('categories')
+    .select('slug')
+    .order('sort_order');
+  if (cats) {
+    for (const c of cats as { slug: string }[]) {
+      entries.push({
+        ...withAlternates(`/sport/${c.slug}`),
+        lastModified: new Date(),
+        changeFrequency: 'daily',
+        priority: 0.7,
+      });
+    }
+  }
 
   // Public community hubs: one entry per active community that has at least
   // one published article or podcast. The page lists those items + join CTA,
@@ -99,6 +118,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           priority: 0.9,
         });
       }
+    }
+  }
+
+  // Authors with at least one indexable article. The author page itself
+  // is a crawl hub that links out to a dozen articles, so it's strong
+  // internal-linking surface for SEO.
+  const { data: authorRows } = await supabase
+    .from('articles')
+    .select('author_id, members!articles_author_id_fkey(username)')
+    .eq('is_published', true)
+    .eq('is_removed', false)
+    .gte('published_at', ORIGINAL_CONTENT_CUTOFF)
+    .limit(5000);
+
+  if (authorRows) {
+    const seen = new Set<string>();
+    for (const row of authorRows as { author_id: string; members: { username: string } | null }[]) {
+      const username = row.members?.username;
+      if (!username || seen.has(username)) continue;
+      seen.add(username);
+      entries.push({
+        ...withAlternates(`/auteurs/${username}`),
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.6,
+      });
     }
   }
 
