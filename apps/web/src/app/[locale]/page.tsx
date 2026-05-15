@@ -10,6 +10,7 @@ import { PressGalleryClient } from './galerie-de-presse/PressGalleryClient';
 import { CategoryNav, type CategoryNavItem } from '@/components/press/CategoryNav';
 import { TopOfWeek } from '@/components/press/TopOfWeek';
 import { fetchActivePoll, type Poll } from '@/services/pollService';
+import { BRAND } from '@/lib/brand';
 
 export const revalidate = 300;
 
@@ -21,7 +22,7 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'pressGallery' });
 
-  const title = `${t('title')} | La tribune des fans`;
+  const title = `${t('title')} | ${BRAND.name}`;
   const description = t('description');
 
   return {
@@ -31,23 +32,23 @@ export async function generateMetadata({
       title,
       description,
       type: 'website',
-      url: `https://fanstribune.com/${locale}`,
-      siteName: 'La tribune des fans',
+      url: `${BRAND.url}/${locale}`,
+      siteName: BRAND.name,
       locale: locale === 'fr' ? 'fr_CA' : 'en_CA',
-      images: [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: title, width: 512, height: 512 }],
+      images: [{ url: BRAND.logoUrl, alt: title, width: BRAND.logoWidth, height: BRAND.logoHeight }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: ['https://fanstribune.com/images/fanstribune.webp'],
+      images: [BRAND.logoUrl],
     },
     alternates: {
-      canonical: `https://fanstribune.com/${locale}`,
+      canonical: `${BRAND.url}/${locale}`,
       languages: {
-        'fr-CA': 'https://fanstribune.com/fr',
-        'en-CA': 'https://fanstribune.com/en',
-        'x-default': 'https://fanstribune.com/fr',
+        'fr-CA': `${BRAND.url}/fr`,
+        'en-CA': `${BRAND.url}/en`,
+        'x-default': `${BRAND.url}/fr`,
       },
     },
     robots: {
@@ -143,7 +144,7 @@ export default async function HomePage({
     // Graceful degradation: render with empty data
   }
 
-  const title = `${t('title')} | La tribune des fans`;
+  const title = `${t('title')} | ${BRAND.name}`;
   const description = t('description');
   const items = [...featuredItems, ...initialResult.items];
   const nonce = (await headers()).get('x-nonce') ?? '';
@@ -154,14 +155,14 @@ export default async function HomePage({
       '@type': 'CollectionPage',
       name: title,
       description,
-      url: `https://fanstribune.com/${locale}`,
-      image: 'https://fanstribune.com/images/fanstribune.webp',
+      url: `${BRAND.url}/${locale}`,
+      image: BRAND.logoUrl,
       inLanguage: locale === 'fr' ? 'fr-CA' : 'en-CA',
       publisher: {
         '@type': 'Organization',
-        name: 'La tribune des fans',
-        url: 'https://fanstribune.com',
-        logo: { '@type': 'ImageObject', url: 'https://fanstribune.com/images/fanstribune.webp', width: 512, height: 512 },
+        name: BRAND.name,
+        url: BRAND.url,
+        logo: { '@type': 'ImageObject', url: BRAND.logoUrl, width: BRAND.logoWidth, height: BRAND.logoHeight },
       },
       mainEntity: {
         '@type': 'ItemList',
@@ -169,8 +170,8 @@ export default async function HomePage({
           '@type': 'ListItem',
           position: idx + 1,
           url: item.type === 'article'
-            ? `https://fanstribune.com/${locale}/tribunes/${item.communitySlug}/articles/${item.slug}`
-            : `https://fanstribune.com/${locale}/tribunes/${item.communitySlug}/podcasts/${item.id}`,
+            ? `${BRAND.url}/${locale}/tribunes/${item.communitySlug}/articles/${item.slug}`
+            : `${BRAND.url}/${locale}/tribunes/${item.communitySlug}/podcasts/${item.id}`,
           name: item.title,
         })),
       },
@@ -178,13 +179,13 @@ export default async function HomePage({
     {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: 'La tribune des fans',
-      alternateName: 'Fans Tribune',
-      url: `https://fanstribune.com/${locale}`,
+      name: BRAND.name,
+      alternateName: BRAND.nameEn,
+      url: `${BRAND.url}/${locale}`,
       inLanguage: locale === 'fr' ? 'fr-CA' : 'en-CA',
       potentialAction: {
         '@type': 'SearchAction',
-        target: `https://fanstribune.com/${locale}?q={search_term_string}`,
+        target: `${BRAND.url}/${locale}?q={search_term_string}`,
         'query-input': 'required name=search_term_string',
       },
     },

@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
 import { displayCommunityName, displayCommunityDescription } from '@arena/shared';
+import { BRAND } from '@/lib/brand';
 import { fetchPressGalleryItems } from '@/services/pressGalleryService';
 import { CommunityPageClient } from './CommunityPageClient';
 import type { Database } from '@arena/supabase-client';
@@ -37,10 +38,10 @@ export async function generateMetadata({ params }: CommunityPageProps): Promise<
   const isFr = locale === 'fr';
   const desc = description
     ?? (isFr
-      ? `Articles, podcasts et discussions sur ${name}. La tribune communautaire des partisans, en direct sur La tribune des fans.`
-      : `Articles, podcasts and discussions about ${name}. The fan community tribune, live on Fans Tribune.`);
-  const title = `${name} | La tribune des fans`;
-  const url = `https://fanstribune.com/${locale}/tribunes/${slug}`;
+      ? `Articles, podcasts et discussions sur ${name}. La tribune communautaire des partisans, en direct sur ${BRAND.name}.`
+      : `Articles, podcasts and discussions about ${name}. The fan community tribune, live on ${BRAND.nameEn}.`);
+  const title = `${name} | ${BRAND.name}`;
+  const url = `${BRAND.url}/${locale}/tribunes/${slug}`;
 
   return {
     title,
@@ -50,24 +51,24 @@ export async function generateMetadata({ params }: CommunityPageProps): Promise<
       description: desc,
       type: 'website',
       url,
-      siteName: 'La tribune des fans',
+      siteName: BRAND.name,
       locale: isFr ? 'fr_CA' : 'en_CA',
       images: logo_url
         ? [{ url: logo_url, alt: name, width: 512, height: 512 }]
-        : [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 }],
+        : [{ url: BRAND.logoUrl, alt: BRAND.name, width: BRAND.logoWidth, height: BRAND.logoHeight }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description: desc,
-      images: logo_url ? [logo_url] : ['https://fanstribune.com/images/fanstribune.webp'],
+      images: logo_url ? [logo_url] : [BRAND.logoUrl],
     },
     alternates: {
       canonical: url,
       languages: {
-        'fr-CA': `https://fanstribune.com/fr/tribunes/${slug}`,
-        'en-CA': `https://fanstribune.com/en/tribunes/${slug}`,
-        'x-default': `https://fanstribune.com/fr/tribunes/${slug}`,
+        'fr-CA': `${BRAND.url}/fr/tribunes/${slug}`,
+        'en-CA': `${BRAND.url}/en/tribunes/${slug}`,
+        'x-default': `${BRAND.url}/fr/tribunes/${slug}`,
       },
     },
     robots: {
@@ -195,7 +196,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
   }
 
   // Public JSON-LD so the hub is discoverable and structured for Google.
-  const url = `https://fanstribune.com/${locale}/tribunes/${slug}`;
+  const url = `${BRAND.url}/${locale}/tribunes/${slug}`;
   const hubItems = [...hubArticles, ...hubPodcasts];
   const nonce = (await headers()).get('x-nonce') ?? '';
 
@@ -204,16 +205,16 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
       '@id': url,
-      name: `${displayName} | La tribune des fans`,
+      name: `${displayName} | ${BRAND.name}`,
       description: displayDescription ?? `Articles, podcasts et discussions sur ${displayName}.`,
       url,
       inLanguage: locale === 'fr' ? 'fr-CA' : 'en-CA',
-      image: community.logo_url ?? 'https://fanstribune.com/images/fanstribune.webp',
+      image: community.logo_url ?? BRAND.logoUrl,
       publisher: {
         '@type': 'Organization',
-        name: 'La tribune des fans',
-        url: 'https://fanstribune.com',
-        logo: { '@type': 'ImageObject', url: 'https://fanstribune.com/images/fanstribune.webp', width: 512, height: 512 },
+        name: BRAND.name,
+        url: BRAND.url,
+        logo: { '@type': 'ImageObject', url: BRAND.logoUrl, width: BRAND.logoWidth, height: BRAND.logoHeight },
       },
       mainEntity: {
         '@type': 'ItemList',
@@ -221,8 +222,8 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
           '@type': 'ListItem',
           position: idx + 1,
           url: item.type === 'article'
-            ? `https://fanstribune.com/${locale}/tribunes/${community.slug}/articles/${item.slug}`
-            : `https://fanstribune.com/${locale}/tribunes/${community.slug}/podcasts/${item.id}`,
+            ? `${BRAND.url}/${locale}/tribunes/${community.slug}/articles/${item.slug}`
+            : `${BRAND.url}/${locale}/tribunes/${community.slug}/podcasts/${item.id}`,
           name: item.title,
         })),
       },
@@ -231,7 +232,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `https://fanstribune.com/${locale}` },
+        { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `${BRAND.url}/${locale}` },
         { '@type': 'ListItem', position: 2, name: displayName, item: url },
       ],
     },
