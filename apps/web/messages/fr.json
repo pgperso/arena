@@ -64,6 +64,8 @@
     "confirmPassword": "Confirmer le mot de passe",
     "retypePassword": "Retapez votre mot de passe",
     "minChars": "Minimum 8 caractères",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
     "passwordMismatch": "Les mots de passe ne correspondent pas.",
     "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères.",
     "passwordUpdated": "Mot de passe mis à jour !",
