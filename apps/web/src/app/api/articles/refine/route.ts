@@ -33,7 +33,9 @@ export async function POST(request: Request) {
     const client = new Anthropic({ apiKey });
 
     const message = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      // Refine rewrites published-bound prose — runs on Opus, the
+      // strongest model, for the best editorial quality.
+      model: 'claude-opus-4-7',
       max_tokens: 4096,
       messages: [{
         role: 'user',

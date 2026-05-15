@@ -81,7 +81,9 @@ export async function POST(request: Request) {
       : '';
 
     const message = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      // Topic brainstorming — short output; Sonnet is the right tier
+      // (Opus adds nothing for a list of topic strings).
+      model: 'claude-sonnet-4-6',
       max_tokens: 512,
       messages: [
         {

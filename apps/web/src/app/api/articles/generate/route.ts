@@ -12,6 +12,14 @@ import { MIN_QUALITY_WORD_COUNT } from '@arena/shared';
 const TARGET_MIN_WORDS = MIN_QUALITY_WORD_COUNT + 100; // 600
 const TARGET_MAX_WORDS = MIN_QUALITY_WORD_COUNT + 250; // 750
 
+// Model split. The research agent only compiles facts from headlines —
+// a Sonnet-class extraction task where Opus adds nothing. The three
+// prose agents (write / verify / polish) carry the article's voice,
+// originality and editorial finesse, so they run on Opus, the strongest
+// model, for the best possible writing quality.
+const MODEL_RESEARCH = 'claude-sonnet-4-6';
+const MODEL_PROSE = 'claude-opus-4-7';
+
 // 4 séquences Anthropic + fetch news/URLs = peut dépasser 30s.
 // Vercel Hobby coupe à 10s, Pro permet jusqu'à 60s via maxDuration.
 export const maxDuration = 60;
@@ -136,7 +144,7 @@ async function agentResearch(
     : '';
 
   const message = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
+    model: MODEL_RESEARCH,
     max_tokens: 1500,
     messages: [{
       role: 'user',
@@ -177,7 +185,7 @@ async function agentWrite(
   const escapedDirectives = directives ? escapeForPrompt(directives) : '';
 
   const message = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
+    model: MODEL_PROSE,
     max_tokens: 3200,
     messages: [{
       role: 'user',
@@ -240,7 +248,7 @@ async function agentVerify(
     : '';
 
   const message = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
+    model: MODEL_PROSE,
     max_tokens: 3200,
     messages: [{
       role: 'user',
@@ -286,7 +294,7 @@ async function agentPolish(
   isTaverne: boolean,
 ): Promise<string> {
   const message = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
+    model: MODEL_PROSE,
     max_tokens: 3200,
     messages: [{
       role: 'user',
