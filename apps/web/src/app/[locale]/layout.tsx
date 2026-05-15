@@ -6,6 +6,7 @@ import { Footer } from '@/components/layout/Footer';
 import { TribuneProvider } from '@/contexts/TribuneContext';
 import { AdSenseLoader } from '@/components/ads/AdSenseLoader';
 import { CookieConsent } from '@/components/ui/CookieConsent';
+import { Toaster } from 'sonner';
 import { routing } from '@/i18n/routing';
 import { BRAND } from '@/lib/brand';
 
@@ -113,6 +114,7 @@ export default async function LocaleLayout({
               <Footer />
               <CookieConsent />
             </div>
+            <Toaster position="top-center" richColors closeButton />
           </TribuneProvider>
         </NextIntlClientProvider>
       </body>

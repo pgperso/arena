@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { FeedContainer } from '@/components/feed/FeedContainer';
@@ -80,9 +81,11 @@ export function CommunityPageClient({
     const { error } = await joinCommunity(supabase, community.id, userId);
     if (error) {
       setJoinError(error.message);
+      toast.error(t('toast.genericError'));
       setJoining(false);
       return;
     }
+    toast.success(t('toast.joined', { name: displayName }));
     // router.refresh() re-fetches the server component. The server now
     // returns isMember=true, which changes the key from "id-false" to
     // "id-true". React destroys this instance and creates a fresh one
