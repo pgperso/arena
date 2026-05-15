@@ -1,11 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { ORIGINAL_CONTENT_CUTOFF } from '@arena/shared';
+import { BRAND } from '@/lib/brand';
 
 export const revalidate = 3600;
 
 export async function GET() {
   const supabase = await createClient();
-  const BASE_URL = 'https://fanstribune.com';
+  const BASE_URL = BRAND.url;
 
   // Imported legacy articles are noindex and excluded from the public RSS
   // feed so crawlers / aggregators don't surface duplicates of content
@@ -57,9 +58,9 @@ export async function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>La tribune des fans</title>
+    <title>${BRAND.name}</title>
     <link>${BASE_URL}</link>
-    <description>Articles et podcasts sportifs — La tribune des fans</description>
+    <description>Articles et podcasts sportifs — ${BRAND.name}</description>
     <language>fr-ca</language>
     <atom:link href="${BASE_URL}/feed.xml" rel="self" type="application/rss+xml" />
 ${items.join('\n')}
