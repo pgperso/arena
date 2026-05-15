@@ -4,6 +4,16 @@ import { articleSchema } from '@arena/shared';
 import { announceArticle, cleanupArticleBotMessages } from './botService';
 import { BRAND } from '@/lib/brand';
 
+/**
+ * Poke the translation worker so freshly published or edited content is
+ * translated within seconds rather than waiting for the hourly cron.
+ * Fire-and-forget — the worker is idempotent and the cron is the safety net.
+ */
+function triggerTranslation(): void {
+  if (typeof window === 'undefined') return;
+  void fetch('/api/translate-pending', { method: 'POST' }).catch(() => {});
+}
+
 export async function removeArticle(
   supabase: SupabaseClient<Database>,
   articleId: number,
@@ -97,6 +107,7 @@ export async function createArticle(
     }
   }
 
+  if (!result.error) triggerTranslation();
   return result;
 }
 
@@ -144,7 +155,9 @@ export async function updateArticle(
     }
   }
 
-  return supabase.from('articles').update(update as never).eq('id', articleId);
+  const result = await supabase.from('articles').update(update as never).eq('id', articleId);
+  if (!result.error) triggerTranslation();
+  return result;
 }
 
 export async function fetchArticle(
