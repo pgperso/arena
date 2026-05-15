@@ -29,6 +29,7 @@ interface CommunityPageClientProps {
   canModerate: boolean;
   canCreateContent: boolean;
   isMuted: boolean;
+  articleNotifMuted: boolean;
   userId: string | null;
   staffRoles: Record<string, string>;
   hubArticles: PressGalleryItem[];
@@ -44,6 +45,7 @@ export function CommunityPageClient({
   canCreateContent,
   staffRoles,
   isMuted,
+  articleNotifMuted,
   userId,
   hubArticles,
   hubPodcasts,
@@ -106,6 +108,7 @@ export function CommunityPageClient({
                 communitySlug={community.slug}
                 isMember={isMember}
                 isMuted={isMuted}
+                articleNotifMuted={articleNotifMuted}
                 canModerate={canModerate}
                 canCreateContent={canCreateContent}
                 staffRoles={staffRoles}

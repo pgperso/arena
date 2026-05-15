@@ -3,14 +3,20 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
+import { Bell, BellOff } from 'lucide-react';
 import type { PresenceMember } from '@/hooks/usePresence';
 import { Avatar } from '@/components/ui/Avatar';
 import { StatusDot } from '@/components/ui/StatusDot';
+import { useSupabase } from '@/hooks/useSupabase';
+import { setArticleNotificationsMuted } from '@/services/notificationService';
 import { BRAND } from '@/lib/brand';
 
 interface OnlineMembersProps {
   members: PresenceMember[];
   communityName: string;
+  communityId: number;
+  userId: string | null;
+  articleNotifMuted: boolean;
   canModerate?: boolean;
   canCreateContent?: boolean;
   onModerate?: () => void;
@@ -29,6 +35,9 @@ interface OnlineMembersProps {
 export function OnlineMembers({
   members,
   communityName,
+  communityId,
+  userId,
+  articleNotifMuted,
   canModerate = false,
   canCreateContent = false,
   onModerate,
@@ -39,7 +48,24 @@ export function OnlineMembers({
 }: OnlineMembersProps) {
   const t = useTranslations('tribune');
   const tr = useTranslations('roles');
+  const tn = useTranslations('notifications');
   const botName = tr('bot');
+  const supabase = useSupabase();
+
+  // Per-tribune article-notification mute. Lets a member who only lurks
+  // here silence "new article" bell notifications without leaving.
+  const [muted, setMuted] = useState(articleNotifMuted);
+  const [savingMute, setSavingMute] = useState(false);
+
+  async function toggleMute() {
+    if (!userId || savingMute) return;
+    const next = !muted;
+    setMuted(next);
+    setSavingMute(true);
+    const { error } = await setArticleNotificationsMuted(supabase, userId, communityId, next);
+    if (error) setMuted(!next); // revert on failure
+    setSavingMute(false);
+  }
 
   const hasActions =
     (canModerate && !!onModerate) ||
@@ -66,6 +92,36 @@ export function OnlineMembers({
           {t('online', { count: members.length + 1 })}
         </p>
       </div>
+
+      {/* Per-tribune article-notification toggle — on = you get the bell
+          alert when an article is published here. */}
+      {userId && (
+        <button
+          type="button"
+          onClick={toggleMute}
+          disabled={savingMute}
+          aria-pressed={!muted}
+          className="flex w-full shrink-0 items-center justify-between gap-2 border-b border-gray-200 px-4 py-2.5 text-left transition hover:bg-gray-50 disabled:opacity-60 dark:border-gray-700 dark:hover:bg-gray-800"
+        >
+          <span className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+            {muted
+              ? <BellOff className="h-4 w-4 text-gray-400" aria-hidden="true" />
+              : <Bell className="h-4 w-4 text-brand-blue" aria-hidden="true" />}
+            {tn('muteArticlesLabel')}
+          </span>
+          <span
+            className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
+              muted ? 'bg-gray-300 dark:bg-gray-600' : 'bg-brand-blue'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${
+                muted ? 'left-0.5' : 'left-[18px]'
+              }`}
+            />
+          </span>
+        </button>
+      )}
 
       {/* Tabs: Members / Actions (only when the user has something to do) */}
       {hasActions && (

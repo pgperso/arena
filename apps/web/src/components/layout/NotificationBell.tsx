@@ -1,11 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { useSupabase } from '@/hooks/useSupabase';
 import { Avatar } from '@/components/ui/Avatar';
-import { formatTime } from '@arena/shared';
+import { formatTime, displayCommunityName } from '@arena/shared';
 import {
   fetchNotifications,
   fetchUnreadNotificationCount,
@@ -19,11 +19,14 @@ interface NotificationBellProps {
 }
 
 /**
- * Header bell icon + dropdown. Polls the unread count via Supabase Realtime
- * so the badge updates as soon as someone replies to a comment.
+ * Header bell icon + dropdown. A Supabase Realtime subscription keeps the
+ * badge live; coalesced notifications arrive as UPDATEs (not just INSERTs),
+ * so the subscription listens to every change and re-reads the authoritative
+ * unread count rather than counting events optimistically.
  */
 export function NotificationBell({ userId }: NotificationBellProps) {
   const t = useTranslations('notifications');
+  const locale = useLocale();
   const router = useRouter();
   const supabase = useSupabase();
 
@@ -48,7 +51,9 @@ export function NotificationBell({ userId }: NotificationBellProps) {
     }
   }, [supabase]);
 
-  // Initial count + realtime subscription for new notifications
+  // Initial count + realtime subscription. Coalescing means a new event on
+  // an existing unread group is an UPDATE, so we listen to '*' and let the
+  // count query be the source of truth (it counts groups, not events).
   useEffect(() => {
     refreshUnread();
     const channel = supabase
@@ -56,14 +61,13 @@ export function NotificationBell({ userId }: NotificationBellProps) {
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'notifications',
           filter: `recipient_id=eq.${userId}`,
         },
         () => {
-          setUnread((c) => c + 1);
-          // If the dropdown is open, reload so the user sees the new item
+          refreshUnread();
           if (open) loadList();
         },
       )
@@ -93,17 +97,34 @@ export function NotificationBell({ userId }: NotificationBellProps) {
     }
   }
 
+  /**
+   * Where a notification leads. Comment notifications deep-link to the
+   * highlighted comment; a single new article opens the article; a coalesced
+   * "N new articles" group opens the tribune's hub instead.
+   */
+  function targetUrl(n: NotificationItem): string | null {
+    if (!n.communitySlug) return null;
+    if (n.type === 'article_published') {
+      return n.actorCount > 1 || !n.articleSlug
+        ? `/tribunes/${n.communitySlug}`
+        : `/tribunes/${n.communitySlug}/articles/${n.articleSlug}`;
+    }
+    if (n.articleSlug) {
+      return `/tribunes/${n.communitySlug}/articles/${n.articleSlug}${
+        n.commentId ? `?commentId=${n.commentId}` : ''
+      }`;
+    }
+    return null;
+  }
+
   async function handleItemClick(notif: NotificationItem) {
     // Optimistic: drop from the unread list immediately and mark as read.
     setItems((prev) => prev.filter((n) => n.id !== notif.id));
     setUnread((c) => Math.max(c - 1, 0));
     void markNotificationRead(supabase, notif.id);
 
-    // Navigate to the article with the comment highlighted. Router from
-    // @/i18n/navigation prefixes the current locale itself — we must pass
-    // a locale-less path or we'd end up with /fr/fr/... (404).
-    if (notif.articleSlug && notif.communitySlug) {
-      const url = `/tribunes/${notif.communitySlug}/articles/${notif.articleSlug}${notif.commentId ? `?commentId=${notif.commentId}` : ''}`;
+    const url = targetUrl(notif);
+    if (url) {
       setOpen(false);
       router.push(url);
     }
@@ -113,6 +134,26 @@ export function NotificationBell({ userId }: NotificationBellProps) {
     setItems([]);
     setUnread(0);
     await markAllNotificationsRead(supabase, userId);
+  }
+
+  function labelFor(n: NotificationItem): string {
+    const labelKey =
+      n.type === 'comment_reply'
+        ? 'replyLabel'
+        : n.type === 'comment_reply_thread'
+          ? 'replyThreadLabel'
+          : n.type === 'article_published'
+            ? 'articlePublishedLabel'
+            : 'commentOnArticleLabel';
+    const community = n.communityName
+      ? displayCommunityName({ name: n.communityName, name_en: n.communityNameEn }, locale)
+      : '';
+    return t(labelKey, {
+      name: n.actorUsername ?? '—',
+      count: n.actorCount,
+      others: Math.max(n.actorCount - 1, 0),
+      community,
+    });
   }
 
   return (
@@ -167,15 +208,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
           ) : (
             <ul className="max-h-80 overflow-y-auto">
               {items.map((n) => {
-                const labelKey =
-                  n.type === 'comment_reply'
-                    ? 'replyLabel'
-                    : n.type === 'comment_reply_thread'
-                      ? 'replyThreadLabel'
-                      : n.type === 'article_published'
-                        ? 'articlePublishedLabel'
-                        : 'commentOnArticleLabel';
-                const label = t(labelKey, { name: n.actorUsername ?? '—' });
+                const hideTitle = n.type === 'article_published' && n.actorCount > 1;
                 return (
                   <li key={n.id}>
                     <button
@@ -187,15 +220,15 @@ export function NotificationBell({ userId }: NotificationBellProps) {
                       <Avatar url={n.actorAvatarUrl} name={n.actorUsername ?? '?'} size="sm" />
                       <div className="min-w-0 flex-1">
                         <p className="text-xs text-gray-700 dark:text-gray-300">
-                          {label}
+                          {labelFor(n)}
                         </p>
-                        {n.articleTitle && (
+                        {n.articleTitle && !hideTitle && (
                           <p className="mt-0.5 truncate text-xs font-medium text-gray-900 dark:text-gray-100">
                             {n.articleTitle}
                           </p>
                         )}
                         <p className="mt-0.5 text-[10px] text-gray-400">
-                          {formatTime(n.createdAt)}
+                          {formatTime(n.updatedAt)}
                         </p>
                       </div>
                       {!n.isRead && (

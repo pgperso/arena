@@ -304,10 +304,11 @@
     "title": "Notifications",
     "empty": "No notifications yet.",
     "markAllRead": "Mark all as read",
-    "replyLabel": "{name} replied to your comment",
-    "replyThreadLabel": "{name} replied in a thread you commented on",
-    "commentOnArticleLabel": "{name} commented on your article",
-    "articlePublishedLabel": "{name} published a new article"
+    "replyLabel": "{count, plural, =1 {{name} replied to your comment} other {{name} and {others} others replied to your comment}}",
+    "replyThreadLabel": "{count, plural, =1 {{name} replied in a thread you commented on} other {{name} and {others} others replied in a thread you commented on}}",
+    "commentOnArticleLabel": "{count, plural, =1 {{name} commented on your article} other {{name} and {others} others commented on your article}}",
+    "articlePublishedLabel": "{count, plural, =1 {{name} published a new article} other {# new articles in {community}}}",
+    "muteArticlesLabel": "Article notifications"
   },
   "footer": {
     "rights": "All rights reserved.",
