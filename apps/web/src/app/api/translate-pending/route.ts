@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { ORIGINAL_CONTENT_CUTOFF } from '@arena/shared';
 import { createClient } from '@/lib/supabase/server';
 
 // One Claude call per item; a batch of articles can take a while.
@@ -85,11 +86,14 @@ async function handle(request: Request) {
     let podcastsDone = 0;
 
     // ── Articles ──
+    // Only Fans Tribune's own content — legacy Zone Nordiques imports
+    // (published before the cutoff) are noindex and never translated.
     const { data: articles } = await admin
       .from('articles')
       .select('id, source_lang, title, excerpt, body')
       .eq('is_published', true)
       .eq('is_removed', false)
+      .gte('published_at', ORIGINAL_CONTENT_CUTOFF)
       .is('translated_at', null)
       .order('published_at', { ascending: false })
       .limit(ARTICLE_BATCH);
