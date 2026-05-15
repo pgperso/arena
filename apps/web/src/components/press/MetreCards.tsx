@@ -20,11 +20,12 @@ export function MetreCards() {
   const supabase = useSupabase();
   const isFr = locale === 'fr';
 
-  // Confidence index per meter — null while loading or when no votes yet.
+  // Confidence index per meter — null when there are no votes yet.
   const [averages, setAverages] = useState<Record<MetreKey, number | null>>({
     nordiquometre: null,
     exposmetre: null,
   });
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,6 +45,7 @@ export function MetreCards() {
         nordiquometre: average(nord.data as { vote: number }[] | null),
         exposmetre: average(expo.data as { vote: number }[] | null),
       });
+      setLoaded(true);
     }
 
     load();
@@ -86,9 +88,13 @@ export function MetreCards() {
           >
             {/* Live confidence index — replaces the old icon */}
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15">
-              <span className="text-base font-extrabold leading-none tabular-nums">
-                {avg === null ? '—' : `${avg}%`}
-              </span>
+              {loaded ? (
+                <span className="text-base font-extrabold leading-none tabular-nums">
+                  {avg === null ? '—' : `${avg}%`}
+                </span>
+              ) : (
+                <span className="h-4 w-8 animate-pulse rounded bg-white/30" aria-hidden="true" />
+              )}
             </span>
 
             {/* Title + tagline */}

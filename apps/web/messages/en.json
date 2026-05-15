@@ -64,6 +64,8 @@
     "confirmPassword": "Confirm password",
     "retypePassword": "Re-enter your password",
     "minChars": "Minimum 8 characters",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "passwordMismatch": "Passwords do not match.",
     "passwordTooShort": "Password must be at least 8 characters.",
     "passwordUpdated": "Password updated!",

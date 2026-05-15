@@ -6,6 +6,7 @@ import { Link } from '@/i18n/navigation';
 import { useSupabase } from '@/hooks/useSupabase';
 import { Avatar } from '@/components/ui/Avatar';
 import { MentionText } from '@/components/ui/MentionText';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { formatTime } from '@arena/shared';
 import {
   fetchArticleComments,
@@ -203,9 +204,18 @@ export function ArticleComments({
       )}
 
       {loading && (
-        <div className="flex justify-center py-8">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-blue border-t-transparent" />
-        </div>
+        <ul className="space-y-6" aria-hidden="true">
+          {[0, 1, 2].map((i) => (
+            <li key={i} className="flex gap-3">
+              <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
+              <div className="flex-1 space-y-2 pt-1">
+                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-2/3" />
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
 
       {!loading && topLevel.length === 0 && (
