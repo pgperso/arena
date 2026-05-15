@@ -867,7 +867,7 @@ export type Database = {
           id: number;
           recipient_id: string;
           actor_id: string | null;
-          type: 'comment_reply' | 'comment_reply_thread' | 'comment_on_article' | 'article_published';
+          type: 'comment_reply' | 'comment_reply_thread' | 'comment_on_article' | 'article_published' | 'chat_reply';
           article_id: number | null;
           comment_id: number | null;
           community_id: number | null;
@@ -881,7 +881,7 @@ export type Database = {
           id?: number;
           recipient_id: string;
           actor_id?: string | null;
-          type: 'comment_reply' | 'comment_reply_thread' | 'comment_on_article' | 'article_published';
+          type: 'comment_reply' | 'comment_reply_thread' | 'comment_on_article' | 'article_published' | 'chat_reply';
           article_id?: number | null;
           comment_id?: number | null;
           community_id?: number | null;
@@ -895,7 +895,7 @@ export type Database = {
           id?: number;
           recipient_id?: string;
           actor_id?: string | null;
-          type?: 'comment_reply' | 'comment_reply_thread' | 'comment_on_article' | 'article_published';
+          type?: 'comment_reply' | 'comment_reply_thread' | 'comment_on_article' | 'article_published' | 'chat_reply';
           article_id?: number | null;
           comment_id?: number | null;
           community_id?: number | null;

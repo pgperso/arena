@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 
 interface TribuneInfo {
+  id: number;
   name: string;
   slug: string;
 }

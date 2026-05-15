@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { useSupabase } from '@/hooks/useSupabase';
+import { useTribune } from '@/contexts/TribuneContext';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatTime, displayCommunityName } from '@arena/shared';
 import {
@@ -29,12 +30,20 @@ export function NotificationBell({ userId }: NotificationBellProps) {
   const locale = useLocale();
   const router = useRouter();
   const supabase = useSupabase();
+  const { tribune } = useTribune();
 
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // The realtime callback below needs the *current* tribune without
+  // re-subscribing every time the user navigates — keep it in a ref.
+  const tribuneRef = useRef(tribune);
+  useEffect(() => {
+    tribuneRef.current = tribune;
+  }, [tribune]);
 
   const refreshUnread = useCallback(async () => {
     const count = await fetchUnreadNotificationCount(supabase);
@@ -66,7 +75,28 @@ export function NotificationBell({ userId }: NotificationBellProps) {
           table: 'notifications',
           filter: `recipient_id=eq.${userId}`,
         },
-        () => {
+        (payload) => {
+          const row = payload.new as {
+            id?: number;
+            type?: string;
+            community_id?: number | null;
+            is_read?: boolean;
+          } | undefined;
+
+          // Presence suppression: a chat reply in the tribune you are
+          // currently viewing is something you can already see scroll by —
+          // silently mark it read instead of lighting up the bell.
+          if (
+            row?.type === 'chat_reply' &&
+            row.is_read === false &&
+            row.id != null &&
+            tribuneRef.current?.id != null &&
+            row.community_id === tribuneRef.current.id
+          ) {
+            void markNotificationRead(supabase, row.id);
+            return;
+          }
+
           refreshUnread();
           if (open) loadList();
         },
@@ -104,6 +134,9 @@ export function NotificationBell({ userId }: NotificationBellProps) {
    */
   function targetUrl(n: NotificationItem): string | null {
     if (!n.communitySlug) return null;
+    if (n.type === 'chat_reply') {
+      return `/tribunes/${n.communitySlug}`;
+    }
     if (n.type === 'article_published') {
       return n.actorCount > 1 || !n.articleSlug
         ? `/tribunes/${n.communitySlug}`
@@ -144,7 +177,9 @@ export function NotificationBell({ userId }: NotificationBellProps) {
           ? 'replyThreadLabel'
           : n.type === 'article_published'
             ? 'articlePublishedLabel'
-            : 'commentOnArticleLabel';
+            : n.type === 'chat_reply'
+              ? 'chatReplyLabel'
+              : 'commentOnArticleLabel';
     const community = n.communityName
       ? displayCommunityName({ name: n.communityName, name_en: n.communityNameEn }, locale)
       : '';
