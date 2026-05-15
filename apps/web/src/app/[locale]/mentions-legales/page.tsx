@@ -104,12 +104,6 @@ export default async function MentionsLegalesPage({
                       info@fanstribune.com
                     </a>
                   </li>
-                  <li>
-                    <strong>Courriel administratif&nbsp;:</strong>{' '}
-                    <a href="mailto:admin@fanstribune.com" className="text-red-600 hover:underline font-medium">
-                      admin@fanstribune.com
-                    </a>
-                  </li>
                 </ul>
               </div>
             ) : (
@@ -133,12 +127,6 @@ export default async function MentionsLegalesPage({
                     <strong>Contact email:</strong>{' '}
                     <a href="mailto:info@fanstribune.com" className="text-red-600 hover:underline font-medium">
                       info@fanstribune.com
-                    </a>
-                  </li>
-                  <li>
-                    <strong>Administrative email:</strong>{' '}
-                    <a href="mailto:admin@fanstribune.com" className="text-red-600 hover:underline font-medium">
-                      admin@fanstribune.com
                     </a>
                   </li>
                 </ul>

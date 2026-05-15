@@ -129,8 +129,8 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
                   </li>
                   <li>
                     <strong>Courriel&nbsp;:</strong>{' '}
-                    <a href="mailto:admin@fanstribune.com" className="text-red-600 hover:underline font-medium">
-                      admin@fanstribune.com
+                    <a href="mailto:info@fanstribune.com" className="text-red-600 hover:underline font-medium">
+                      info@fanstribune.com
                     </a>
                   </li>
                 </ul>
@@ -155,8 +155,8 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
                   </li>
                   <li>
                     <strong>Email:</strong>{' '}
-                    <a href="mailto:admin@fanstribune.com" className="text-red-600 hover:underline font-medium">
-                      admin@fanstribune.com
+                    <a href="mailto:info@fanstribune.com" className="text-red-600 hover:underline font-medium">
+                      info@fanstribune.com
                     </a>
                   </li>
                 </ul>
@@ -511,8 +511,8 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
                 <p>
                   Vous pouvez, à tout moment, demander de plus amples renseignements sur les transferts
                   réalisés et les garanties appliquées en écrivant à{' '}
-                  <a href="mailto:admin@fanstribune.com" className="text-red-600 hover:underline font-medium">
-                    admin@fanstribune.com
+                  <a href="mailto:info@fanstribune.com" className="text-red-600 hover:underline font-medium">
+                    info@fanstribune.com
                   </a>
                   .
                 </p>
@@ -533,8 +533,8 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
                 <p>
                   You may, at any time, request further information about transfers and the safeguards
                   applied by writing to{' '}
-                  <a href="mailto:admin@fanstribune.com" className="text-red-600 hover:underline font-medium">
-                    admin@fanstribune.com
+                  <a href="mailto:info@fanstribune.com" className="text-red-600 hover:underline font-medium">
+                    info@fanstribune.com
                   </a>
                   .
                 </p>
@@ -673,8 +673,8 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
                 </ul>
                 <p>
                   Pour exercer ces droits, écrivez à{' '}
-                  <a href="mailto:admin@fanstribune.com" className="text-red-600 hover:underline font-medium">
-                    admin@fanstribune.com
+                  <a href="mailto:info@fanstribune.com" className="text-red-600 hover:underline font-medium">
+                    info@fanstribune.com
                   </a>
                   . Nous pourrons vous demander une preuve d&apos;identité raisonnable pour protéger
                   votre compte. Nous répondons dans un délai maximal de 30 jours.
@@ -734,8 +734,8 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
                 </ul>
                 <p>
                   To exercise these rights, write to{' '}
-                  <a href="mailto:admin@fanstribune.com" className="text-red-600 hover:underline font-medium">
-                    admin@fanstribune.com
+                  <a href="mailto:info@fanstribune.com" className="text-red-600 hover:underline font-medium">
+                    info@fanstribune.com
                   </a>
                   . We may ask for reasonable proof of identity to protect your account. We respond
                   within a maximum of 30 days.
@@ -807,7 +807,7 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
                 Notre plateforme n&apos;est pas destinée aux enfants de moins de 13 ans. Nous ne
                 collectons pas sciemment de renseignements personnels auprès d&apos;enfants de moins de
                 13 ans. Si vous êtes parent ou tuteur et que vous découvrez que votre enfant nous a
-                fourni des renseignements sans votre consentement, écrivez à admin@fanstribune.com et
+                fourni des renseignements sans votre consentement, écrivez à info@fanstribune.com et
                 nous supprimerons ces informations dans les meilleurs délais.
               </p>
             ) : (
@@ -815,7 +815,7 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
                 Our platform is not intended for children under 13. We do not knowingly collect personal
                 information from children under 13. If you are a parent or guardian and become aware
                 that your child has provided information without your consent, please write to
-                admin@fanstribune.com and we will promptly delete the information.
+                info@fanstribune.com and we will promptly delete the information.
               </p>
             )}
           </section>
@@ -964,8 +964,8 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
                 Pour toute question concernant cette politique de confidentialité ou pour exercer vos
                 droits, contactez notre responsable de la protection des renseignements personnels
                 à{' '}
-                <a href="mailto:admin@fanstribune.com" className="text-red-600 hover:underline font-medium">
-                  admin@fanstribune.com
+                <a href="mailto:info@fanstribune.com" className="text-red-600 hover:underline font-medium">
+                  info@fanstribune.com
                 </a>
                 . Consultez également nos{' '}
                 <a href={`/${locale}/mentions-legales`} className="text-red-600 hover:underline font-medium">
@@ -977,8 +977,8 @@ export default async function PolitiqueConfidentialite({ params }: { params: Pro
               <p>
                 For any question about this privacy policy or to exercise your rights, contact our
                 privacy officer at{' '}
-                <a href="mailto:admin@fanstribune.com" className="text-red-600 hover:underline font-medium">
-                  admin@fanstribune.com
+                <a href="mailto:info@fanstribune.com" className="text-red-600 hover:underline font-medium">
+                  info@fanstribune.com
                 </a>
                 . Also see our{' '}
                 <a href={`/${locale}/mentions-legales`} className="text-red-600 hover:underline font-medium">
