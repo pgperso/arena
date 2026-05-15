@@ -61,6 +61,7 @@ interface VestiaireClientProps {
   authorMetrics: AuthorMetrics;
   isOwner: boolean;
   pendingPolls: Poll[];
+  scheduledPolls: Poll[];
   activePoll: Poll | null;
 }
 
@@ -74,6 +75,7 @@ export function VestiaireClient({
   authorMetrics,
   isOwner,
   pendingPolls,
+  scheduledPolls,
   activePoll,
 }: VestiaireClientProps) {
   const router = useRouter();
@@ -252,9 +254,13 @@ export function VestiaireClient({
         </div>
       </div>
 
-      {/* Poll validation — owner only */}
+      {/* Poll management — owner only */}
       {isOwner && (
-        <PollAdminPanel pendingPolls={pendingPolls} activePoll={activePoll} />
+        <PollAdminPanel
+          pendingPolls={pendingPolls}
+          scheduledPolls={scheduledPolls}
+          activePoll={activePoll}
+        />
       )}
 
       {/* Author metrics — only shown if user has published anything */}

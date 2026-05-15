@@ -5,7 +5,7 @@ import type { Database } from '@arena/supabase-client';
 // type doesn't know them yet, so queries are cast through unknown.
 type AnyClient = SupabaseClient<Database>;
 
-export type PollStatus = 'pending_review' | 'active' | 'archived' | 'rejected';
+export type PollStatus = 'pending_review' | 'scheduled' | 'active' | 'archived' | 'rejected';
 
 export interface PollOption {
   id: number;
@@ -20,6 +20,8 @@ export interface Poll {
   status: PollStatus;
   createdBy: 'ai' | 'admin';
   createdAt: string;
+  // When a scheduled poll should go live (ISO). Null for non-scheduled.
+  scheduledFor: string | null;
   options: PollOption[];
   totalVotes: number;
 }
@@ -30,6 +32,7 @@ type PollRow = {
   status: PollStatus;
   created_by: 'ai' | 'admin';
   created_at: string;
+  scheduled_for: string | null;
 };
 
 type OptionRow = {
@@ -56,49 +59,57 @@ function assemble(poll: PollRow, options: OptionRow[]): Poll {
     status: poll.status,
     createdBy: poll.created_by,
     createdAt: poll.created_at,
+    scheduledFor: poll.scheduled_for,
     options: opts,
     totalVotes: opts.reduce((s, o) => s + o.voteCount, 0),
   };
+}
+
+const POLL_SELECT = 'id, question, status, created_by, created_at, scheduled_for';
+
+/** Loads the options for a set of polls and assembles full Poll objects. */
+async function withOptions(supabase: AnyClient, polls: PollRow[]): Promise<Poll[]> {
+  if (polls.length === 0) return [];
+  const { data: optData } = await supabase
+    .from('poll_options')
+    .select('id, poll_id, label, sort_order, vote_count')
+    .in('poll_id', polls.map((p) => p.id));
+  const options = (optData ?? []) as unknown as OptionRow[];
+  return polls.map((p) => assemble(p, options));
 }
 
 /** The single poll currently shown in the gallery, or null if none. */
 export async function fetchActivePoll(supabase: AnyClient): Promise<Poll | null> {
   const { data: pollData } = await supabase
     .from('polls')
-    .select('id, question, status, created_by, created_at')
+    .select(POLL_SELECT)
     .eq('status', 'active')
     .order('activated_at', { ascending: false })
     .limit(1);
 
   const polls = (pollData ?? []) as unknown as PollRow[];
   if (polls.length === 0) return null;
-
-  const { data: optData } = await supabase
-    .from('poll_options')
-    .select('id, poll_id, label, sort_order, vote_count')
-    .eq('poll_id', polls[0].id);
-
-  return assemble(polls[0], (optData ?? []) as unknown as OptionRow[]);
+  return (await withOptions(supabase, polls))[0] ?? null;
 }
 
-/** All AI proposals awaiting the owner's validation. */
+/** AI proposals awaiting the owner's validation. */
 export async function fetchPendingPolls(supabase: AnyClient): Promise<Poll[]> {
   const { data: pollData } = await supabase
     .from('polls')
-    .select('id, question, status, created_by, created_at')
+    .select(POLL_SELECT)
     .eq('status', 'pending_review')
     .order('created_at', { ascending: false });
+  return withOptions(supabase, (pollData ?? []) as unknown as PollRow[]);
+}
 
-  const polls = (pollData ?? []) as unknown as PollRow[];
-  if (polls.length === 0) return [];
-
-  const { data: optData } = await supabase
-    .from('poll_options')
-    .select('id, poll_id, label, sort_order, vote_count')
-    .in('poll_id', polls.map((p) => p.id));
-
-  const options = (optData ?? []) as unknown as OptionRow[];
-  return polls.map((p) => assemble(p, options));
+/** Approved polls queued for publication, ordered by their go-live date. */
+export async function fetchScheduledPolls(supabase: AnyClient): Promise<Poll[]> {
+  const { data: pollData } = await supabase
+    .from('polls')
+    .select(POLL_SELECT)
+    .eq('status', 'scheduled')
+    .order('scheduled_for', { ascending: true });
+  return withOptions(supabase, (pollData ?? []) as unknown as PollRow[]);
 }
 
 /**
@@ -121,27 +132,94 @@ export async function castPollVote(
 }
 
 /**
- * Approve a pending poll: archive whatever is currently active, then
- * activate the chosen one. Owner-only (enforced by RLS).
+ * Promote the earliest scheduled poll to active — but only if nothing
+ * is currently active. Keeps the gallery from sitting empty when polls
+ * are queued. Owner-only (RLS).
  */
-export async function approvePoll(
+async function promoteIfGalleryEmpty(supabase: AnyClient): Promise<void> {
+  const { data: active } = await supabase
+    .from('polls')
+    .select('id')
+    .eq('status', 'active')
+    .limit(1);
+  if (active && active.length > 0) return;
+
+  const { data: next } = await supabase
+    .from('polls')
+    .select('id')
+    .eq('status', 'scheduled')
+    .order('scheduled_for', { ascending: true })
+    .limit(1);
+  const nextId = (next as { id: number }[] | null)?.[0]?.id;
+  if (nextId) {
+    await supabase
+      .from('polls')
+      .update({ status: 'active', activated_at: new Date().toISOString() } as never)
+      .eq('id', nextId);
+  }
+}
+
+/**
+ * Approve a pending poll into the publication queue with a go-live
+ * date. The daily rotation cron promotes it to active once the date
+ * arrives. If nothing is currently active, the earliest scheduled poll
+ * is promoted immediately so the gallery is never empty. Owner-only.
+ */
+export async function schedulePoll(
+  supabase: AnyClient,
+  pollId: number,
+  scheduledForIso: string,
+): Promise<{ error: Error | null }> {
+  const { error } = await supabase
+    .from('polls')
+    .update({ status: 'scheduled', scheduled_for: scheduledForIso } as never)
+    .eq('id', pollId);
+  if (error) return { error: new Error(error.message) };
+
+  await promoteIfGalleryEmpty(supabase);
+  return { error: null };
+}
+
+/** Change the go-live date of an already-scheduled poll. */
+export async function reschedulePoll(
+  supabase: AnyClient,
+  pollId: number,
+  scheduledForIso: string,
+): Promise<{ error: Error | null }> {
+  const { error } = await supabase
+    .from('polls')
+    .update({ scheduled_for: scheduledForIso } as never)
+    .eq('id', pollId);
+  return { error: error ? new Error(error.message) : null };
+}
+
+/** Pull a scheduled poll back out of the queue, into pending_review. */
+export async function unschedulePoll(
   supabase: AnyClient,
   pollId: number,
 ): Promise<{ error: Error | null }> {
-  const nowIso = new Date().toISOString();
+  const { error } = await supabase
+    .from('polls')
+    .update({ status: 'pending_review', scheduled_for: null } as never)
+    .eq('id', pollId);
+  return { error: error ? new Error(error.message) : null };
+}
 
+/**
+ * Retire the current active poll on demand and immediately promote the
+ * next poll in the queue. This is the "remove a poll whenever I want
+ * to replace it" action. Owner-only.
+ */
+export async function retireActivePoll(
+  supabase: AnyClient,
+): Promise<{ error: Error | null }> {
   const archive = await supabase
     .from('polls')
-    .update({ status: 'archived', archived_at: nowIso } as never)
+    .update({ status: 'archived', archived_at: new Date().toISOString() } as never)
     .eq('status', 'active');
   if (archive.error) return { error: new Error(archive.error.message) };
 
-  const activate = await supabase
-    .from('polls')
-    .update({ status: 'active', activated_at: nowIso } as never)
-    .eq('id', pollId);
-  if (activate.error) return { error: new Error(activate.error.message) };
-
+  await promoteIfGalleryEmpty(supabase);
   return { error: null };
 }
 
