@@ -4,6 +4,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { displayCommunityName } from '@arena/shared';
 import { PodcastPlayer } from '@/components/podcast/PodcastPlayer';
 import { BRAND } from '@/lib/brand';
+import { translatedField } from '@/lib/contentTranslation';
 
 export const revalidate = 300;
 
@@ -20,14 +21,21 @@ export async function generateMetadata({ params }: PodcastPageProps) {
 
   const { data: podcast } = await supabase
     .from('podcasts')
-    .select('title, description, audio_url, cover_image_url')
+    .select('title, description, audio_url, cover_image_url, source_lang, title_translated, description_translated')
     .eq('id', id)
     .eq('is_published', true)
     .single();
 
   if (!podcast) return { title: 'Podcast introuvable' };
 
-  const { title, description, audio_url, cover_image_url } = podcast as { title: string; description: string | null; audio_url: string; cover_image_url: string | null };
+  const praw = podcast as unknown as {
+    title: string; description: string | null; audio_url: string; cover_image_url: string | null;
+    source_lang: string | null; title_translated: string | null; description_translated: string | null;
+  };
+  const title = translatedField(praw.source_lang, locale, praw.title, praw.title_translated);
+  const description = translatedField(praw.source_lang, locale, praw.description, praw.description_translated);
+  const audio_url = praw.audio_url;
+  const cover_image_url = praw.cover_image_url;
   const desc = description ?? `${title} — Podcast sportif sur ${BRAND.name}. Écoutez maintenant !`;
   const url = `${BRAND.url}/${locale}/tribunes/${slug}/podcasts/${podcastId}`;
 
@@ -93,7 +101,7 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
   // Load podcast with publisher info
   const { data: podcastData } = await supabase
     .from('podcasts')
-    .select('id, community_id, published_by, title, description, audio_url, cover_image_url, duration_seconds, like_count, is_published, is_removed, created_at, members:members!podcasts_published_by_fkey(username, avatar_url)')
+    .select('id, community_id, published_by, title, description, source_lang, title_translated, description_translated, audio_url, cover_image_url, duration_seconds, like_count, is_published, is_removed, created_at, members:members!podcasts_published_by_fkey(username, avatar_url)')
     .eq('id', id)
     .eq('community_id', community.id)
     .eq('is_published', true)
@@ -101,10 +109,13 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
 
   if (!podcastData) notFound();
 
-  const podcast = podcastData as {
+  const podcast = podcastData as unknown as {
     id: number;
     title: string;
     description: string | null;
+    source_lang: string | null;
+    title_translated: string | null;
+    description_translated: string | null;
     audio_url: string;
     cover_image_url: string | null;
     duration_seconds: number | null;
@@ -115,6 +126,11 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
   };
 
   const publisher = podcast.members;
+
+  // Show the machine translation when the reader's locale differs from the
+  // language the podcast was written in.
+  const displayTitle = translatedField(podcast.source_lang, locale, podcast.title, podcast.title_translated);
+  const displayDescription = translatedField(podcast.source_lang, locale, podcast.description, podcast.description_translated);
 
   // Get current user
   const {
@@ -128,8 +144,8 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
       '@context': 'https://schema.org',
       '@type': 'PodcastEpisode',
       '@id': podcastUrl,
-      name: podcast.title,
-      description: podcast.description ?? `${podcast.title} — Podcast sportif sur ${BRAND.name}`,
+      name: displayTitle,
+      description: displayDescription ?? `${displayTitle} — Podcast sportif sur ${BRAND.name}`,
       url: podcastUrl,
       datePublished: podcast.created_at,
       inLanguage: locale === 'fr' ? 'fr-CA' : 'en-CA',
@@ -165,7 +181,7 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `${BRAND.url}/${locale}` },
         { '@type': 'ListItem', position: 2, name: communityDisplayName, item: `${BRAND.url}/${locale}/tribunes/${slug}` },
-        { '@type': 'ListItem', position: 3, name: podcast.title },
+        { '@type': 'ListItem', position: 3, name: displayTitle },
       ],
     },
   ];
@@ -177,7 +193,7 @@ export default async function PodcastPage({ params }: PodcastPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(podcastJsonLd).replace(/</g, '\\u003c') }}
       />
       <PodcastPlayer
-        podcast={{ ...podcast, publisher }}
+        podcast={{ ...podcast, title: displayTitle, description: displayDescription, publisher }}
         communitySlug={slug}
         userId={user?.id ?? null}
       />

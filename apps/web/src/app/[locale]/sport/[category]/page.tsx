@@ -125,6 +125,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             sort: 'latest',
             communityIds,
             limit: 30,
+            locale,
           })
         ).items
       : [];

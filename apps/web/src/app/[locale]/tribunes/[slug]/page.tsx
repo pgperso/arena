@@ -109,12 +109,14 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
       sort: 'latest',
       communityId: community.id,
       limit: 12,
+      locale,
     }),
     fetchPressGalleryItems(supabase, {
       filter: 'podcasts',
       sort: 'latest',
       communityId: community.id,
       limit: 6,
+      locale,
     }),
   ]);
 

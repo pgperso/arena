@@ -6,6 +6,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { formatTime, ORIGINAL_CONTENT_CUTOFF, displayCommunityName } from '@arena/shared';
 import { BRAND } from '@/lib/brand';
+import { translatedField } from '@/lib/contentTranslation';
 
 export const revalidate = 300;
 
@@ -29,6 +30,9 @@ type AuthorArticle = {
   slug: string;
   title: string;
   excerpt: string | null;
+  source_lang: string | null;
+  title_translated: string | null;
+  excerpt_translated: string | null;
   cover_image_url: string | null;
   cover_position_y: number | null;
   view_count: number;
@@ -123,7 +127,7 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
   const { data: articlesData } = await supabase
     .from('articles')
     .select(
-      'id, slug, title, excerpt, cover_image_url, cover_position_y, view_count, like_count, published_at, author_name_override, communities!inner(name, name_en, slug)',
+      'id, slug, title, excerpt, source_lang, title_translated, excerpt_translated, cover_image_url, cover_position_y, view_count, like_count, published_at, author_name_override, communities!inner(name, name_en, slug)',
     )
     .eq('author_id', member.id)
     .eq('is_published', true)
@@ -229,6 +233,8 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
                   { name: a.communities.name, name_en: a.communities.name_en },
                   locale,
                 );
+                const title = translatedField(a.source_lang, locale, a.title, a.title_translated);
+                const excerpt = translatedField(a.source_lang, locale, a.excerpt, a.excerpt_translated);
                 return (
                   <li key={a.id}>
                     <Link
@@ -239,7 +245,7 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
                         {a.cover_image_url ? (
                           <Image
                             src={a.cover_image_url}
-                            alt={a.title}
+                            alt={title}
                             fill
                             className="object-cover transition-transform duration-300 group-hover:scale-105"
                             style={{ objectPosition: `center ${a.cover_position_y ?? 50}%` }}
@@ -254,11 +260,11 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
                           {communityName}
                         </p>
                         <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 group-hover:text-brand-blue dark:text-gray-100">
-                          {a.title}
+                          {title}
                         </h3>
-                        {a.excerpt && (
+                        {excerpt && (
                           <p className="mt-2 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
-                            {a.excerpt}
+                            {excerpt}
                           </p>
                         )}
                         <div className="mt-auto pt-3 text-[11px] text-gray-400">

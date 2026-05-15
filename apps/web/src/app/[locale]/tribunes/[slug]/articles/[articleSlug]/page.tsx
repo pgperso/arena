@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
 import { isIndexableArticle, displayCommunityName } from '@arena/shared';
 import { BRAND } from '@/lib/brand';
+import { translatedField } from '@/lib/contentTranslation';
 import { ArticleView } from '@/components/article/ArticleView';
 import { RelatedArticles } from '@/components/article/RelatedArticles';
 
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 
   const { data: article } = await supabase
     .from('articles')
-    .select('title, excerpt, cover_image_url, published_at, body')
+    .select('title, excerpt, cover_image_url, published_at, body, source_lang, title_translated, excerpt_translated, body_translated')
     .eq('community_id', (community as { id: number }).id)
     .eq('slug', articleSlug)
     .eq('is_published', true)
@@ -35,8 +36,17 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 
   if (!article) return { title: 'Article introuvable' };
 
-  const { title, excerpt, cover_image_url, published_at, body } = article as { title: string; excerpt: string | null; cover_image_url: string | null; published_at: string | null; body: string };
   const { locale: loc } = await params;
+  const raw = article as unknown as {
+    title: string; excerpt: string | null; cover_image_url: string | null;
+    published_at: string | null; body: string; source_lang: string | null;
+    title_translated: string | null; excerpt_translated: string | null; body_translated: string | null;
+  };
+  const title = translatedField(raw.source_lang, loc, raw.title, raw.title_translated);
+  const excerpt = translatedField(raw.source_lang, loc, raw.excerpt, raw.excerpt_translated);
+  const body = translatedField(raw.source_lang, loc, raw.body, raw.body_translated);
+  const cover_image_url = raw.cover_image_url;
+  const published_at = raw.published_at;
   const desc = excerpt ?? `${title} — Article sportif sur ${BRAND.name}. Opinions, analyses et débats.`;
   const url = `${BRAND.url}/${loc}/tribunes/${slug}/articles/${articleSlug}`;
   const communityRow = (await supabase.from('communities').select('name, name_en').eq('slug', slug).single()).data as { name: string; name_en: string | null } | null;
@@ -117,7 +127,7 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
   // Load article with author
   const { data: articleData } = await supabase
     .from('articles')
-    .select('id, slug, title, body, excerpt, cover_image_url, cover_position_y, like_count, view_count, published_at, created_at, author_name_override, is_ai_generated, members:members!articles_author_id_fkey(id, username, first_name, last_name, avatar_url, creator_display_name, creator_avatar_url)')
+    .select('id, slug, title, body, excerpt, source_lang, title_translated, excerpt_translated, body_translated, cover_image_url, cover_position_y, like_count, view_count, published_at, created_at, author_name_override, is_ai_generated, members:members!articles_author_id_fkey(id, username, first_name, last_name, avatar_url, creator_display_name, creator_avatar_url)')
     .eq('community_id', community.id)
     .eq('slug', articleSlug)
     .eq('is_published', true)
@@ -132,6 +142,10 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
     title: string;
     body: string;
     excerpt: string | null;
+    source_lang: string | null;
+    title_translated: string | null;
+    excerpt_translated: string | null;
+    body_translated: string | null;
     cover_image_url: string | null;
     cover_position_y: number | null;
     like_count: number;
@@ -180,7 +194,14 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
   const m = article.members;
   const authorDisplayName = article.author_name_override || (m?.first_name && m?.last_name ? `${m.first_name} ${m.last_name}` : null) || m?.username || 'Inconnu';
   const articleUrl = `${BRAND.url}/${locale}/tribunes/${slug}/articles/${articleSlug}`;
-  const wordCount = article.body.replace(/<[^>]*>/g, '').split(/\s+/).length;
+
+  // Show the machine translation when the reader's locale differs from the
+  // language the article was written in (see /api/translate-pending).
+  const displayTitle = translatedField(article.source_lang, locale, article.title, article.title_translated);
+  const displayExcerpt = translatedField(article.source_lang, locale, article.excerpt, article.excerpt_translated);
+  const displayBody = translatedField(article.source_lang, locale, article.body, article.body_translated);
+
+  const wordCount = displayBody.replace(/<[^>]*>/g, '').split(/\s+/).length;
   const lang = locale === 'fr' ? 'fr-CA' : 'en-CA';
 
   const articleJsonLd = [
@@ -188,8 +209,8 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
       '@context': 'https://schema.org',
       '@type': 'NewsArticle',
       '@id': articleUrl,
-      headline: article.title,
-      description: article.excerpt ?? `${article.title} — article sportif sur ${BRAND.name}`,
+      headline: displayTitle,
+      description: displayExcerpt ?? `${displayTitle} — article sportif sur ${BRAND.name}`,
       image: article.cover_image_url ?? BRAND.logoUrl,
       datePublished: article.published_at ?? article.created_at,
       dateModified: article.published_at ?? article.created_at,
@@ -220,7 +241,7 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `${BRAND.url}/${locale}` },
         { '@type': 'ListItem', position: 2, name: communityDisplayName, item: `${BRAND.url}/${locale}/tribunes/${slug}` },
-        { '@type': 'ListItem', position: 3, name: article.title },
+        { '@type': 'ListItem', position: 3, name: displayTitle },
       ],
     },
   ];
@@ -234,6 +255,9 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
       <ArticleView
         article={{
           ...article,
+          title: displayTitle,
+          excerpt: displayExcerpt,
+          body: displayBody,
           is_ai_generated: article.is_ai_generated,
           author: article.members ? {
             id: article.members.id,
@@ -250,7 +274,7 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
         userId={user?.id ?? null}
         canModerate={canModerate}
         focusCommentId={focusCommentId}
-        showAds={isIndexableArticle(article.published_at, article.body)}
+        showAds={isIndexableArticle(article.published_at, displayBody)}
         relatedSlot={
           <RelatedArticles
             currentArticleId={article.id}

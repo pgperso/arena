@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
 import { Link } from '@/i18n/navigation';
 import { formatTime, ORIGINAL_CONTENT_CUTOFF, displayCommunityName } from '@arena/shared';
+import { translatedField } from '@/lib/contentTranslation';
 
 interface RelatedArticlesProps {
   // The article we're currently viewing — exclude it from the list.
@@ -17,6 +18,8 @@ type RelatedArticle = {
   slug: string;
   title: string;
   excerpt: string | null;
+  source_lang: string | null;
+  title_translated: string | null;
   cover_image_url: string | null;
   cover_position_y: number | null;
   published_at: string | null;
@@ -47,7 +50,7 @@ export async function RelatedArticles({
 }: RelatedArticlesProps) {
   const supabase = await createClient();
   const select =
-    'id, slug, title, excerpt, cover_image_url, cover_position_y, published_at, view_count, author_name_override, author_id, communities!inner(name, name_en, slug), members:members!articles_author_id_fkey(username, first_name, last_name)';
+    'id, slug, title, excerpt, source_lang, title_translated, cover_image_url, cover_position_y, published_at, view_count, author_name_override, author_id, communities!inner(name, name_en, slug), members:members!articles_author_id_fkey(username, first_name, last_name)';
 
   // Same-tribune candidates (most recent first), excluding the current one.
   const sameTribunePromise = supabase
@@ -110,6 +113,7 @@ export async function RelatedArticles({
               : null) ||
             a.members?.username ||
             'Inconnu';
+          const title = translatedField(a.source_lang, locale, a.title, a.title_translated);
           const href = `/tribunes/${a.communities.slug}/articles/${a.slug}`;
           const isOtherTribune = a.communities.slug !== communitySlug;
           const communityName = displayCommunityName(
@@ -126,7 +130,7 @@ export async function RelatedArticles({
                   <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-md">
                     <Image
                       src={a.cover_image_url}
-                      alt={a.title}
+                      alt={title}
                       fill
                       className="object-cover"
                       style={{ objectPosition: `center ${a.cover_position_y ?? 50}%` }}
@@ -143,7 +147,7 @@ export async function RelatedArticles({
                     </p>
                   )}
                   <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 group-hover:text-brand-blue dark:text-gray-100">
-                    {a.title}
+                    {title}
                   </h3>
                   <p className="mt-1 text-[11px] text-gray-400">
                     {authorName} · {formatTime(a.published_at ?? new Date().toISOString())}

@@ -81,7 +81,7 @@ export default async function HomePage({
 
   try {
     const [featured, communitiesRes, categoriesRes, userRes] = await Promise.all([
-      fetchFeaturedItems(supabase),
+      fetchFeaturedItems(supabase, locale),
       supabase
         .from('communities')
         .select('id, name, name_en, slug, logo_url')
@@ -123,6 +123,7 @@ export default async function HomePage({
         sort: 'latest',
         limit: 12,
         excludeArticleIds,
+        locale,
       }),
       taverne
         ? fetchPressGalleryItems(supabase, {
@@ -130,6 +131,7 @@ export default async function HomePage({
             sort: 'latest',
             communityId: taverne.id,
             limit: 6,
+            locale,
           })
         : Promise.resolve({ items: [], hasMore: false }),
     ]);

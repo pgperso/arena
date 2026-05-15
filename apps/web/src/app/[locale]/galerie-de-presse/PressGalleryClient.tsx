@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useSupabase } from '@/hooks/useSupabase';
 import { HeroSection } from '@/components/press/HeroSection';
 import { PressFilterBar } from '@/components/press/PressFilterBar';
@@ -61,6 +61,7 @@ export function PressGalleryClient({
 }: PressGalleryClientProps) {
   const t = useTranslations('pressGallery');
   const supabase = useSupabase();
+  const locale = useLocale();
 
   // Featured items are articles; exclude only their ids from the
   // article query (podcasts are a separate id space — see BUG 3 fix).
@@ -120,6 +121,7 @@ export function PressGalleryClient({
           offset: off,
           limit: PAGE_SIZE,
           excludeArticleIds: heroArticleIds,
+          locale,
         });
 
         if (controller.signal.aborted) return;
@@ -139,7 +141,7 @@ export function PressGalleryClient({
         if (!controller.signal.aborted) setLoading(false);
       }
     },
-    [supabase, heroArticleIds, t],
+    [supabase, heroArticleIds, t, locale],
   );
 
   const handleFilterChange = (f: FilterType) => {

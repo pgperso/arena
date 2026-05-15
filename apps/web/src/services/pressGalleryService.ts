@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@arena/supabase-client';
 import { ORIGINAL_CONTENT_CUTOFF } from '@arena/shared';
+import { translatedField } from '@/lib/contentTranslation';
 
 export interface PressGalleryItem {
   type: 'article' | 'podcast';
@@ -60,6 +61,9 @@ interface FetchOptions {
   // Article ids to exclude (the "featured" articles already shown in
   // the hero). Articles only — podcasts are a separate id space.
   excludeArticleIds?: number[];
+  // Viewer locale — selects the translated title/excerpt when the piece
+  // was written in another language.
+  locale: string;
 }
 
 export interface FetchResult {
@@ -94,11 +98,12 @@ function compareItems(a: PressGalleryItem, b: PressGalleryItem, sort: 'latest' |
 // than anyone scrolls into a "trending" list.
 const TRENDING_POOL = 96;
 
-const ARTICLE_SELECT = 'id, title, slug, excerpt, cover_image_url, cover_position_y, like_count, view_count, published_at, author_name_override, author_id, communities!inner(id, name, name_en, slug, logo_url), members:members!articles_author_id_fkey(username, first_name, last_name, avatar_url, creator_display_name, creator_avatar_url)';
-const PODCAST_SELECT = 'id, title, description, cover_image_url, like_count, duration_seconds, created_at, youtube_video_id, is_live, published_by, communities!inner(id, name, name_en, slug, logo_url), members:members!podcasts_published_by_fkey(username, avatar_url, creator_display_name, creator_avatar_url)';
+const ARTICLE_SELECT = 'id, title, slug, excerpt, source_lang, title_translated, excerpt_translated, cover_image_url, cover_position_y, like_count, view_count, published_at, author_name_override, author_id, communities!inner(id, name, name_en, slug, logo_url), members:members!articles_author_id_fkey(username, first_name, last_name, avatar_url, creator_display_name, creator_avatar_url)';
+const PODCAST_SELECT = 'id, title, description, source_lang, title_translated, description_translated, cover_image_url, like_count, duration_seconds, created_at, youtube_video_id, is_live, published_by, communities!inner(id, name, name_en, slug, logo_url), members:members!podcasts_published_by_fkey(username, avatar_url, creator_display_name, creator_avatar_url)';
 
 export async function fetchFeaturedItems(
   supabase: SupabaseClient<Database>,
+  locale: string,
 ): Promise<PressGalleryItem[]> {
   const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
 
@@ -120,7 +125,7 @@ export async function fetchFeaturedItems(
       const scoreB = (b as unknown as ArticleRow).view_count + (b as unknown as ArticleRow).like_count * 3;
       return scoreB - scoreA;
     });
-    return sorted.map((r) => articleToItem(r as unknown as ArticleRow));
+    return sorted.map((r) => articleToItem(r as unknown as ArticleRow, locale));
   }
 
   // Fallback: most recent 3 original articles with cover image
@@ -135,14 +140,14 @@ export async function fetchFeaturedItems(
     .limit(3);
 
   if (!fallback || fallback.length === 0) return [];
-  return fallback.map((r) => articleToItem(r as unknown as ArticleRow));
+  return fallback.map((r) => articleToItem(r as unknown as ArticleRow, locale));
 }
 
 export async function fetchPressGalleryItems(
   supabase: SupabaseClient<Database>,
   options: FetchOptions,
 ): Promise<FetchResult> {
-  const { filter, communityId, communityIds, excludeCommunityId, sort, limit, excludeArticleIds } = options;
+  const { filter, communityId, communityIds, excludeCommunityId, sort, limit, excludeArticleIds, locale } = options;
   const offset = options.offset ?? 0;
 
   // We re-fetch the whole window from row 0 and slice — so pagination
@@ -152,7 +157,7 @@ export async function fetchPressGalleryItems(
   const need = offset + limit + 1;
   const poolSize = sort === 'trending' ? Math.max(need, TRENDING_POOL) : need;
 
-  const pool = { communityId, communityIds, excludeCommunityId, sort, poolSize };
+  const pool = { communityId, communityIds, excludeCommunityId, sort, poolSize, locale };
 
   const [articles, podcasts] = await Promise.all([
     filter === 'podcasts'
@@ -177,13 +182,14 @@ interface InternalFetchOptions {
   sort: 'latest' | 'trending';
   poolSize: number;
   excludeArticleIds?: number[];
+  locale: string;
 }
 
 async function fetchArticles(
   supabase: SupabaseClient<Database>,
   options: InternalFetchOptions,
 ): Promise<PressGalleryItem[]> {
-  const { communityId, communityIds, excludeCommunityId, sort, poolSize, excludeArticleIds } = options;
+  const { communityId, communityIds, excludeCommunityId, sort, poolSize, excludeArticleIds, locale } = options;
 
   // Articles imported from the legacy Zone Nordiques archive (published
   // before ORIGINAL_CONTENT_CUTOFF) are noindex and excluded from every
@@ -216,14 +222,14 @@ async function fetchArticles(
 
   const { data } = await q.limit(poolSize);
   if (!data) return [];
-  return data.map((r) => articleToItem(r as unknown as ArticleRow));
+  return data.map((r) => articleToItem(r as unknown as ArticleRow, locale));
 }
 
 async function fetchPodcasts(
   supabase: SupabaseClient<Database>,
   options: InternalFetchOptions,
 ): Promise<PressGalleryItem[]> {
-  const { communityId, communityIds, excludeCommunityId, sort, poolSize } = options;
+  const { communityId, communityIds, excludeCommunityId, sort, poolSize, locale } = options;
 
   let q = supabase
     .from('podcasts')
@@ -243,7 +249,7 @@ async function fetchPodcasts(
 
   const { data } = await q.limit(poolSize);
   if (!data) return [];
-  return data.map((r) => podcastToItem(r as unknown as PodcastRow));
+  return data.map((r) => podcastToItem(r as unknown as PodcastRow, locale));
 }
 
 // --- Comments ---
@@ -367,6 +373,9 @@ interface ArticleRow {
   title: string;
   slug: string;
   excerpt: string | null;
+  source_lang: string | null;
+  title_translated: string | null;
+  excerpt_translated: string | null;
   cover_image_url: string | null;
   cover_position_y: number | null;
   like_count: number;
@@ -382,6 +391,9 @@ interface PodcastRow {
   id: number;
   title: string;
   description: string | null;
+  source_lang: string | null;
+  title_translated: string | null;
+  description_translated: string | null;
   cover_image_url: string | null;
   like_count: number;
   duration_seconds: number | null;
@@ -393,14 +405,14 @@ interface PodcastRow {
   members: { username: string; avatar_url: string | null; creator_display_name: string | null; creator_avatar_url: string | null } | null;
 }
 
-function articleToItem(r: ArticleRow): PressGalleryItem {
+function articleToItem(r: ArticleRow, locale: string): PressGalleryItem {
   const m = r.members;
   return {
     type: 'article',
     id: r.id,
-    title: r.title,
+    title: translatedField(r.source_lang, locale, r.title, r.title_translated),
     slug: r.slug,
-    excerpt: r.excerpt,
+    excerpt: translatedField(r.source_lang, locale, r.excerpt, r.excerpt_translated),
     description: null,
     coverImageUrl: r.cover_image_url,
     coverPositionY: r.cover_position_y ?? 50,
@@ -421,15 +433,15 @@ function articleToItem(r: ArticleRow): PressGalleryItem {
   };
 }
 
-function podcastToItem(r: PodcastRow): PressGalleryItem {
+function podcastToItem(r: PodcastRow, locale: string): PressGalleryItem {
   const m = r.members;
   return {
     type: 'podcast',
     id: r.id,
-    title: r.title,
+    title: translatedField(r.source_lang, locale, r.title, r.title_translated),
     slug: undefined,
     excerpt: null,
-    description: r.description,
+    description: translatedField(r.source_lang, locale, r.description, r.description_translated),
     coverImageUrl: r.cover_image_url,
     coverPositionY: 50,
     likeCount: r.like_count,
