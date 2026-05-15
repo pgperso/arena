@@ -3,6 +3,10 @@
     {
       "path": "/api/polls/generate",
       "schedule": "0 13 1,15 * *"
+    },
+    {
+      "path": "/api/polls/rotate",
+      "schedule": "0 8 * * *"
     }
   ]
 }
