@@ -1,14 +1,14 @@
 'use client';
 
-import Image from 'next/image';
+import { Gauge, ChevronRight } from 'lucide-react';
 import { useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 
 /**
  * Two stacked sidebar cards linking to the Nordiquomètre and Exposmètre
- * voting pages. Each card shows a thumbnail of the actual gauge so a
- * visitor instantly recognises the tool. Rendered in the gallery
- * sidebar between the poll and "Top of the week".
+ * voting pages. Horizontal layout: a Lucide gauge icon on the left, the
+ * title in bold on the right. Rendered in the gallery sidebar between
+ * the poll and "Top of the week".
  *
  * The meters used to live behind a tab inside the Nordiques / Expos
  * tribunes; surfacing them here makes them discoverable to everyone —
@@ -22,15 +22,15 @@ export function MetreCards() {
   const cards = [
     {
       href: '/nordiquometre',
-      image: '/images/nordiquometre.png',
       title: isFr ? 'Nordiquomètre' : 'Nordiquometer',
-      tagline: isFr ? 'Crois-tu au retour des Nordiques ?' : 'Will the Nordiques return?',
+      tagline: isFr ? 'Le retour des Nordiques ?' : 'Will the Nordiques return?',
+      accent: '#0B4870', // Nordiques blue
     },
     {
       href: '/exposmetre',
-      image: '/images/exposmetre.png',
       title: isFr ? 'Exposmètre' : 'Exposmeter',
-      tagline: isFr ? 'Crois-tu au retour des Expos ?' : 'Will the Expos return?',
+      tagline: isFr ? 'Le retour des Expos ?' : 'Will the Expos return?',
+      accent: '#003087', // Expos blue
     },
   ];
 
@@ -40,25 +40,32 @@ export function MetreCards() {
         <Link
           key={c.href}
           href={c.href}
-          className="group block overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] transition hover:border-brand-blue/40 hover:shadow-md"
+          className="group flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-3 transition hover:border-brand-blue/40 hover:shadow-md"
         >
-          <div className="relative aspect-[16/9] w-full bg-gray-50 dark:bg-[#181818]">
-            <Image
-              src={c.image}
-              alt={c.title}
-              fill
-              className="object-contain p-2 transition-transform duration-300 group-hover:scale-105"
-              sizes="320px"
-            />
-          </div>
-          <div className="px-4 py-3">
-            <span className="block text-sm font-bold text-gray-900 group-hover:text-brand-blue dark:text-gray-100">
+          {/* Gauge icon (Lucide) */}
+          <span
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg"
+            style={{ backgroundColor: `${c.accent}1a` }}
+            aria-hidden="true"
+          >
+            <Gauge size={24} strokeWidth={1.8} style={{ color: c.accent }} />
+          </span>
+
+          {/* Title + tagline */}
+          <span className="min-w-0">
+            <span className="block text-base font-bold leading-tight text-gray-900 group-hover:text-brand-blue dark:text-gray-100">
               {c.title}
             </span>
             <span className="block text-xs text-gray-500 dark:text-gray-400">
               {c.tagline}
             </span>
-          </div>
+          </span>
+
+          <ChevronRight
+            className="ml-auto shrink-0 text-gray-300 transition group-hover:text-brand-blue dark:text-gray-600"
+            size={18}
+            aria-hidden="true"
+          />
         </Link>
       ))}
     </div>
