@@ -6,12 +6,14 @@ import { useSupabase } from '@/hooks/useSupabase';
 import { HeroSection } from '@/components/press/HeroSection';
 import { PressFilterBar } from '@/components/press/PressFilterBar';
 import { PressContentCard } from '@/components/press/PressContentCard';
+import { PollBlock } from '@/components/press/PollBlock';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { AdSlot } from '@/components/ads/AdSlot';
 import {
   fetchPressGalleryItems,
   type PressGalleryItem,
 } from '@/services/pressGalleryService';
+import type { Poll } from '@/services/pollService';
 
 type FilterType = 'all' | 'articles' | 'podcasts';
 type SortType = 'latest' | 'trending';
@@ -32,6 +34,9 @@ interface PressGalleryClientProps {
   taverneItems: PressGalleryItem[];
   communities: Community[];
   userId: string | null;
+  // Active reader poll, rendered at the top of the sidebar above the
+  // "Top of the week" widget. Null when no poll is active.
+  poll: Poll | null;
   // Server-rendered sidebar content (e.g. "Top of the week"). Rendered
   // above the persistent sidebar ad on desktop so the SSR HTML carries
   // crawlable links to popular articles. Hidden on mobile where the
@@ -51,6 +56,7 @@ export function PressGalleryClient({
   featuredItems,
   taverneItems,
   communities,
+  poll,
   sidebarSlot,
 }: PressGalleryClientProps) {
   const t = useTranslations('pressGallery');
@@ -292,11 +298,12 @@ export function PressGalleryClient({
             )}
           </div>
 
-          {/* Sidebar — desktop only. Top of the week first (high-value
-              editorial signal + crawlable links), ad below. Sticky so it
-              follows the reader as they scroll the feed. */}
+          {/* Sidebar — desktop only. Poll first (interactive engagement
+              hook), then Top of the week, then ad. Sticky so it follows
+              the reader as they scroll the feed. */}
           <aside className="hidden w-[320px] shrink-0 lg:block">
             <div className="sticky top-24 space-y-4">
+              <PollBlock poll={poll} />
               {sidebarSlot}
               <AdSlot slotId="press-sidebar" format="half-page" />
             </div>

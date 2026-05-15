@@ -9,6 +9,7 @@ import {
 import { PressGalleryClient } from './galerie-de-presse/PressGalleryClient';
 import { CategoryNav, type CategoryNavItem } from '@/components/press/CategoryNav';
 import { TopOfWeek } from '@/components/press/TopOfWeek';
+import { fetchActivePoll, type Poll } from '@/services/pollService';
 
 export const revalidate = 300;
 
@@ -74,6 +75,7 @@ export default async function HomePage({
   let taverneItems: Awaited<ReturnType<typeof fetchPressGalleryItems>>['items'] = [];
   let communities: { id: number; name: string; name_en: string | null; slug: string; logo_url: string | null }[] = [];
   let categoryNav: CategoryNavItem[] = [];
+  let activePoll: Poll | null = null;
   let userId: string | null = null;
 
   try {
@@ -129,6 +131,10 @@ export default async function HomePage({
 
     initialResult = mainResult;
     taverneItems = taverneResult.items;
+
+    // Active reader poll for the sidebar — best-effort; a poll failure
+    // must never take the home page down.
+    activePoll = await fetchActivePoll(supabase).catch(() => null);
   } catch {
     // Graceful degradation: render with empty data
   }
@@ -195,6 +201,7 @@ export default async function HomePage({
         taverneItems={taverneItems}
         communities={communities}
         userId={userId}
+        poll={activePoll}
         sidebarSlot={<TopOfWeek locale={locale} />}
       />
     </>
