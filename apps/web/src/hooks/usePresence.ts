@@ -24,7 +24,6 @@ export function usePresence(
   avatarUrl: string | null = null,
 ): UsePresenceReturn {
   const [onlineMembers, setOnlineMembers] = useState<PresenceMember[]>([]);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const supabase = useSupabase();
 
@@ -42,29 +41,31 @@ export function usePresence(
     });
     channelRef.current = channel;
 
+    // Rebuild the member list from the full presence state. Runs on every
+    // presence event — sync, join AND leave. There is deliberately no
+    // debounce: an earlier 500ms trailing debounce could be reset forever
+    // by a steady trickle of presence events in an active tribune, leaving
+    // the list frozen and members who were genuinely there invisible.
     function syncPresence() {
-      clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        const state = channel.presenceState<{
-          memberId: string;
-          username: string;
-          avatarUrl: string | null;
-          status?: PresenceStatus;
-        }>();
-        const members: PresenceMember[] = [];
-        for (const key in state) {
-          const presences = state[key];
-          if (presences && presences.length > 0) {
-            members.push({
-              memberId: presences[0].memberId,
-              username: presences[0].username,
-              avatarUrl: presences[0].avatarUrl,
-              status: presences[0].status ?? 'online',
-            });
-          }
+      const state = channel.presenceState<{
+        memberId: string;
+        username: string;
+        avatarUrl: string | null;
+        status?: PresenceStatus;
+      }>();
+      const members: PresenceMember[] = [];
+      for (const key in state) {
+        const presences = state[key];
+        if (presences && presences.length > 0) {
+          members.push({
+            memberId: presences[0].memberId,
+            username: presences[0].username,
+            avatarUrl: presences[0].avatarUrl,
+            status: presences[0].status ?? 'online',
+          });
         }
-        setOnlineMembers(members);
-      }, 500);
+      }
+      setOnlineMembers(members);
     }
 
     function trackStatus() {
@@ -80,6 +81,8 @@ export function usePresence(
 
     channel
       .on('presence', { event: 'sync' }, syncPresence)
+      .on('presence', { event: 'join' }, syncPresence)
+      .on('presence', { event: 'leave' }, syncPresence)
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           await trackStatus();
@@ -90,7 +93,6 @@ export function usePresence(
     document.addEventListener('visibilitychange', trackStatus);
 
     return () => {
-      clearTimeout(debounceRef.current);
       document.removeEventListener('visibilitychange', trackStatus);
       channel.untrack();
       supabase.removeChannel(channel);
