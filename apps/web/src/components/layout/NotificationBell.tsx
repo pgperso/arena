@@ -134,20 +134,19 @@ export function NotificationBell({ userId }: NotificationBellProps) {
    */
   function targetUrl(n: NotificationItem): string | null {
     if (!n.communitySlug) return null;
-    if (n.type === 'chat_reply') {
-      return `/tribunes/${n.communitySlug}`;
-    }
     if (n.type === 'article_published') {
       return n.actorCount > 1 || !n.articleSlug
         ? `/tribunes/${n.communitySlug}`
         : `/tribunes/${n.communitySlug}/articles/${n.articleSlug}`;
     }
+    // Comment / article-comment mention → deep-link to the comment.
     if (n.articleSlug) {
       return `/tribunes/${n.communitySlug}/articles/${n.articleSlug}${
         n.commentId ? `?commentId=${n.commentId}` : ''
       }`;
     }
-    return null;
+    // chat_reply and chat mentions live in the tribune feed.
+    return `/tribunes/${n.communitySlug}`;
   }
 
   async function handleItemClick(notif: NotificationItem) {
@@ -179,7 +178,9 @@ export function NotificationBell({ userId }: NotificationBellProps) {
             ? 'articlePublishedLabel'
             : n.type === 'chat_reply'
               ? 'chatReplyLabel'
-              : 'commentOnArticleLabel';
+              : n.type === 'mention'
+                ? 'mentionLabel'
+                : 'commentOnArticleLabel';
     const community = n.communityName
       ? displayCommunityName({ name: n.communityName, name_en: n.communityNameEn }, locale)
       : '';

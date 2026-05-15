@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { useSupabase } from '@/hooks/useSupabase';
 import { Avatar } from '@/components/ui/Avatar';
+import { MentionText } from '@/components/ui/MentionText';
 import { formatTime } from '@arena/shared';
 import {
   fetchArticleComments,
@@ -302,7 +303,7 @@ function CommentNode({
             <span className="text-xs text-gray-400">{formatTime(comment.createdAt)}</span>
           </div>
           <p className="mt-0.5 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
-            {comment.content}
+            <MentionText text={comment.content} />
           </p>
 
           {/* Actions */}
@@ -378,7 +379,7 @@ function CommentNode({
                         </span>
                       </div>
                       <p className="mt-0.5 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
-                        {r.content}
+                        <MentionText text={r.content} />
                       </p>
                     </div>
                     {canDeleteReply && (

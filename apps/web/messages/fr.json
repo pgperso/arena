@@ -315,6 +315,7 @@
     "commentOnArticleLabel": "{count, plural, =1 {{name} a commenté ton article} other {{name} et {others} autres ont commenté ton article}}",
     "articlePublishedLabel": "{count, plural, =1 {{name} a publié un nouvel article} other {# nouveaux articles dans {community}}}",
     "chatReplyLabel": "{count, plural, =1 {{name} a répondu à ton message} other {{name} et {others} autres ont répondu à ton message}}",
+    "mentionLabel": "{count, plural, =1 {{name} t'a mentionné} other {{name} et {others} autres t'ont mentionné}}",
     "muteArticlesLabel": "Notifications d'articles"
   },
   "footer": {
