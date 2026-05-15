@@ -318,6 +318,12 @@
     "mentionLabel": "{count, plural, =1 {{name} t'a mentionné} other {{name} et {others} autres t'ont mentionné}}",
     "muteArticlesLabel": "Notifications d'articles"
   },
+  "toast": {
+    "joined": "Bienvenue dans {name} !",
+    "left": "Tu as quitté {name}.",
+    "voteSaved": "Vote enregistré !",
+    "genericError": "Une erreur est survenue. Réessaie."
+  },
   "footer": {
     "rights": "Tous droits réservés.",
     "about": "À propos",

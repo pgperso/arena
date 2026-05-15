@@ -312,6 +312,12 @@
     "mentionLabel": "{count, plural, =1 {{name} mentioned you} other {{name} and {others} others mentioned you}}",
     "muteArticlesLabel": "Article notifications"
   },
+  "toast": {
+    "joined": "Welcome to {name}!",
+    "left": "You left {name}.",
+    "voteSaved": "Vote saved!",
+    "genericError": "Something went wrong. Please try again."
+  },
   "footer": {
     "rights": "All rights reserved.",
     "about": "About",

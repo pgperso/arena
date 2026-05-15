@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter, Link } from '@/i18n/navigation';
 import Image from 'next/image';
+import { toast } from 'sonner';
 import { useSupabase } from '@/hooks/useSupabase';
 import { leaveCommunity } from '@/services/communityService';
 import { JoinTribuneModal } from '@/components/community/JoinTribuneModal';
@@ -27,6 +28,7 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
   const tc = useTranslations('community');
   const tco = useTranslations('common');
   const tp = useTranslations('pressGallery');
+  const tToast = useTranslations('toast');
   const locale = useLocale();
   const router = useRouter();
   const supabase = useSupabase();
@@ -51,7 +53,10 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
   async function handleLeave(community: CommunityRow) {
     setLeaving(true);
     const { error } = await leaveCommunity(supabase, community.id, userId);
-    if (!error) {
+    if (error) {
+      toast.error(tToast('genericError'));
+    } else {
+      toast.success(tToast('left', { name: displayCommunityName(community, locale) }));
       router.refresh();
     }
     setLeaving(false);

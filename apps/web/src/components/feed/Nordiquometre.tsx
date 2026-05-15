@@ -5,6 +5,7 @@ import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
+import { toast } from 'sonner';
 import { BRAND } from '@/lib/brand';
 import { ShareButton } from '@/components/ui/ShareButton';
 
@@ -186,6 +187,7 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
       }
     }
 
+    toast.success(locale === 'fr' ? 'Vote enregistré !' : 'Vote saved!');
     setSaving(false);
     loadData();
   }
