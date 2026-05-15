@@ -7,6 +7,7 @@ import { HeroSection } from '@/components/press/HeroSection';
 import { PressFilterBar } from '@/components/press/PressFilterBar';
 import { PressContentCard } from '@/components/press/PressContentCard';
 import { PollBlock } from '@/components/press/PollBlock';
+import { MetreCards } from '@/components/press/MetreCards';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { AdSlot } from '@/components/ads/AdSlot';
 import {
@@ -299,11 +300,13 @@ export function PressGalleryClient({
           </div>
 
           {/* Sidebar — desktop only. Poll first (interactive engagement
-              hook), then Top of the week, then ad. Sticky so it follows
-              the reader as they scroll the feed. */}
+              hook), then the Nordiquomètre / Exposmètre vote cards, then
+              Top of the week, then ad. Sticky so it follows the reader
+              as they scroll the feed. */}
           <aside className="hidden w-[320px] shrink-0 lg:block">
             <div className="sticky top-24 space-y-4">
               <PollBlock poll={poll} />
+              <MetreCards />
               {sidebarSlot}
               <AdSlot slotId="press-sidebar" format="half-page" />
             </div>

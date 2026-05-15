@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useCallback, useMemo } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { isGroupedMessage } from '@/lib/feedUtils';
@@ -16,8 +16,6 @@ import { FeedSkeleton } from './FeedSkeleton';
 import { FeedReplyBar } from './FeedReplyBar';
 import dynamic from 'next/dynamic';
 import { OnlineMembers } from '@/components/chat/OnlineMembers';
-import { Nordiquometre } from './Nordiquometre';
-import { Exposmetre } from './Exposmetre';
 import { Link } from '@/i18n/navigation';
 import { useTribune } from '@/contexts/TribuneContext';
 
@@ -54,7 +52,6 @@ export function FeedContainer({
   const router = useRouter();
   const t = useTranslations('tribune');
   const tc = useTranslations('common');
-  const locale = useLocale();
   const { user, username, avatarUrl } = useAuth();
   const {
     items,
@@ -87,9 +84,6 @@ export function FeedContainer({
   const [showArticleList, setShowArticleList] = useState(false);
   const [showPodcastEditor, setShowPodcastEditor] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'content' | 'nordiquometre' | 'exposmetre'>('chat');
-  const isNordiques = communitySlug === 'nordiques-quebec' || communitySlug === 'nordiques-de-quebec';
-  const isExpos = communitySlug === 'expos-de-montreal' || communitySlug === 'expos-montreal';
 
   // Reply state
   const [replyTarget, setReplyTarget] = useState<FeedMessageType | null>(null);
@@ -187,58 +181,6 @@ export function FeedContainer({
     <div className="flex h-full flex-col lg:flex-row">
       {/* Feed area */}
       <div className="relative flex flex-1 flex-col overflow-hidden dark:border-x dark:border-gray-700">
-        {/* Tab bar: Tribune / Contenu */}
-        <div className="flex shrink-0 gap-1 bg-gray-100 dark:bg-[#1e1e1e] px-3 py-1.5">
-          <button
-            onClick={() => setActiveTab('chat')}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
-              activeTab === 'chat'
-                ? 'bg-white dark:bg-brand-blue text-brand-blue dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 dark:bg-[#272525] hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-            </svg>
-            {t('tabTribune')}
-          </button>
-          {isNordiques && (
-            <button
-              onClick={() => setActiveTab('nordiquometre')}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
-                activeTab === 'nordiquometre'
-                  ? 'bg-white dark:bg-brand-blue text-brand-blue dark:text-white shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 dark:bg-[#272525] hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5" />
-              </svg>
-              {locale === 'fr' ? 'Nordiquomètre' : 'Nordiquometer'}
-            </button>
-          )}
-          {isExpos && (
-            <button
-              onClick={() => setActiveTab('exposmetre')}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
-                activeTab === 'exposmetre'
-                  ? 'bg-white dark:bg-brand-blue text-brand-blue dark:text-white shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 dark:bg-[#272525] hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5" />
-              </svg>
-              {locale === 'fr' ? 'Exposmètre' : 'Exposmeter'}
-            </button>
-          )}
-        </div>
-
-        {activeTab === 'nordiquometre' ? (
-          <Nordiquometre canModerate={canModerate} />
-        ) : activeTab === 'exposmetre' ? (
-          <Exposmetre canModerate={canModerate} />
-        ) : (
         <>
         {/* Live banner — small notification, click to scroll to the live card */}
         {activeLive && (
@@ -383,7 +325,6 @@ export function FeedContainer({
           </div>
         )}
         </>
-        )}
       </div>
 
       {/* Online members sidebar — permanent on lg+, slide-from-right drawer

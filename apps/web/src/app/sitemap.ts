@@ -30,6 +30,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { ...withAlternates('/politique-confidentialite'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
     { ...withAlternates('/mentions-legales'), lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
     { ...withAlternates('/normes-editoriales'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+    { ...withAlternates('/nordiquometre'), lastModified: new Date(), changeFrequency: 'daily', priority: 0.7 },
+    { ...withAlternates('/exposmetre'), lastModified: new Date(), changeFrequency: 'daily', priority: 0.7 },
   ];
 
   // Sport category hubs (/sport/hockey, /sport/baseball, ...). These are
