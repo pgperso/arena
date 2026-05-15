@@ -324,6 +324,16 @@
     "voteSaved": "Vote enregistré !",
     "genericError": "Une erreur est survenue. Réessaie."
   },
+  "errorPage": {
+    "title": "Quelque chose s'est mal passé",
+    "body": "Une erreur est survenue lors du chargement de cette page.",
+    "retry": "Réessayer"
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "body": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "home": "Retour à l'accueil"
+  },
   "footer": {
     "rights": "Tous droits réservés.",
     "about": "À propos",
