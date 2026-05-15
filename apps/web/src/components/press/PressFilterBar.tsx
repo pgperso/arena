@@ -5,7 +5,6 @@ import { displayCommunityName } from '@arena/shared';
 
 type FilterType = 'all' | 'articles' | 'podcasts';
 type SortType = 'latest' | 'trending';
-type CategoryType = 'all' | 'sport' | 'taverne';
 
 interface Community {
   id: number;
@@ -18,34 +17,32 @@ interface Community {
 interface PressFilterBarProps {
   filter: FilterType;
   sort: SortType;
-  category: CategoryType;
   communityId: number | undefined;
   communities: Community[];
   onFilterChange: (filter: FilterType) => void;
   onSortChange: (sort: SortType) => void;
-  onCategoryChange: (category: CategoryType) => void;
   onCommunityChange: (communityId: number | undefined) => void;
 }
 
+/**
+ * Gallery filter bar: content type (all / articles / podcasts), a
+ * tribune dropdown, and the sort toggle. Sport categories are NOT here
+ * — the CategoryNav strip above the gallery owns sport navigation
+ * (each sport links to its own /sport/[slug] hub). Keeping a separate
+ * vague "Sport / Taverne" pill set here only duplicated and muddied
+ * that, so it was removed.
+ */
 export function PressFilterBar({
   filter,
   sort,
-  category,
   communityId,
   communities,
   onFilterChange,
   onSortChange,
-  onCategoryChange,
   onCommunityChange,
 }: PressFilterBarProps) {
   const t = useTranslations('pressGallery');
   const locale = useLocale();
-
-  const categories: { key: CategoryType; label: string }[] = [
-    { key: 'all', label: t('all') },
-    { key: 'sport', label: t('catSport') },
-    { key: 'taverne', label: t('catTaverne') },
-  ];
 
   const types: { key: FilterType; label: string }[] = [
     { key: 'all', label: t('all') },
@@ -53,42 +50,23 @@ export function PressFilterBar({
     { key: 'podcasts', label: t('podcasts') },
   ];
 
-  // Only show community dropdown when category is 'sport' or 'all'
-  const showCommunityDropdown = category !== 'taverne';
-  // Filter communities to exclude La Taverne from dropdown
+  // La Taverne has its own dedicated section in the gallery, so it's
+  // kept out of the tribune dropdown.
   const filteredCommunities = communities.filter((c) => c.slug !== 'la-taverne');
 
   return (
     <div className="min-w-0">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        {/* Category + Type pills */}
+        {/* Type pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-          {/* Category pills */}
-          {categories.map(({ key, label }) => (
-            <button
-              key={`cat-${key}`}
-              onClick={() => onCategoryChange(key)}
-              className={`shrink-0 rounded-full px-3 py-1 text-sm font-bold transition-colors ${
-                category === key
-                  ? 'bg-brand-red text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-
-          <span className="mx-1 h-4 w-px bg-gray-300 dark:bg-gray-600 shrink-0" />
-
-          {/* Type pills */}
           {types.map(({ key, label }) => (
             <button
               key={`type-${key}`}
               onClick={() => onFilterChange(key)}
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium transition-colors ${
                 filter === key
                   ? 'bg-brand-blue text-white'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
               }`}
             >
               {label}
@@ -98,7 +76,7 @@ export function PressFilterBar({
 
         {/* Community dropdown + Sort */}
         <div className="flex min-w-0 items-center gap-2">
-          {showCommunityDropdown && filteredCommunities.length > 0 && (
+          {filteredCommunities.length > 0 && (
             <select
               value={communityId ?? ''}
               onChange={(e) =>
