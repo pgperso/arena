@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from 'next-intl';
 import { useSupabase } from '@/hooks/useSupabase';
-import { castPollVote, type Poll, type PollOption } from '@/services/pollService';
+import { castPollVote, fetchPollOptions, type Poll, type PollOption } from '@/services/pollService';
 
 interface PollBlockProps {
   poll: Poll | null;
@@ -61,6 +61,45 @@ export function PollBlock({ poll }: PollBlockProps) {
       /* storage unavailable — treat as not voted */
     }
   }, [poll]);
+
+  // The `poll` prop is frozen in the ISR-cached page, so its vote counts
+  // go stale within minutes. Re-fetch the live counts on mount and follow
+  // them in realtime, so the poll visibly accumulates votes from everyone.
+  useEffect(() => {
+    if (!poll) return;
+    let cancelled = false;
+
+    fetchPollOptions(supabase, poll.id).then((fresh) => {
+      if (!cancelled && fresh.length > 0) setOptions(fresh);
+    });
+
+    const channel = supabase
+      .channel(`poll-${poll.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'poll_options',
+          filter: `poll_id=eq.${poll.id}`,
+        },
+        (payload) => {
+          const row = payload.new as { id?: number; vote_count?: number } | undefined;
+          if (row?.id == null || row.vote_count == null) return;
+          setOptions((prev) =>
+            prev.map((o) =>
+              o.id === row.id ? { ...o, voteCount: row.vote_count as number } : o,
+            ),
+          );
+        },
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, [poll, supabase]);
 
   const handleVote = useCallback(
     async (optionId: number) => {

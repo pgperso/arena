@@ -92,6 +92,30 @@ export async function fetchActivePoll(supabase: AnyClient): Promise<Poll | null>
   return (await withOptions(supabase, polls))[0] ?? null;
 }
 
+/**
+ * Live option counts for one poll. PollBlock calls this on mount so the
+ * sidebar never shows the stale vote totals frozen into the ISR-cached
+ * page — the counts are always current as of page load.
+ */
+export async function fetchPollOptions(
+  supabase: AnyClient,
+  pollId: number,
+): Promise<PollOption[]> {
+  const { data } = await supabase
+    .from('poll_options')
+    .select('id, poll_id, label, sort_order, vote_count')
+    .eq('poll_id', pollId);
+  const rows = (data ?? []) as unknown as OptionRow[];
+  return rows
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((o) => ({
+      id: o.id,
+      label: o.label,
+      sortOrder: o.sort_order,
+      voteCount: o.vote_count,
+    }));
+}
+
 /** AI proposals awaiting the owner's validation. */
 export async function fetchPendingPolls(supabase: AnyClient): Promise<Poll[]> {
   const { data: pollData } = await supabase
