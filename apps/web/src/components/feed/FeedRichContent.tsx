@@ -14,6 +14,33 @@ const URL_REGEX = /https?:\/\/[^\s<]+[^\s<.,:;"')\]!?]/g;
 const BOLD_REGEX = /\*\*(.+?)\*\*/g;
 const ITALIC_REGEX = /(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g;
 
+// @mention — highlighted inline. Kept display-only (no link) since not
+// every member has a public page.
+const MENTION_REGEX = /@([A-Za-z0-9_]{2,30})/g;
+
+function renderMentions(text: string, baseKey: number): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let key = baseKey;
+  let match;
+  MENTION_REGEX.lastIndex = 0;
+  while ((match = MENTION_REGEX.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index));
+    }
+    nodes.push(
+      <span key={`mention-${key++}`} className="font-medium text-brand-blue">
+        @{match[1]}
+      </span>,
+    );
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+  return nodes;
+}
+
 function parseContent(text: string): React.ReactNode[] {
   const nodes: React.ReactNode[] = [];
   let lastIndex = 0;
@@ -80,7 +107,8 @@ function formatText(text: string, baseKey: number): React.ReactNode[] {
         if (j % 2 === 1) {
           nodes.push(<em key={`italic-${key++}`}>{italicParts[j]}</em>);
         } else if (italicParts[j]) {
-          nodes.push(italicParts[j]);
+          nodes.push(...renderMentions(italicParts[j], key));
+          key += 50;
         }
       }
     }

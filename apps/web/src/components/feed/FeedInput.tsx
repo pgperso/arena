@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Plus, X, SendHorizontal } from 'lucide-react';
 import Image from 'next/image';
 import { CHAT_MAX_MESSAGE_LENGTH, MAX_IMAGES_PER_MESSAGE } from '@arena/shared';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useMentionAutocomplete, type MentionMember } from '@/hooks/useMentionAutocomplete';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface FeedInputProps {
   onSend: (content: string, imageUrls?: string[]) => Promise<void>;
@@ -25,10 +27,37 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { images, uploading, addImages, removeImage, clearImages, uploadAll } = useImageUpload();
 
+  // @mention autocomplete. pendingCursorRef carries the caret position to
+  // restore after a mention is spliced into the (React-controlled) value.
+  const mention = useMentionAutocomplete(communityId);
+  const pendingCursorRef = useRef<number | null>(null);
+
   // Auto-focus when reply mode activates
   useEffect(() => {
     if (autoFocus) textareaRef.current?.focus();
   }, [autoFocus]);
+
+  // Restore the caret after a mention splice changes the value.
+  useLayoutEffect(() => {
+    if (pendingCursorRef.current != null && textareaRef.current) {
+      const pos = pendingCursorRef.current;
+      pendingCursorRef.current = null;
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(pos, pos);
+    }
+  }, [content]);
+
+  const chooseMention = useCallback(
+    (member: MentionMember) => {
+      const ta = textareaRef.current;
+      if (!ta) return;
+      const cursor = ta.selectionStart ?? content.length;
+      const { text, cursor: newCursor } = mention.apply(member, content, cursor);
+      setContent(text);
+      pendingCursorRef.current = newCursor;
+    },
+    [content, mention],
+  );
 
   // Auto-dismiss the error after 4s so it doesn't linger.
   useEffect(() => {
@@ -48,6 +77,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
 
     const savedContent = content;
     setContent('');
+    mention.reset();
     clearImages();
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -66,6 +96,16 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
   }, [content, disabled, uploading, images, userId, communityId, onSend, uploadAll, clearImages]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
+    // While the mention popup is open it owns the arrow / enter / escape keys.
+    if (mention.open) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); mention.move(1); return; }
+      if (e.key === 'ArrowUp') { e.preventDefault(); mention.move(-1); return; }
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        const m = mention.suggestions[mention.activeIndex];
+        if (m) { e.preventDefault(); chooseMention(m); return; }
+      }
+      if (e.key === 'Escape') { e.preventDefault(); mention.reset(); return; }
+    }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -76,6 +116,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
     const value = e.target.value;
     if (value.length <= CHAT_MAX_MESSAGE_LENGTH) {
       setContent(value);
+      mention.detect(value, e.target.selectionStart ?? value.length);
     }
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -111,7 +152,32 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
   const canAddMoreImages = images.length < MAX_IMAGES_PER_MESSAGE;
 
   return (
-    <div className="shrink-0 px-4 pb-4 pt-2">
+    <div className="relative shrink-0 px-4 pb-4 pt-2">
+      {/* @mention autocomplete — floats above the input */}
+      {mention.open && (
+        <div className="absolute bottom-full left-4 right-4 z-20 mb-1 max-h-52 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#272525]">
+          {mention.suggestions.map((m, i) => (
+            <button
+              key={m.id}
+              type="button"
+              onMouseDown={(e) => {
+                // Keep textarea focus so the caret splice lands correctly.
+                e.preventDefault();
+                chooseMention(m);
+              }}
+              className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition ${
+                i === mention.activeIndex
+                  ? 'bg-brand-blue/10'
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+              }`}
+            >
+              <Avatar url={m.avatarUrl} name={m.username} size="sm" />
+              <span className="truncate text-gray-900 dark:text-gray-100">@{m.username}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       <input
         ref={fileInputRef}
         type="file"
@@ -176,6 +242,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
             onChange={handleInput}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
+            onBlur={() => mention.reset()}
             disabled={disabled || uploading}
             placeholder={uploading ? t('uploadingImages') : (placeholder ?? t('writeMessage'))}
             rows={1}

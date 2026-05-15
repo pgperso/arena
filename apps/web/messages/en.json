@@ -309,6 +309,7 @@
     "commentOnArticleLabel": "{count, plural, =1 {{name} commented on your article} other {{name} and {others} others commented on your article}}",
     "articlePublishedLabel": "{count, plural, =1 {{name} published a new article} other {# new articles in {community}}}",
     "chatReplyLabel": "{count, plural, =1 {{name} replied to your message} other {{name} and {others} others replied to your message}}",
+    "mentionLabel": "{count, plural, =1 {{name} mentioned you} other {{name} and {others} others mentioned you}}",
     "muteArticlesLabel": "Article notifications"
   },
   "footer": {
