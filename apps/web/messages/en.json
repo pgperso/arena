@@ -318,6 +318,16 @@
     "voteSaved": "Vote saved!",
     "genericError": "Something went wrong. Please try again."
   },
+  "errorPage": {
+    "title": "Something went wrong",
+    "body": "An error occurred while loading this page.",
+    "retry": "Try again"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The page you're looking for doesn't exist or has been moved.",
+    "home": "Back to home"
+  },
   "footer": {
     "rights": "All rights reserved.",
     "about": "About",

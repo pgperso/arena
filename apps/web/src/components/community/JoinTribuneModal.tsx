@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { useSupabase } from '@/hooks/useSupabase';
+import { useModalA11y } from '@/hooks/useModalA11y';
 import { Avatar } from '@/components/ui/Avatar';
 import { displayCommunityName, displayCommunityDescription } from '@arena/shared';
 import Image from 'next/image';
@@ -31,6 +32,7 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
   const [communities, setCommunities] = useState<CommunityRow[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const modalRef = useModalA11y();
 
   useEffect(() => {
     async function load() {
@@ -66,6 +68,10 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="join-modal-title"
         className="mx-4 w-full max-w-md rounded-2xl bg-white dark:bg-[#1e1e1e] shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -83,7 +89,7 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
               </button>
             )}
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              <h2 id="join-modal-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 {selectedCategory
                   ? categories.find((c) => c.id === selectedCategory)?.name ?? t('community.backToTribunes')
                   : t('community.joinTitle')}
