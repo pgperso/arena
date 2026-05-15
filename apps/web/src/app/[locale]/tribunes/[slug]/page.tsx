@@ -125,10 +125,12 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
   let canModerate = false;
   let canCreateContent = false;
   let isMuted = false;
+  let articleNotifMuted = false;
 
   if (user) {
-    // Run membership, local roles, global owner check, restrictions in parallel
-    const [{ data: membership }, { data: localRoles }, { data: globalOwner }, { data: restrictions }] = await Promise.all([
+    // Run membership, local roles, global owner check, restrictions and the
+    // article-notification mute state in parallel.
+    const [{ data: membership }, { data: localRoles }, { data: globalOwner }, { data: restrictions }, { data: mutes }] = await Promise.all([
       supabase
         .from('community_members')
         .select('id')
@@ -155,6 +157,11 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
         .eq('member_id', user.id)
         .eq('restriction_type', 'chat:mute')
         .or(`ends_at.is.null,ends_at.gt.${new Date().toISOString()}`),
+      supabase
+        .from('notification_mutes')
+        .select('community_id')
+        .eq('community_id', community.id)
+        .eq('member_id', user.id),
     ]);
 
     isMember = !!membership;
@@ -170,6 +177,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
     }
 
     isMuted = ((restrictions as { id: number }[] | null)?.length ?? 0) > 0;
+    articleNotifMuted = ((mutes as unknown[] | null)?.length ?? 0) > 0;
   }
 
   // Load staff roles for rank display:
@@ -254,6 +262,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
         canModerate={canModerate}
         canCreateContent={canCreateContent}
         isMuted={isMuted}
+        articleNotifMuted={articleNotifMuted}
         userId={user?.id ?? null}
         staffRoles={staffRoles}
         hubArticles={hubArticles}

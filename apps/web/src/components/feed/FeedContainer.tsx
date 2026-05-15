@@ -32,6 +32,7 @@ interface FeedContainerProps {
   communitySlug: string;
   isMember: boolean;
   isMuted: boolean;
+  articleNotifMuted: boolean;
   canModerate: boolean;
   canCreateContent: boolean;
   staffRoles: Record<string, string>;
@@ -44,6 +45,7 @@ export function FeedContainer({
   communitySlug,
   isMember,
   isMuted,
+  articleNotifMuted,
   canModerate,
   canCreateContent,
   staffRoles,
@@ -355,6 +357,9 @@ export function FeedContainer({
         <OnlineMembers
           members={onlineMembers}
           communityName={communityName}
+          communityId={communityId}
+          userId={user?.id ?? null}
+          articleNotifMuted={articleNotifMuted}
           canModerate={canModerate}
           canCreateContent={canCreateContent}
           onModerate={canModerate && user ? () => { setShowModeration(true); setShowMembers(false); } : undefined}

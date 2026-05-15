@@ -829,36 +829,81 @@ export type Database = {
           },
         ];
       };
+      notification_mutes: {
+        Row: {
+          member_id: string;
+          community_id: number;
+          created_at: string;
+        };
+        Insert: {
+          member_id: string;
+          community_id: number;
+          created_at?: string;
+        };
+        Update: {
+          member_id?: string;
+          community_id?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_mutes_member_id_fkey';
+            columns: ['member_id'];
+            isOneToOne: false;
+            referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notification_mutes_community_id_fkey';
+            columns: ['community_id'];
+            isOneToOne: false;
+            referencedRelation: 'communities';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       notifications: {
         Row: {
           id: number;
           recipient_id: string;
           actor_id: string | null;
-          type: 'comment_reply' | 'comment_on_article';
+          type: 'comment_reply' | 'comment_reply_thread' | 'comment_on_article' | 'article_published';
           article_id: number | null;
           comment_id: number | null;
+          community_id: number | null;
+          group_key: string | null;
+          actor_count: number;
           is_read: boolean;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: number;
           recipient_id: string;
           actor_id?: string | null;
-          type: 'comment_reply' | 'comment_on_article';
+          type: 'comment_reply' | 'comment_reply_thread' | 'comment_on_article' | 'article_published';
           article_id?: number | null;
           comment_id?: number | null;
+          community_id?: number | null;
+          group_key?: string | null;
+          actor_count?: number;
           is_read?: boolean;
           created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: number;
           recipient_id?: string;
           actor_id?: string | null;
-          type?: 'comment_reply' | 'comment_on_article';
+          type?: 'comment_reply' | 'comment_reply_thread' | 'comment_on_article' | 'article_published';
           article_id?: number | null;
           comment_id?: number | null;
+          community_id?: number | null;
+          group_key?: string | null;
+          actor_count?: number;
           is_read?: boolean;
           created_at?: string;
+          updated_at?: string;
         };
         Relationships: [
           {
@@ -873,6 +918,13 @@ export type Database = {
             columns: ['actor_id'];
             isOneToOne: false;
             referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notifications_community_id_fkey';
+            columns: ['community_id'];
+            isOneToOne: false;
+            referencedRelation: 'communities';
             referencedColumns: ['id'];
           },
         ];
