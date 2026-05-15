@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { Nordiquometre } from '@/components/feed/Nordiquometre';
+import { BRAND } from '@/lib/brand';
 
 export const revalidate = 300;
 
@@ -13,12 +14,12 @@ export async function generateMetadata({
   const { locale } = await params;
   const isFr = locale === 'fr';
   const title = isFr
-    ? 'Nordiquomètre — l’indice de confiance du retour des Nordiques | La tribune des fans'
-    : 'Nordiquometer — the Nordiques return confidence index | Fans Tribune';
+    ? `Nordiquomètre — l’indice de confiance du retour des Nordiques | ${BRAND.name}`
+    : `Nordiquometer — the Nordiques return confidence index | ${BRAND.nameEn}`;
   const description = isFr
     ? 'Vote au Nordiquomètre : à quel point crois-tu au retour des Nordiques de Québec ? Sur 3 horizons (0-3, 3-5, 5-10 ans). Le pouls des partisans en direct.'
     : 'Vote on the Nordiquometer: how strongly do you believe the Quebec Nordiques will return? Across 3 horizons. The live pulse of the fans.';
-  const url = `https://fanstribune.com/${locale}/nordiquometre`;
+  const url = `${BRAND.url}/${locale}/nordiquometre`;
   return {
     title,
     description,
@@ -27,17 +28,17 @@ export async function generateMetadata({
       description,
       type: 'website',
       url,
-      siteName: 'La tribune des fans',
+      siteName: BRAND.name,
       locale: isFr ? 'fr_CA' : 'en_CA',
-      images: [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'Nordiquomètre', width: 512, height: 512 }],
+      images: [{ url: BRAND.logoUrl, alt: 'Nordiquomètre', width: BRAND.logoWidth, height: BRAND.logoHeight }],
     },
     twitter: { card: 'summary_large_image', title, description },
     alternates: {
       canonical: url,
       languages: {
-        'fr-CA': 'https://fanstribune.com/fr/nordiquometre',
-        'en-CA': 'https://fanstribune.com/en/nordiquometre',
-        'x-default': 'https://fanstribune.com/fr/nordiquometre',
+        'fr-CA': `${BRAND.url}/fr/nordiquometre`,
+        'en-CA': `${BRAND.url}/en/nordiquometre`,
+        'x-default': `${BRAND.url}/fr/nordiquometre`,
       },
     },
     robots: { index: true, follow: true, 'max-snippet': -1, 'max-image-preview': 'large' },

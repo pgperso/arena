@@ -1,4 +1,5 @@
 import { setRequestLocale } from 'next-intl/server';
+import { BRAND } from '@/lib/brand';
 import type { Metadata } from 'next';
 
 export const revalidate = 86400;
@@ -7,12 +8,12 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const isFr = locale === 'fr';
   const title = isFr
-    ? 'Normes éditoriales | La tribune des fans'
-    : 'Editorial Standards | Fans Tribune';
+    ? `Normes éditoriales | ${BRAND.name}`
+    : `Editorial Standards | ${BRAND.nameEn}`;
   const description = isFr
-    ? 'Notre politique éditoriale, nos standards de qualité, le processus de correction et la divulgation du contenu assisté par IA sur La tribune des fans.'
-    : 'Our editorial policy, quality standards, corrections process and AI-assisted content disclosure at Fans Tribune.';
-  const url = `https://fanstribune.com/${locale}/normes-editoriales`;
+    ? `Notre politique éditoriale, nos standards de qualité, le processus de correction et la divulgation du contenu assisté par IA sur ${BRAND.name}.`
+    : `Our editorial policy, quality standards, corrections process and AI-assisted content disclosure at ${BRAND.nameEn}.`;
+  const url = `${BRAND.url}/${locale}/normes-editoriales`;
   return {
     title,
     description,
@@ -20,17 +21,17 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       title,
       description,
       url,
-      siteName: 'La tribune des fans',
+      siteName: BRAND.name,
       type: 'website',
       locale: isFr ? 'fr_CA' : 'en_CA',
-      images: [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 }],
+      images: [{ url: BRAND.logoUrl, alt: BRAND.name, width: BRAND.logoWidth, height: BRAND.logoHeight }],
     },
     alternates: {
       canonical: url,
       languages: {
-        'fr-CA': 'https://fanstribune.com/fr/normes-editoriales',
-        'en-CA': 'https://fanstribune.com/en/normes-editoriales',
-        'x-default': 'https://fanstribune.com/fr/normes-editoriales',
+        'fr-CA': `${BRAND.url}/fr/normes-editoriales`,
+        'en-CA': `${BRAND.url}/en/normes-editoriales`,
+        'x-default': `${BRAND.url}/fr/normes-editoriales`,
       },
     },
     robots: {
@@ -54,21 +55,21 @@ export default async function EditorialStandardsPage({
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
     name: isFr ? 'Normes éditoriales' : 'Editorial Standards',
-    url: `https://fanstribune.com/${locale}/normes-editoriales`,
+    url: `${BRAND.url}/${locale}/normes-editoriales`,
     inLanguage: isFr ? 'fr-CA' : 'en-CA',
     publisher: {
       '@type': 'NewsMediaOrganization',
-      name: 'La tribune des fans',
-      url: 'https://fanstribune.com',
+      name: BRAND.name,
+      url: BRAND.url,
       logo: {
         '@type': 'ImageObject',
-        url: 'https://fanstribune.com/images/fanstribune.webp',
-        width: 512,
-        height: 512,
+        url: BRAND.logoUrl,
+        width: BRAND.logoWidth,
+        height: BRAND.logoHeight,
       },
-      ethicsPolicy: `https://fanstribune.com/${locale}/normes-editoriales`,
-      diversityPolicy: `https://fanstribune.com/${locale}/normes-editoriales`,
-      correctionsPolicy: `https://fanstribune.com/${locale}/normes-editoriales`,
+      ethicsPolicy: `${BRAND.url}/${locale}/normes-editoriales`,
+      diversityPolicy: `${BRAND.url}/${locale}/normes-editoriales`,
+      correctionsPolicy: `${BRAND.url}/${locale}/normes-editoriales`,
     },
   };
 

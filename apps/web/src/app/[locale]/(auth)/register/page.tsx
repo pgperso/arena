@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { RegisterForm } from '@/components/auth/RegisterForm';
+import { BRAND } from '@/lib/brand';
 
 export const metadata: Metadata = {
   title: 'Inscription',
-  description: 'Créez votre compte sur La tribune des fans et rejoignez la communauté sportive.',
+  description: `Créez votre compte sur ${BRAND.name} et rejoignez la communauté sportive.`,
   robots: { index: false, follow: false },
 };
 

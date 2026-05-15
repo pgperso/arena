@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { Exposmetre } from '@/components/feed/Exposmetre';
+import { BRAND } from '@/lib/brand';
 
 export const revalidate = 300;
 
@@ -13,12 +14,12 @@ export async function generateMetadata({
   const { locale } = await params;
   const isFr = locale === 'fr';
   const title = isFr
-    ? 'Exposmètre — l’indice de confiance du retour des Expos | La tribune des fans'
-    : 'Exposmeter — the Expos return confidence index | Fans Tribune';
+    ? `Exposmètre — l’indice de confiance du retour des Expos | ${BRAND.name}`
+    : `Exposmeter — the Expos return confidence index | ${BRAND.nameEn}`;
   const description = isFr
     ? 'Vote à l’Exposmètre : à quel point crois-tu au retour des Expos de Montréal ? Sur 3 horizons (0-3, 3-5, 5-10 ans). Le pouls des partisans en direct.'
     : 'Vote on the Exposmeter: how strongly do you believe the Montreal Expos will return? Across 3 horizons. The live pulse of the fans.';
-  const url = `https://fanstribune.com/${locale}/exposmetre`;
+  const url = `${BRAND.url}/${locale}/exposmetre`;
   return {
     title,
     description,
@@ -27,17 +28,17 @@ export async function generateMetadata({
       description,
       type: 'website',
       url,
-      siteName: 'La tribune des fans',
+      siteName: BRAND.name,
       locale: isFr ? 'fr_CA' : 'en_CA',
-      images: [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'Exposmètre', width: 512, height: 512 }],
+      images: [{ url: BRAND.logoUrl, alt: 'Exposmètre', width: BRAND.logoWidth, height: BRAND.logoHeight }],
     },
     twitter: { card: 'summary_large_image', title, description },
     alternates: {
       canonical: url,
       languages: {
-        'fr-CA': 'https://fanstribune.com/fr/exposmetre',
-        'en-CA': 'https://fanstribune.com/en/exposmetre',
-        'x-default': 'https://fanstribune.com/fr/exposmetre',
+        'fr-CA': `${BRAND.url}/fr/exposmetre`,
+        'en-CA': `${BRAND.url}/en/exposmetre`,
+        'x-default': `${BRAND.url}/fr/exposmetre`,
       },
     },
     robots: { index: true, follow: true, 'max-snippet': -1, 'max-image-preview': 'large' },

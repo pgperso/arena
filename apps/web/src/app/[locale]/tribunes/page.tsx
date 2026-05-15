@@ -3,6 +3,7 @@ import { redirect } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
 import { TribunesClient } from './TribunesClient';
+import { BRAND } from '@/lib/brand';
 import type { Database } from '@arena/supabase-client';
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'];
@@ -15,8 +16,8 @@ export async function generateMetadata({
   const { locale } = await params;
   const isFr = locale === 'fr';
   const title = isFr
-    ? 'Mes tribunes | La tribune des fans'
-    : 'My tribunes | Fans Tribune';
+    ? `Mes tribunes | ${BRAND.name}`
+    : `My tribunes | ${BRAND.nameEn}`;
   const description = isFr
     ? 'Accédez à vos tribunes sportives et rejoignez de nouvelles communautés.'
     : 'Access your sports tribunes and join new communities.';
@@ -28,23 +29,23 @@ export async function generateMetadata({
       title,
       description,
       type: 'website',
-      url: `https://fanstribune.com/${locale}/tribunes`,
-      siteName: 'La tribune des fans',
+      url: `${BRAND.url}/${locale}/tribunes`,
+      siteName: BRAND.name,
       locale: isFr ? 'fr_CA' : 'en_CA',
-      images: [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 }],
+      images: [{ url: BRAND.logoUrl, alt: BRAND.name, width: BRAND.logoWidth, height: BRAND.logoHeight }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: ['https://fanstribune.com/images/fanstribune.webp'],
+      images: [BRAND.logoUrl],
     },
     alternates: {
-      canonical: `https://fanstribune.com/${locale}/tribunes`,
+      canonical: `${BRAND.url}/${locale}/tribunes`,
       languages: {
-        'fr-CA': 'https://fanstribune.com/fr/tribunes',
-        'en-CA': 'https://fanstribune.com/en/tribunes',
-        'x-default': 'https://fanstribune.com/fr/tribunes',
+        'fr-CA': `${BRAND.url}/fr/tribunes`,
+        'en-CA': `${BRAND.url}/en/tribunes`,
+        'x-default': `${BRAND.url}/fr/tribunes`,
       },
     },
     robots: { index: false, follow: false },

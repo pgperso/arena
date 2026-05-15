@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server';
 import { displayCommunityName, displayCommunityDescription } from '@arena/shared';
 import { fetchPressGalleryItems } from '@/services/pressGalleryService';
 import { PressContentCard } from '@/components/press/PressContentCard';
+import { BRAND } from '@/lib/brand';
 
 export const revalidate = 300;
 
@@ -54,12 +55,12 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   const name = displayCategoryName(cat, locale);
   const isFr = locale === 'fr';
   const title = isFr
-    ? `${name} — Actualités, analyses et tribunes | La tribune des fans`
-    : `${name} — News, analysis and tribunes | Fans Tribune`;
+    ? `${name} — Actualités, analyses et tribunes | ${BRAND.name}`
+    : `${name} — News, analysis and tribunes | ${BRAND.nameEn}`;
   const description = isFr
     ? `Tout sur le ${name.toLowerCase()} au Québec et au Canada : actualités, chroniques, podcasts, débats et tribunes communautaires.`
     : `Everything ${name}: news, columns, podcasts, debates and community tribunes from Quebec and Canada.`;
-  const url = `https://fanstribune.com/${locale}/sport/${categorySlug}`;
+  const url = `${BRAND.url}/${locale}/sport/${categorySlug}`;
 
   return {
     title,
@@ -69,17 +70,17 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       description,
       type: 'website',
       url,
-      siteName: 'La tribune des fans',
+      siteName: BRAND.name,
       locale: isFr ? 'fr_CA' : 'en_CA',
-      images: [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: name, width: 512, height: 512 }],
+      images: [{ url: BRAND.logoUrl, alt: name, width: BRAND.logoWidth, height: BRAND.logoHeight }],
     },
     twitter: { card: 'summary_large_image', title, description },
     alternates: {
       canonical: url,
       languages: {
-        'fr-CA': `https://fanstribune.com/fr/sport/${categorySlug}`,
-        'en-CA': `https://fanstribune.com/en/sport/${categorySlug}`,
-        'x-default': `https://fanstribune.com/fr/sport/${categorySlug}`,
+        'fr-CA': `${BRAND.url}/fr/sport/${categorySlug}`,
+        'en-CA': `${BRAND.url}/en/sport/${categorySlug}`,
+        'x-default': `${BRAND.url}/fr/sport/${categorySlug}`,
       },
     },
     robots: { index: true, follow: true, 'max-snippet': -1, 'max-image-preview': 'large' },
@@ -130,31 +131,31 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   const categoryName = displayCategoryName(category, locale);
   const isFr = locale === 'fr';
-  const url = `https://fanstribune.com/${locale}/sport/${categorySlug}`;
+  const url = `${BRAND.url}/${locale}/sport/${categorySlug}`;
 
   const jsonLd = [
     {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
       '@id': url,
-      name: `${categoryName} | La tribune des fans`,
+      name: `${categoryName} | ${BRAND.name}`,
       description: isFr
-        ? `Actualités et tribunes ${categoryName} sur La tribune des fans.`
-        : `${categoryName} news and tribunes on Fans Tribune.`,
+        ? `Actualités et tribunes ${categoryName} sur ${BRAND.name}.`
+        : `${categoryName} news and tribunes on ${BRAND.nameEn}.`,
       url,
       inLanguage: isFr ? 'fr-CA' : 'en-CA',
       publisher: {
         '@type': 'NewsMediaOrganization',
-        name: 'La tribune des fans',
-        url: 'https://fanstribune.com',
-        logo: { '@type': 'ImageObject', url: 'https://fanstribune.com/images/fanstribune.webp', width: 512, height: 512 },
+        name: BRAND.name,
+        url: BRAND.url,
+        logo: { '@type': 'ImageObject', url: BRAND.logoUrl, width: BRAND.logoWidth, height: BRAND.logoHeight },
       },
       mainEntity: {
         '@type': 'ItemList',
         itemListElement: articles.map((a, idx) => ({
           '@type': 'ListItem',
           position: idx + 1,
-          url: `https://fanstribune.com/${locale}/tribunes/${a.communitySlug}/articles/${a.slug}`,
+          url: `${BRAND.url}/${locale}/tribunes/${a.communitySlug}/articles/${a.slug}`,
           name: a.title,
         })),
       },
@@ -163,7 +164,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: isFr ? 'Accueil' : 'Home', item: `https://fanstribune.com/${locale}` },
+        { '@type': 'ListItem', position: 1, name: isFr ? 'Accueil' : 'Home', item: `${BRAND.url}/${locale}` },
         { '@type': 'ListItem', position: 2, name: categoryName, item: url },
       ],
     },
