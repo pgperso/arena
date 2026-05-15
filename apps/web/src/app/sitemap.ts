@@ -1,10 +1,11 @@
 import type { MetadataRoute } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { ORIGINAL_CONTENT_CUTOFF, MIN_QUALITY_WORD_COUNT, countWords } from '@arena/shared';
+import { BRAND } from '@/lib/brand';
 
 export const revalidate = 3600;
 
-const BASE_URL = 'https://fanstribune.com';
+const BASE_URL = BRAND.url;
 
 function withAlternates(path: string) {
   return {

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { BRAND } from '@/lib/brand';
 import './globals.css';
 
 const inter = Inter({
@@ -8,13 +9,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://fanstribune.com'),
+  metadataBase: new URL(BRAND.url),
   title: {
-    default: 'La tribune des fans - Sports, actualités et plein d\'autres patentes',
-    template: '%s | La tribune des fans',
+    default: `${BRAND.name} - Sports, actualités et plein d'autres patentes`,
+    template: `%s | ${BRAND.name}`,
   },
   description:
-    'La tribune des fans : sports, actualités et plein d\'autres patentes. Articles d\'opinion, podcasts, chat en direct et débats. La communauté #1 des fans au Québec.',
+    `${BRAND.name} : sports, actualités et plein d'autres patentes. Articles d'opinion, podcasts, chat en direct et débats. La communauté #1 des fans au Québec.`,
   keywords: [
     'tribune sportive', 'chat sport en direct', 'communauté fans hockey',
     'forum hockey', 'forum baseball', 'forum football', 'forum golf', 'PGA Tour fans',
@@ -22,28 +23,28 @@ export const metadata: Metadata = {
     'opinion sportive', 'chronique sport', 'podcast sport québec',
     'article hockey', 'débat sportif', 'chat fans sport',
     'actualité québec', 'opinion politique', 'chronique actualité',
-    'La tribune des fans', 'fanstribune',
+    BRAND.name, BRAND.domain.split('.')[0],
     'sports community', 'live sports chat', 'sports fan forum',
   ],
-  authors: [{ name: 'La tribune des fans', url: 'https://fanstribune.com' }],
-  creator: 'La tribune des fans',
-  publisher: 'La tribune des fans',
+  authors: [{ name: BRAND.name, url: BRAND.url }],
+  creator: BRAND.name,
+  publisher: BRAND.name,
   openGraph: {
     type: 'website',
     locale: 'fr_CA',
     alternateLocale: 'en_CA',
-    siteName: 'La tribune des fans',
-    title: 'La tribune des fans - Sports, actualités et plein d\'autres patentes',
+    siteName: BRAND.name,
+    title: `${BRAND.name} - Sports, actualités et plein d'autres patentes`,
     description:
       'Articles d\'opinion, podcasts, chat en direct et débats. Sports, actualités et plein d\'autres patentes.',
-    images: [{ url: '/images/fanstribune.webp', width: 512, height: 512, alt: 'La tribune des fans' }],
+    images: [{ url: BRAND.logo, width: BRAND.logoWidth, height: BRAND.logoHeight, alt: BRAND.name }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'La tribune des fans - Sports, actualités et plein d\'autres patentes',
+    title: `${BRAND.name} - Sports, actualités et plein d'autres patentes`,
     description:
       'Articles d\'opinion, podcasts, chat en direct et débats. Sports, actualités et plein d\'autres patentes.',
-    images: ['/images/fanstribune.webp'],
+    images: [BRAND.logo],
   },
   robots: {
     index: true,
@@ -58,10 +59,10 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   alternates: {
-    canonical: 'https://fanstribune.com',
+    canonical: BRAND.url,
     languages: {
-      'fr-CA': 'https://fanstribune.com/fr',
-      'en-CA': 'https://fanstribune.com/en',
+      'fr-CA': `${BRAND.url}/fr`,
+      'en-CA': `${BRAND.url}/en`,
     },
   },
   category: 'sports',

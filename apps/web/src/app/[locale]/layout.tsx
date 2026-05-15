@@ -7,16 +7,17 @@ import { TribuneProvider } from '@/contexts/TribuneContext';
 import { AdSenseLoader } from '@/components/ads/AdSenseLoader';
 import { CookieConsent } from '@/components/ui/CookieConsent';
 import { routing } from '@/i18n/routing';
+import { BRAND } from '@/lib/brand';
 
 const jsonLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'SportsOrganization',
-    name: 'La tribune des fans',
-    url: 'https://fanstribune.com',
-    logo: 'https://fanstribune.com/images/fanstribune.webp',
+    name: BRAND.name,
+    url: BRAND.url,
+    logo: BRAND.logoUrl,
     description: 'Plateforme communautaire sportive en direct : chat, articles et podcasts pour les fans de hockey, baseball, football et plus.',
-    sameAs: ['https://x.com/fanstribune'],
+    sameAs: [BRAND.twitterUrl],
     contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', email: 'info@fanstribune.com' },
     foundingDate: '2026',
     sport: ['Hockey', 'Baseball', 'Football', 'Basketball', 'Soccer', 'Golf'],
@@ -24,12 +25,12 @@ const jsonLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'La tribune des fans',
-    url: 'https://fanstribune.com',
+    name: BRAND.name,
+    url: BRAND.url,
     inLanguage: ['fr-CA', 'en-CA'],
     potentialAction: {
       '@type': 'SearchAction',
-      target: 'https://fanstribune.com/fr/tribunes/{search_term_string}',
+      target: `${BRAND.url}/fr/tribunes/{search_term_string}`,
       'query-input': 'required name=search_term_string',
     },
   },
@@ -39,10 +40,10 @@ const jsonLd = [
     mainEntity: [
       {
         '@type': 'Question',
-        name: "C'est quoi La tribune des fans ?",
+        name: `C'est quoi ${BRAND.name} ?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: "La tribune des fans est une plateforme communautaire sportive en direct. Rejoignez des tribunes dédiées à vos équipes favorites pour chatter en temps réel, lire des articles et écouter des podcasts.",
+          text: `${BRAND.name} est une plateforme communautaire sportive en direct. Rejoignez des tribunes dédiées à vos équipes favorites pour chatter en temps réel, lire des articles et écouter des podcasts.`,
         },
       },
       {
@@ -50,15 +51,15 @@ const jsonLd = [
         name: 'Comment rejoindre une tribune sportive ?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: "Créez un compte gratuit sur fanstribune.com, puis accédez à la liste des tribunes disponibles. Cliquez sur 'Rejoindre' pour intégrer la tribune de votre équipe favorite.",
+          text: `Créez un compte gratuit sur ${BRAND.domain}, puis accédez à la liste des tribunes disponibles. Cliquez sur 'Rejoindre' pour intégrer la tribune de votre équipe favorite.`,
         },
       },
       {
         '@type': 'Question',
-        name: 'Est-ce que La tribune des fans est gratuit ?',
+        name: `Est-ce que ${BRAND.name} est gratuit ?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: "Oui, La tribune des fans est entièrement gratuit. Vous pouvez rejoindre des tribunes, chatter, lire des articles et écouter des podcasts sans frais.",
+          text: `Oui, ${BRAND.name} est entièrement gratuit. Vous pouvez rejoindre des tribunes, chatter, lire des articles et écouter des podcasts sans frais.`,
         },
       },
     ],
@@ -85,7 +86,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <head>
-        <link rel="alternate" type="application/rss+xml" title="La tribune des fans" href="/feed.xml" />
+        <link rel="alternate" type="application/rss+xml" title={BRAND.name} href="/feed.xml" />
         <link rel="preconnect" href="https://fjcgfjgqzkswdmazkvlx.supabase.co" />
         <link rel="dns-prefetch" href="https://fjcgfjgqzkswdmazkvlx.supabase.co" />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
