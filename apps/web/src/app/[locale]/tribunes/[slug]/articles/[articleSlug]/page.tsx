@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
 import { isIndexableArticle, displayCommunityName } from '@arena/shared';
+import { BRAND } from '@/lib/brand';
 import { ArticleView } from '@/components/article/ArticleView';
 import { RelatedArticles } from '@/components/article/RelatedArticles';
 
@@ -36,8 +37,8 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 
   const { title, excerpt, cover_image_url, published_at, body } = article as { title: string; excerpt: string | null; cover_image_url: string | null; published_at: string | null; body: string };
   const { locale: loc } = await params;
-  const desc = excerpt ?? `${title} — Article sportif sur La tribune des fans. Opinions, analyses et débats.`;
-  const url = `https://fanstribune.com/${loc}/tribunes/${slug}/articles/${articleSlug}`;
+  const desc = excerpt ?? `${title} — Article sportif sur ${BRAND.name}. Opinions, analyses et débats.`;
+  const url = `${BRAND.url}/${loc}/tribunes/${slug}/articles/${articleSlug}`;
   const communityRow = (await supabase.from('communities').select('name, name_en').eq('slug', slug).single()).data as { name: string; name_en: string | null } | null;
   const communityName = communityRow ? displayCommunityName(communityRow, loc) : null;
 
@@ -49,35 +50,35 @@ export async function generateMetadata({ params }: ArticlePageProps) {
       communityName,
       `${communityName ?? ''} fans`,
       'article sportif', 'chronique sport', 'opinion sport',
-      'tribune sportive', 'La tribune des fans', 'fanstribune',
+      'tribune sportive', BRAND.name, BRAND.domain.split('.')[0],
       'analyse sport', 'débat sportif',
     ].filter(Boolean) as string[],
     openGraph: {
-      title: `${title} | La tribune des fans`,
+      title: `${title} | ${BRAND.name}`,
       description: desc,
       type: 'article',
       publishedTime: published_at ?? undefined,
       section: 'Sports',
       tags: [communityName ?? 'Sports', 'Opinion', 'Tribune'],
       url,
-      siteName: 'La tribune des fans',
+      siteName: BRAND.name,
       locale: loc === 'fr' ? 'fr_CA' : 'en_CA',
       images: cover_image_url
         ? [{ url: cover_image_url, alt: title, width: 1200, height: 630 }]
-        : [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 }],
+        : [{ url: BRAND.logoUrl, alt: BRAND.name, width: BRAND.logoWidth, height: BRAND.logoHeight }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${title} | La tribune des fans`,
+      title: `${title} | ${BRAND.name}`,
       description: desc,
-      images: cover_image_url ? [cover_image_url] : ['https://fanstribune.com/images/fanstribune.webp'],
-      site: '@fanstribune',
+      images: cover_image_url ? [cover_image_url] : [BRAND.logoUrl],
+      site: BRAND.twitterHandle,
     },
     alternates: {
       canonical: url,
       languages: {
-        'fr-CA': `https://fanstribune.com/fr/tribunes/${slug}/articles/${articleSlug}`,
-        'en-CA': `https://fanstribune.com/en/tribunes/${slug}/articles/${articleSlug}`,
+        'fr-CA': `${BRAND.url}/fr/tribunes/${slug}/articles/${articleSlug}`,
+        'en-CA': `${BRAND.url}/en/tribunes/${slug}/articles/${articleSlug}`,
       },
     },
     robots: {
@@ -178,7 +179,7 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
 
   const m = article.members;
   const authorDisplayName = article.author_name_override || (m?.first_name && m?.last_name ? `${m.first_name} ${m.last_name}` : null) || m?.username || 'Inconnu';
-  const articleUrl = `https://fanstribune.com/${locale}/tribunes/${slug}/articles/${articleSlug}`;
+  const articleUrl = `${BRAND.url}/${locale}/tribunes/${slug}/articles/${articleSlug}`;
   const wordCount = article.body.replace(/<[^>]*>/g, '').split(/\s+/).length;
   const lang = locale === 'fr' ? 'fr-CA' : 'en-CA';
 
@@ -188,8 +189,8 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
       '@type': 'NewsArticle',
       '@id': articleUrl,
       headline: article.title,
-      description: article.excerpt ?? `${article.title} — article sportif sur La tribune des fans`,
-      image: article.cover_image_url ?? 'https://fanstribune.com/images/fanstribune.webp',
+      description: article.excerpt ?? `${article.title} — article sportif sur ${BRAND.name}`,
+      image: article.cover_image_url ?? BRAND.logoUrl,
       datePublished: article.published_at ?? article.created_at,
       dateModified: article.published_at ?? article.created_at,
       url: articleUrl,
@@ -199,9 +200,9 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
       inLanguage: lang,
       publisher: {
         '@type': 'Organization',
-        name: 'La tribune des fans',
-        url: 'https://fanstribune.com',
-        logo: { '@type': 'ImageObject', url: 'https://fanstribune.com/images/fanstribune.webp', width: 512, height: 512 },
+        name: BRAND.name,
+        url: BRAND.url,
+        logo: { '@type': 'ImageObject', url: BRAND.logoUrl, width: BRAND.logoWidth, height: BRAND.logoHeight },
       },
       author: {
         '@type': 'Person',
@@ -217,8 +218,8 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `https://fanstribune.com/${locale}` },
-        { '@type': 'ListItem', position: 2, name: communityDisplayName, item: `https://fanstribune.com/${locale}/tribunes/${slug}` },
+        { '@type': 'ListItem', position: 1, name: locale === 'fr' ? 'Accueil' : 'Home', item: `${BRAND.url}/${locale}` },
+        { '@type': 'ListItem', position: 2, name: communityDisplayName, item: `${BRAND.url}/${locale}/tribunes/${slug}` },
         { '@type': 'ListItem', position: 3, name: article.title },
       ],
     },
