@@ -12,6 +12,7 @@ import { useDarkMode } from '@/hooks/useDarkMode';
 import { MobileNav } from './MobileNav';
 import { NotificationBell } from './NotificationBell';
 import { fetchUserCommunities, type UserCommunitySummary } from '@/services/communityService';
+import { BRAND } from '@/lib/brand';
 
 export function Header() {
   const router = useRouter();
@@ -76,8 +77,8 @@ export function Header() {
           )}
           <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
             <Image
-              src="/images/fanstribune.webp"
-              alt="La tribune des fans"
+              src={BRAND.logo}
+              alt={BRAND.name}
               width={36}
               height={36}
               priority

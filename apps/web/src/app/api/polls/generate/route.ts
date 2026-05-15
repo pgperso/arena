@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
 import { fetchRecentNews } from '@/lib/newsSearch';
+import { BRAND } from '@/lib/brand';
 
 // AI call + news fetch can run ~15-30s.
 export const maxDuration = 60;
@@ -117,7 +118,7 @@ async function handleGenerate(request: Request) {
       max_tokens: 1200,
       messages: [{
         role: 'user',
-        content: `Tu génères des sondages pour une plateforme de fans de sport québécoise (La tribune des fans).
+        content: `Tu génères des sondages pour une plateforme de fans de sport québécoise (${BRAND.name}).
 
 ${headlines ? `Actualité sportive récente :\n${headlines}\n` : ''}
 MISSION : propose ${POLLS_PER_RUN} sondages courts, engageants et qui suscitent le DÉBAT entre partisans.

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@arena/supabase-client';
 import { BOT_MEMBER_ID } from '@arena/shared';
+import { BRAND } from '@/lib/brand';
 
 // ── Join announcements (already used in communityService) ──
 
@@ -24,7 +25,7 @@ const JOIN_ANNOUNCEMENTS = [
 
 // ── Article announcements ──
 
-const GALLERY_URL = 'https://fanstribune.com/fr';
+const GALLERY_URL = `${BRAND.url}/fr`;
 
 const ARTICLE_ANNOUNCEMENTS = [
   (u: string, c: string, t: string, url: string) => `📰 Nouvel article dans ${c} : "${t}" par ${u}. À lire dans la Galerie de presse ! ${url}`,

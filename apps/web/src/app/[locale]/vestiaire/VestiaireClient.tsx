@@ -10,6 +10,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { useAvatarUpload } from '@/hooks/useAvatarUpload';
 import { displayCommunityName, formatTime } from '@arena/shared';
 import { PollAdminPanel } from './PollAdminPanel';
+import { BRAND } from '@/lib/brand';
 import type { Poll } from '@/services/pollService';
 import type { Database } from '@arena/supabase-client';
 
@@ -284,7 +285,7 @@ export function VestiaireClient({
                   className="group flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-4 transition hover:border-gray-300 dark:border-gray-600 hover:shadow-sm"
                 >
                   <Image
-                    src={community.logo_url || '/images/fanstribune.webp'}
+                    src={community.logo_url || BRAND.logo}
                     alt={community.name}
                     width={40}
                     height={40}
@@ -361,7 +362,7 @@ export function VestiaireClient({
                   >
                     <div className="mb-3 flex items-center gap-2">
                       <Image
-                        src={community.logo_url || '/images/fanstribune.webp'}
+                        src={community.logo_url || BRAND.logo}
                         alt={community.name}
                         width={28}
                         height={28}

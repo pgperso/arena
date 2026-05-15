@@ -7,6 +7,7 @@ import { useSupabase } from '@/hooks/useSupabase';
 import { Avatar } from '@/components/ui/Avatar';
 import { displayCommunityName, displayCommunityDescription } from '@arena/shared';
 import Image from 'next/image';
+import { BRAND } from '@/lib/brand';
 import type { Database } from '@arena/supabase-client';
 
 type CategoryRow = Database['public']['Tables']['categories']['Row'];
@@ -161,7 +162,7 @@ export function JoinTribuneModal({ userId, memberCommunityIds, onClose }: JoinTr
                     className="flex w-full items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] px-4 py-4 text-left transition hover:border-brand-blue hover:bg-brand-blue/5"
                   >
                     <Image
-                      src={com.logo_url || '/images/fanstribune.webp'}
+                      src={com.logo_url || BRAND.logo}
                       alt={comName}
                       width={40}
                       height={40}
