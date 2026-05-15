@@ -39,6 +39,9 @@ export const BRAND = {
   logoWidth: 512,
   logoHeight: 512,
 
+  // Contact — the single public address (also the Resend sender).
+  email: 'info@fanstribune.com',
+
   // Social.
   twitterHandle: '@fanstribune',
   twitterUrl: 'https://x.com/fanstribune',

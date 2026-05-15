@@ -153,7 +153,7 @@ function FrenchContent() {
       </p>
       <p>
         Pour signaler une erreur, contactez-nous à{' '}
-        <a href="mailto:admin@octogone.ai">admin@octogone.ai</a> avec le lien de l&apos;article
+        <a href="mailto:info@fanstribune.com">info@fanstribune.com</a> avec le lien de l&apos;article
         concerné et la nature de l&apos;erreur. Nous répondons généralement dans les 48 heures.
       </p>
 
@@ -189,7 +189,7 @@ function FrenchContent() {
       <p>
         <strong>Éditeur :</strong> Pascal Grenon (QcFan)<br />
         <strong>Courriel :</strong>{' '}
-        <a href="mailto:admin@octogone.ai">admin@octogone.ai</a>
+        <a href="mailto:info@fanstribune.com">info@fanstribune.com</a>
         <br />
         <strong>Adresse :</strong> Québec, Canada
       </p>
@@ -256,7 +256,7 @@ function EnglishContent() {
       </p>
       <p>
         To report an error, contact us at{' '}
-        <a href="mailto:admin@octogone.ai">admin@octogone.ai</a> with the article link and the
+        <a href="mailto:info@fanstribune.com">info@fanstribune.com</a> with the article link and the
         nature of the error. We typically respond within 48 hours.
       </p>
 
@@ -291,7 +291,7 @@ function EnglishContent() {
       <p>
         <strong>Publisher:</strong> Pascal Grenon (QcFan)<br />
         <strong>Email:</strong>{' '}
-        <a href="mailto:admin@octogone.ai">admin@octogone.ai</a>
+        <a href="mailto:info@fanstribune.com">info@fanstribune.com</a>
         <br />
         <strong>Address:</strong> Quebec, Canada
       </p>

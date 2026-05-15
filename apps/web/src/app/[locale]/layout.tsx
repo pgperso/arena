@@ -18,7 +18,7 @@ const jsonLd = [
     logo: BRAND.logoUrl,
     description: 'Plateforme communautaire sportive en direct : chat, articles et podcasts pour les fans de hockey, baseball, football et plus.',
     sameAs: [BRAND.twitterUrl],
-    contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', email: 'info@fanstribune.com' },
+    contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', email: BRAND.email },
     foundingDate: '2026',
     sport: ['Hockey', 'Baseball', 'Football', 'Basketball', 'Soccer', 'Golf'],
   },
