@@ -47,15 +47,48 @@ interface FetchOptions {
   communityId?: number;
   excludeCommunityId?: number;
   sort: 'latest' | 'trending';
-  cursor?: string;
+  // Offset-based pagination. The whole window [0, offset+limit] is
+  // re-fetched and re-sorted each call, so pagination is consistent
+  // regardless of sort mode — unlike the old date-cursor, which broke
+  // for trending and dropped items in the mixed feed.
+  offset?: number;
   limit: number;
-  excludeIds?: number[];
+  // Article ids to exclude (the "featured" articles already shown in
+  // the hero). Articles only — podcasts are a separate id space.
+  excludeArticleIds?: number[];
 }
 
 export interface FetchResult {
   items: PressGalleryItem[];
-  nextCursor: string | null;
+  hasMore: boolean;
 }
+
+// Unified engagement score — the single definition of "trending",
+// applied identically whether the feed is articles, podcasts or mixed.
+function trendingScore(item: PressGalleryItem): number {
+  return item.viewCount + item.likeCount * 3;
+}
+
+// Deterministic order so re-fetching the same window never reshuffles
+// tied items (which would dup/skip rows at a page boundary).
+function tieBreak(a: PressGalleryItem, b: PressGalleryItem): number {
+  if (a.type !== b.type) return a.type < b.type ? -1 : 1;
+  return b.id - a.id;
+}
+
+function compareItems(a: PressGalleryItem, b: PressGalleryItem, sort: 'latest' | 'trending'): number {
+  if (sort === 'trending') {
+    const s = trendingScore(b) - trendingScore(a);
+    return s !== 0 ? s : tieBreak(a, b);
+  }
+  const d = new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+  return d !== 0 ? d : tieBreak(a, b);
+}
+
+// How deep the trending feed can be paged. The trending pool is sorted
+// client-side by trendingScore; 96 items (8 pages of 12) is far more
+// than anyone scrolls into a "trending" list.
+const TRENDING_POOL = 96;
 
 const ARTICLE_SELECT = 'id, title, slug, excerpt, cover_image_url, cover_position_y, like_count, view_count, published_at, author_name_override, author_id, communities!inner(id, name, name_en, slug, logo_url), members:members!articles_author_id_fkey(username, first_name, last_name, avatar_url, creator_display_name, creator_avatar_url)';
 const PODCAST_SELECT = 'id, title, description, cover_image_url, like_count, duration_seconds, created_at, youtube_video_id, is_live, published_by, communities!inner(id, name, name_en, slug, logo_url), members:members!podcasts_published_by_fkey(username, avatar_url, creator_display_name, creator_avatar_url)';
@@ -105,43 +138,30 @@ export async function fetchPressGalleryItems(
   supabase: SupabaseClient<Database>,
   options: FetchOptions,
 ): Promise<FetchResult> {
-  const { filter, communityId, excludeCommunityId, sort, cursor, limit, excludeIds } = options;
-  const internalOpts = { communityId, excludeCommunityId, sort, cursor, limit, excludeIds };
+  const { filter, communityId, excludeCommunityId, sort, limit, excludeArticleIds } = options;
+  const offset = options.offset ?? 0;
 
-  if (filter === 'articles') {
-    const items = await fetchArticles(supabase, internalOpts);
-    return {
-      items,
-      nextCursor: items.length > 0 ? items[items.length - 1].publishedAt : null,
-    };
-  }
+  // We re-fetch the whole window from row 0 and slice — so pagination
+  // is correct for every sort mode. `need` is one past the requested
+  // window so we can tell whether a further page exists. Trending is
+  // re-ranked client-side, so it needs a fixed pool to rank within.
+  const need = offset + limit + 1;
+  const poolSize = sort === 'trending' ? Math.max(need, TRENDING_POOL) : need;
 
-  if (filter === 'podcasts') {
-    const items = await fetchPodcasts(supabase, internalOpts);
-    return {
-      items,
-      nextCursor: items.length > 0 ? items[items.length - 1].publishedAt : null,
-    };
-  }
+  const pool = { communityId, excludeCommunityId, sort, poolSize };
 
-  // filter === 'all': fetch both, merge, take first `limit`
   const [articles, podcasts] = await Promise.all([
-    fetchArticles(supabase, internalOpts),
-    fetchPodcasts(supabase, internalOpts),
+    filter === 'podcasts'
+      ? Promise.resolve([] as PressGalleryItem[])
+      : fetchArticles(supabase, { ...pool, excludeArticleIds }),
+    filter === 'articles'
+      ? Promise.resolve([] as PressGalleryItem[])
+      : fetchPodcasts(supabase, pool),
   ]);
 
-  const merged = [...articles, ...podcasts];
-  if (sort === 'trending') {
-    merged.sort((a, b) => (b.viewCount + b.likeCount * 3) - (a.viewCount + a.likeCount * 3));
-  } else {
-    merged.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-  }
-
-  const items = merged.slice(0, limit);
-  return {
-    items,
-    nextCursor: items.length > 0 ? items[items.length - 1].publishedAt : null,
-  };
+  const merged = [...articles, ...podcasts].sort((a, b) => compareItems(a, b, sort));
+  const items = merged.slice(offset, offset + limit);
+  return { items, hasMore: merged.length > offset + limit };
 }
 
 // --- Internal fetch helpers ---
@@ -150,16 +170,15 @@ interface InternalFetchOptions {
   communityId?: number;
   excludeCommunityId?: number;
   sort: 'latest' | 'trending';
-  cursor?: string;
-  limit: number;
-  excludeIds?: number[];
+  poolSize: number;
+  excludeArticleIds?: number[];
 }
 
 async function fetchArticles(
   supabase: SupabaseClient<Database>,
   options: InternalFetchOptions,
 ): Promise<PressGalleryItem[]> {
-  const { communityId, excludeCommunityId, sort, cursor, limit, excludeIds } = options;
+  const { communityId, excludeCommunityId, sort, poolSize, excludeArticleIds } = options;
 
   // Articles imported from the legacy Zone Nordiques archive (published
   // before ORIGINAL_CONTENT_CUTOFF) are noindex and excluded from every
@@ -176,19 +195,20 @@ async function fetchArticles(
 
   if (communityId) q = q.eq('community_id', communityId);
   if (excludeCommunityId) q = q.neq('community_id', excludeCommunityId);
-  if (excludeIds && excludeIds.length > 0) {
-    q = q.not('id', 'in', `(${excludeIds.join(',')})`);
+  if (excludeArticleIds && excludeArticleIds.length > 0) {
+    q = q.not('id', 'in', `(${excludeArticleIds.join(',')})`);
   }
 
+  // Trending fetches a pool ordered by view_count as a proxy; the final
+  // ranking by trendingScore happens client-side after the merge. `id`
+  // is a stable secondary key so the pool boundary is deterministic.
   if (sort === 'trending') {
-    if (cursor) q = q.lt('published_at', cursor);
-    q = q.order('view_count', { ascending: false });
+    q = q.order('view_count', { ascending: false }).order('id', { ascending: false });
   } else {
-    if (cursor) q = q.lt('published_at', cursor);
-    q = q.order('published_at', { ascending: false });
+    q = q.order('published_at', { ascending: false }).order('id', { ascending: false });
   }
 
-  const { data } = await q.limit(limit);
+  const { data } = await q.limit(poolSize);
   if (!data) return [];
   return data.map((r) => articleToItem(r as unknown as ArticleRow));
 }
@@ -197,7 +217,7 @@ async function fetchPodcasts(
   supabase: SupabaseClient<Database>,
   options: InternalFetchOptions,
 ): Promise<PressGalleryItem[]> {
-  const { communityId, excludeCommunityId, sort, cursor, limit, excludeIds } = options;
+  const { communityId, excludeCommunityId, sort, poolSize } = options;
 
   let q = supabase
     .from('podcasts')
@@ -207,19 +227,14 @@ async function fetchPodcasts(
 
   if (communityId) q = q.eq('community_id', communityId);
   if (excludeCommunityId) q = q.neq('community_id', excludeCommunityId);
-  if (excludeIds && excludeIds.length > 0) {
-    q = q.not('id', 'in', `(${excludeIds.join(',')})`);
-  }
 
   if (sort === 'trending') {
-    if (cursor) q = q.lt('created_at', cursor);
-    q = q.order('like_count', { ascending: false });
+    q = q.order('like_count', { ascending: false }).order('id', { ascending: false });
   } else {
-    if (cursor) q = q.lt('created_at', cursor);
-    q = q.order('created_at', { ascending: false });
+    q = q.order('created_at', { ascending: false }).order('id', { ascending: false });
   }
 
-  const { data } = await q.limit(limit);
+  const { data } = await q.limit(poolSize);
   if (!data) return [];
   return data.map((r) => podcastToItem(r as unknown as PodcastRow));
 }

@@ -71,7 +71,7 @@ export default async function HomePage({
   const supabase = await createClient();
 
   let featuredItems: Awaited<ReturnType<typeof fetchFeaturedItems>> = [];
-  let initialResult: Awaited<ReturnType<typeof fetchPressGalleryItems>> = { items: [], nextCursor: null };
+  let initialResult: Awaited<ReturnType<typeof fetchPressGalleryItems>> = { items: [], hasMore: false };
   let taverneItems: Awaited<ReturnType<typeof fetchPressGalleryItems>>['items'] = [];
   let communities: { id: number; name: string; name_en: string | null; slug: string; logo_url: string | null }[] = [];
   let categoryNav: CategoryNavItem[] = [];
@@ -109,7 +109,11 @@ export default async function HomePage({
     }));
     userId = userRes.data?.user?.id ?? null;
 
-    const excludeIds = featuredItems.map((i) => i.id);
+    // Featured items are articles; exclude only their ids from the
+    // article query so the hero stories aren't repeated in the feed.
+    const excludeArticleIds = featuredItems
+      .filter((i) => i.type === 'article')
+      .map((i) => i.id);
     const taverne = communities.find((c) => c.slug === 'la-taverne');
 
     const [mainResult, taverneResult] = await Promise.all([
@@ -117,7 +121,7 @@ export default async function HomePage({
         filter: 'all',
         sort: 'latest',
         limit: 12,
-        excludeIds,
+        excludeArticleIds,
       }),
       taverne
         ? fetchPressGalleryItems(supabase, {
@@ -126,7 +130,7 @@ export default async function HomePage({
             communityId: taverne.id,
             limit: 6,
           })
-        : Promise.resolve({ items: [], nextCursor: null }),
+        : Promise.resolve({ items: [], hasMore: false }),
     ]);
 
     initialResult = mainResult;
@@ -196,7 +200,7 @@ export default async function HomePage({
       <CategoryNav categories={categoryNav} />
       <PressGalleryClient
         initialItems={initialResult.items}
-        initialCursor={initialResult.nextCursor}
+        initialHasMore={initialResult.hasMore}
         featuredItems={featuredItems}
         taverneItems={taverneItems}
         communities={communities}
