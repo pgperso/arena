@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/polls/generate",
+      "schedule": "0 13 1,15 * *"
+    }
+  ]
+}

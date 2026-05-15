@@ -9,6 +9,8 @@ import { createClient } from '@/lib/supabase/client';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAvatarUpload } from '@/hooks/useAvatarUpload';
 import { displayCommunityName, formatTime } from '@arena/shared';
+import { PollAdminPanel } from './PollAdminPanel';
+import type { Poll } from '@/services/pollService';
 import type { Database } from '@arena/supabase-client';
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'];
@@ -57,6 +59,9 @@ interface VestiaireClientProps {
   userEmail: string;
   isContentCreator: boolean;
   authorMetrics: AuthorMetrics;
+  isOwner: boolean;
+  pendingPolls: Poll[];
+  activePoll: Poll | null;
 }
 
 export function VestiaireClient({
@@ -67,6 +72,9 @@ export function VestiaireClient({
   isContentCreator,
   userEmail,
   authorMetrics,
+  isOwner,
+  pendingPolls,
+  activePoll,
 }: VestiaireClientProps) {
   const router = useRouter();
   const locale = useLocale();
@@ -243,6 +251,11 @@ export function VestiaireClient({
           </div>
         </div>
       </div>
+
+      {/* Poll validation — owner only */}
+      {isOwner && (
+        <PollAdminPanel pendingPolls={pendingPolls} activePoll={activePoll} />
+      )}
 
       {/* Author metrics — only shown if user has published anything */}
       {authorMetrics.publishedCount > 0 && (

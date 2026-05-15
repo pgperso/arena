@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
 import { VestiaireClient } from './VestiaireClient';
+import { fetchPendingPolls, fetchActivePoll, type Poll } from '@/services/pollService';
 import type { Database } from '@arena/supabase-client';
 
 export async function generateMetadata({
@@ -229,6 +230,17 @@ export default async function VestiairePage({ params }: { params: Promise<{ loca
     topArticles,
   };
 
+  // Poll validation data — owner only. RLS already restricts pending
+  // polls to owners, but we skip the queries entirely for non-owners.
+  let pendingPolls: Poll[] = [];
+  let activePoll: Poll | null = null;
+  if (isOwner) {
+    [pendingPolls, activePoll] = await Promise.all([
+      fetchPendingPolls(supabase).catch(() => []),
+      fetchActivePoll(supabase).catch(() => null),
+    ]);
+  }
+
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
       <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
@@ -240,6 +252,9 @@ export default async function VestiairePage({ params }: { params: Promise<{ loca
           userEmail={user.email ?? ''}
           isContentCreator={isContentCreator}
           authorMetrics={authorMetrics}
+          isOwner={isOwner}
+          pendingPolls={pendingPolls}
+          activePoll={activePoll}
         />
       </div>
     </div>
