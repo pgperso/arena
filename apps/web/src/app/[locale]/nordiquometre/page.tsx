@@ -78,10 +78,10 @@ export default async function NordiquometrePage({
         <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
           {isFr ? 'Nordiquomètre' : 'Nordiquometer'}
         </h1>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           {isFr
-            ? 'À quel point crois-tu au retour des Nordiques ? Vote sur trois horizons.'
-            : 'How strongly do you believe the Nordiques will return? Vote across three horizons.'}
+            ? 'L’indice de confiance du retour des Nordiques'
+            : 'The confidence index for the Nordiques’ return'}
         </p>
       </header>
       <div className="flex min-h-0 flex-1 flex-col">

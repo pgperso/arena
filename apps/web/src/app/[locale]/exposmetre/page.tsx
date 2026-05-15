@@ -78,10 +78,10 @@ export default async function ExposmetrePage({
         <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
           {isFr ? 'Exposmètre' : 'Exposmeter'}
         </h1>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           {isFr
-            ? 'À quel point crois-tu au retour des Expos ? Vote sur trois horizons.'
-            : 'How strongly do you believe the Expos will return? Vote across three horizons.'}
+            ? 'L’indice de confiance du retour des Expos'
+            : 'The confidence index for the Expos’ return'}
         </p>
       </header>
       <div className="flex min-h-0 flex-1 flex-col">

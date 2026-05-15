@@ -23,13 +23,17 @@ export function MetreCards() {
     {
       href: '/nordiquometre',
       title: isFr ? 'Nordiquomètre' : 'Nordiquometer',
-      tagline: isFr ? 'Le retour des Nordiques ?' : 'Will the Nordiques return?',
+      tagline: isFr
+        ? 'L’indice de confiance du retour des Nordiques'
+        : 'The confidence index for the Nordiques’ return',
       accent: '#0B4870', // Nordiques blue
     },
     {
       href: '/exposmetre',
       title: isFr ? 'Exposmètre' : 'Exposmeter',
-      tagline: isFr ? 'Le retour des Expos ?' : 'Will the Expos return?',
+      tagline: isFr
+        ? 'L’indice de confiance du retour des Expos'
+        : 'The confidence index for the Expos’ return',
       accent: '#003087', // Expos blue
     },
   ];
