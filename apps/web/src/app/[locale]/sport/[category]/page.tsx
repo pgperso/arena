@@ -4,12 +4,9 @@ import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import {
-  formatTime,
-  ORIGINAL_CONTENT_CUTOFF,
-  displayCommunityName,
-  displayCommunityDescription,
-} from '@arena/shared';
+import { displayCommunityName, displayCommunityDescription } from '@arena/shared';
+import { fetchPressGalleryItems } from '@/services/pressGalleryService';
+import { PressContentCard } from '@/components/press/PressContentCard';
 
 export const revalidate = 300;
 
@@ -34,20 +31,6 @@ type CommunityRow = {
   description_en: string | null;
   logo_url: string | null;
   member_count: number;
-};
-
-type ArticleRow = {
-  id: number;
-  slug: string;
-  title: string;
-  excerpt: string | null;
-  cover_image_url: string | null;
-  cover_position_y: number | null;
-  view_count: number;
-  published_at: string | null;
-  author_name_override: string | null;
-  communities: { name: string; name_en: string | null; slug: string };
-  members: { username: string; first_name: string | null; last_name: string | null } | null;
 };
 
 function displayCategoryName(category: CategoryRow, locale: string): string {
@@ -129,23 +112,21 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const communities = (comData ?? []) as unknown as CommunityRow[];
   const communityIds = communities.map((c) => c.id);
 
-  // Load articles across all communities in this category
-  let articles: ArticleRow[] = [];
-  if (communityIds.length > 0) {
-    const { data: artData } = await supabase
-      .from('articles')
-      .select(
-        'id, slug, title, excerpt, cover_image_url, cover_position_y, view_count, published_at, author_name_override, communities!inner(name, name_en, slug), members:members!articles_author_id_fkey(username, first_name, last_name)',
-      )
-      .in('community_id', communityIds)
-      .eq('is_published', true)
-      .eq('is_removed', false)
-      .gte('published_at', ORIGINAL_CONTENT_CUTOFF)
-      .order('published_at', { ascending: false })
-      .limit(30);
-
-    articles = (artData ?? []) as unknown as ArticleRow[];
-  }
+  // Articles across every tribune in this category, via the shared
+  // gallery service so the filtering (published, not removed, original-
+  // content cutoff) and the card rendering stay identical to the home
+  // gallery — one code path, no drift.
+  const articles =
+    communityIds.length > 0
+      ? (
+          await fetchPressGalleryItems(supabase, {
+            filter: 'articles',
+            sort: 'latest',
+            communityIds,
+            limit: 30,
+          })
+        ).items
+      : [];
 
   const categoryName = displayCategoryName(category, locale);
   const isFr = locale === 'fr';
@@ -173,7 +154,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         itemListElement: articles.map((a, idx) => ({
           '@type': 'ListItem',
           position: idx + 1,
-          url: `https://fanstribune.com/${locale}/tribunes/${a.communities.slug}/articles/${a.slug}`,
+          url: `https://fanstribune.com/${locale}/tribunes/${a.communitySlug}/articles/${a.slug}`,
           name: a.title,
         })),
       },
@@ -272,60 +253,11 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 : 'No articles published in this category yet. Check back soon — new columns arrive every week.'}
             </p>
           ) : (
-            <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {articles.map((a) => {
-                const authorName =
-                  a.author_name_override ||
-                  (a.members?.first_name && a.members?.last_name
-                    ? `${a.members.first_name} ${a.members.last_name}`
-                    : null) ||
-                  a.members?.username ||
-                  'Inconnu';
-                const communityName = displayCommunityName(
-                  { name: a.communities.name, name_en: a.communities.name_en },
-                  locale,
-                );
-                return (
-                  <li key={a.id}>
-                    <Link
-                      href={`/tribunes/${a.communities.slug}/articles/${a.slug}`}
-                      className="group flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-lg dark:border-gray-700 dark:bg-[#1e1e1e]"
-                    >
-                      <div className="relative aspect-video w-full overflow-hidden">
-                        {a.cover_image_url ? (
-                          <Image
-                            src={a.cover_image_url}
-                            alt={a.title}
-                            fill
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                            style={{ objectPosition: `center ${a.cover_position_y ?? 50}%` }}
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          />
-                        ) : (
-                          <div className="h-full w-full bg-gray-200 dark:bg-gray-700" />
-                        )}
-                      </div>
-                      <div className="flex flex-1 flex-col p-4">
-                        <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-gray-400">
-                          {communityName}
-                        </p>
-                        <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 group-hover:text-brand-blue dark:text-gray-100">
-                          {a.title}
-                        </h3>
-                        {a.excerpt && (
-                          <p className="mt-2 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
-                            {a.excerpt}
-                          </p>
-                        )}
-                        <div className="mt-auto pt-3 text-[11px] text-gray-400">
-                          {authorName} · {formatTime(a.published_at ?? new Date().toISOString())}
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {articles.map((a) => (
+                <PressContentCard key={`${a.type}-${a.id}`} item={a} />
+              ))}
+            </div>
           )}
         </section>
       </div>

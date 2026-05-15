@@ -45,6 +45,10 @@ export interface ArticleComment {
 interface FetchOptions {
   filter: 'all' | 'articles' | 'podcasts';
   communityId?: number;
+  // Restrict to a set of communities (used by the /sport/[category]
+  // hubs, which span every tribune in a sport). Takes precedence over
+  // communityId when both are given.
+  communityIds?: number[];
   excludeCommunityId?: number;
   sort: 'latest' | 'trending';
   // Offset-based pagination. The whole window [0, offset+limit] is
@@ -138,7 +142,7 @@ export async function fetchPressGalleryItems(
   supabase: SupabaseClient<Database>,
   options: FetchOptions,
 ): Promise<FetchResult> {
-  const { filter, communityId, excludeCommunityId, sort, limit, excludeArticleIds } = options;
+  const { filter, communityId, communityIds, excludeCommunityId, sort, limit, excludeArticleIds } = options;
   const offset = options.offset ?? 0;
 
   // We re-fetch the whole window from row 0 and slice — so pagination
@@ -148,7 +152,7 @@ export async function fetchPressGalleryItems(
   const need = offset + limit + 1;
   const poolSize = sort === 'trending' ? Math.max(need, TRENDING_POOL) : need;
 
-  const pool = { communityId, excludeCommunityId, sort, poolSize };
+  const pool = { communityId, communityIds, excludeCommunityId, sort, poolSize };
 
   const [articles, podcasts] = await Promise.all([
     filter === 'podcasts'
@@ -168,6 +172,7 @@ export async function fetchPressGalleryItems(
 
 interface InternalFetchOptions {
   communityId?: number;
+  communityIds?: number[];
   excludeCommunityId?: number;
   sort: 'latest' | 'trending';
   poolSize: number;
@@ -178,7 +183,7 @@ async function fetchArticles(
   supabase: SupabaseClient<Database>,
   options: InternalFetchOptions,
 ): Promise<PressGalleryItem[]> {
-  const { communityId, excludeCommunityId, sort, poolSize, excludeArticleIds } = options;
+  const { communityId, communityIds, excludeCommunityId, sort, poolSize, excludeArticleIds } = options;
 
   // Articles imported from the legacy Zone Nordiques archive (published
   // before ORIGINAL_CONTENT_CUTOFF) are noindex and excluded from every
@@ -193,7 +198,8 @@ async function fetchArticles(
     .eq('is_removed', false)
     .gte('published_at', ORIGINAL_CONTENT_CUTOFF);
 
-  if (communityId) q = q.eq('community_id', communityId);
+  if (communityIds && communityIds.length > 0) q = q.in('community_id', communityIds);
+  else if (communityId) q = q.eq('community_id', communityId);
   if (excludeCommunityId) q = q.neq('community_id', excludeCommunityId);
   if (excludeArticleIds && excludeArticleIds.length > 0) {
     q = q.not('id', 'in', `(${excludeArticleIds.join(',')})`);
@@ -217,7 +223,7 @@ async function fetchPodcasts(
   supabase: SupabaseClient<Database>,
   options: InternalFetchOptions,
 ): Promise<PressGalleryItem[]> {
-  const { communityId, excludeCommunityId, sort, poolSize } = options;
+  const { communityId, communityIds, excludeCommunityId, sort, poolSize } = options;
 
   let q = supabase
     .from('podcasts')
@@ -225,7 +231,8 @@ async function fetchPodcasts(
     .eq('is_published', true)
     .or('is_removed.eq.false,is_removed.is.null');
 
-  if (communityId) q = q.eq('community_id', communityId);
+  if (communityIds && communityIds.length > 0) q = q.in('community_id', communityIds);
+  else if (communityId) q = q.eq('community_id', communityId);
   if (excludeCommunityId) q = q.neq('community_id', excludeCommunityId);
 
   if (sort === 'trending') {

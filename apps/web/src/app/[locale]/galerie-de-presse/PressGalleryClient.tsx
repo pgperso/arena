@@ -18,7 +18,6 @@ import type { Poll } from '@/services/pollService';
 
 type FilterType = 'all' | 'articles' | 'podcasts';
 type SortType = 'latest' | 'trending';
-type CategoryType = 'all' | 'sport' | 'taverne';
 
 interface Community {
   id: number;
@@ -75,14 +74,7 @@ export function PressGalleryClient({
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [filter, setFilter] = useState<FilterType>('all');
   const [sort, setSort] = useState<SortType>('latest');
-  const [category, setCategory] = useState<CategoryType>('all');
   const [communityId, setCommunityId] = useState<number | undefined>(undefined);
-
-  // Resolve La Taverne community ID for category filtering
-  const taverneCommunityId = useMemo(
-    () => communities.find((c) => c.slug === 'la-taverne')?.id,
-    [communities],
-  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -90,24 +82,17 @@ export function PressGalleryClient({
 
   // heroMode is computed after visibleFeatured (below)
 
-  // Filter featured items to match current category + type filter
+  // Filter featured items to match the current type filter.
   const visibleFeatured = useMemo(() => {
     let items = featuredItems;
-    // Category filter
-    if (category === 'sport' && taverneCommunityId) {
-      items = items.filter((i) => i.communityId !== taverneCommunityId);
-    } else if (category === 'taverne' && taverneCommunityId) {
-      items = items.filter((i) => i.communityId === taverneCommunityId);
-    }
-    // Type filter
     if (filter === 'articles') items = items.filter((i) => i.type === 'article');
     if (filter === 'podcasts') items = items.filter((i) => i.type === 'podcast');
     return items;
-  }, [featuredItems, filter, category, taverneCommunityId]);
+  }, [featuredItems, filter]);
 
   const heroMode = useMemo(() => {
     if (visibleFeatured.length === 0) return 'hidden' as const;
-    // Full hero for main category views (no community filter, latest sort)
+    // Full hero for the default view (no tribune filter, latest sort).
     if (sort === 'latest' && communityId === undefined && filter === 'all') return 'full' as const;
     return 'compact' as const;
   }, [visibleFeatured, sort, communityId, filter]);
@@ -116,7 +101,6 @@ export function PressGalleryClient({
     async (
       f: FilterType,
       s: SortType,
-      cat: CategoryType,
       cId: number | undefined,
       off: number,
       append: boolean,
@@ -128,16 +112,11 @@ export function PressGalleryClient({
       setLoading(true);
       setError(null);
 
-      // Category → communityId / excludeCommunityId mapping
-      const effectiveCommunityId = cat === 'taverne' ? taverneCommunityId : cId;
-      const excludeCommunityId = cat === 'sport' ? taverneCommunityId : undefined;
-
       try {
         const data = await fetchPressGalleryItems(supabase, {
           filter: f,
           sort: s,
-          communityId: effectiveCommunityId,
-          excludeCommunityId,
+          communityId: cId,
           offset: off,
           limit: PAGE_SIZE,
           excludeArticleIds: heroArticleIds,
@@ -160,40 +139,32 @@ export function PressGalleryClient({
         if (!controller.signal.aborted) setLoading(false);
       }
     },
-    [supabase, heroArticleIds, taverneCommunityId, t],
+    [supabase, heroArticleIds, t],
   );
 
   const handleFilterChange = (f: FilterType) => {
     setFilter(f);
     setItems([]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    fetchItems(f, sort, category, communityId, 0, false);
+    fetchItems(f, sort, communityId, 0, false);
   };
 
   const handleSortChange = (s: SortType) => {
     setSort(s);
     setItems([]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    fetchItems(filter, s, category, communityId, 0, false);
-  };
-
-  const handleCategoryChange = (cat: CategoryType) => {
-    setCategory(cat);
-    setCommunityId(undefined); // Reset community filter on category change
-    setItems([]);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    fetchItems(filter, sort, cat, undefined, 0, false);
+    fetchItems(filter, s, communityId, 0, false);
   };
 
   const handleCommunityChange = (cId: number | undefined) => {
     setCommunityId(cId);
     setItems([]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    fetchItems(filter, sort, category, cId, 0, false);
+    fetchItems(filter, sort, cId, 0, false);
   };
 
   const handleLoadMore = () => {
-    fetchItems(filter, sort, category, communityId, offset, true);
+    fetchItems(filter, sort, communityId, offset, true);
   };
 
   return (
@@ -208,12 +179,10 @@ export function PressGalleryClient({
             <PressFilterBar
               filter={filter}
               sort={sort}
-              category={category}
               communityId={communityId}
               communities={communities}
               onFilterChange={handleFilterChange}
               onSortChange={handleSortChange}
-              onCategoryChange={handleCategoryChange}
               onCommunityChange={handleCommunityChange}
             />
           </div>
