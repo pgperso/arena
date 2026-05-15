@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { formatTime, displayCommunityName } from '@arena/shared';
+import { BRAND } from '@/lib/brand';
+import { ShareButton } from '@/components/ui/ShareButton';
 import type { PressGalleryItem } from '@/services/pressGalleryService';
 
 function itemHref(item: PressGalleryItem): string {
@@ -13,10 +15,38 @@ function itemHref(item: PressGalleryItem): string {
   return `/tribunes/${item.communitySlug}/podcasts/${item.id}`;
 }
 
+function shareUrl(item: PressGalleryItem, locale: string): string {
+  return `${BRAND.url}/${locale}${itemHref(item)}`;
+}
+
 function localizedCommunityName(item: PressGalleryItem, locale: string): string {
   return displayCommunityName(
     { name: item.communityName, name_en: item.communityNameEn },
     locale,
+  );
+}
+
+// Stretched link + share button shared by every hero card: the whole card
+// navigates, but the share control stays a real sibling of the link (never
+// a button nested inside an anchor).
+function CardLink({ item }: { item: PressGalleryItem }) {
+  return (
+    <Link href={itemHref(item)} className="absolute inset-0" aria-label={item.title}>
+      <span className="sr-only">{item.title}</span>
+    </Link>
+  );
+}
+
+function OverlayShare({ item }: { item: PressGalleryItem }) {
+  const locale = useLocale();
+  return (
+    <div className="absolute right-3 top-3 z-10">
+      <ShareButton
+        url={shareUrl(item, locale)}
+        title={item.title}
+        className="flex items-center rounded-lg bg-black/40 p-2 text-white backdrop-blur-sm transition hover:bg-black/60"
+      />
+    </div>
   );
 }
 
@@ -63,7 +93,7 @@ export function HeroSection({ featuredItems, mode }: HeroSectionProps) {
 function SingleHero({ item }: { item: PressGalleryItem }) {
   const locale = useLocale();
   return (
-    <Link href={itemHref(item)} className="group relative block overflow-hidden rounded-xl">
+    <div className="group relative block overflow-hidden rounded-xl">
       <div className="relative aspect-[16/9] w-full lg:aspect-[21/9]">
         {item.coverImageUrl ? (
           <Image
@@ -81,7 +111,9 @@ function SingleHero({ item }: { item: PressGalleryItem }) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/15" />
         <HeroOverlay item={item} titleClass="text-2xl md:text-4xl" communityName={localizedCommunityName(item, locale)} />
       </div>
-    </Link>
+      <CardLink item={item} />
+      <OverlayShare item={item} />
+    </div>
   );
 }
 
@@ -92,9 +124,8 @@ function DuoHero({ items }: { items: PressGalleryItem[] }) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {items.map((item) => (
-        <Link
+        <div
           key={`${item.type}-${item.id}`}
-          href={itemHref(item)}
           className="group relative block overflow-hidden rounded-xl"
         >
           <div className="relative aspect-[16/9] w-full">
@@ -114,7 +145,9 @@ function DuoHero({ items }: { items: PressGalleryItem[] }) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/15" />
             <HeroOverlay item={item} titleClass="text-xl md:text-2xl" communityName={localizedCommunityName(item, locale)} />
           </div>
-        </Link>
+          <CardLink item={item} />
+          <OverlayShare item={item} />
+        </div>
       ))}
     </div>
   );
@@ -127,10 +160,7 @@ function TrioHero({ hero, secondary }: { hero: PressGalleryItem; secondary: Pres
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       {/* Hero — spans 2 cols, 2 rows on desktop */}
-      <Link
-        href={itemHref(hero)}
-        className="group relative block overflow-hidden rounded-xl lg:col-span-2 lg:row-span-2"
-      >
+      <div className="group relative block overflow-hidden rounded-xl lg:col-span-2 lg:row-span-2">
         <div className="relative aspect-[16/9] h-full w-full">
           {hero.coverImageUrl ? (
             <Image
@@ -148,16 +178,17 @@ function TrioHero({ hero, secondary }: { hero: PressGalleryItem; secondary: Pres
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/15" />
           <HeroOverlay item={hero} titleClass="text-2xl md:text-3xl" showExcerpt communityName={localizedCommunityName(hero, locale)} />
         </div>
-      </Link>
+        <CardLink item={hero} />
+        <OverlayShare item={hero} />
+      </div>
 
       {/* Secondary — vertical cards */}
       {secondary.map((item) => {
         const communityName = localizedCommunityName(item, locale);
         return (
-        <Link
+        <div
           key={`${item.type}-${item.id}`}
-          href={itemHref(item)}
-          className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-[#1e1e1e]"
+          className="group relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-[#1e1e1e]"
         >
           <div className="relative aspect-[4/3] w-full overflow-hidden">
             {item.coverImageUrl ? (
@@ -192,11 +223,17 @@ function TrioHero({ hero, secondary }: { hero: PressGalleryItem; secondary: Pres
             <h4 className="line-clamp-2 text-sm font-semibold text-gray-900 group-hover:text-brand-blue dark:text-gray-100">
               {item.title}
             </h4>
-            <div className="mt-1.5 text-[11px] text-gray-400">
-              {item.authorName} &middot; {formatTime(item.publishedAt)}
+            <div className="mt-1.5 flex items-center text-[11px] text-gray-400">
+              <span>{item.authorName} &middot; {formatTime(item.publishedAt)}</span>
+              <ShareButton
+                url={shareUrl(item, locale)}
+                title={item.title}
+                className="relative z-10 ml-auto flex items-center rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 hover:text-brand-blue dark:hover:bg-gray-800"
+              />
             </div>
           </div>
-        </Link>
+          <CardLink item={item} />
+        </div>
         );
       })}
     </div>
@@ -216,10 +253,9 @@ function CompactStrip({ items, label }: { items: PressGalleryItem[]; label: stri
         {items.map((item) => {
           const communityName = localizedCommunityName(item, locale);
           return (
-          <Link
+          <div
             key={`${item.type}-${item.id}`}
-            href={itemHref(item)}
-            className="group flex min-w-[280px] max-w-[320px] shrink-0 items-center gap-3 rounded-lg border border-gray-200 bg-white p-2 transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-[#1e1e1e]"
+            className="group relative flex min-w-[280px] max-w-[320px] shrink-0 items-center gap-3 rounded-lg border border-gray-200 bg-white p-2 transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-[#1e1e1e]"
           >
             <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg">
               {item.coverImageUrl ? (
@@ -254,7 +290,13 @@ function CompactStrip({ items, label }: { items: PressGalleryItem[]; label: stri
                 {item.title}
               </h4>
             </div>
-          </Link>
+            <ShareButton
+              url={shareUrl(item, locale)}
+              title={item.title}
+              className="relative z-10 flex shrink-0 items-center rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-brand-blue dark:hover:bg-gray-800"
+            />
+            <CardLink item={item} />
+          </div>
           );
         })}
       </div>
