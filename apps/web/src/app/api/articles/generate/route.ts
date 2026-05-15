@@ -4,6 +4,13 @@ import { createClient } from '@/lib/supabase/server';
 import { fetchRecentNews } from '@/lib/newsSearch';
 import { fetchUrlContent, extractUrls } from '@/lib/fetchUrlContent';
 import { sanitizeArticleHtml, sanitizeArticleText } from '@/lib/sanitizeArticleHtml';
+import { MIN_QUALITY_WORD_COUNT } from '@arena/shared';
+
+// Target a comfortable margin above the indexability floor so the
+// finished article never lands under MIN_QUALITY_WORD_COUNT (Google
+// drops shorter pages as "thin content").
+const TARGET_MIN_WORDS = MIN_QUALITY_WORD_COUNT + 100; // 600
+const TARGET_MAX_WORDS = MIN_QUALITY_WORD_COUNT + 250; // 750
 
 // 4 séquences Anthropic + fetch news/URLs = peut dépasser 30s.
 // Vercel Hobby coupe à 10s, Pro permet jusqu'à 60s via maxDuration.
@@ -171,7 +178,7 @@ async function agentWrite(
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 2500,
+    max_tokens: 3200,
     messages: [{
       role: 'user',
       content: `Tu es le RÉDACTEUR ${authorName ? `« ${escapeForPrompt(authorName)} »` : ''} pour une tribune sur ${escapeForPrompt(communityName)}.
@@ -184,7 +191,8 @@ ${research}
 ---
 
 MISSION :
-- Écris un article d'OPINION original de 400-600 mots en français québécois
+- Écris un article d'OPINION original de ${TARGET_MIN_WORDS} à ${TARGET_MAX_WORDS} mots en français québécois
+- LONGUEUR CRITIQUE : le corps de l'article DOIT faire AU MINIMUM ${MIN_QUALITY_WORD_COUNT} mots. En dessous, Google ne l'indexe pas (« contenu de faible valeur »). Vise ${TARGET_MIN_WORDS}+ mots. Développe chaque argument avec du contexte, des exemples concrets et des nuances — pas de remplissage creux, de la vraie analyse.
 - Adapte le ton à ta personnalité d'auteur
 - Varie tes tournures (pas toujours les mêmes débuts de paragraphe)
 - Base-toi UNIQUEMENT sur les faits du dossier, n'invente RIEN
@@ -233,7 +241,7 @@ async function agentVerify(
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 2500,
+    max_tokens: 3200,
     messages: [{
       role: 'user',
       content: `Tu es un VÉRIFICATEUR anti-plagiat STRICT et qualité.
@@ -252,6 +260,7 @@ MISSION :
    - L'article doit sonner comme une OPINION PERSONNELLE, pas comme un résumé de nouvelles.
    - Élimine les formulations journalistiques clichées.
 2. FAITS : Retire tout fait absent du dossier de recherche. Aucune invention.
+2b. LONGUEUR : le corps doit faire AU MINIMUM ${MIN_QUALITY_WORD_COUNT} mots (cible ${TARGET_MIN_WORDS}+). S'il est plus court, DÉVELOPPE les arguments existants avec du contexte, des exemples et des nuances tirés du dossier de recherche. Ne descends jamais sous ${MIN_QUALITY_WORD_COUNT} mots.
 3. STYLE DE L'AUTEUR (IMPORTANT) :
    - L'article DOIT correspondre au style de l'auteur décrit ci-dessus.
    - Si le ton ne correspond pas (ex: un article trop sérieux pour Rex Paquette qui doit être provocateur), RÉÉCRIS les passages pour coller au personnage.
@@ -278,7 +287,7 @@ async function agentPolish(
 ): Promise<string> {
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 2500,
+    max_tokens: 3200,
     messages: [{
       role: 'user',
       content: `Tu es l'ÉDITEUR EN CHEF. Passe finale.
@@ -298,6 +307,7 @@ MISSION :
 6. La conclusion est mémorable ? Améliore si plate.
 7. Le vocabulaire est varié ? Remplace les mots répétés et les clichés journalistiques.
 8. Le HTML est propre ? Pas de balises vides.
+9. LONGUEUR FINALE : compte les mots du corps. Il doit faire au moins ${MIN_QUALITY_WORD_COUNT} mots (cible ${TARGET_MIN_WORDS}+). Si c'est plus court, étoffe les paragraphes avec de la vraie analyse (contexte, nuances, conséquences) — jamais de remplissage creux. Ne retourne JAMAIS un article sous ${MIN_QUALITY_WORD_COUNT} mots.
 
 Retourne l'article FINAL en JSON strict :
 {"title":"...","excerpt":"...","body":"<p>...</p>"}
