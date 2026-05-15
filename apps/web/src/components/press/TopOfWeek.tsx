@@ -70,7 +70,7 @@ export async function TopOfWeek({ locale }: TopOfWeekProps) {
   return (
     <aside
       aria-label={heading}
-      className="rounded-xl border border-gray-200 dark:border-gray-700 border-t-2 border-t-brand-red bg-white dark:bg-[#1e1e1e] p-4"
+      className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-4"
     >
       <div className="mb-3 flex items-center gap-1.5">
         <svg className="h-4 w-4 text-brand-red" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

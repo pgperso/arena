@@ -103,7 +103,7 @@ export function PollBlock({ poll }: PollBlockProps) {
   return (
     <section
       aria-label={heading}
-      className="rounded-xl border border-gray-200 dark:border-gray-700 border-t-2 border-t-brand-blue bg-brand-blue/[0.03] dark:bg-brand-blue/[0.07] p-4"
+      className="rounded-xl border border-gray-200 dark:border-gray-700 bg-brand-blue/[0.03] dark:bg-brand-blue/[0.07] p-4"
     >
       <div className="mb-1 flex items-center gap-1.5">
         <svg className="h-4 w-4 text-brand-blue" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
