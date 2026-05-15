@@ -1,26 +1,27 @@
 import { setRequestLocale } from 'next-intl/server';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { BRAND } from '@/lib/brand';
 import type { Metadata } from 'next';
 
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'Conditions d\'utilisation | La tribune des fans',
+  title: `Conditions d'utilisation | ${BRAND.name}`,
   description:
-    'Consultez les conditions d\'utilisation de La tribune des fans (Fans Tribune). Règles de la communauté, responsabilités des utilisateurs et politique de contenu.',
+    `Consultez les conditions d'utilisation de ${BRAND.name} (${BRAND.nameEn}). Règles de la communauté, responsabilités des utilisateurs et politique de contenu.`,
   openGraph: {
-    title: 'Conditions d\'utilisation | La tribune des fans',
+    title: `Conditions d'utilisation | ${BRAND.name}`,
     description:
-      'Conditions d\'utilisation de la plateforme communautaire La tribune des fans.',
-    url: 'https://fanstribune.com/fr/conditions-utilisation',
-    siteName: 'La tribune des fans',
+      `Conditions d'utilisation de la plateforme communautaire ${BRAND.name}.`,
+    url: `${BRAND.url}/fr/conditions-utilisation`,
+    siteName: BRAND.name,
     type: 'website',
   },
   alternates: {
-    canonical: 'https://fanstribune.com/fr/conditions-utilisation',
+    canonical: `${BRAND.url}/fr/conditions-utilisation`,
     languages: {
-      fr: 'https://fanstribune.com/fr/conditions-utilisation',
-      en: 'https://fanstribune.com/en/conditions-utilisation',
+      fr: `${BRAND.url}/fr/conditions-utilisation`,
+      en: `${BRAND.url}/en/conditions-utilisation`,
     },
   },
 };

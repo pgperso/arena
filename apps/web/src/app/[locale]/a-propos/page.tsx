@@ -1,27 +1,28 @@
 import { setRequestLocale } from 'next-intl/server';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { AdInArticle } from '@/components/ads/AdInArticle';
+import { BRAND } from '@/lib/brand';
 import type { Metadata } from 'next';
 
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'À propos | La tribune des fans',
+  title: `À propos | ${BRAND.name}`,
   description:
-    'Découvrez La tribune des fans (Fans Tribune), la plateforme communautaire bilingue pour les fans de sport. Chat tribunes, articles, podcasts, jauges de confiance et plus encore.',
+    `Découvrez ${BRAND.name} (${BRAND.nameEn}), la plateforme communautaire bilingue pour les fans de sport. Chat tribunes, articles, podcasts, jauges de confiance et plus encore.`,
   openGraph: {
-    title: 'À propos | La tribune des fans',
+    title: `À propos | ${BRAND.name}`,
     description:
-      'La tribune des fans est la plateforme communautaire bilingue pour les fans de sport au Québec et au Canada.',
-    url: 'https://fanstribune.com/fr/a-propos',
-    siteName: 'La tribune des fans',
+      `${BRAND.name} est la plateforme communautaire bilingue pour les fans de sport au Québec et au Canada.`,
+    url: `${BRAND.url}/fr/a-propos`,
+    siteName: BRAND.name,
     type: 'website',
   },
   alternates: {
-    canonical: 'https://fanstribune.com/fr/a-propos',
+    canonical: `${BRAND.url}/fr/a-propos`,
     languages: {
-      fr: 'https://fanstribune.com/fr/a-propos',
-      en: 'https://fanstribune.com/en/a-propos',
+      fr: `${BRAND.url}/fr/a-propos`,
+      en: `${BRAND.url}/en/a-propos`,
     },
   },
 };

@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { formatTime, ORIGINAL_CONTENT_CUTOFF, displayCommunityName } from '@arena/shared';
+import { BRAND } from '@/lib/brand';
 
 export const revalidate = 300;
 
@@ -63,13 +64,13 @@ export async function generateMetadata({ params }: AuthorPageProps): Promise<Met
   const name = displayName(member);
   const isFr = locale === 'fr';
   const title = isFr
-    ? `${name} | La tribune des fans`
-    : `${name} | Fans Tribune`;
+    ? `${name} | ${BRAND.name}`
+    : `${name} | ${BRAND.nameEn}`;
   const description = member.description
     ?? (isFr
-      ? `Articles et chroniques sportives de ${name} sur La tribune des fans.`
-      : `Sports articles and columns by ${name} on Fans Tribune.`);
-  const url = `https://fanstribune.com/${locale}/auteurs/${username}`;
+      ? `Articles et chroniques sportives de ${name} sur ${BRAND.name}.`
+      : `Sports articles and columns by ${name} on ${BRAND.nameEn}.`);
+  const url = `${BRAND.url}/${locale}/auteurs/${username}`;
 
   return {
     title,
@@ -79,17 +80,17 @@ export async function generateMetadata({ params }: AuthorPageProps): Promise<Met
       description,
       type: 'profile',
       url,
-      siteName: 'La tribune des fans',
+      siteName: BRAND.name,
       locale: isFr ? 'fr_CA' : 'en_CA',
-      images: [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: name, width: 512, height: 512 }],
+      images: [{ url: BRAND.logoUrl, alt: name, width: BRAND.logoWidth, height: BRAND.logoHeight }],
     },
     twitter: { card: 'summary', title, description },
     alternates: {
       canonical: url,
       languages: {
-        'fr-CA': `https://fanstribune.com/fr/auteurs/${username}`,
-        'en-CA': `https://fanstribune.com/en/auteurs/${username}`,
-        'x-default': `https://fanstribune.com/fr/auteurs/${username}`,
+        'fr-CA': `${BRAND.url}/fr/auteurs/${username}`,
+        'en-CA': `${BRAND.url}/en/auteurs/${username}`,
+        'x-default': `${BRAND.url}/fr/auteurs/${username}`,
       },
     },
     robots: {
@@ -146,8 +147,8 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
     mainEntity: {
       '@type': 'Person',
       name,
-      url: `https://fanstribune.com/${locale}/auteurs/${username}`,
-      image: avatar ?? 'https://fanstribune.com/images/fanstribune.webp',
+      url: `${BRAND.url}/${locale}/auteurs/${username}`,
+      image: avatar ?? BRAND.logoUrl,
       description: member.description ?? undefined,
     },
   };
@@ -156,8 +157,8 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: isFr ? 'Accueil' : 'Home', item: `https://fanstribune.com/${locale}` },
-      { '@type': 'ListItem', position: 2, name: isFr ? 'Auteurs' : 'Authors', item: `https://fanstribune.com/${locale}/auteurs` },
+      { '@type': 'ListItem', position: 1, name: isFr ? 'Accueil' : 'Home', item: `${BRAND.url}/${locale}` },
+      { '@type': 'ListItem', position: 2, name: isFr ? 'Auteurs' : 'Authors', item: `${BRAND.url}/${locale}/auteurs` },
       { '@type': 'ListItem', position: 3, name },
     ],
   };

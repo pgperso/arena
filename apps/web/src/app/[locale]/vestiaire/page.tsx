@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
 import { VestiaireClient } from './VestiaireClient';
 import { fetchPendingPolls, fetchScheduledPolls, fetchActivePoll, type Poll } from '@/services/pollService';
+import { BRAND } from '@/lib/brand';
 import type { Database } from '@arena/supabase-client';
 
 export async function generateMetadata({
@@ -14,8 +15,8 @@ export async function generateMetadata({
   const { locale } = await params;
   const isFr = locale === 'fr';
   const title = isFr
-    ? 'Mon vestiaire | La tribune des fans'
-    : 'My locker | Fans Tribune';
+    ? `Mon vestiaire | ${BRAND.name}`
+    : `My locker | ${BRAND.nameEn}`;
   const description = isFr
     ? 'Gérez votre profil, vos tribunes et vos publications.'
     : 'Manage your profile, your tribunes and your publications.';
@@ -27,23 +28,23 @@ export async function generateMetadata({
       title,
       description,
       type: 'profile',
-      url: `https://fanstribune.com/${locale}/vestiaire`,
-      siteName: 'La tribune des fans',
+      url: `${BRAND.url}/${locale}/vestiaire`,
+      siteName: BRAND.name,
       locale: isFr ? 'fr_CA' : 'en_CA',
-      images: [{ url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 }],
+      images: [{ url: BRAND.logoUrl, alt: BRAND.name, width: BRAND.logoWidth, height: BRAND.logoHeight }],
     },
     twitter: {
       card: 'summary',
       title,
       description,
-      images: ['https://fanstribune.com/images/fanstribune.webp'],
+      images: [BRAND.logoUrl],
     },
     alternates: {
-      canonical: `https://fanstribune.com/${locale}/vestiaire`,
+      canonical: `${BRAND.url}/${locale}/vestiaire`,
       languages: {
-        'fr-CA': 'https://fanstribune.com/fr/vestiaire',
-        'en-CA': 'https://fanstribune.com/en/vestiaire',
-        'x-default': 'https://fanstribune.com/fr/vestiaire',
+        'fr-CA': `${BRAND.url}/fr/vestiaire`,
+        'en-CA': `${BRAND.url}/en/vestiaire`,
+        'x-default': `${BRAND.url}/fr/vestiaire`,
       },
     },
     robots: { index: false, follow: false },

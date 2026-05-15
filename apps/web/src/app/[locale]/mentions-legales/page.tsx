@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { BRAND } from '@/lib/brand';
 
 export const revalidate = 86400;
 
@@ -12,11 +13,11 @@ export async function generateMetadata({
   const { locale } = await params;
   const isFr = locale === 'fr';
   const title = isFr
-    ? 'Mentions légales | La tribune des fans'
-    : 'Legal Notice | Fans Tribune';
+    ? `Mentions légales | ${BRAND.name}`
+    : `Legal Notice | ${BRAND.nameEn}`;
   const description = isFr
-    ? 'Mentions légales de La tribune des fans : éditeur, responsable de publication, hébergeur, propriété intellectuelle et coordonnées.'
-    : 'Legal notice for Fans Tribune: publisher, publication manager, hosting provider, intellectual property and contact information.';
+    ? `Mentions légales de ${BRAND.name} : éditeur, responsable de publication, hébergeur, propriété intellectuelle et coordonnées.`
+    : `Legal notice for ${BRAND.nameEn}: publisher, publication manager, hosting provider, intellectual property and contact information.`;
 
   return {
     title,
@@ -25,25 +26,25 @@ export async function generateMetadata({
       title,
       description,
       type: 'website',
-      url: `https://fanstribune.com/${locale}/mentions-legales`,
-      siteName: 'La tribune des fans',
+      url: `${BRAND.url}/${locale}/mentions-legales`,
+      siteName: BRAND.name,
       locale: isFr ? 'fr_CA' : 'en_CA',
       images: [
-        { url: 'https://fanstribune.com/images/fanstribune.webp', alt: 'La tribune des fans', width: 512, height: 512 },
+        { url: BRAND.logoUrl, alt: BRAND.name, width: BRAND.logoWidth, height: BRAND.logoHeight },
       ],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: ['https://fanstribune.com/images/fanstribune.webp'],
+      images: [BRAND.logoUrl],
     },
     alternates: {
-      canonical: `https://fanstribune.com/${locale}/mentions-legales`,
+      canonical: `${BRAND.url}/${locale}/mentions-legales`,
       languages: {
-        'fr-CA': 'https://fanstribune.com/fr/mentions-legales',
-        'en-CA': 'https://fanstribune.com/en/mentions-legales',
-        'x-default': 'https://fanstribune.com/fr/mentions-legales',
+        'fr-CA': `${BRAND.url}/fr/mentions-legales`,
+        'en-CA': `${BRAND.url}/en/mentions-legales`,
+        'x-default': `${BRAND.url}/fr/mentions-legales`,
       },
     },
     robots: {

@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { LoginForm } from '@/components/auth/LoginForm';
+import { BRAND } from '@/lib/brand';
 
 export const metadata: Metadata = {
   title: 'Connexion',
-  description: 'Connectez-vous à La tribune des fans pour rejoindre vos tribunes sportives.',
+  description: `Connectez-vous à ${BRAND.name} pour rejoindre vos tribunes sportives.`,
   robots: { index: false, follow: false },
 };
 

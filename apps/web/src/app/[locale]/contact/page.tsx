@@ -1,26 +1,27 @@
 import { setRequestLocale } from 'next-intl/server';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { ObfuscatedEmail } from '@/components/ui/ObfuscatedEmail';
+import { BRAND } from '@/lib/brand';
 import type { Metadata } from 'next';
 
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'Contact | La tribune des fans',
+  title: `Contact | ${BRAND.name}`,
   description:
-    'Contactez l\'équipe de La tribune des fans (Fans Tribune). Envoyez-nous un courriel ou suivez-nous sur les réseaux sociaux.',
+    `Contactez l'équipe de ${BRAND.name} (${BRAND.nameEn}). Envoyez-nous un courriel ou suivez-nous sur les réseaux sociaux.`,
   openGraph: {
-    title: 'Contact | La tribune des fans',
-    description: 'Contactez l\'équipe de La tribune des fans.',
-    url: 'https://fanstribune.com/fr/contact',
-    siteName: 'La tribune des fans',
+    title: `Contact | ${BRAND.name}`,
+    description: `Contactez l'équipe de ${BRAND.name}.`,
+    url: `${BRAND.url}/fr/contact`,
+    siteName: BRAND.name,
     type: 'website',
   },
   alternates: {
-    canonical: 'https://fanstribune.com/fr/contact',
+    canonical: `${BRAND.url}/fr/contact`,
     languages: {
-      fr: 'https://fanstribune.com/fr/contact',
-      en: 'https://fanstribune.com/en/contact',
+      fr: `${BRAND.url}/fr/contact`,
+      en: `${BRAND.url}/en/contact`,
     },
   },
 };
