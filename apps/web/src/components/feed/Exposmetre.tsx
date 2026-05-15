@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocale } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 
 const CONFIG = {
   pivotX: 50,
@@ -39,7 +40,7 @@ function horizonLabel(key: string) {
   return HORIZONS.find((h) => h.key === key)?.label ?? key;
 }
 
-const SHARE_URL = 'https://fanstribune.com/fr/tribunes/expos-de-montreal';
+const SHARE_URL = 'https://fanstribune.com/fr/exposmetre';
 
 interface HorizonData {
   average: number;
@@ -259,7 +260,17 @@ export function Exposmetre({ canModerate }: ExposmetreProps) {
             Voter
           </button>
         ) : (
-          <p className="text-sm text-gray-400">Connecte-toi pour voter</p>
+          <div className="flex flex-col items-center gap-1">
+            <Link
+              href="/register"
+              className="rounded-lg bg-brand-blue px-6 py-2 text-sm font-semibold text-white transition hover:bg-brand-blue-dark"
+            >
+              {locale === 'fr' ? 'Inscris-toi pour voter' : 'Sign up to vote'}
+            </Link>
+            <Link href="/login" className="text-xs text-gray-400 hover:text-brand-blue">
+              {locale === 'fr' ? 'Déjà membre ? Connecte-toi' : 'Already a member? Log in'}
+            </Link>
+          </div>
         )}
         <div className="flex items-center gap-1">
           <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}&quote=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-1.5 text-gray-400 transition hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600">
