@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from 'next-intl';
 import { useSupabase } from '@/hooks/useSupabase';
+import { BRAND } from '@/lib/brand';
+import { ShareButton } from '@/components/ui/ShareButton';
 import { castPollVote, fetchPollOptions, type Poll, type PollOption } from '@/services/pollService';
 
 interface PollBlockProps {
@@ -151,6 +153,11 @@ export function PollBlock({ poll }: PollBlockProps) {
         <h2 className="text-sm font-bold uppercase tracking-wider text-brand-blue">
           {heading}
         </h2>
+        <ShareButton
+          url={`${BRAND.url}/${locale}`}
+          title={poll.question}
+          className="ml-auto flex items-center rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 hover:text-brand-blue dark:hover:bg-gray-800"
+        />
       </div>
 
       <p className="mb-3 text-sm font-semibold leading-snug text-gray-900 dark:text-gray-100">

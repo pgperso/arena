@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { formatTime, displayCommunityName } from '@arena/shared';
+import { BRAND } from '@/lib/brand';
+import { ShareButton } from '@/components/ui/ShareButton';
 import type { PressGalleryItem } from '@/services/pressGalleryService';
 
 interface PressContentCardProps {
@@ -40,12 +42,10 @@ export function PressContentCard({ item, variant = 'standard' }: PressContentCar
   const publishedAtMs = new Date(item.publishedAt).getTime();
   const isFresh = !Number.isNaN(publishedAtMs) && Date.now() - publishedAtMs < NEW_BADGE_WINDOW_MS;
   const authorInitial = item.authorName.trim().slice(0, 1).toUpperCase();
+  const shareUrl = `${BRAND.url}/${locale}${itemHref(item)}`;
 
   return (
-    <Link
-      href={itemHref(item)}
-      className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-lg dark:border-gray-700 dark:bg-[#1e1e1e]"
-    >
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-lg dark:border-gray-700 dark:bg-[#1e1e1e]">
       {/* Cover image */}
       <div className={`relative w-full overflow-hidden ${isLarge ? 'aspect-[16/10]' : 'aspect-video'}`}>
         {item.coverImageUrl ? (
@@ -174,8 +174,19 @@ export function PressContentCard({ item, variant = 'standard' }: PressContentCar
               </span>
             </>
           )}
+          {/* Share — above the stretched link so it stays clickable. */}
+          <ShareButton
+            url={shareUrl}
+            title={item.title}
+            className="relative z-10 ml-auto flex items-center rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 hover:text-brand-blue dark:hover:bg-gray-800"
+          />
         </div>
       </div>
-    </Link>
+
+      {/* Stretched link: the whole card navigates, share button excepted. */}
+      <Link href={itemHref(item)} className="absolute inset-0" aria-label={item.title}>
+        <span className="sr-only">{item.title}</span>
+      </Link>
+    </div>
   );
 }
