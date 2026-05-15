@@ -5,7 +5,8 @@ export type NotificationType =
   | 'comment_reply'
   | 'comment_reply_thread'
   | 'comment_on_article'
-  | 'article_published';
+  | 'article_published'
+  | 'chat_reply';
 
 export interface NotificationItem {
   id: number;

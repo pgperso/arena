@@ -61,7 +61,7 @@ export function CommunityPageClient({
 
   // Tell the Header we're in a tribune + track last visit for sorting
   useEffect(() => {
-    setTribune({ name: displayName, slug: community.slug });
+    setTribune({ id: community.id, name: displayName, slug: community.slug });
     try {
       const visits = JSON.parse(localStorage.getItem('tribune_visits') || '{}');
       visits[community.id] = Date.now();
