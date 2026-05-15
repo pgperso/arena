@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { BRAND } from '@/lib/brand';
 
 const TIMEOUT_MS = 5000;
 const MAX_HTML_SIZE = 100000; // 100KB max to parse
@@ -42,7 +43,7 @@ export async function GET(request: Request) {
     const response = await fetch(url, {
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; FansTribuneBot/1.0; +https://fanstribune.com)',
+        'User-Agent': `Mozilla/5.0 (compatible; FansTribuneBot/1.0; +${BRAND.url})`,
         'Accept': 'text/html',
       },
       redirect: 'follow',

@@ -12,6 +12,7 @@ import { FeedReplyContext } from './FeedReplyContext';
 import { FeedLinkPreview } from './FeedLinkPreview';
 import { Avatar } from '@/components/ui/Avatar';
 import { UserPopover } from '@/components/ui/UserPopover';
+import { BRAND } from '@/lib/brand';
 import { StatusDot } from '@/components/ui/StatusDot';
 import { useTribune } from '@/contexts/TribuneContext';
 
@@ -300,7 +301,7 @@ export const FeedMessage = memo(function FeedMessage({
         <div className="relative mt-0.5 h-8 w-8 flex-shrink-0">
           {message.memberId === BOT_MEMBER_ID ? (
             <img
-              src="/images/fanstribune.webp"
+              src={BRAND.logo}
               alt={username}
               className="h-8 w-8 rounded-lg object-contain"
             />

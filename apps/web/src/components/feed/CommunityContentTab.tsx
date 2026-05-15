@@ -11,6 +11,7 @@ import { AdSlot } from '@/components/ads/AdSlot';
 import { removePodcast } from '@/services/podcastService';
 import { Trash2, EyeOff } from 'lucide-react';
 import { getContentAuthor } from '@/lib/contentAuthors';
+import { BRAND } from '@/lib/brand';
 
 const CONTENT_AD_INTERVAL = 8; // Ad every 8 items (avoid excessive ad density)
 
@@ -296,7 +297,7 @@ function ContentRow({
       {/* Share + Action buttons */}
       <div className="flex shrink-0 items-center gap-1">
         <a
-          href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://fanstribune.com/fr${href}`)}`}
+          href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${BRAND.url}/fr${href}`)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-lg p-2 text-gray-400 transition hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600"
@@ -307,7 +308,7 @@ function ContentRow({
           </svg>
         </a>
         <a
-          href={`https://x.com/intent/tweet?url=${encodeURIComponent(`https://fanstribune.com/fr${href}`)}&text=${encodeURIComponent(item.title)}`}
+          href={`https://x.com/intent/tweet?url=${encodeURIComponent(`${BRAND.url}/fr${href}`)}&text=${encodeURIComponent(item.title)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-900 hover:text-white"

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { formatTime, BOT_MEMBER_ID } from '@arena/shared';
 import type { FeedMessage as FeedMessageType } from '@arena/shared';
+import { BRAND } from '@/lib/brand';
 
 export { BOT_MEMBER_ID };
 
@@ -21,7 +22,7 @@ export function FeedBotMessage({ message }: FeedBotMessageProps) {
       <div className="overflow-hidden rounded-xl bg-gray-950 px-4 py-3">
         <div className="flex items-center gap-3">
           <Image
-            src="/images/fanstribune.webp"
+            src={BRAND.logo}
             alt={botName}
             width={32}
             height={32}

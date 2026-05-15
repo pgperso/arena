@@ -14,6 +14,7 @@ import { useTribune } from '@/contexts/TribuneContext';
 import type { PressGalleryItem } from '@/services/pressGalleryService';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
+import { BRAND } from '@/lib/brand';
 import type { Database } from '@arena/supabase-client';
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'];
@@ -124,7 +125,7 @@ export function CommunityPageClient({
             {/* Community header */}
             <header className="mb-8 flex flex-col items-center gap-4 text-center md:flex-row md:items-start md:text-left">
               <Image
-                src={community.logo_url || '/images/fanstribune.webp'}
+                src={community.logo_url || BRAND.logo}
                 alt={displayName}
                 width={96}
                 height={96}

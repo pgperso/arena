@@ -5,6 +5,7 @@ import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
+import { BRAND } from '@/lib/brand';
 
 const CONFIG = {
   pivotX: 40,
@@ -40,7 +41,7 @@ function horizonLabel(key: string) {
   return HORIZONS.find((h) => h.key === key)?.label ?? key;
 }
 
-const SHARE_URL = 'https://fanstribune.com/fr/nordiquometre';
+const SHARE_URL = `${BRAND.url}/fr/nordiquometre`;
 
 interface HorizonData {
   average: number;
@@ -192,8 +193,8 @@ export function Nordiquometre({ canModerate }: NordiquometreProps) {
   const verdict = getVerdict(current.average);
 
   const shareText = locale === 'fr'
-    ? `Le Nordiquomètre est à ${current.average}% (${horizonLabel(activeHorizon)}) selon ${current.totalVotes} fans. Et toi, tu y crois ? Vote sur fanstribune.com`
-    : `The Nordiquomètre is at ${current.average}% (${horizonLabel(activeHorizon)}) according to ${current.totalVotes} fans. Do you believe? Vote at fanstribune.com`;
+    ? `Le Nordiquomètre est à ${current.average}% (${horizonLabel(activeHorizon)}) selon ${current.totalVotes} fans. Et toi, tu y crois ? Vote sur ${BRAND.domain}`
+    : `The Nordiquomètre is at ${current.average}% (${horizonLabel(activeHorizon)}) according to ${current.totalVotes} fans. Do you believe? Vote at ${BRAND.domain}`;
 
 
   if (!loaded) {

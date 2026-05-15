@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@arena/supabase-client';
 import { articleSchema } from '@arena/shared';
 import { announceArticle, cleanupArticleBotMessages } from './botService';
+import { BRAND } from '@/lib/brand';
 
 export async function removeArticle(
   supabase: SupabaseClient<Database>,
@@ -91,7 +92,7 @@ export async function createArticle(
       || 'Inconnu';
     if (community) {
       const communitySlug = (community as { slug: string }).slug;
-      const articleUrl = `https://fanstribune.com/fr/tribunes/${communitySlug}/articles/${validated.slug}`;
+      const articleUrl = `${BRAND.url}/fr/tribunes/${communitySlug}/articles/${validated.slug}`;
       announceArticle(supabase, displayName, (community as { name: string }).name, validated.title, articleUrl);
     }
   }

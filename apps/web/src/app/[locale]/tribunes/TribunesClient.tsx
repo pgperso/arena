@@ -8,6 +8,7 @@ import { useSupabase } from '@/hooks/useSupabase';
 import { leaveCommunity } from '@/services/communityService';
 import { JoinTribuneModal } from '@/components/community/JoinTribuneModal';
 import { displayCommunityName, displayCommunityDescription } from '@arena/shared';
+import { BRAND } from '@/lib/brand';
 import type { Database } from '@arena/supabase-client';
 
 type CommunityRow = Database['public']['Tables']['communities']['Row'] & {
@@ -90,7 +91,7 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
                     className="flex items-center gap-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] p-5 transition hover:border-brand-blue/30 hover:shadow-md sm:p-6"
                   >
                     <Image
-                      src={taverne.logo_url || '/images/fanstribune.webp'}
+                      src={taverne.logo_url || BRAND.logo}
                       alt={taverneName}
                       width={56}
                       height={56}
@@ -150,7 +151,7 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
                     >
                       <div className="mb-3 flex items-center gap-3">
                         <Image
-                          src={community.logo_url || '/images/fanstribune.webp'}
+                          src={community.logo_url || BRAND.logo}
                           alt={communityName}
                           width={48}
                           height={48}
@@ -195,8 +196,8 @@ export function TribunesClient({ communities, userId, memberCommunityIds }: Trib
               ) : !taverne ? (
                 <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 py-16">
             <Image
-              src="/images/fanstribune.webp"
-              alt="La tribune des fans"
+              src={BRAND.logo}
+              alt={BRAND.name}
               width={48}
               height={48}
               className="mb-4 opacity-40"

@@ -3,6 +3,7 @@
 import { Link } from '@/i18n/navigation';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
+import { BRAND } from '@/lib/brand';
 
 export function Footer() {
   const t = useTranslations();
@@ -12,7 +13,7 @@ export function Footer() {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-1.5 sm:gap-4 sm:px-4 sm:py-2">
         <div className="flex items-center gap-1.5 sm:gap-2">
           <Image
-            src="/images/fanstribune.webp"
+            src={BRAND.logo}
             alt={t('brand.name')}
             width={20}
             height={20}

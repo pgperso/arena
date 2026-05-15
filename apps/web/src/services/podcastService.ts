@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@arena/supabase-client';
 import { podcastSchema } from '@arena/shared';
 import { announcePodcast, announceLive } from './botService';
+import { BRAND } from '@/lib/brand';
 
 interface PodcastData {
   communityId: number;
@@ -56,7 +57,7 @@ export async function createPodcast(
       if (validated.isLive && validated.youtubeVideoId) {
         announceLive(supabase, communityName, validated.title);
       } else {
-        const podcastUrl = `https://fanstribune.com/fr/tribunes/${communitySlug}/podcasts/${result.data ? (result.data as unknown as { id: number }).id : ''}`;
+        const podcastUrl = `${BRAND.url}/fr/tribunes/${communitySlug}/podcasts/${result.data ? (result.data as unknown as { id: number }).id : ''}`;
         announcePodcast(supabase, username, communityName, validated.title, podcastUrl);
       }
     }

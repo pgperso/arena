@@ -6,6 +6,7 @@ import { FeedLikeButton } from '@/components/feed/FeedLikeButton';
 import { AdSlot } from '@/components/ads/AdSlot';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
+import { BRAND } from '@/lib/brand';
 
 interface PodcastPlayerProps {
   podcast: {
@@ -243,7 +244,7 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-400">Partager</span>
           <a
-            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://fanstribune.com/fr/tribunes/${communitySlug}/podcasts/${podcast.id}`)}`}
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${BRAND.url}/fr/tribunes/${communitySlug}/podcasts/${podcast.id}`)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600"
@@ -254,7 +255,7 @@ export function PodcastPlayer({ podcast, communitySlug, userId }: PodcastPlayerP
             </svg>
           </a>
           <a
-            href={`https://x.com/intent/tweet?url=${encodeURIComponent(`https://fanstribune.com/fr/tribunes/${communitySlug}/podcasts/${podcast.id}`)}&text=${encodeURIComponent(podcast.title)}`}
+            href={`https://x.com/intent/tweet?url=${encodeURIComponent(`${BRAND.url}/fr/tribunes/${communitySlug}/podcasts/${podcast.id}`)}&text=${encodeURIComponent(podcast.title)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-900 dark:text-gray-100"

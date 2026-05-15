@@ -5,6 +5,7 @@ import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
+import { BRAND } from '@/lib/brand';
 
 const CONFIG = {
   pivotX: 50,
@@ -40,7 +41,7 @@ function horizonLabel(key: string) {
   return HORIZONS.find((h) => h.key === key)?.label ?? key;
 }
 
-const SHARE_URL = 'https://fanstribune.com/fr/exposmetre';
+const SHARE_URL = `${BRAND.url}/fr/exposmetre`;
 
 interface HorizonData {
   average: number;
@@ -192,8 +193,8 @@ export function Exposmetre({ canModerate }: ExposmetreProps) {
   const verdict = getVerdict(current.average);
 
   const shareText = locale === 'fr'
-    ? `L'Exposmètre est à ${current.average}% (${horizonLabel(activeHorizon)}) selon ${current.totalVotes} fans. Le baseball revient à Montréal ? Vote sur fanstribune.com`
-    : `The Exposmètre is at ${current.average}% (${horizonLabel(activeHorizon)}) according to ${current.totalVotes} fans. Is baseball coming back to Montreal? Vote at fanstribune.com`;
+    ? `L'Exposmètre est à ${current.average}% (${horizonLabel(activeHorizon)}) selon ${current.totalVotes} fans. Le baseball revient à Montréal ? Vote sur ${BRAND.domain}`
+    : `The Exposmètre is at ${current.average}% (${horizonLabel(activeHorizon)}) according to ${current.totalVotes} fans. Is baseball coming back to Montreal? Vote at ${BRAND.domain}`;
 
 
   if (!loaded) {

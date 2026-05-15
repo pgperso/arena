@@ -13,6 +13,7 @@ import { getContentAuthor } from '@/lib/contentAuthors';
 import Image from 'next/image';
 import { Link, useRouter } from '@/i18n/navigation';
 import { useLocale } from 'next-intl';
+import { BRAND } from '@/lib/brand';
 
 interface ArticleViewProps {
   article: {
@@ -260,7 +261,7 @@ export function ArticleView({ article, communitySlug, communityName, userId, can
             userId={userId}
           />
           <ShareButtons
-            url={`https://fanstribune.com/${locale}/tribunes/${communitySlug}/articles/${article.slug}`}
+            url={`${BRAND.url}/${locale}/tribunes/${communitySlug}/articles/${article.slug}`}
             title={article.title}
           />
         </div>

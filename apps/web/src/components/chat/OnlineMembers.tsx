@@ -6,6 +6,7 @@ import Image from 'next/image';
 import type { PresenceMember } from '@/hooks/usePresence';
 import { Avatar } from '@/components/ui/Avatar';
 import { StatusDot } from '@/components/ui/StatusDot';
+import { BRAND } from '@/lib/brand';
 
 interface OnlineMembersProps {
   members: PresenceMember[];
@@ -100,7 +101,7 @@ export function OnlineMembers({
             <li className="flex items-center gap-2 rounded-lg px-2 py-1.5">
               <div className="relative">
                 <Image
-                  src="/images/fanstribune.webp"
+                  src={BRAND.logo}
                   alt={botName}
                   width={28}
                   height={28}
