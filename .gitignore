@@ -38,8 +38,15 @@ supabase/.temp/
 # Original legacy code
 original-code/
 
-# Import data (sensitive)
+# Import & migration data (sensitive — contains member PII, IPs, password hashes)
+# These are legacy Zone Nordiques exports and migration artifacts. They must
+# never reach the repo: log_acces.csv alone holds member IDs + raw IP addresses
+# (personal data under Québec Law 25 / GDPR).
 membre.csv
 chronique.csv
+log_acces.csv
+active-ids.txt
 import-results.log
 import-chroniques.log
+fix-authors.log
+*.import.log
