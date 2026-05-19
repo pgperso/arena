@@ -6,7 +6,7 @@ import { BRAND } from '@/lib/brand';
 
 /**
  * Poke the translation worker so freshly published or edited content is
- * translated within seconds rather than waiting for the hourly cron.
+ * translated within seconds rather than waiting for the daily cron.
  * Fire-and-forget — the worker is idempotent and the cron is the safety net.
  */
 function triggerTranslation(): void {
