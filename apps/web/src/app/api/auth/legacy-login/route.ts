@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createHash, timingSafeEqual } from 'crypto';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { consumeRateLimit } from '@/lib/rateLimit';
 
 // Lazy migration endpoint for users coming from the legacy Zone Nordiques PHP
 // site. The old site stored passwords as raw MD5 hashes. When a user tries to
@@ -15,22 +16,11 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 //      signInWithPassword with the same password.
 //   4. If anything fails, return 401 with a generic message (no enumeration).
 
-// Rate limit: 20 attempts per 15 min per IP to prevent MD5 cracking via the API.
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+// Rate limit: 20 attempts per 15 min per IP to prevent MD5 cracking via the
+// API. Enforced through the shared `rate_limits` table so the cap holds
+// across serverless instances rather than per-process.
 const RATE_LIMIT = 20;
-const RATE_WINDOW_MS = 15 * 60 * 1000;
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(key);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return true;
-  }
-  if (entry.count >= RATE_LIMIT) return false;
-  entry.count++;
-  return true;
-}
+const RATE_WINDOW_SECONDS = 15 * 60;
 
 function md5Hex(input: string): string {
   return createHash('md5').update(input, 'utf8').digest('hex');
@@ -59,7 +49,12 @@ export async function POST(request: Request) {
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
       request.headers.get('x-real-ip') ??
       'unknown';
-    if (!checkRateLimit(ip)) {
+    const { allowed } = await consumeRateLimit(
+      `legacy-login:${ip}`,
+      RATE_LIMIT,
+      RATE_WINDOW_SECONDS,
+    );
+    if (!allowed) {
       return NextResponse.json(
         { error: 'Too many attempts. Try again later.' },
         { status: 429 },

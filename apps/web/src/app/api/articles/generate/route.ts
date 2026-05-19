@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { fetchRecentNews } from '@/lib/newsSearch';
 import { fetchUrlContent, extractUrls } from '@/lib/fetchUrlContent';
 import { sanitizeArticleHtml, sanitizeArticleText } from '@/lib/sanitizeArticleHtml';
+import { consumeRateLimit, retryAfterSeconds } from '@/lib/rateLimit';
 import { MIN_QUALITY_WORD_COUNT } from '@arena/shared';
 
 // Target a comfortable margin above the indexability floor so the
@@ -25,21 +26,10 @@ const MODEL_PROSE = 'claude-opus-4-7';
 export const maxDuration = 60;
 
 // ─── Rate Limiting ───
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+// 10 generations per hour per user, enforced through the shared
+// `rate_limits` table so the ceiling holds across serverless instances.
 const RATE_LIMIT = 10;
-const RATE_WINDOW_MS = 60 * 60 * 1000;
-
-function checkRateLimit(userId: string): { allowed: boolean; remaining: number } {
-  const now = Date.now();
-  const entry = rateLimitMap.get(userId);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return { allowed: true, remaining: RATE_LIMIT - 1 };
-  }
-  if (entry.count >= RATE_LIMIT) return { allowed: false, remaining: 0 };
-  entry.count++;
-  return { allowed: true, remaining: RATE_LIMIT - entry.count };
-}
+const RATE_WINDOW_SECONDS = 60 * 60;
 
 // ─── Input Sanitization ───
 
@@ -337,11 +327,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    const { allowed, remaining } = checkRateLimit(user.id);
+    const { allowed, remaining, resetAt } = await consumeRateLimit(
+      `article-gen:${user.id}`,
+      RATE_LIMIT,
+      RATE_WINDOW_SECONDS,
+    );
     if (!allowed) {
       return NextResponse.json(
-        { error: 'Limite atteinte (10/heure). Réessayez plus tard.' },
-        { status: 429, headers: { 'Retry-After': '3600' } },
+        { error: `Limite atteinte (${RATE_LIMIT}/heure). Réessayez plus tard.` },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(retryAfterSeconds(resetAt) || RATE_WINDOW_SECONDS) },
+        },
       );
     }
 
