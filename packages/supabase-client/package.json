@@ -7,6 +7,9 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "scripts": {
+    "gen:types": "npx -y supabase gen types typescript --linked --schema public > src/types.ts"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1"
   },

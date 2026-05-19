@@ -1,5 +1,13 @@
-// Auto-generated types from Supabase will go here.
-// Run `npx supabase gen types typescript` to regenerate.
+// Supabase database types.
+//
+// Currently hand-maintained and INCOMPLETE — tables/columns added by recent
+// migrations are missing, which is why call sites still need `as unknown as`
+// casts. Regenerate the real schema (one-time `supabase link` first):
+//
+//   npm run gen:types --workspace=@arena/supabase-client
+//
+// That overwrites this file with the generator's output; the casts can then
+// be removed. Requires a SUPABASE_ACCESS_TOKEN (or an interactive login).
 
 export type Database = {
   public: {
