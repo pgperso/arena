@@ -4,6 +4,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
 import { fetchRecentNews } from '@/lib/newsSearch';
 import { BRAND } from '@/lib/brand';
+import { normalizePollProposals } from '@/lib/pollProposals';
 
 // AI call + news fetch can run ~15-30s.
 export const maxDuration = 60;
@@ -11,43 +12,42 @@ export const maxDuration = 60;
 const POLLS_PER_RUN = 3;
 const MAX_OPTIONS = 4;
 
-interface PollProposal {
-  question: string;
-  options: string[];
-}
+// The model returns its proposals through this tool, so Anthropic hands
+// back a validated JSON object instead of free-form text to regex-parse.
+const POLLS_TOOL: Anthropic.Tool = {
+  name: 'submit_polls',
+  description: 'Soumet les sondages proposés.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      polls: {
+        type: 'array',
+        description: `Liste de ${POLLS_PER_RUN} sondages.`,
+        items: {
+          type: 'object',
+          properties: {
+            question: {
+              type: 'string',
+              description: "Question d'opinion en français québécois.",
+            },
+            options: {
+              type: 'array',
+              description: `2 à ${MAX_OPTIONS} options de réponse courtes (1 à 6 mots).`,
+              items: { type: 'string' },
+            },
+          },
+          required: ['question', 'options'],
+        },
+      },
+    },
+    required: ['polls'],
+  },
+};
 
-function extractText(message: Anthropic.Message): string {
-  const block = message.content.find((b) => b.type === 'text');
-  return block?.type === 'text' ? block.text.trim() : '';
-}
-
-/** Parse the AI poll JSON, tolerating ```json fences. */
-function parseProposals(raw: string): PollProposal[] {
-  let str = raw.trim();
-  if (str.startsWith('```')) {
-    str = str.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
-  }
-  try {
-    const parsed = JSON.parse(str);
-    const list = Array.isArray(parsed) ? parsed : parsed.polls;
-    if (!Array.isArray(list)) return [];
-    return list
-      .filter(
-        (p): p is PollProposal =>
-          p && typeof p.question === 'string' && Array.isArray(p.options),
-      )
-      .map((p) => ({
-        question: p.question.trim().slice(0, 300),
-        options: p.options
-          .filter((o: unknown): o is string => typeof o === 'string')
-          .map((o: string) => o.trim().slice(0, 120))
-          .filter(Boolean)
-          .slice(0, MAX_OPTIONS),
-      }))
-      .filter((p) => p.question.length >= 5 && p.options.length >= 2);
-  } catch {
-    return [];
-  }
+/** Pull the submit_polls tool input from a message, or null if absent. */
+function extractPollInput(message: Anthropic.Message): unknown {
+  const block = message.content.find((b) => b.type === 'tool_use');
+  return block && block.type === 'tool_use' ? block.input : null;
 }
 
 /**
@@ -116,6 +116,8 @@ async function handleGenerate(request: Request) {
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1200,
+      tools: [POLLS_TOOL],
+      tool_choice: { type: 'tool', name: POLLS_TOOL.name },
       messages: [{
         role: 'user',
         content: `Tu génères des sondages pour une plateforme de fans de sport québécoise (${BRAND.name}).
@@ -131,12 +133,11 @@ RÈGLES :
 - Pas de question sensible (politique, religion). Sport et culture sportive seulement.
 - Varie les sujets (hockey, mais aussi baseball, football, etc. si pertinent).
 
-Réponds UNIQUEMENT en JSON valide, rien d'autre :
-{"polls":[{"question":"...","options":["...","..."]}]}`,
+Soumets les sondages avec l'outil submit_polls.`,
       }],
     });
 
-    const proposals = parseProposals(extractText(message));
+    const proposals = normalizePollProposals(extractPollInput(message), MAX_OPTIONS);
     if (proposals.length === 0) {
       return NextResponse.json({ error: 'Aucun sondage généré. Réessayez.' }, { status: 502 });
     }

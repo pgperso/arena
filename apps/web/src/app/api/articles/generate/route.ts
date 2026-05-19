@@ -5,6 +5,7 @@ import { fetchRecentNews } from '@/lib/newsSearch';
 import { fetchUrlContent, extractUrls } from '@/lib/fetchUrlContent';
 import { sanitizeArticleHtml, sanitizeArticleText } from '@/lib/sanitizeArticleHtml';
 import { consumeRateLimit, retryAfterSeconds } from '@/lib/rateLimit';
+import { sanitizePromptInput, escapeForPrompt, deduplicateNews } from '@/lib/promptSafety';
 import { MIN_QUALITY_WORD_COUNT } from '@arena/shared';
 
 // Target a comfortable margin above the indexability floor so the
@@ -31,23 +32,41 @@ export const maxDuration = 60;
 const RATE_LIMIT = 10;
 const RATE_WINDOW_SECONDS = 60 * 60;
 
-// ─── Input Sanitization ───
-
-/** Strip characters that could break prompt structure */
-function sanitize(input: string, max: number): string {
-  return input
-    .trim()
-    .slice(0, max)
-    .replace(/[`]/g, "'"); // Remove backticks (markdown injection)
+// ─── Structured output ───
+// The three prose agents return the article through this tool. Forcing
+// tool_choice means Anthropic hands back the fields as a validated JSON
+// object — no fragile regex parsing of free-form model text.
+interface ArticleDraft {
+  title: string;
+  excerpt: string;
+  body: string;
 }
 
-/** Escape input that goes into prompt to prevent injection */
-function escapeForPrompt(input: string, maxLen = 1000): string {
-  return input
-    .replace(/["""]/g, '«»')       // Replace quotes
-    .replace(/\\/g, '')            // Remove backslashes
-    .slice(0, maxLen);
-}
+const ARTICLE_TOOL: Anthropic.Tool = {
+  name: 'submit_article',
+  description: "Soumet l'article finalisé. Tous les champs sont obligatoires.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      title: {
+        type: 'string',
+        description: 'Titre accrocheur, max 200 caractères, sans HTML.',
+      },
+      excerpt: {
+        type: 'string',
+        description: 'Résumé SEO de 120 à 155 caractères, sans HTML.',
+      },
+      body: {
+        type: 'string',
+        description:
+          "Corps de l'article en HTML (<p>, <h2>, <h3>, <strong>, <em>, <ul>, <li>, <blockquote>). Jamais de <h1>.",
+      },
+    },
+    required: ['title', 'excerpt', 'body'],
+  },
+};
+
+const FORCE_ARTICLE_TOOL = { type: 'tool' as const, name: ARTICLE_TOOL.name };
 
 // ─── Helpers ───
 
@@ -56,63 +75,19 @@ function extractText(message: Anthropic.Message): string {
   return block?.type === 'text' ? block.text.trim() : '';
 }
 
-interface ArticleJson {
-  title?: string;
-  excerpt?: string;
-  body?: string;
-}
+/** Pull the submit_article tool input from a message, or null if absent/invalid. */
+function extractArticle(message: Anthropic.Message): ArticleDraft | null {
+  const block = message.content.find((b) => b.type === 'tool_use');
+  if (!block || block.type !== 'tool_use') return null;
 
-/** Robustly extract article JSON from text */
-function extractJson(raw: string): ArticleJson | null {
-  let str = raw.trim();
-  if (str.startsWith('```')) str = str.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+  const input = block.input as Record<string, unknown>;
+  const title = typeof input.title === 'string' ? input.title.trim() : '';
+  const body = typeof input.body === 'string' ? input.body.trim() : '';
+  const excerpt = typeof input.excerpt === 'string' ? input.excerpt.trim() : '';
 
-  // Strategy 1: direct parse
-  try {
-    const parsed = JSON.parse(str);
-    if (parsed && typeof parsed.title === 'string') return parsed;
-  } catch { /* fall through */ }
-
-  // Strategy 2: extract first JSON object
-  const match = str.match(/\{[\s\S]*?\}"?\s*$/);
-  if (match) {
-    try {
-      const parsed = JSON.parse(match[0].replace(/"\s*$/, '"}')); // Fix truncated
-      if (parsed && typeof parsed.title === 'string') return parsed;
-    } catch { /* fall through */ }
-  }
-
-  // Strategy 3: extract fields individually (non-greedy)
-  const title = str.match(/"title"\s*:\s*"((?:[^"\\]|\\.)*)"/)?.[1]?.replace(/\\"/g, '"');
-  const excerpt = str.match(/"excerpt"\s*:\s*"((?:[^"\\]|\\.)*)"/)?.[1]?.replace(/\\"/g, '"');
-
-  // For body, find "body":" then capture until the last "}
-  const bodyStart = str.indexOf('"body"');
-  if (bodyStart !== -1) {
-    const afterBody = str.slice(bodyStart);
-    const bodyContent = afterBody.match(/"body"\s*:\s*"([\s\S]*?)"\s*\}$/)?.[1];
-    if (bodyContent && title) {
-      return {
-        title,
-        excerpt: excerpt ?? '',
-        body: bodyContent.replace(/\\"/g, '"').replace(/\\n/g, '\n'),
-      };
-    }
-  }
-
-  return null;
-}
-
-/** Deduplicate news by normalized title prefix */
-function deduplicateNews(items: string[]): string[] {
-  const seen = new Set<string>();
-  return items.filter((item) => {
-    // Normalize: lowercase, strip lang prefix, take first 80 chars
-    const key = item.replace(/^\[(FR|EN)\]\s*/i, '').toLowerCase().slice(0, 80);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  // A truncated reply (max_tokens) can drop body — treat as a failed stage.
+  if (!title || !body) return null;
+  return { title, excerpt, body };
 }
 
 // ─── AGENT 1: RECHERCHISTE ───
@@ -171,12 +146,14 @@ async function agentWrite(
   communityName: string,
   directives: string,
   isTaverne: boolean,
-): Promise<string> {
+): Promise<ArticleDraft | null> {
   const escapedDirectives = directives ? escapeForPrompt(directives) : '';
 
   const message = await client.messages.create({
     model: MODEL_PROSE,
     max_tokens: 3200,
+    tools: [ARTICLE_TOOL],
+    tool_choice: FORCE_ARTICLE_TOOL,
     messages: [{
       role: 'user',
       content: `Tu es le RÉDACTEUR ${authorName ? `« ${escapeForPrompt(authorName)} »` : ''} pour une tribune sur ${escapeForPrompt(communityName)}.
@@ -212,23 +189,22 @@ FORMAT :
 - NE PAS ajouter de section sources ni de mention IA à la fin de l'article
 - L'article doit se terminer naturellement par une conclusion éditoriale forte
 
-Réponds UNIQUEMENT en JSON valide, rien d'autre :
-{"title":"Titre accrocheur max 200 car","excerpt":"Résumé SEO 120-155 car","body":"<p>HTML ici</p>"}`,
+Soumets l'article avec l'outil submit_article.`,
     }],
   });
 
-  return extractText(message);
+  return extractArticle(message);
 }
 
 // ─── AGENT 3: VERIFICATEUR ───
 async function agentVerify(
   client: Anthropic,
-  articleJson: string,
+  article: ArticleDraft,
   research: string,
   newsTitles: string[],
   authorName: string,
   authorStyle: string,
-): Promise<string> {
+): Promise<ArticleDraft | null> {
   const sourceTitles = newsTitles.length > 0
     ? `\nTITRES ORIGINAUX DES SOURCES (pour comparaison anti-plagiat) :\n${newsTitles.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n`
     : '';
@@ -240,12 +216,14 @@ async function agentVerify(
   const message = await client.messages.create({
     model: MODEL_PROSE,
     max_tokens: 3200,
+    tools: [ARTICLE_TOOL],
+    tool_choice: FORCE_ARTICLE_TOOL,
     messages: [{
       role: 'user',
       content: `Tu es un VÉRIFICATEUR anti-plagiat STRICT et qualité.
 
 ARTICLE SOUMIS :
-${articleJson}
+${JSON.stringify(article)}
 
 DOSSIER DE RECHERCHE :
 ${research}
@@ -264,34 +242,34 @@ MISSION :
    - Si le ton ne correspond pas (ex: un article trop sérieux pour Rex Paquette qui doit être provocateur), RÉÉCRIS les passages pour coller au personnage.
    - Le vocabulaire, le niveau de langue et l'attitude doivent refléter la personnalité de l'auteur.
 4. QUALITÉ : Améliore les transitions, supprime les répétitions.
-5. JSON : Le JSON retourné doit être VALIDE. Utilise « » pas des guillemets doubles dans le texte.
+5. Dans le texte, utilise les guillemets français « » jamais des guillemets doubles.
 
-Retourne l'article corrigé en JSON strict :
-{"title":"...","excerpt":"...","body":"<p>...</p>"}
-Réponds UNIQUEMENT avec le JSON.`,
+Soumets l'article corrigé avec l'outil submit_article.`,
     }],
   });
 
-  return extractText(message);
+  return extractArticle(message);
 }
 
 // ─── AGENT 4: EDITEUR ───
 async function agentPolish(
   client: Anthropic,
-  articleJson: string,
+  article: ArticleDraft,
   authorName: string,
   authorStyle: string,
   isTaverne: boolean,
-): Promise<string> {
+): Promise<ArticleDraft | null> {
   const message = await client.messages.create({
     model: MODEL_PROSE,
     max_tokens: 3200,
+    tools: [ARTICLE_TOOL],
+    tool_choice: FORCE_ARTICLE_TOOL,
     messages: [{
       role: 'user',
       content: `Tu es l'ÉDITEUR EN CHEF. Passe finale.
 
 ARTICLE :
-${articleJson}
+${JSON.stringify(article)}
 
 AUTEUR : ${escapeForPrompt(authorName || 'chroniqueur')}
 STYLE ATTENDU : ${authorStyle || `éditorial ${isTaverne ? '' : 'sportif '}québécois`}
@@ -306,15 +284,13 @@ MISSION :
 7. Le vocabulaire est varié ? Remplace les mots répétés et les clichés journalistiques.
 8. Le HTML est propre ? Pas de balises vides.
 9. LONGUEUR FINALE : compte les mots du corps. Il doit faire au moins ${MIN_QUALITY_WORD_COUNT} mots (cible ${TARGET_MIN_WORDS}+). Si c'est plus court, étoffe les paragraphes avec de la vraie analyse (contexte, nuances, conséquences) — jamais de remplissage creux. Ne retourne JAMAIS un article sous ${MIN_QUALITY_WORD_COUNT} mots.
+10. Dans le texte, utilise les guillemets français « » jamais des guillemets doubles.
 
-Retourne l'article FINAL en JSON strict :
-{"title":"...","excerpt":"...","body":"<p>...</p>"}
-Utilise « » pas " dans le texte.
-Réponds UNIQUEMENT avec le JSON.`,
+Soumets l'article FINAL avec l'outil submit_article.`,
     }],
   });
 
-  return extractText(message);
+  return extractArticle(message);
 }
 
 // ─── MAIN ROUTE ───
@@ -343,11 +319,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const topic = sanitize(body.topic ?? '', 200);
-    const directives = sanitize(body.directives ?? body.instructions ?? '', 1000);
-    const communityName = sanitize(body.communityName ?? 'Sport', 100);
+    const topic = sanitizePromptInput(body.topic ?? '', 200);
+    const directives = sanitizePromptInput(body.directives ?? body.instructions ?? '', 1000);
+    const communityName = sanitizePromptInput(body.communityName ?? 'Sport', 100);
     const authorStyle = typeof body.authorStyle === 'string' ? body.authorStyle.slice(0, 500) : '';
-    const authorName = sanitize(body.authorName ?? '', 100);
+    const authorName = sanitizePromptInput(body.authorName ?? '', 100);
     const isTaverne = body.isTaverne === true;
 
     if (topic.length < 2) {
@@ -404,24 +380,22 @@ export async function POST(request: Request) {
 
     // Agent 2: Rédacteur
     const draft = await agentWrite(client, research, authorName, authorStyle, communityName, directives, isTaverne);
-
-    // Agent 3: Vérificateur
-    const verified = await agentVerify(client, draft, research, newsTitles, authorName, authorStyle);
-
-    // Agent 4: Éditeur
-    const polished = await agentPolish(client, verified, authorName, authorStyle, isTaverne);
-
-    // Parse — try each agent's output from best to worst
-    const parsed = extractJson(polished) ?? extractJson(verified) ?? extractJson(draft);
-
-    if (!parsed || !parsed.title || !parsed.body) {
+    if (!draft) {
       return NextResponse.json({ error: 'Génération échouée. Réessayez.' }, { status: 500 });
     }
 
+    // Agent 3: Vérificateur — Agent 4: Éditeur. Each stage may fail to
+    // return a usable draft; fall back to the best earlier stage.
+    const verified = await agentVerify(client, draft, research, newsTitles, authorName, authorStyle);
+    const polished = verified
+      ? await agentPolish(client, verified, authorName, authorStyle, isTaverne)
+      : null;
+    const article = polished ?? verified ?? draft;
+
     // Strip em/en dashes that AI overuses, then sanitize HTML server-side
-    const cleanBody = sanitizeArticleHtml(parsed.body.replace(/[—–]/g, '-'));
-    const cleanTitle = sanitizeArticleText(parsed.title.replace(/[—–]/g, '-'));
-    const cleanExcerpt = sanitizeArticleText((parsed.excerpt ?? '').replace(/[—–]/g, '-'));
+    const cleanBody = sanitizeArticleHtml(article.body.replace(/[—–]/g, '-'));
+    const cleanTitle = sanitizeArticleText(article.title.replace(/[—–]/g, '-'));
+    const cleanExcerpt = sanitizeArticleText(article.excerpt.replace(/[—–]/g, '-'));
 
     return NextResponse.json(
       { title: cleanTitle, excerpt: cleanExcerpt, body: cleanBody },
