@@ -12,9 +12,13 @@ const AUTH_TIMEOUT_MS = 3000;
 
 type AuthResult = { user: { id: string } | null; timedOut: boolean };
 
+// Minimal structural type — getUserWithTimeout only ever calls auth.getUser().
+type SupabaseAuthLike = {
+  auth: { getUser: () => Promise<{ data: { user: { id: string } | null } }> };
+};
+
 async function getUserWithTimeout(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: SupabaseAuthLike,
 ): Promise<AuthResult> {
   const authPromise: Promise<AuthResult> = supabase.auth.getUser().then(
     ({ data }: { data: { user: { id: string } | null } }) => ({
