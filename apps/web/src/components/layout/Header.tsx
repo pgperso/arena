@@ -216,10 +216,13 @@ export function Header() {
           )}
         </div>
 
-        {/* Mobile: notifications + (tribune ? membres) + burger */}
+        {/* Mobile: notifications + Tribunes pill (or members button when
+            already in a tribune) + burger. The Tribunes pill matches the
+            desktop CTA — buried in the burger menu, the navigation was
+            functionally invisible to readers on phones. */}
         <div className="flex items-center gap-2 md:hidden">
           {user && <NotificationBell userId={user.id} />}
-          {user && tribune && (
+          {user && tribune ? (
             <button
               onClick={() => setMembersOpen(true)}
               aria-label={t('tribune.membersOnline')}
@@ -229,6 +232,13 @@ export function Header() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-1.997M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
               </svg>
             </button>
+          ) : (
+            <Link
+              href={user ? '/tribunes' : '/login'}
+              className="rounded-lg bg-brand-red px-2.5 py-1.5 text-xs font-bold text-white transition hover:bg-brand-red-dark"
+            >
+              {t('home.myTribunes')}
+            </Link>
           )}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
