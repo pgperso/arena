@@ -6,6 +6,10 @@
   "a11y": {
     "toggleDarkMode": "Basculer le mode sombre",
     "enableDarkMode": "Activer le mode sombre",
+    "theme": "Apparence",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "themeSystem": "Système",
     "enableLightMode": "Activer le mode clair",
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",

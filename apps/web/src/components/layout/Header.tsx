@@ -13,6 +13,7 @@ import { MobileNav } from './MobileNav';
 import { NotificationBell } from './NotificationBell';
 import { fetchUserCommunities, type UserCommunitySummary } from '@/services/communityService';
 import { BRAND } from '@/lib/brand';
+import { Sun, Moon, Monitor } from 'lucide-react';
 
 export function Header() {
   const router = useRouter();
@@ -21,7 +22,11 @@ export function Header() {
   const locale = useLocale();
   const pathname = usePathname();
   const { tribune, setMembersOpen } = useTribune();
-  const { dark, toggle: toggleDark } = useDarkMode();
+  const { theme, cycle: cycleTheme, setTheme } = useDarkMode();
+  const ta = useTranslations('a11y');
+  const themeLabel =
+    theme === 'light' ? ta('themeLight') : theme === 'dark' ? ta('themeDark') : ta('themeSystem');
+  const themeTitle = `${ta('theme')} : ${themeLabel}`;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userTribunes, setUserTribunes] = useState<UserCommunitySummary[]>([]);
@@ -115,19 +120,17 @@ export function Header() {
           )}
           <div className="h-4 w-px bg-gray-200 dark:bg-gray-700" />
           <button
-            onClick={toggleDark}
-            aria-label={dark ? t('a11y.enableLightMode') : t('a11y.enableDarkMode')}
-            title={dark ? t('a11y.enableLightMode') : t('a11y.enableDarkMode')}
+            onClick={cycleTheme}
+            aria-label={themeTitle}
+            title={themeTitle}
             className="rounded-md p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
           >
-            {dark ? (
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
-              </svg>
+            {theme === 'light' ? (
+              <Sun className="h-4 w-4" strokeWidth={1.8} aria-hidden="true" />
+            ) : theme === 'dark' ? (
+              <Moon className="h-4 w-4" strokeWidth={1.8} aria-hidden="true" />
             ) : (
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-              </svg>
+              <Monitor className="h-4 w-4" strokeWidth={1.8} aria-hidden="true" />
             )}
           </button>
           <a
@@ -262,8 +265,8 @@ export function Header() {
         avatarUrl={avatarUrl}
         onLogout={handleLogout}
         userTribunes={userTribunes}
-        dark={dark}
-        onToggleDark={toggleDark}
+        theme={theme}
+        onSetTheme={setTheme}
         otherLocale={otherLocale}
         switchLocalePath={switchLocalePath}
       />

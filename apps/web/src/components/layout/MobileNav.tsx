@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
+import { Sun, Moon, Monitor } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import type { User } from '@supabase/supabase-js';
 import { useTranslations } from 'next-intl';
 import { Avatar } from '@/components/ui/Avatar';
 import type { UserCommunitySummary } from '@/services/communityService';
+import type { ThemePref } from '@/hooks/useDarkMode';
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -15,8 +17,8 @@ interface MobileNavProps {
   avatarUrl?: string | null;
   onLogout: () => void;
   userTribunes: UserCommunitySummary[];
-  dark: boolean;
-  onToggleDark: () => void;
+  theme: ThemePref;
+  onSetTheme: (t: ThemePref) => void;
   otherLocale: string;
   switchLocalePath: string;
 }
@@ -33,8 +35,8 @@ export function MobileNav({
   avatarUrl,
   onLogout,
   userTribunes,
-  dark,
-  onToggleDark,
+  theme,
+  onSetTheme,
   otherLocale,
   switchLocalePath,
 }: MobileNavProps) {
@@ -51,6 +53,40 @@ export function MobileNav({
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [isOpen, onClose]);
+
+  // Three-way appearance switcher — defined once, rendered in both the
+  // logged-in and logged-out variants of the drawer.
+  const themeSwitcher = (
+    <div className="rounded-lg px-3 py-2.5">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        {ta('theme')}
+      </p>
+      <div className="grid grid-cols-3 gap-1.5 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
+        {(['light', 'dark', 'system'] as const).map((opt) => {
+          const Icon = opt === 'light' ? Sun : opt === 'dark' ? Moon : Monitor;
+          const label =
+            opt === 'light' ? ta('themeLight') : opt === 'dark' ? ta('themeDark') : ta('themeSystem');
+          const active = theme === opt;
+          return (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => onSetTheme(opt)}
+              aria-pressed={active}
+              className={`flex flex-col items-center gap-1 rounded-md py-2 text-[11px] font-medium transition ${
+                active
+                  ? 'bg-white text-brand-blue shadow-sm dark:bg-[#272525] dark:text-white'
+                  : 'text-gray-600 hover:bg-white/60 dark:text-gray-400 dark:hover:bg-[#272525]/60'
+              }`}
+            >
+              <Icon className="h-4 w-4" aria-hidden="true" />
+              {label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -149,19 +185,7 @@ export function MobileNav({
 
               <div className="my-3 border-t border-gray-200 dark:border-gray-700" />
 
-              <button
-                onClick={onToggleDark}
-                className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-              >
-                <span>{dark ? ta('enableLightMode') : ta('enableDarkMode')}</span>
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-                  {dark ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-                  )}
-                </svg>
-              </button>
+              {themeSwitcher}
               <a
                 href={switchLocalePath}
                 onClick={onClose}
@@ -199,12 +223,7 @@ export function MobileNav({
 
               <div className="my-3 border-t border-gray-200 dark:border-gray-700" />
 
-              <button
-                onClick={onToggleDark}
-                className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-              >
-                <span>{dark ? ta('enableLightMode') : ta('enableDarkMode')}</span>
-              </button>
+              {themeSwitcher}
               <a
                 href={switchLocalePath}
                 onClick={onClose}
