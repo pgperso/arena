@@ -224,17 +224,6 @@ export function FeedContainer({
                   ref={virtuosoRef}
                   data={displayItems}
                   initialTopMostItemIndex={displayItems.length - 1}
-                  // Anchor the list to the bottom (chat layout): a late
-                  // measurement of an older item pushes the OLDER items up
-                  // instead of jumping the latest message that the user is
-                  // looking at — the single biggest cure for first-scroll
-                  // flicker on mobile.
-                  alignToBottom
-                  // Pre-render a screenful of items at mount so their real
-                  // heights are measured BEFORE the user scrolls. Capped at
-                  // displayItems.length so Virtuoso never gets asked to
-                  // pre-render more rows than exist.
-                  initialItemCount={Math.min(20, displayItems.length)}
                   // Only auto-follow new messages when the user is already at
                   // the bottom — otherwise a fresh message would fight their
                   // scroll and flicker visibly on mobile inertial scroll.
@@ -243,16 +232,7 @@ export function FeedContainer({
                   atBottomThreshold={120}
                   // Pixel-based viewport buffer keeps the inertial scroll
                   // (especially iOS) smoother than the item-count overscan.
-                  increaseViewportBy={{ top: 600, bottom: 600 }}
-                  // Stable identity per row so likes / edits / realtime
-                  // updates re-use the same DOM node instead of remounting.
-                  // Defensive: any malformed row falls back to a positional
-                  // key — Virtuoso must never throw from a key computation.
-                  computeItemKey={(idx, di) => {
-                    const it = di?.item;
-                    if (!it || it.feedType == null || it.id == null) return `idx-${idx}`;
-                    return `${it.feedType}-${it.id}`;
-                  }}
+                  increaseViewportBy={{ top: 300, bottom: 300 }}
                   startReached={handleStartReached}
                   components={{
                     Header: loadingMore ? () => (
