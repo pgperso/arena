@@ -7,7 +7,6 @@ import { TribuneProvider } from '@/contexts/TribuneContext';
 import { AdSenseLoader } from '@/components/ads/AdSenseLoader';
 import { CookieConsent } from '@/components/ui/CookieConsent';
 import { Toaster } from 'sonner';
-import Script from 'next/script';
 import { routing } from '@/i18n/routing';
 import { BRAND } from '@/lib/brand';
 
@@ -97,11 +96,6 @@ export default async function LocaleLayout({
         <link rel="dns-prefetch" href="https://fjcgfjgqzkswdmazkvlx.supabase.co" />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
-        {/* Apply the dark class before paint so the page never flashes the
-            wrong theme — useDarkMode then syncs React state with reality. */}
-        <Script id="theme-init" strategy="beforeInteractive" nonce={nonce}>
-          {"(function(){try{var t=localStorage.getItem('theme');var s=window.matchMedia('(prefers-color-scheme: dark)').matches;var d=t==='dark'||((t===null||t==='system')&&s);if(d)document.documentElement.classList.add('dark');}catch(e){}})();"}
-        </Script>
         <AdSenseLoader nonce={nonce} />
         <script
           type="application/ld+json"
