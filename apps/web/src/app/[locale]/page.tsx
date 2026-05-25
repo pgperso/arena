@@ -11,6 +11,7 @@ import { CategoryNav, type CategoryNavItem } from '@/components/press/CategoryNa
 import { TopOfWeek } from '@/components/press/TopOfWeek';
 import { fetchActivePoll, type Poll } from '@/services/pollService';
 import { BRAND } from '@/lib/brand';
+import { ORIGINAL_CONTENT_CUTOFF } from '@arena/shared';
 
 export const revalidate = 300;
 
@@ -80,7 +81,7 @@ export default async function HomePage({
   let userId: string | null = null;
 
   try {
-    const [featured, communitiesRes, categoriesRes, userRes] = await Promise.all([
+    const [featured, communitiesRes, categoriesRes, userRes, articleCategoriesRes] = await Promise.all([
       fetchFeaturedItems(supabase, locale),
       supabase
         .from('communities')
@@ -89,11 +90,26 @@ export default async function HomePage({
         .order('name'),
       supabase
         .from('categories')
-        .select('slug, name, name_en')
+        .select('id, slug, name, name_en')
         .order('sort_order'),
       supabase.auth.getUser(),
+      // Used to hide category pills that have no published articles yet —
+      // an empty pill leads to an empty hub, which is a dead-end for
+      // readers and a thin-content signal for Google.
+      supabase
+        .from('articles')
+        .select('communities!inner(category_id)')
+        .eq('is_published', true)
+        .eq('is_removed', false)
+        .gte('published_at', ORIGINAL_CONTENT_CUTOFF),
     ]);
-    categoryNav = ((categoriesRes.data ?? []) as unknown as CategoryNavItem[]);
+    const allCategories = ((categoriesRes.data ?? []) as unknown as CategoryNavItem[]);
+    const usedCategoryIds = new Set<number>(
+      ((articleCategoriesRes.data ?? []) as unknown as { communities: { category_id: number | null } | null }[])
+        .map((r) => r.communities?.category_id ?? null)
+        .filter((id): id is number => id != null),
+    );
+    categoryNav = allCategories.filter((c) => usedCategoryIds.has(c.id));
 
     featuredItems = featured;
     // name_en / description_en come from migration 00053. Cast through unknown

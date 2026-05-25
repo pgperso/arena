@@ -4,6 +4,7 @@ import { useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 
 export interface CategoryNavItem {
+  id: number;
   slug: string;
   name: string;
   name_en: string | null;
