@@ -316,6 +316,8 @@
     "title": "Notifications",
     "empty": "Aucune notification pour le moment.",
     "markAllRead": "Tout marquer comme lu",
+    "soundOn": "Activer les sons de notification",
+    "soundOff": "Désactiver les sons de notification",
     "replyLabel": "{count, plural, =1 {{name} a répondu à ton commentaire} other {{name} et {others} autres ont répondu à ton commentaire}}",
     "replyThreadLabel": "{count, plural, =1 {{name} a répondu dans un fil où tu as commenté} other {{name} et {others} autres ont répondu dans un fil où tu as commenté}}",
     "commentOnArticleLabel": "{count, plural, =1 {{name} a commenté ton article} other {{name} et {others} autres ont commenté ton article}}",

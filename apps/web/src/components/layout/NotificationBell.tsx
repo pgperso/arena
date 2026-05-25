@@ -1,10 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Volume2, VolumeX } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useTribune } from '@/contexts/TribuneContext';
+import { useNotificationSound } from '@/hooks/useNotificationSound';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatTime, displayCommunityName } from '@arena/shared';
 import {
@@ -31,6 +33,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
   const router = useRouter();
   const supabase = useSupabase();
   const { tribune } = useTribune();
+  const { enabled: soundEnabled, setEnabled: setSoundEnabled, play: playSound } = useNotificationSound();
 
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationItem[]>([]);
@@ -83,6 +86,15 @@ export function NotificationBell({ userId }: NotificationBellProps) {
             is_read?: boolean;
           } | undefined;
 
+          // Audible cue for every fresh notification of the right type —
+          // independent of presence suppression so opt-in users still get
+          // a ping even when the matching message scrolls by in front of
+          // them. The hook is a no-op when sound is disabled or the tab
+          // is in the background.
+          if (payload.eventType === 'INSERT') {
+            playSound(row?.type);
+          }
+
           // Presence suppression: a chat reply in the tribune you are
           // currently viewing is something you can already see scroll by —
           // silently mark it read instead of lighting up the bell.
@@ -105,7 +117,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, userId, refreshUnread, loadList, open]);
+  }, [supabase, userId, refreshUnread, loadList, open, playSound]);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -225,14 +237,27 @@ export function NotificationBell({ userId }: NotificationBellProps) {
         <div className="absolute right-0 top-full z-50 mt-2 w-80 max-h-[28rem] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#1e1e1e]">
           <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2 dark:border-gray-800">
             <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('title')}</p>
-            {unread > 0 && (
+            <div className="flex items-center gap-2">
               <button
-                onClick={handleMarkAllRead}
-                className="text-xs text-brand-blue hover:underline"
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                aria-pressed={soundEnabled}
+                aria-label={soundEnabled ? t('soundOff') : t('soundOn')}
+                title={soundEnabled ? t('soundOff') : t('soundOn')}
+                className="rounded-md p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
               >
-                {t('markAllRead')}
+                {soundEnabled
+                  ? <Volume2 className="h-4 w-4 text-brand-blue" aria-hidden="true" />
+                  : <VolumeX className="h-4 w-4" aria-hidden="true" />}
               </button>
-            )}
+              {unread > 0 && (
+                <button
+                  onClick={handleMarkAllRead}
+                  className="text-xs text-brand-blue hover:underline"
+                >
+                  {t('markAllRead')}
+                </button>
+              )}
+            </div>
           </div>
 
           {loading ? (

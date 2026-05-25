@@ -310,6 +310,8 @@
     "title": "Notifications",
     "empty": "No notifications yet.",
     "markAllRead": "Mark all as read",
+    "soundOn": "Turn notification sounds on",
+    "soundOff": "Turn notification sounds off",
     "replyLabel": "{count, plural, =1 {{name} replied to your comment} other {{name} and {others} others replied to your comment}}",
     "replyThreadLabel": "{count, plural, =1 {{name} replied in a thread you commented on} other {{name} and {others} others replied in a thread you commented on}}",
     "commentOnArticleLabel": "{count, plural, =1 {{name} commented on your article} other {{name} and {others} others commented on your article}}",
