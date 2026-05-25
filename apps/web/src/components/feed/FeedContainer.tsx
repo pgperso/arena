@@ -224,6 +224,17 @@ export function FeedContainer({
                   ref={virtuosoRef}
                   data={displayItems}
                   initialTopMostItemIndex={displayItems.length - 1}
+                  // Anchor the list to the bottom (chat layout): a late
+                  // measurement of an older item pushes the OLDER items up
+                  // instead of jumping the latest message that the user is
+                  // looking at — the single biggest cure for first-scroll
+                  // flicker on mobile.
+                  alignToBottom
+                  // Pre-render a screenful of items at mount so their real
+                  // heights are measured BEFORE the user scrolls. Without
+                  // this, Virtuoso uses rough estimates and the scroll
+                  // position snaps when each item is first painted.
+                  initialItemCount={20}
                   // Only auto-follow new messages when the user is already at
                   // the bottom — otherwise a fresh message would fight their
                   // scroll and flicker visibly on mobile inertial scroll.
@@ -232,7 +243,11 @@ export function FeedContainer({
                   atBottomThreshold={120}
                   // Pixel-based viewport buffer keeps the inertial scroll
                   // (especially iOS) smoother than the item-count overscan.
-                  increaseViewportBy={{ top: 300, bottom: 300 }}
+                  increaseViewportBy={{ top: 600, bottom: 600 }}
+                  // Stable identity per row — a like or edit on a message
+                  // re-uses the same DOM node instead of remounting (which
+                  // would force a re-measure and a visible bounce).
+                  computeItemKey={(_, di) => `${di.item.feedType}-${di.item.id}`}
                   startReached={handleStartReached}
                   components={{
                     Header: loadingMore ? () => (

@@ -303,6 +303,8 @@ export const FeedMessage = memo(function FeedMessage({
             <img
               src={BRAND.logo}
               alt={username}
+              width={32}
+              height={32}
               className="h-8 w-8 rounded-lg object-contain"
             />
           ) : (
