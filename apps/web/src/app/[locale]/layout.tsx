@@ -86,7 +86,11 @@ export default async function LocaleLayout({
   const nonce = (await headers()).get('x-nonce') ?? '';
 
   return (
-    <html lang={locale}>
+    // suppressHydrationWarning: the bootstrap script in <head> may set the
+    // `dark` class on <html> before React hydrates, so React's diff of the
+    // root element would otherwise complain about a className mismatch and
+    // trip the error boundary.
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <link rel="alternate" type="application/rss+xml" title={BRAND.name} href="/feed.xml" />
         <link rel="preconnect" href="https://fjcgfjgqzkswdmazkvlx.supabase.co" />
