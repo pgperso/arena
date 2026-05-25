@@ -224,15 +224,32 @@ export function FeedContainer({
                   ref={virtuosoRef}
                   data={displayItems}
                   initialTopMostItemIndex={displayItems.length - 1}
+                  // Anchor to the bottom (chat layout): late measurements
+                  // push the OLDER items up instead of bouncing the latest
+                  // message — biggest cure for first-scroll flicker.
+                  alignToBottom
+                  // Pre-render a screenful at mount so real heights are
+                  // measured BEFORE the first scroll. Capped at the actual
+                  // data length so Virtuoso is never asked for rows that
+                  // do not exist.
+                  initialItemCount={Math.min(20, displayItems.length)}
                   // Only auto-follow new messages when the user is already at
                   // the bottom — otherwise a fresh message would fight their
                   // scroll and flicker visibly on mobile inertial scroll.
                   followOutput={(isAtBottom) => (isAtBottom ? 'smooth' : false)}
                   atBottomStateChange={setAtBottom}
                   atBottomThreshold={120}
-                  // Pixel-based viewport buffer keeps the inertial scroll
-                  // (especially iOS) smoother than the item-count overscan.
-                  increaseViewportBy={{ top: 300, bottom: 300 }}
+                  // Generous pixel-based viewport buffer for smooth iOS
+                  // inertial scroll.
+                  increaseViewportBy={{ top: 600, bottom: 600 }}
+                  // Stable identity per row so likes / edits / realtime
+                  // updates re-use the same DOM node. Defensive: a malformed
+                  // row falls back to a positional key.
+                  computeItemKey={(idx, di) => {
+                    const it = di?.item;
+                    if (!it || it.feedType == null || it.id == null) return `idx-${idx}`;
+                    return `${it.feedType}-${it.id}`;
+                  }}
                   startReached={handleStartReached}
                   components={{
                     Header: loadingMore ? () => (
@@ -250,6 +267,11 @@ export function FeedContainer({
                     ) : undefined,
                   }}
                   itemContent={(virtuosoIndex, displayItem) => {
+                    // Virtuoso can briefly call itemContent with undefined
+                    // (placeholder slots, transitions between data arrays).
+                    // Render nothing instead of letting the destructure
+                    // crash the whole route.
+                    if (!displayItem?.item) return null;
                     const { item, index } = displayItem;
                     const isGrouped = index > 0 && isGroupedMessage(item, items[index - 1]);
 
