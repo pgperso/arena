@@ -224,10 +224,15 @@ export function FeedContainer({
                   ref={virtuosoRef}
                   data={displayItems}
                   initialTopMostItemIndex={displayItems.length - 1}
-                  followOutput="smooth"
+                  // Only auto-follow new messages when the user is already at
+                  // the bottom — otherwise a fresh message would fight their
+                  // scroll and flicker visibly on mobile inertial scroll.
+                  followOutput={(isAtBottom) => (isAtBottom ? 'smooth' : false)}
                   atBottomStateChange={setAtBottom}
-                  atBottomThreshold={100}
-                  overscan={200}
+                  atBottomThreshold={120}
+                  // Pixel-based viewport buffer keeps the inertial scroll
+                  // (especially iOS) smoother than the item-count overscan.
+                  increaseViewportBy={{ top: 300, bottom: 300 }}
                   startReached={handleStartReached}
                   components={{
                     Header: loadingMore ? () => (
