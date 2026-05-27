@@ -31,6 +31,24 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        // Serve ads.txt from a stable CDN cache rather than revalidating
+        // against the origin on every hit. AdSense's crawler intermittently
+        // reported "not found" because each request previously round-tripped
+        // to the origin (max-age=0, must-revalidate) and any blip read as a
+        // miss. A cached copy with stale-while-revalidate is always there.
+        source: '/ads.txt',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=1800, s-maxage=86400, stale-while-revalidate=86400',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withBundleAnalyzer(withNextIntl(nextConfig));
