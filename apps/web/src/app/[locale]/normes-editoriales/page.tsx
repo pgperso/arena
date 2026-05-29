@@ -11,8 +11,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     ? `Normes éditoriales | ${BRAND.name}`
     : `Editorial Standards | ${BRAND.nameEn}`;
   const description = isFr
-    ? `Notre politique éditoriale, nos standards de qualité, le processus de correction et la divulgation du contenu assisté par IA sur ${BRAND.name}.`
-    : `Our editorial policy, quality standards, corrections process and AI-assisted content disclosure at ${BRAND.nameEn}.`;
+    ? `Notre politique éditoriale, nos standards de qualité et le processus de correction sur ${BRAND.name}.`
+    : `Our editorial policy, quality standards and corrections process at ${BRAND.nameEn}.`;
   const url = `${BRAND.url}/${locale}/normes-editoriales`;
   return {
     title,
@@ -133,18 +133,6 @@ function FrenchContent() {
         </li>
       </ul>
 
-      <h2>Divulgation du contenu assisté par IA</h2>
-      <p>
-        Certains de nos articles sont assistés par intelligence artificielle dans leur phase de
-        recherche, de rédaction initiale ou de polissage. Lorsque c&apos;est le cas, un badge
-        visible apparaît dans l&apos;article (« Assisté par IA »), et l&apos;auteur humain reste
-        responsable de la révision, de la vérification des faits et de la voix éditoriale finale.
-      </p>
-      <p>
-        Aucun article n&apos;est publié sans révision humaine. L&apos;IA est un outil de
-        productivité, pas un substitut au jugement éditorial.
-      </p>
-
       <h2>Processus de correction</h2>
       <p>
         Si une erreur factuelle est identifiée dans un de nos articles, nous corrigeons le texte
@@ -235,18 +223,6 @@ function EnglishContent() {
           are attributed with a link to the source.
         </li>
       </ul>
-
-      <h2>AI-assisted content disclosure</h2>
-      <p>
-        Some of our articles are assisted by artificial intelligence during research, initial
-        drafting or polishing. When that is the case, a visible badge appears on the article
-        (&ldquo;AI-assisted&rdquo;), and a human author remains responsible for review, fact
-        checking and the final editorial voice.
-      </p>
-      <p>
-        No article is published without human review. AI is a productivity tool, not a substitute
-        for editorial judgment.
-      </p>
 
       <h2>Corrections process</h2>
       <p>

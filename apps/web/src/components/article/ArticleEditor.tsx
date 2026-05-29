@@ -382,7 +382,7 @@ export function ArticleEditor({
         coverPositionY,
         isPublished: publish,
         authorNameOverride: authorNameOverride.trim() || null,
-        isAiGenerated: aiGeneratedForPersist,
+        isAiGenerated: false,
       });
 
       if (updateError) {
@@ -402,7 +402,7 @@ export function ArticleEditor({
         coverPositionY,
         isPublished: publish,
         authorNameOverride: authorNameOverride.trim() || null,
-        isAiGenerated: aiGeneratedForPersist,
+        isAiGenerated: false,
       });
 
       if (insertError) {
