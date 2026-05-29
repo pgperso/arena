@@ -16,6 +16,7 @@ type SpeechRecognitionLike = {
   onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
   onerror: ((event: { error: string }) => void) | null;
   onend: (() => void) | null;
+  onstart: (() => void) | null;
 };
 
 type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
@@ -34,6 +35,18 @@ export interface VoiceDictationTranscript {
   isFinal: boolean;
 }
 
+// Distinct error codes the consumer can map to user-facing copy. We avoid
+// surfacing raw DOMException names because they vary across browsers.
+export type VoiceDictationError =
+  | 'unsupported'
+  | 'insecure-context'
+  | 'no-device'
+  | 'device-busy'
+  | 'not-allowed'
+  | 'dismissed'
+  | 'recognition-failed'
+  | 'unknown';
+
 interface UseVoiceDictationOptions {
   lang: string;
   onTranscript: (transcript: VoiceDictationTranscript) => void;
@@ -42,7 +55,7 @@ interface UseVoiceDictationOptions {
 interface UseVoiceDictationResult {
   supported: boolean;
   listening: boolean;
-  error: string | null;
+  error: VoiceDictationError | null;
   start: () => void;
   stop: () => void;
 }
@@ -50,11 +63,11 @@ interface UseVoiceDictationResult {
 export function useVoiceDictation({ lang, onTranscript }: UseVoiceDictationOptions): UseVoiceDictationResult {
   const [supported, setSupported] = useState(false);
   const [listening, setListening] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<VoiceDictationError | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   // Keep the callback in a ref so the recognition instance — which is built
-  // once — always invokes the latest closure instead of a stale one.
+  // once per session — always invokes the latest closure instead of a stale one.
   const onTranscriptRef = useRef(onTranscript);
   useEffect(() => {
     onTranscriptRef.current = onTranscript;
@@ -65,26 +78,64 @@ export function useVoiceDictation({ lang, onTranscript }: UseVoiceDictationOptio
   }, []);
 
   const start = useCallback(async () => {
-    const Ctor = getRecognitionCtor();
-    if (!Ctor) return;
     setError(null);
 
-    // Calling `SpeechRecognition.start()` directly does NOT reliably trigger
-    // the browser's mic permission prompt — some Chromium builds silently
-    // fire a `not-allowed` error instead of showing the dialog. Requesting
-    // the mic explicitly through getUserMedia guarantees the native prompt,
-    // and the granted permission carries over to SpeechRecognition. We
-    // immediately release the captured tracks so we're not holding the mic
-    // open ourselves (the recognition engine manages its own internal stream).
-    if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach((track) => track.stop());
-      } catch (e) {
-        const name = e instanceof Error ? e.name : '';
-        setError(name === 'NotAllowedError' ? 'not-allowed' : 'mic-unavailable');
-        return;
+    const Ctor = getRecognitionCtor();
+    if (!Ctor) {
+      setError('unsupported');
+      return;
+    }
+
+    // getUserMedia is required to surface the native permission prompt
+    // reliably (Chromium occasionally fires `not-allowed` on
+    // SpeechRecognition.start() without showing a dialog at all).
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      setError('insecure-context');
+      return;
+    }
+
+    // Probe permission state first when the browser supports it. This lets
+    // us tell the difference between "user explicitly blocked" (which the
+    // prompt won't fix) and "user hasn't decided yet".
+    let permissionState: PermissionState | 'unknown' = 'unknown';
+    try {
+      const perms = (navigator as Navigator & { permissions?: { query: (q: { name: string }) => Promise<PermissionStatus> } }).permissions;
+      if (perms?.query) {
+        const status = await perms.query({ name: 'microphone' });
+        permissionState = status.state;
       }
+    } catch {
+      // Some browsers (older Safari) throw on { name: 'microphone' } — fall
+      // through to the getUserMedia attempt, which will surface the real state.
+    }
+
+    if (permissionState === 'denied') {
+      setError('not-allowed');
+      return;
+    }
+
+    // Request mic access — this triggers the native prompt when state is
+    // 'prompt', and resolves immediately when state is 'granted'. We release
+    // the captured tracks immediately so the SpeechRecognition engine can
+    // open its own internal stream without contention.
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+    } catch (e) {
+      const name = e instanceof Error ? e.name : '';
+      // Map DOMException names to stable error codes. NotAllowedError can
+      // mean "user clicked Block" or "user dismissed the prompt" — both
+      // resolve through browser settings, so we surface them the same way.
+      if (name === 'NotAllowedError' || name === 'SecurityError') {
+        setError('not-allowed');
+      } else if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+        setError('no-device');
+      } else if (name === 'NotReadableError' || name === 'AbortError') {
+        setError('device-busy');
+      } else {
+        setError('unknown');
+      }
+      return;
     }
 
     const recognition = new Ctor();
@@ -106,11 +157,17 @@ export function useVoiceDictation({ lang, onTranscript }: UseVoiceDictationOptio
     };
 
     recognition.onerror = (event) => {
-      // `aborted` and `no-speech` happen on normal stop/silence — not real errors.
-      if (event.error !== 'aborted' && event.error !== 'no-speech') {
-        setError(event.error);
+      if (event.error === 'aborted' || event.error === 'no-speech') return;
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        setError('not-allowed');
+      } else {
+        setError('recognition-failed');
       }
       setListening(false);
+    };
+
+    recognition.onstart = () => {
+      setListening(true);
     };
 
     recognition.onend = () => {
@@ -121,9 +178,9 @@ export function useVoiceDictation({ lang, onTranscript }: UseVoiceDictationOptio
     recognitionRef.current = recognition;
     try {
       recognition.start();
-      setListening(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'unknown');
+      // InvalidStateError fires if start() is called twice in a row.
+      setError(e instanceof Error && e.name === 'InvalidStateError' ? 'device-busy' : 'recognition-failed');
       recognitionRef.current = null;
     }
   }, [lang]);

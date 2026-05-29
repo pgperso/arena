@@ -47,6 +47,20 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        // Without an explicit Permissions-Policy, several browsers default
+        // microphone / camera to "blocked" for cross-context navigations —
+        // which broke the voice-dictation button even when the user had
+        // granted the OS-level prompt. Allowing `self` only is the correct
+        // posture: our own origin can use the mic, third-party iframes can't.
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Permissions-Policy',
+            value: 'microphone=(self), camera=(self)',
+          },
+        ],
+      },
     ];
   },
 };

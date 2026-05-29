@@ -60,7 +60,19 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
   }, [dictation, content]);
   useEffect(() => {
     if (!dictation.error) return;
-    setError(dictation.error === 'not-allowed' ? t('dictationDenied') : t('dictationError'));
+    // Each error code maps to actionable copy so users know whether to
+    // retry, change settings, or check their hardware.
+    const key = ({
+      'not-allowed': 'dictationDenied',
+      'no-device': 'dictationNoDevice',
+      'device-busy': 'dictationDeviceBusy',
+      'insecure-context': 'dictationInsecure',
+      'unsupported': 'dictationError',
+      'recognition-failed': 'dictationError',
+      'dismissed': 'dictationDenied',
+      'unknown': 'dictationError',
+    } as const)[dictation.error] ?? 'dictationError';
+    setError(t(key));
   }, [dictation.error, t]);
 
   // @mention autocomplete. pendingCursorRef carries the caret position to
