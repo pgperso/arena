@@ -37,18 +37,12 @@ export interface VoiceDictationTranscript {
 
 // Distinct error codes the consumer can map to user-facing copy. We avoid
 // surfacing raw DOMException names because they vary across browsers.
-//
-// `os-blocked` deserves a dedicated bucket: it's what happens when Chrome
-// reports the site permission as Granted but Windows / macOS privacy
-// settings refuse the actual capture. The Chrome lock-icon remediation
-// won't help these users — they have to open the OS settings instead.
 export type VoiceDictationError =
   | 'unsupported'
   | 'insecure-context'
   | 'no-device'
   | 'device-busy'
   | 'not-allowed'
-  | 'os-blocked'
   | 'service-unavailable'
   | 'recognition-failed'
   | 'unknown';
@@ -100,9 +94,11 @@ export function useVoiceDictation({ lang, onTranscript }: UseVoiceDictationOptio
       return;
     }
 
-    // Probe permission state first when the browser supports it. This lets
-    // us tell the difference between "user explicitly blocked" (which the
-    // prompt won't fix) and "user hasn't decided yet".
+    // Probe permission state for diagnostics only — never use it to bail
+    // out. The Permissions API can return a stale or inaccurate state
+    // (Chromium has a long-standing pattern where it caches 'denied'
+    // even after the user re-grants the permission), so we always trust
+    // the result of the actual getUserMedia call below.
     let permissionState: PermissionState | 'unknown' = 'unknown';
     try {
       const perms = (navigator as Navigator & { permissions?: { query: (q: { name: string }) => Promise<PermissionStatus> } }).permissions;
@@ -111,37 +107,35 @@ export function useVoiceDictation({ lang, onTranscript }: UseVoiceDictationOptio
         permissionState = status.state;
       }
     } catch {
-      // Some browsers (older Safari) throw on { name: 'microphone' } — fall
-      // through to the getUserMedia attempt, which will surface the real state.
+      // Older Safari throws on { name: 'microphone' } — falls through.
     }
 
-    if (permissionState === 'denied') {
-      setError('not-allowed');
-      return;
-    }
+    console.info('[voice-dictation] start', {
+      permissionState,
+      userAgent: navigator.userAgent,
+      isSecureContext: window.isSecureContext,
+      lang,
+    });
 
     // Request mic access — this triggers the native prompt when state is
-    // 'prompt', and resolves immediately when state is 'granted'. We release
-    // the captured tracks immediately so the SpeechRecognition engine can
-    // open its own internal stream without contention.
+    // 'prompt', resolves immediately when state is 'granted', and rejects
+    // with NotAllowedError when truly blocked. We release the captured
+    // tracks immediately so the SpeechRecognition engine can open its own
+    // internal stream without contention.
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach((track) => track.stop());
     } catch (e) {
       const name = e instanceof Error ? e.name : '';
       const message = e instanceof Error ? e.message : String(e);
-      // Surface the raw failure in the console so this is debuggable in
-      // production. Users can paste the line back to support if the
-      // user-facing copy doesn't match their situation.
       console.warn('[voice-dictation] getUserMedia failed', { name, message, permissionState });
 
       if (name === 'NotAllowedError' || name === 'SecurityError') {
-        // If the browser said "granted" but the OS still refused, the
-        // remediation is in the OS privacy settings, not in Chrome. The
-        // most common case on Windows is the "Let desktop apps access
-        // your microphone" toggle being off (Chrome counts as a desktop
-        // app, not a Microsoft Store app).
-        setError(permissionState === 'granted' ? 'os-blocked' : 'not-allowed');
+        // We can't reliably tell apart "browser denied" from "OS denied"
+        // at this layer — the Permissions API lies often enough that
+        // dispatching on its state hurts more than it helps. Surface a
+        // single message that walks the user through BOTH layers.
+        setError('not-allowed');
       } else if (name === 'NotFoundError' || name === 'OverconstrainedError') {
         setError('no-device');
       } else if (name === 'NotReadableError' || name === 'AbortError') {
@@ -173,13 +167,11 @@ export function useVoiceDictation({ lang, onTranscript }: UseVoiceDictationOptio
     recognition.onerror = (event) => {
       if (event.error === 'aborted' || event.error === 'no-speech') return;
       console.warn('[voice-dictation] recognition error', { code: event.error, permissionState });
-      // `not-allowed` after a successful getUserMedia almost always means
-      // OS-level blocking. `service-not-allowed` is a separate concern —
-      // Chrome's speech backend (Google's cloud) is unreachable: network,
-      // region, or enterprise policy.
       if (event.error === 'not-allowed') {
-        setError(permissionState === 'granted' ? 'os-blocked' : 'not-allowed');
+        setError('not-allowed');
       } else if (event.error === 'service-not-allowed' || event.error === 'network') {
+        // Distinct from a permission denial — Chrome's speech backend
+        // (Google's cloud) is unreachable: network, region, or policy.
         setError('service-unavailable');
       } else if (event.error === 'audio-capture') {
         setError('no-device');

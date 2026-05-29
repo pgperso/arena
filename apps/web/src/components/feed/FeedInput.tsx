@@ -66,7 +66,6 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
     // allowed but Windows / macOS privacy settings refuse the capture.
     const key = ({
       'not-allowed': 'dictationDenied',
-      'os-blocked': 'dictationOsBlocked',
       'no-device': 'dictationNoDevice',
       'device-busy': 'dictationDeviceBusy',
       'insecure-context': 'dictationInsecure',
