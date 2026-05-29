@@ -29,13 +29,15 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { images, uploading, addImages, removeImage, clearImages, uploadAll } = useImageUpload();
 
-  // Voice dictation: tracks the textarea content at the moment recognition
-  // started, so live interim results are spliced *after* whatever the user had
-  // already typed instead of overwriting it.
+  // Voice dictation: dictationBaseRef holds the textarea content at the
+  // moment recognition started, so transcripts append to what the user had
+  // already typed instead of overwriting it. The hook itself owns the
+  // accumulation of finalized + interim segments, so we only ever join
+  // base + the hook's emitted text.
   const dictationBaseRef = useRef('');
   const dictation = useVoiceDictation({
     lang: locale === 'fr' ? 'fr-CA' : 'en-CA',
-    onTranscript: ({ text, isFinal }) => {
+    onTranscript: ({ text }) => {
       const joined = dictationBaseRef.current
         ? `${dictationBaseRef.current.replace(/\s+$/, '')} ${text}`
         : text;
@@ -43,7 +45,6 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
         ? joined.slice(0, CHAT_MAX_MESSAGE_LENGTH)
         : joined;
       setContent(next);
-      if (isFinal) dictationBaseRef.current = next;
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
         textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
@@ -129,6 +130,12 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
     setContent('');
     mention.reset();
     clearImages();
+    // Reset the dictation session so the next utterance starts from a
+    // blank slate. Without this the still-running SpeechRecognition would
+    // keep emitting cumulative transcripts joined to the (now-cleared)
+    // base ref, so the message we just sent would reappear in the textarea.
+    if (dictation.listening) dictation.stop();
+    dictationBaseRef.current = '';
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
@@ -143,7 +150,7 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
       setError(message);
     }
     textarea?.focus();
-  }, [content, disabled, uploading, images, userId, communityId, onSend, uploadAll, clearImages]);
+  }, [content, disabled, uploading, images, userId, communityId, onSend, uploadAll, clearImages, dictation]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
     // While the mention popup is open it owns the arrow / enter / escape keys.
@@ -318,12 +325,14 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
             </button>
           )}
 
-          {/* Send button — always visible on mobile, hidden on desktop */}
+          {/* Send button — visible on all viewports so users dictating with
+              the mic don't have to reach for the keyboard to press Enter. */}
           <button
             onClick={handleSend}
             disabled={disabled || uploading || (!content.trim() && images.length === 0)}
-            className="flex h-10 w-10 shrink-0 items-center justify-center text-brand-blue transition hover:text-brand-blue-dark disabled:text-gray-300 md:hidden"
+            className="flex h-10 w-10 shrink-0 items-center justify-center text-brand-blue transition hover:text-brand-blue-dark disabled:text-gray-300"
             title={tc('send')}
+            aria-label={tc('send')}
           >
             {uploading ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-blue border-t-transparent" />

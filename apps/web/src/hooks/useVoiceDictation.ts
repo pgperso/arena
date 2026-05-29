@@ -13,7 +13,12 @@ type SpeechRecognitionLike = {
   start: () => void;
   stop: () => void;
   abort: () => void;
-  onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
+  onresult:
+    | ((event: {
+        resultIndex: number;
+        results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }>;
+      }) => void)
+    | null;
   onerror: ((event: { error: string }) => void) | null;
   onend: (() => void) | null;
   onstart: (() => void) | null;
@@ -31,8 +36,10 @@ function getRecognitionCtor(): SpeechRecognitionCtor | null {
 }
 
 export interface VoiceDictationTranscript {
+  // Full transcript for the *current* dictation session: every finalized
+  // segment so far concatenated with the in-progress interim. The consumer
+  // displays this verbatim — no accumulation logic on their side.
   text: string;
-  isFinal: boolean;
 }
 
 // Distinct error codes the consumer can map to user-facing copy. We avoid
@@ -65,6 +72,10 @@ export function useVoiceDictation({ lang, onTranscript }: UseVoiceDictationOptio
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<VoiceDictationError | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  // Running concatenation of all finalized segments since the current
+  // start() call. Reset on every start() so a stopped-then-restarted
+  // dictation session doesn't carry text over from the previous one.
+  const sessionFinalRef = useRef('');
 
   // Keep the callback in a ref so the recognition instance — which is built
   // once per session — always invokes the latest closure instead of a stale one.
@@ -150,18 +161,21 @@ export function useVoiceDictation({ lang, onTranscript }: UseVoiceDictationOptio
     recognition.lang = lang;
     recognition.continuous = true;
     recognition.interimResults = true;
+    sessionFinalRef.current = '';
 
     recognition.onresult = (event) => {
-      let finalText = '';
-      let interimText = '';
-      for (let i = 0; i < event.results.length; i++) {
+      // event.results is cumulative across the whole session. event.resultIndex
+      // tells us which index changed, so we only process new segments. New
+      // final segments get appended to sessionFinalRef; the interim portion
+      // is rebuilt fresh each event from the still-in-progress results.
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
         const transcript = result[0]?.transcript ?? '';
-        if (result.isFinal) finalText += transcript;
-        else interimText += transcript;
+        if (result.isFinal) sessionFinalRef.current += transcript;
+        else interim += transcript;
       }
-      if (finalText) onTranscriptRef.current({ text: finalText, isFinal: true });
-      if (interimText) onTranscriptRef.current({ text: interimText, isFinal: false });
+      onTranscriptRef.current({ text: sessionFinalRef.current + interim });
     };
 
     recognition.onerror = (event) => {
