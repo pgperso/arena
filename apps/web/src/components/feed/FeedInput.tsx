@@ -61,15 +61,18 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
   useEffect(() => {
     if (!dictation.error) return;
     // Each error code maps to actionable copy so users know whether to
-    // retry, change settings, or check their hardware.
+    // retry, change settings, or check their hardware. `os-blocked` is the
+    // single most common cause in production: Chrome shows the site as
+    // allowed but Windows / macOS privacy settings refuse the capture.
     const key = ({
       'not-allowed': 'dictationDenied',
+      'os-blocked': 'dictationOsBlocked',
       'no-device': 'dictationNoDevice',
       'device-busy': 'dictationDeviceBusy',
       'insecure-context': 'dictationInsecure',
+      'service-unavailable': 'dictationServiceUnavailable',
       'unsupported': 'dictationError',
       'recognition-failed': 'dictationError',
-      'dismissed': 'dictationDenied',
       'unknown': 'dictationError',
     } as const)[dictation.error] ?? 'dictationError';
     setError(t(key));
