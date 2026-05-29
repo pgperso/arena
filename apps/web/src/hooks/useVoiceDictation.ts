@@ -215,7 +215,17 @@ export function useVoiceDictation({ lang, onTranscript }: UseVoiceDictationOptio
   }, [lang]);
 
   const stop = useCallback(() => {
-    recognitionRef.current?.stop();
+    const r = recognitionRef.current;
+    if (!r) return;
+    // Detach the result handler before issuing stop(): SpeechRecognition can
+    // emit one more onresult between stop() and onend, and that trailing
+    // event would otherwise reach the consumer after they had cleared the
+    // input on send — re-populating it with the just-sent message. Also
+    // wipe the session accumulator so a restarted session begins blank.
+    r.onresult = null;
+    r.onerror = null;
+    sessionFinalRef.current = '';
+    r.stop();
   }, []);
 
   useEffect(() => {
