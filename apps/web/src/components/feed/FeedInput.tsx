@@ -59,9 +59,8 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
     }
   }, [dictation, content]);
   useEffect(() => {
-    if (dictation.error) {
-      setError(t('dictationError'));
-    }
+    if (!dictation.error) return;
+    setError(dictation.error === 'not-allowed' ? t('dictationDenied') : t('dictationError'));
   }, [dictation.error, t]);
 
   // @mention autocomplete. pendingCursorRef carries the caret position to

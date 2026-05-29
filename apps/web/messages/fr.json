@@ -105,6 +105,7 @@
     "startDictation": "Dicter au micro",
     "stopDictation": "Arrêter la dictée",
     "dictationError": "La dictée vocale n'a pas pu démarrer. Vérifie l'accès au micro.",
+    "dictationDenied": "Accès au micro refusé. Autorise-le dans les réglages du navigateur (icône à gauche de la barre d'adresse) puis réessaie.",
     "preview": "Aperçu",
     "noContent": "Aucun contenu. Soyez le premier à écrire!",
     "recentMessages": "Messages récents",

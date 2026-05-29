@@ -105,6 +105,7 @@
     "startDictation": "Dictate with microphone",
     "stopDictation": "Stop dictation",
     "dictationError": "Voice dictation couldn't start. Check microphone access.",
+    "dictationDenied": "Microphone access denied. Allow it in your browser settings (icon left of the address bar) and try again.",
     "preview": "Preview",
     "noContent": "No content yet. Be the first to write!",
     "recentMessages": "Recent messages",

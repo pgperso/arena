@@ -64,10 +64,28 @@ export function useVoiceDictation({ lang, onTranscript }: UseVoiceDictationOptio
     setSupported(getRecognitionCtor() !== null);
   }, []);
 
-  const start = useCallback(() => {
+  const start = useCallback(async () => {
     const Ctor = getRecognitionCtor();
     if (!Ctor) return;
     setError(null);
+
+    // Calling `SpeechRecognition.start()` directly does NOT reliably trigger
+    // the browser's mic permission prompt — some Chromium builds silently
+    // fire a `not-allowed` error instead of showing the dialog. Requesting
+    // the mic explicitly through getUserMedia guarantees the native prompt,
+    // and the granted permission carries over to SpeechRecognition. We
+    // immediately release the captured tracks so we're not holding the mic
+    // open ourselves (the recognition engine manages its own internal stream).
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((track) => track.stop());
+      } catch (e) {
+        const name = e instanceof Error ? e.name : '';
+        setError(name === 'NotAllowedError' ? 'not-allowed' : 'mic-unavailable');
+        return;
+      }
+    }
 
     const recognition = new Ctor();
     recognition.lang = lang;
