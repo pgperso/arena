@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import { Plus, X, SendHorizontal } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
+import { Plus, X, SendHorizontal, Mic } from 'lucide-react';
 import Image from 'next/image';
 import { CHAT_MAX_MESSAGE_LENGTH, MAX_IMAGES_PER_MESSAGE } from '@arena/shared';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useMentionAutocomplete, type MentionMember } from '@/hooks/useMentionAutocomplete';
+import { useVoiceDictation } from '@/hooks/useVoiceDictation';
 import { Avatar } from '@/components/ui/Avatar';
 
 interface FeedInputProps {
@@ -21,11 +22,47 @@ interface FeedInputProps {
 export function FeedInput({ onSend, disabled, placeholder, communityId, userId, autoFocus }: FeedInputProps) {
   const t = useTranslations('tribune');
   const tc = useTranslations('common');
+  const locale = useLocale();
   const [content, setContent] = useState('');
   const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { images, uploading, addImages, removeImage, clearImages, uploadAll } = useImageUpload();
+
+  // Voice dictation: tracks the textarea content at the moment recognition
+  // started, so live interim results are spliced *after* whatever the user had
+  // already typed instead of overwriting it.
+  const dictationBaseRef = useRef('');
+  const dictation = useVoiceDictation({
+    lang: locale === 'fr' ? 'fr-CA' : 'en-CA',
+    onTranscript: ({ text, isFinal }) => {
+      const joined = dictationBaseRef.current
+        ? `${dictationBaseRef.current.replace(/\s+$/, '')} ${text}`
+        : text;
+      const next = joined.length > CHAT_MAX_MESSAGE_LENGTH
+        ? joined.slice(0, CHAT_MAX_MESSAGE_LENGTH)
+        : joined;
+      setContent(next);
+      if (isFinal) dictationBaseRef.current = next;
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
+      }
+    },
+  });
+  const toggleDictation = useCallback(() => {
+    if (dictation.listening) {
+      dictation.stop();
+    } else {
+      dictationBaseRef.current = content;
+      dictation.start();
+    }
+  }, [dictation, content]);
+  useEffect(() => {
+    if (dictation.error) {
+      setError(t('dictationError'));
+    }
+  }, [dictation.error, t]);
 
   // @mention autocomplete. pendingCursorRef carries the caret position to
   // restore after a mention is spliced into the (React-controlled) value.
@@ -248,6 +285,25 @@ export function FeedInput({ onSend, disabled, placeholder, communityId, userId, 
             rows={1}
             className="flex-1 resize-none bg-transparent px-1 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none disabled:text-gray-400"
           />
+
+          {/* Mic button — only on browsers that expose Web Speech API */}
+          {dictation.supported && (
+            <button
+              type="button"
+              onClick={toggleDictation}
+              disabled={disabled || uploading}
+              className={`flex h-10 w-10 shrink-0 items-center justify-center transition disabled:opacity-50 ${
+                dictation.listening
+                  ? 'text-red-500 animate-pulse'
+                  : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+              }`}
+              title={dictation.listening ? t('stopDictation') : t('startDictation')}
+              aria-pressed={dictation.listening}
+              aria-label={dictation.listening ? t('stopDictation') : t('startDictation')}
+            >
+              <Mic className="h-5 w-5" strokeWidth={2} />
+            </button>
+          )}
 
           {/* Send button — always visible on mobile, hidden on desktop */}
           <button
