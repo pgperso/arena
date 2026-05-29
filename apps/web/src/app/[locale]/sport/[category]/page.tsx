@@ -4,9 +4,10 @@ import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import { displayCommunityName, displayCommunityDescription } from '@arena/shared';
+import { displayCommunityName, displayCommunityDescription, ORIGINAL_CONTENT_CUTOFF } from '@arena/shared';
 import { fetchPressGalleryItems } from '@/services/pressGalleryService';
 import { PressContentCard } from '@/components/press/PressContentCard';
+import { CategoryNav, type CategoryNavItem } from '@/components/press/CategoryNav';
 import { BRAND } from '@/lib/brand';
 
 export const revalidate = 300;
@@ -102,13 +103,39 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const category = catData as unknown as CategoryRow | null;
   if (!category) notFound();
 
-  // Load all active communities in this category
-  const { data: comData } = await supabase
-    .from('communities')
-    .select('id, name, name_en, slug, description, description_en, logo_url, member_count')
-    .eq('category_id', category.id)
-    .eq('is_active', true)
-    .order('member_count', { ascending: false });
+  // Load all active communities in this category + the full category list
+  // for the navigation strip (so readers can jump between sports without
+  // hitting the browser back button). The category-pills filter mirrors
+  // the home page: hide pills that have zero indexable articles, so we
+  // don't expose dead-end hubs.
+  const [{ data: comData }, { data: allCategoriesRes }, { data: usedCategoriesRes }] = await Promise.all([
+    supabase
+      .from('communities')
+      .select('id, name, name_en, slug, description, description_en, logo_url, member_count')
+      .eq('category_id', category.id)
+      .eq('is_active', true)
+      .order('member_count', { ascending: false }),
+    supabase
+      .from('categories')
+      .select('id, slug, name, name_en')
+      .order('sort_order'),
+    supabase
+      .from('articles')
+      .select('communities!inner(category_id)')
+      .eq('is_published', true)
+      .eq('is_removed', false)
+      .gte('published_at', ORIGINAL_CONTENT_CUTOFF),
+  ]);
+
+  const allCategories = (allCategoriesRes ?? []) as unknown as CategoryNavItem[];
+  const usedCategoryIds = new Set<number>(
+    ((usedCategoriesRes ?? []) as unknown as { communities: { category_id: number | null } | null }[])
+      .map((r) => r.communities?.category_id ?? null)
+      .filter((id): id is number => id != null),
+  );
+  // Always include the current category, even if it has no articles yet —
+  // otherwise the user would land on a page where the active pill is missing.
+  const categoryNav = allCategories.filter((c) => usedCategoryIds.has(c.id) || c.id === category.id);
 
   const communities = (comData ?? []) as unknown as CommunityRow[];
   const communityIds = communities.map((c) => c.id);
@@ -173,6 +200,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-y-auto bg-white dark:bg-[#1e1e1e]">
+      <CategoryNav categories={categoryNav} activeSlug={categorySlug} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
@@ -194,9 +222,34 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           </p>
         </header>
 
-        {/* Tribunes in this category */}
+        {/* Articles first — readers landing on a category page came for
+            content, not for the directory of tribunes. The tribunes block
+            stays on the page (good for internal linking + SEO) but moves
+            below the article grid. */}
+        <section className="mb-12">
+          <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">
+            {isFr ? 'Derniers articles' : 'Latest articles'}
+          </h2>
+
+          {articles.length === 0 ? (
+            <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+              {isFr
+                ? 'Aucun article publié pour le moment dans cette catégorie. Revenez bientôt — de nouvelles chroniques arrivent chaque semaine.'
+                : 'No articles published in this category yet. Check back soon — new columns arrive every week.'}
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {articles.map((a) => (
+                <PressContentCard key={`${a.type}-${a.id}`} item={a} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Tribunes in this category — moved to the bottom so the article
+            feed leads, with the directory acting as a "what's next" footer. */}
         {communities.length > 0 && (
-          <section className="mb-10">
+          <section className="border-t border-gray-200 dark:border-gray-700 pt-8">
             <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">
               {isFr ? 'Tribunes' : 'Tribunes'}
             </h2>
@@ -241,27 +294,6 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             </ul>
           </section>
         )}
-
-        {/* Articles */}
-        <section>
-          <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">
-            {isFr ? 'Derniers articles' : 'Latest articles'}
-          </h2>
-
-          {articles.length === 0 ? (
-            <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-              {isFr
-                ? 'Aucun article publié pour le moment dans cette catégorie. Revenez bientôt — de nouvelles chroniques arrivent chaque semaine.'
-                : 'No articles published in this category yet. Check back soon — new columns arrive every week.'}
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {articles.map((a) => (
-                <PressContentCard key={`${a.type}-${a.id}`} item={a} />
-              ))}
-            </div>
-          )}
-        </section>
       </div>
     </div>
   );
