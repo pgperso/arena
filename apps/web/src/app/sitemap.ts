@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { ORIGINAL_CONTENT_CUTOFF, MIN_QUALITY_WORD_COUNT, countWords } from '@arena/shared';
 import { BRAND } from '@/lib/brand';
+import { CONTENT_AUTHORS } from '@/lib/contentAuthors';
 
 export const revalidate = 3600;
 
@@ -129,20 +130,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // internal-linking surface for SEO.
   const { data: authorRows } = await supabase
     .from('articles')
-    .select('author_id, members!articles_author_id_fkey(username)')
+    .select('author_id, author_name_override, members!articles_author_id_fkey(username)')
     .eq('is_published', true)
     .eq('is_removed', false)
     .gte('published_at', ORIGINAL_CONTENT_CUTOFF)
     .limit(5000);
 
   if (authorRows) {
-    const seen = new Set<string>();
-    for (const row of authorRows as { author_id: string; members: { username: string } | null }[]) {
+    const seenMembers = new Set<string>();
+    const overrides = new Set<string>();
+    for (const row of authorRows as unknown as { author_id: string; author_name_override: string | null; members: { username: string } | null }[]) {
+      // Persona byline takes precedence: an article written under "Rex Paquette"
+      // counts toward the persona page, not the underlying member's page.
+      if (row.author_name_override) {
+        overrides.add(row.author_name_override);
+        continue;
+      }
       const username = row.members?.username;
-      if (!username || seen.has(username)) continue;
-      seen.add(username);
+      if (!username || seenMembers.has(username)) continue;
+      seenMembers.add(username);
       entries.push({
         ...withAlternates(`/auteurs/${username}`),
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.6,
+      });
+    }
+
+    for (const persona of CONTENT_AUTHORS) {
+      if (!overrides.has(persona.name)) continue;
+      entries.push({
+        ...withAlternates(`/auteurs/${persona.slug}`),
         lastModified: new Date(),
         changeFrequency: 'weekly',
         priority: 0.6,

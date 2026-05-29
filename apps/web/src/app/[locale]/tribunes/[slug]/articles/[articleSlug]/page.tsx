@@ -6,6 +6,7 @@ import { BRAND } from '@/lib/brand';
 import { translatedField } from '@/lib/contentTranslation';
 import { ArticleView } from '@/components/article/ArticleView';
 import { RelatedArticles } from '@/components/article/RelatedArticles';
+import { getContentAuthor } from '@/lib/contentAuthors';
 
 export const revalidate = 300;
 
@@ -262,12 +263,19 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
           author: article.members ? {
             id: article.members.id,
             username: article.author_name_override || (article.members.first_name && article.members.last_name ? `${article.members.first_name} ${article.members.last_name}` : null) || article.members.username,
-            // When a persona override is used, suppress the author-page link
-            // because the byline doesn't match a real member slug. Otherwise
-            // link to the member's public author page.
-            slug: article.author_name_override ? null : article.members.username,
+            // Persona overrides route to /auteurs/[persona-slug] when the
+            // byline matches one of our recurring fictional contributors;
+            // otherwise the link points at the real member's username.
+            slug: article.author_name_override
+              ? (getContentAuthor(article.author_name_override)?.slug ?? null)
+              : article.members.username,
             avatar_url: article.author_name_override ? null : article.members.avatar_url,
-          } : { id: '', username: article.author_name_override || 'Inconnu', slug: null, avatar_url: null },
+          } : {
+            id: '',
+            username: article.author_name_override || 'Inconnu',
+            slug: article.author_name_override ? (getContentAuthor(article.author_name_override)?.slug ?? null) : null,
+            avatar_url: null,
+          },
         }}
         communitySlug={slug}
         communityName={communityDisplayName}

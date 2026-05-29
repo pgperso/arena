@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server';
 import { formatTime, ORIGINAL_CONTENT_CUTOFF, displayCommunityName } from '@arena/shared';
 import { BRAND } from '@/lib/brand';
 import { translatedField } from '@/lib/contentTranslation';
+import { findContentAuthorBySlug, type ContentAuthor } from '@/lib/contentAuthors';
 
 export const revalidate = 300;
 
@@ -55,6 +56,7 @@ function displayAvatar(member: MemberRow): string | null {
 export async function generateMetadata({ params }: AuthorPageProps): Promise<Metadata> {
   const { locale, username } = await params;
   const supabase = await createClient();
+  const isFr = locale === 'fr';
 
   const { data } = await supabase
     .from('members')
@@ -62,18 +64,22 @@ export async function generateMetadata({ params }: AuthorPageProps): Promise<Met
     .eq('username', username)
     .single();
 
-  if (!data) return { title: 'Auteur introuvable', robots: { index: false, follow: false } };
+  const persona = data ? null : findContentAuthorBySlug(username);
 
-  const member = data as unknown as MemberRow;
-  const name = displayName(member);
-  const isFr = locale === 'fr';
+  if (!data && !persona) {
+    return { title: 'Auteur introuvable', robots: { index: false, follow: false } };
+  }
+
+  const name = data ? displayName(data as unknown as MemberRow) : persona!.name;
+  const description = data
+    ? ((data as unknown as MemberRow).description
+      ?? (isFr
+        ? `Articles et chroniques sportives de ${name} sur ${BRAND.name}.`
+        : `Sports articles and columns by ${name} on ${BRAND.nameEn}.`))
+    : (isFr ? persona!.bioFr : persona!.bioEn);
   const title = isFr
     ? `${name} | ${BRAND.name}`
     : `${name} | ${BRAND.nameEn}`;
-  const description = member.description
-    ?? (isFr
-      ? `Articles et chroniques sportives de ${name} sur ${BRAND.name}.`
-      : `Sports articles and columns by ${name} on ${BRAND.nameEn}.`);
   const url = `${BRAND.url}/${locale}/auteurs/${username}`;
 
   return {
@@ -118,32 +124,37 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
     .single();
 
   const member = memberData as unknown as MemberRow | null;
-  if (!member) notFound();
+  const persona = member ? null : findContentAuthorBySlug(username);
 
-  // Only show articles that are eligible for indexing (post-cutoff, published,
-  // not removed). The page itself is indexable for SEO, but listing imports
-  // here would re-introduce the same low-value-content signal that AdSense
-  // flagged.
-  const { data: articlesData } = await supabase
+  if (!member && !persona) notFound();
+
+  // Members are queried by author_id; personas are queried by the byline
+  // string in author_name_override since they have no row in `members`.
+  const articlesQuery = supabase
     .from('articles')
     .select(
       'id, slug, title, excerpt, source_lang, title_translated, excerpt_translated, cover_image_url, cover_position_y, view_count, like_count, published_at, author_name_override, communities!inner(name, name_en, slug)',
     )
-    .eq('author_id', member.id)
     .eq('is_published', true)
     .eq('is_removed', false)
     .gte('published_at', ORIGINAL_CONTENT_CUTOFF)
     .order('published_at', { ascending: false })
     .limit(50);
 
+  const { data: articlesData } = member
+    ? await articlesQuery.eq('author_id', member.id)
+    : await articlesQuery.eq('author_name_override', persona!.name);
+
   const articles = (articlesData ?? []) as unknown as AuthorArticle[];
 
   const totalViews = articles.reduce((sum, a) => sum + (a.view_count || 0), 0);
   const totalLikes = articles.reduce((sum, a) => sum + (a.like_count || 0), 0);
 
-  const name = displayName(member);
-  const avatar = displayAvatar(member);
   const isFr = locale === 'fr';
+  const name = member ? displayName(member) : persona!.name;
+  const avatar = member ? displayAvatar(member) : null;
+  const bio = member ? member.description : (isFr ? persona!.bioFr : persona!.bioEn);
+  const personaForAvatar: ContentAuthor | null = persona;
 
   const profileJsonLd = {
     '@context': 'https://schema.org',
@@ -153,7 +164,7 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
       name,
       url: `${BRAND.url}/${locale}/auteurs/${username}`,
       image: avatar ?? BRAND.logoUrl,
-      description: member.description ?? undefined,
+      description: bio ?? undefined,
     },
   };
 
@@ -186,6 +197,13 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
               className="h-24 w-24 shrink-0 rounded-full object-cover"
               priority
             />
+          ) : personaForAvatar ? (
+            <div
+              className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full text-2xl font-bold text-white"
+              style={{ backgroundColor: personaForAvatar.color }}
+            >
+              {personaForAvatar.initials}
+            </div>
           ) : (
             <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-gray-200 text-3xl font-bold text-gray-500 dark:bg-gray-700 dark:text-gray-300">
               {name.slice(0, 1).toUpperCase()}
@@ -193,9 +211,9 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
           )}
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 md:text-3xl">{name}</h1>
-            {member.description && (
+            {bio && (
               <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400 md:text-base">
-                {member.description}
+                {bio}
               </p>
             )}
             <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400 md:justify-start">
