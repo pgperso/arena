@@ -171,27 +171,12 @@ export function PressGalleryClient({
 
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-y-auto">
-      {/* Second appbar — full width, sticky */}
-      <div className="sticky top-0 z-20 w-full border-b border-gray-200 bg-white/95 backdrop-blur-sm dark:border-gray-700 dark:bg-[#1e1e1e]/95">
-        <div className="flex items-center gap-2 px-3 py-2 sm:gap-4 sm:px-4">
-          <h1 className="hidden shrink-0 text-lg font-bold text-gray-900 dark:text-gray-100 sm:block">
-            {t('title')}
-          </h1>
-          <div className="flex-1 min-w-0">
-            <PressFilterBar
-              filter={filter}
-              sort={sort}
-              communityId={communityId}
-              communities={communities}
-              onFilterChange={handleFilterChange}
-              onSortChange={handleSortChange}
-              onCommunityChange={handleCommunityChange}
-            />
-          </div>
-        </div>
-      </div>
-
       <div className="mx-auto w-full max-w-7xl px-4 py-6">
+        {/* Visually hidden but kept for SEO / screen readers. The home page
+            still needs a single h1; the visible title used to live in the
+            old sticky app bar, which has been removed in favour of the
+            in-feed toolbar pattern. */}
+        <h1 className="sr-only">{t('title')}</h1>
 
         {/* Error banner */}
         {error && (
@@ -212,16 +197,31 @@ export function PressGalleryClient({
         <div className="flex gap-6">
           {/* Main content — unified grid */}
           <div className="flex-1 min-w-0">
-            {/* Section header that introduces the main feed and gives the
-                eye a rest between the hero + ad and the dense grid. */}
-            {items.length > 0 && (
-              <div className="mb-5 flex items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-700 pb-2">
+            {/* Combined feed toolbar: section heading on the left, filter
+                controls on the right. This used to be a separate sticky
+                app bar at the very top of the page — moved in-feed to cut
+                the chrome from 3 stacked bars down to 2 (global header +
+                category strip), matching the pattern used by The
+                Athletic, L'Équipe, RDS and Le Devoir in 2026. */}
+            <div className="mb-5 flex flex-col gap-3 border-b border-gray-200 pb-3 dark:border-gray-700 md:flex-row md:items-center md:justify-between">
+              <div className="min-w-0">
                 <h2 className="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   {t('feedHeading')}
                 </h2>
                 <span className="text-xs text-gray-400">{t('feedSubheading')}</span>
               </div>
-            )}
+              <div className="min-w-0 md:flex-shrink-0">
+                <PressFilterBar
+                  filter={filter}
+                  sort={sort}
+                  communityId={communityId}
+                  communities={communities}
+                  onFilterChange={handleFilterChange}
+                  onSortChange={handleSortChange}
+                  onCommunityChange={handleCommunityChange}
+                />
+              </div>
+            </div>
             {items.length > 0 && (
               <PatternGrid items={items} />
             )}
