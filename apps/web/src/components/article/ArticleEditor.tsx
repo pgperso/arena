@@ -114,19 +114,61 @@ export function ArticleEditor({
   const [isDraggingCover, setIsDraggingCover] = useState(false);
   const coverContainerRef = useRef<HTMLDivElement>(null);
 
-  // Load communities for tribune selector (new articles only)
+  // Load the list of tribunes the user is allowed to publish into. The
+  // previous implementation queried `community_members` (just "I follow
+  // this tribune"), which left out major leagues the user hadn't joined
+  // even when they otherwise had publication rights everywhere. The
+  // correct source of truth is `community_member_roles`: a member with
+  // the global `owner` role can publish to every active tribune, and
+  // anyone else can publish to the tribunes where they hold owner /
+  // admin / moderator / creator.
   useEffect(() => {
-    supabase
-      .from('community_members')
-      .select('community_id, communities!inner(id, name, slug)')
-      .eq('member_id', userId)
-      .then(({ data }) => {
-        if (data) {
-          const comms = (data as unknown as { communities: { id: number; name: string; slug: string } }[])
-            .map((d) => d.communities);
-          setCommunities(comms);
+    let cancelled = false;
+
+    const loadPublishableCommunities = async () => {
+      const { data: ownerCheck } = await supabase
+        .from('community_member_roles')
+        .select('id, roles!inner(code)')
+        .eq('member_id', userId)
+        .eq('roles.code', 'owner')
+        .limit(1);
+
+      const isGlobalOwner = ((ownerCheck as unknown[] | null)?.length ?? 0) > 0;
+
+      if (isGlobalOwner) {
+        const { data } = await supabase
+          .from('communities')
+          .select('id, name, slug')
+          .eq('is_active', true)
+          .order('name');
+        if (!cancelled && data) {
+          setCommunities(data as unknown as { id: number; name: string; slug: string }[]);
         }
-      });
+        return;
+      }
+
+      const { data: roleRows } = await supabase
+        .from('community_member_roles')
+        .select('community_id, roles!inner(code), communities!inner(id, name, slug, is_active)')
+        .eq('member_id', userId)
+        .in('roles.code', ['owner', 'admin', 'moderator', 'creator']);
+
+      if (!cancelled && roleRows) {
+        const seen = new Set<number>();
+        const comms: { id: number; name: string; slug: string }[] = [];
+        for (const row of roleRows as unknown as { communities: { id: number; name: string; slug: string; is_active: boolean } | null }[]) {
+          const c = row.communities;
+          if (!c || !c.is_active || seen.has(c.id)) continue;
+          seen.add(c.id);
+          comms.push({ id: c.id, name: c.name, slug: c.slug });
+        }
+        comms.sort((a, b) => a.name.localeCompare(b.name));
+        setCommunities(comms);
+      }
+    };
+
+    void loadPublishableCommunities();
+    return () => { cancelled = true; };
   }, [supabase, userId, isEditMode]);
 
   const editor = useEditor({
