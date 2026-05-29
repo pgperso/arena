@@ -9,7 +9,13 @@ const SECURITY_HEADERS: Record<string, string> = {
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), autoplay=(self)',
+  // microphone=(self) enables the voice-dictation feature for the chat
+  // input while keeping the capability locked down for embeds and
+  // third-party scripts. The two were `camera=(), microphone=()` —
+  // i.e. blocked for everyone including the page itself — which made
+  // every getUserMedia call reject with a Permissions-Policy violation
+  // before the browser even checked user-level permissions.
+  'Permissions-Policy': 'camera=(), microphone=(self), geolocation=(), autoplay=(self)',
   'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
 };
 
