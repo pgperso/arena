@@ -7,7 +7,7 @@ import {
   fetchPressGalleryItems,
 } from '@/services/pressGalleryService';
 import { PressGalleryClient } from './galerie-de-presse/PressGalleryClient';
-import { CategoryNav, type CategoryNavItem } from '@/components/press/CategoryNav';
+import { type CategoryNavItem } from '@/components/press/CategoryNav';
 import { TopOfWeek } from '@/components/press/TopOfWeek';
 import { fetchActivePoll, type Poll } from '@/services/pollService';
 import { BRAND } from '@/lib/brand';
@@ -216,7 +216,6 @@ export default async function HomePage({
         nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <CategoryNav categories={categoryNav} />
       <PressGalleryClient
         initialItems={initialResult.items}
         initialHasMore={initialResult.hasMore}
@@ -226,6 +225,7 @@ export default async function HomePage({
         userId={userId}
         poll={activePoll}
         sidebarSlot={<TopOfWeek locale={locale} />}
+        categoryNav={categoryNav}
       />
     </>
   );
