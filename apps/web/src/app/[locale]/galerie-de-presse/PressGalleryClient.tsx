@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useSupabase } from '@/hooks/useSupabase';
 import { HeroSection } from '@/components/press/HeroSection';
@@ -8,7 +8,6 @@ import { PressFilterBar } from '@/components/press/PressFilterBar';
 import { PressContentCard } from '@/components/press/PressContentCard';
 import { PollBlock } from '@/components/press/PollBlock';
 import { MetreCards } from '@/components/press/MetreCards';
-import { CategoryNav, type CategoryNavItem } from '@/components/press/CategoryNav';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { AdSlot } from '@/components/ads/AdSlot';
 import {
@@ -43,10 +42,6 @@ interface PressGalleryClientProps {
   // crawlable links to popular articles. Hidden on mobile where the
   // sidebar collapses.
   sidebarSlot?: React.ReactNode;
-  // Sport categories rendered as a sticky hide-on-scroll pill strip just
-  // above the gallery content. Passed in from the server so the initial
-  // HTML carries the navigation links for crawlers.
-  categoryNav: CategoryNavItem[];
 }
 
 const PAGE_SIZE = 12;
@@ -63,7 +58,6 @@ export function PressGalleryClient({
   communities,
   poll,
   sidebarSlot,
-  categoryNav,
 }: PressGalleryClientProps) {
   const t = useTranslations('pressGallery');
   const supabase = useSupabase();
@@ -86,41 +80,6 @@ export function PressGalleryClient({
   const [error, setError] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
-
-  // Scroll-aware category strip. The pill bar sticks at the top of the
-  // gallery, hides itself when the reader scrolls down (so the article
-  // grid takes the full viewport) and slides back in as soon as they
-  // scroll up — same pattern as The Athletic / Guardian. We track the
-  // scroll inside the gallery's own scroll container, not the document,
-  // because the page layout pins the global Header above an
-  // overflow-hidden <main> and the actual scrolling happens here.
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const lastScrollYRef = useRef(0);
-  const [categoryNavHidden, setCategoryNavHidden] = useState(false);
-
-  useEffect(() => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-
-    const TOP_THRESHOLD = 24;
-    const DELTA_THRESHOLD = 6;
-
-    const onScroll = () => {
-      const y = el.scrollTop;
-      const dy = y - lastScrollYRef.current;
-      lastScrollYRef.current = y;
-      // Always show near the top so the strip is reachable in one swipe up.
-      if (y < TOP_THRESHOLD) {
-        setCategoryNavHidden(false);
-        return;
-      }
-      if (dy > DELTA_THRESHOLD) setCategoryNavHidden(true);
-      else if (dy < -DELTA_THRESHOLD) setCategoryNavHidden(false);
-    };
-
-    el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
-  }, []);
 
   // heroMode is computed after visibleFeatured (below)
 
@@ -211,19 +170,7 @@ export function PressGalleryClient({
   };
 
   return (
-    <div ref={scrollContainerRef} className="flex flex-1 min-h-0 flex-col overflow-y-auto">
-      {/* Sticky category strip that auto-hides on scroll-down and slides
-          back in on scroll-up. Wrapped in its own sticky container so the
-          CategoryNav component itself stays simple — the wrapper owns the
-          translate / transition, the nav owns the pills. */}
-      <div
-        className={`sticky top-0 z-30 bg-white/95 backdrop-blur-sm transition-transform duration-200 will-change-transform dark:bg-[#1e1e1e]/95 ${
-          categoryNavHidden ? '-translate-y-full' : 'translate-y-0'
-        }`}
-      >
-        <CategoryNav categories={categoryNav} />
-      </div>
-
+    <div className="flex flex-1 min-h-0 flex-col overflow-y-auto">
       <div className="mx-auto w-full max-w-7xl px-4 py-6">
         {/* Visually hidden but kept for SEO / screen readers. The home page
             still needs a single h1; the visible title used to live in the

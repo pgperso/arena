@@ -7,11 +7,9 @@ import {
   fetchPressGalleryItems,
 } from '@/services/pressGalleryService';
 import { PressGalleryClient } from './galerie-de-presse/PressGalleryClient';
-import { type CategoryNavItem } from '@/components/press/CategoryNav';
 import { TopOfWeek } from '@/components/press/TopOfWeek';
 import { fetchActivePoll, type Poll } from '@/services/pollService';
 import { BRAND } from '@/lib/brand';
-import { ORIGINAL_CONTENT_CUTOFF } from '@arena/shared';
 
 export const revalidate = 300;
 
@@ -76,40 +74,19 @@ export default async function HomePage({
   let initialResult: Awaited<ReturnType<typeof fetchPressGalleryItems>> = { items: [], hasMore: false };
   let taverneItems: Awaited<ReturnType<typeof fetchPressGalleryItems>>['items'] = [];
   let communities: { id: number; name: string; name_en: string | null; slug: string; logo_url: string | null }[] = [];
-  let categoryNav: CategoryNavItem[] = [];
   let activePoll: Poll | null = null;
   let userId: string | null = null;
 
   try {
-    const [featured, communitiesRes, categoriesRes, userRes, articleCategoriesRes] = await Promise.all([
+    const [featured, communitiesRes, userRes] = await Promise.all([
       fetchFeaturedItems(supabase, locale),
       supabase
         .from('communities')
         .select('id, name, name_en, slug, logo_url')
         .eq('is_active', true)
         .order('name'),
-      supabase
-        .from('categories')
-        .select('id, slug, name, name_en')
-        .order('sort_order'),
       supabase.auth.getUser(),
-      // Used to hide category pills that have no published articles yet —
-      // an empty pill leads to an empty hub, which is a dead-end for
-      // readers and a thin-content signal for Google.
-      supabase
-        .from('articles')
-        .select('communities!inner(category_id)')
-        .eq('is_published', true)
-        .eq('is_removed', false)
-        .gte('published_at', ORIGINAL_CONTENT_CUTOFF),
     ]);
-    const allCategories = ((categoriesRes.data ?? []) as unknown as CategoryNavItem[]);
-    const usedCategoryIds = new Set<number>(
-      ((articleCategoriesRes.data ?? []) as unknown as { communities: { category_id: number | null } | null }[])
-        .map((r) => r.communities?.category_id ?? null)
-        .filter((id): id is number => id != null),
-    );
-    categoryNav = allCategories.filter((c) => usedCategoryIds.has(c.id));
 
     featuredItems = featured;
     // name_en / description_en come from migration 00053. Cast through unknown
@@ -225,7 +202,6 @@ export default async function HomePage({
         userId={userId}
         poll={activePoll}
         sidebarSlot={<TopOfWeek locale={locale} />}
-        categoryNav={categoryNav}
       />
     </>
   );

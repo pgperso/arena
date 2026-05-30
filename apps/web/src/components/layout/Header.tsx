@@ -14,8 +14,16 @@ import { NotificationBell } from './NotificationBell';
 import { fetchUserCommunities, type UserCommunitySummary } from '@/services/communityService';
 import { BRAND } from '@/lib/brand';
 import { Sun, Moon, Monitor } from 'lucide-react';
+import type { CategoryNavItem } from '@/components/press/CategoryNav';
 
-export function Header() {
+interface HeaderProps {
+  // Sport categories shown inside the navigation dropdown (desktop) and
+  // the mobile drawer. Sourced from the layout so the same list is
+  // available across every route without each page refetching.
+  categories: CategoryNavItem[];
+}
+
+export function Header({ categories }: HeaderProps) {
   const router = useRouter();
   const { user, username, avatarUrl, loading } = useAuth();
   const t = useTranslations();
@@ -109,7 +117,7 @@ export function Header() {
         {/* Language + Desktop auth */}
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
-            <TribunesMenu userTribunes={userTribunes} align="left" />
+            <TribunesMenu userTribunes={userTribunes} categories={categories} align="left" />
           ) : (
             <Link
               href="/login"
@@ -275,6 +283,7 @@ export function Header() {
         avatarUrl={avatarUrl}
         onLogout={handleLogout}
         userTribunes={userTribunes}
+        categories={categories}
         theme={theme}
         onSetTheme={setTheme}
         otherLocale={otherLocale}
@@ -286,11 +295,13 @@ export function Header() {
 
 interface TribunesMenuProps {
   userTribunes: UserCommunitySummary[];
+  categories: CategoryNavItem[];
   align: 'left' | 'right';
 }
 
-function TribunesMenu({ userTribunes, align }: TribunesMenuProps) {
+function TribunesMenu({ userTribunes, categories, align }: TribunesMenuProps) {
   const t = useTranslations();
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -341,6 +352,29 @@ function TribunesMenu({ userTribunes, align }: TribunesMenuProps) {
               {t('pressGallery.title')}
             </Link>
           </div>
+          {categories.length > 0 && (
+            <div className="border-t border-gray-100 dark:border-gray-800">
+              <p className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                {t('a11y.sportCategories')}
+              </p>
+              <ul className="max-h-64 overflow-y-auto pb-1">
+                {categories.map((c) => {
+                  const label = locale === 'en' && c.name_en ? c.name_en : c.name;
+                  return (
+                    <li key={c.slug}>
+                      <Link
+                        href={`/sport/${c.slug}`}
+                        onClick={() => setOpen(false)}
+                        className="block px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
+                      >
+                        {label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
           {userTribunes.length > 0 && (
             <div className="border-t border-gray-100 dark:border-gray-800">
               <p className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">

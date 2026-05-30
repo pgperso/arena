@@ -4,10 +4,9 @@ import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import { displayCommunityName, displayCommunityDescription, ORIGINAL_CONTENT_CUTOFF } from '@arena/shared';
+import { displayCommunityName, displayCommunityDescription } from '@arena/shared';
 import { fetchPressGalleryItems } from '@/services/pressGalleryService';
 import { PressContentCard } from '@/components/press/PressContentCard';
-import { CategoryNav, type CategoryNavItem } from '@/components/press/CategoryNav';
 import { BRAND } from '@/lib/brand';
 
 export const revalidate = 300;
@@ -103,39 +102,15 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const category = catData as unknown as CategoryRow | null;
   if (!category) notFound();
 
-  // Load all active communities in this category + the full category list
-  // for the navigation strip (so readers can jump between sports without
-  // hitting the browser back button). The category-pills filter mirrors
-  // the home page: hide pills that have zero indexable articles, so we
-  // don't expose dead-end hubs.
-  const [{ data: comData }, { data: allCategoriesRes }, { data: usedCategoriesRes }] = await Promise.all([
-    supabase
-      .from('communities')
-      .select('id, name, name_en, slug, description, description_en, logo_url, member_count')
-      .eq('category_id', category.id)
-      .eq('is_active', true)
-      .order('member_count', { ascending: false }),
-    supabase
-      .from('categories')
-      .select('id, slug, name, name_en')
-      .order('sort_order'),
-    supabase
-      .from('articles')
-      .select('communities!inner(category_id)')
-      .eq('is_published', true)
-      .eq('is_removed', false)
-      .gte('published_at', ORIGINAL_CONTENT_CUTOFF),
-  ]);
-
-  const allCategories = (allCategoriesRes ?? []) as unknown as CategoryNavItem[];
-  const usedCategoryIds = new Set<number>(
-    ((usedCategoriesRes ?? []) as unknown as { communities: { category_id: number | null } | null }[])
-      .map((r) => r.communities?.category_id ?? null)
-      .filter((id): id is number => id != null),
-  );
-  // Always include the current category, even if it has no articles yet —
-  // otherwise the user would land on a page where the active pill is missing.
-  const categoryNav = allCategories.filter((c) => usedCategoryIds.has(c.id) || c.id === category.id);
+  // Communities (tribunes) inside this sport category — sport-to-sport
+  // navigation now lives in the global header dropdown rather than in a
+  // separate strip on this page.
+  const { data: comData } = await supabase
+    .from('communities')
+    .select('id, name, name_en, slug, description, description_en, logo_url, member_count')
+    .eq('category_id', category.id)
+    .eq('is_active', true)
+    .order('member_count', { ascending: false });
 
   const communities = (comData ?? []) as unknown as CommunityRow[];
   const communityIds = communities.map((c) => c.id);
@@ -200,7 +175,6 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-y-auto bg-white dark:bg-[#1e1e1e]">
-      <CategoryNav categories={categoryNav} activeSlug={categorySlug} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
