@@ -94,7 +94,8 @@
     "discoverTribunes": "Discover the available tribunes!",
     "popular": "Popular",
     "controversial": "Controversial",
-    "rightNow": "Right now"
+    "rightNow": "Right now",
+    "home": "Home"
   },
   "tribune": {
     "online": "{count} online",

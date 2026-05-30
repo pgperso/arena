@@ -94,7 +94,8 @@
     "discoverTribunes": "Découvre les tribunes disponibles !",
     "popular": "Populaire",
     "controversial": "Controversé",
-    "rightNow": "En ce moment"
+    "rightNow": "En ce moment",
+    "home": "Accueil"
   },
   "tribune": {
     "online": "{count} en ligne",

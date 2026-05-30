@@ -303,6 +303,7 @@ interface SportsMenuProps {
  *  on desktop only; mobile uses the burger drawer. */
 function SportsMenu({ categories }: SportsMenuProps) {
   const ta = useTranslations('a11y');
+  const th = useTranslations('home');
   const locale = useLocale();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -334,7 +335,20 @@ function SportsMenu({ categories }: SportsMenuProps) {
 
       {open && (
         <div className="absolute left-0 top-full z-50 mt-1 w-56 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-[#1e1e1e]">
-          <ul className="max-h-80 overflow-y-auto py-1">
+          <ul className="py-1">
+            {/* Home shortcut at the top so readers browsing a sport hub
+                can return to the gallery without hunting for the logo. */}
+            <li>
+              <Link
+                href="/"
+                onClick={() => setOpen(false)}
+                className="block border-b border-gray-100 px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 dark:border-gray-800 dark:text-gray-100 dark:hover:bg-gray-800"
+              >
+                {th('home')}
+              </Link>
+            </li>
+          </ul>
+          <ul className="max-h-72 overflow-y-auto py-1">
             {categories.map((c) => {
               const label = locale === 'en' && c.name_en ? c.name_en : c.name;
               return (
