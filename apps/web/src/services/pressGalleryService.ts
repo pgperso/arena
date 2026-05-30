@@ -107,6 +107,12 @@ export async function fetchFeaturedItems(
 ): Promise<PressGalleryItem[]> {
   const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
 
+  // Recency-first selection: the hero (big card) is always the most
+  // recently published article in the last 48h that has a cover image.
+  // The two secondary cards are picked by engagement among the rest of
+  // that window. This matches reader expectations on a news site —
+  // freshness leads, engagement supports — instead of letting a 36h-old
+  // story dominate just because it has a head start in views.
   const { data } = await supabase
     .from('articles')
     .select(ARTICLE_SELECT)
@@ -115,20 +121,20 @@ export async function fetchFeaturedItems(
     .not('cover_image_url', 'is', null)
     .gte('published_at', twoDaysAgo)
     .gte('published_at', ORIGINAL_CONTENT_CUTOFF)
-    .order('view_count', { ascending: false })
-    .limit(3);
+    .order('published_at', { ascending: false })
+    .limit(10);
 
   if (data && data.length > 0) {
-    // Sort by engagement score: view_count + like_count * 3
-    const sorted = [...data].sort((a, b) => {
-      const scoreA = (a as unknown as ArticleRow).view_count + (a as unknown as ArticleRow).like_count * 3;
-      const scoreB = (b as unknown as ArticleRow).view_count + (b as unknown as ArticleRow).like_count * 3;
-      return scoreB - scoreA;
-    });
-    return sorted.map((r) => articleToItem(r as unknown as ArticleRow, locale));
+    const rows = data as unknown as ArticleRow[];
+    const [hero, ...rest] = rows;
+    const score = (a: ArticleRow) => a.view_count + a.like_count * 3;
+    const secondary = [...rest].sort((a, b) => score(b) - score(a)).slice(0, 2);
+    return [hero, ...secondary].map((r) => articleToItem(r, locale));
   }
 
-  // Fallback: most recent 3 original articles with cover image
+  // Fallback when nothing was published in the last 48h: surface the
+  // most recent 3 original articles with cover images regardless of age,
+  // so the hero slot is never empty on a quiet day.
   const { data: fallback } = await supabase
     .from('articles')
     .select(ARTICLE_SELECT)
