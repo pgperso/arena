@@ -107,12 +107,11 @@ export async function fetchFeaturedItems(
 ): Promise<PressGalleryItem[]> {
   const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
 
-  // Recency-first selection: the hero (big card) is always the most
-  // recently published article in the last 48h that has a cover image.
-  // The two secondary cards are picked by engagement among the rest of
-  // that window. This matches reader expectations on a news site —
-  // freshness leads, engagement supports — instead of letting a 36h-old
-  // story dominate just because it has a head start in views.
+  // Strict chronological order: the three featured slots are simply the
+  // three most recently published articles from the last 48h that have a
+  // cover image. Hero = newest, secondaries = next two by date. Engagement
+  // doesn't factor in — readers on a news site expect the front page to
+  // reflect when stories were published, not how popular they later become.
   const { data } = await supabase
     .from('articles')
     .select(ARTICLE_SELECT)
@@ -122,14 +121,10 @@ export async function fetchFeaturedItems(
     .gte('published_at', twoDaysAgo)
     .gte('published_at', ORIGINAL_CONTENT_CUTOFF)
     .order('published_at', { ascending: false })
-    .limit(10);
+    .limit(3);
 
   if (data && data.length > 0) {
-    const rows = data as unknown as ArticleRow[];
-    const [hero, ...rest] = rows;
-    const score = (a: ArticleRow) => a.view_count + a.like_count * 3;
-    const secondary = [...rest].sort((a, b) => score(b) - score(a)).slice(0, 2);
-    return [hero, ...secondary].map((r) => articleToItem(r, locale));
+    return (data as unknown as ArticleRow[]).map((r) => articleToItem(r, locale));
   }
 
   // Fallback when nothing was published in the last 48h: surface the

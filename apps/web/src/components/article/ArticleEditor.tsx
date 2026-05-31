@@ -9,6 +9,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useCoverUpload } from '@/hooks/useCoverUpload';
 import { createArticle, updateArticle } from '@/services/articleService';
+import { revalidateAfterArticleChange } from '@/app/actions/revalidate';
 import { slugify } from '@/lib/slugify';
 import { CONTENT_AUTHORS as AUTHORS, getContentAuthor, isContentAuthor } from '@/lib/contentAuthors';
 import { countWords, MIN_QUALITY_WORD_COUNT } from '@arena/shared';
@@ -451,6 +452,18 @@ export function ArticleEditor({
         setError(insertError.message);
         setSaving(false);
         return;
+      }
+    }
+
+    // Bust the ISR cache so the new article shows up immediately on the
+    // home gallery and the tribune hub instead of waiting up to 5 minutes
+    // for natural revalidation. Best-effort: a failure here shouldn't
+    // block the publish itself.
+    if (publish) {
+      try {
+        await revalidateAfterArticleChange(selectedCommunitySlug, slug);
+      } catch (e) {
+        console.warn('[article-publish] revalidate failed', e);
       }
     }
 
