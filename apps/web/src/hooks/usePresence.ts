@@ -68,15 +68,33 @@ export function usePresence(
       setOnlineMembers(members);
     }
 
-    function trackStatus() {
-      if (!channelRef.current) return;
+    // Track returns 'ok' / 'timed out' / 'rate limited'. A silent failure
+    // here was the root cause of the "members are talking but I don't see
+    // them online" bug: chat messages travel through postgres_changes and
+    // always arrive, but presence relies on this track() call landing on
+    // the server. One failed track meant the user stayed invisible until
+    // they navigated away and back.
+    async function trackStatus() {
+      const ch = channelRef.current;
+      if (!ch) return;
       const status: PresenceStatus = document.visibilityState === 'visible' ? 'online' : 'idle';
-      channelRef.current.track({
+      const result = await ch.track({
         memberId: userId,
         username: usernameRef.current,
         avatarUrl: avatarUrlRef.current,
         status,
       });
+      if (result !== 'ok') {
+        // One-shot retry. The next heartbeat will catch any second failure.
+        setTimeout(() => {
+          channelRef.current?.track({
+            memberId: userId,
+            username: usernameRef.current,
+            avatarUrl: avatarUrlRef.current,
+            status,
+          });
+        }, 1500);
+      }
     }
 
     channel
@@ -89,10 +107,21 @@ export function usePresence(
         }
       });
 
+    // Heartbeat: re-track every 25s. If the websocket dropped and
+    // reconnected silently, the previous track is gone but the channel
+    // subscription auto-restored — the heartbeat re-publishes our
+    // presence so other clients see us within at most 25 seconds. Without
+    // this, a user could chat for hours without anyone seeing them
+    // online.
+    const heartbeat = setInterval(() => {
+      void trackStatus();
+    }, 25_000);
+
     // Listen to visibility changes for idle detection
     document.addEventListener('visibilitychange', trackStatus);
 
     return () => {
+      clearInterval(heartbeat);
       document.removeEventListener('visibilitychange', trackStatus);
       channel.untrack();
       supabase.removeChannel(channel);
