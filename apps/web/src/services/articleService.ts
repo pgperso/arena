@@ -103,7 +103,7 @@ export async function createArticle(
     if (community) {
       const communitySlug = (community as { slug: string }).slug;
       const articleUrl = `${BRAND.url}/fr/tribunes/${communitySlug}/articles/${validated.slug}`;
-      announceArticle(supabase, displayName, (community as { name: string }).name, validated.title, articleUrl);
+      announceArticle(supabase, data.communityId, displayName, (community as { name: string }).name, validated.title, articleUrl);
     }
   }
 

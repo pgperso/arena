@@ -34,7 +34,7 @@ export async function joinCommunity(
       const username = (member as { username: string }).username;
       const communityName = (community as { name: string }).name;
       await Promise.all([
-        announceJoin(supabase, username, communityName),
+        announceJoin(supabase, communityId, username, communityName),
         checkMilestone(supabase, communityId, communityName),
       ]);
     }

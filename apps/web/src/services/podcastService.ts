@@ -55,10 +55,10 @@ export async function createPodcast(
       const communityName = (community as { name: string }).name;
       const communitySlug = (community as { slug: string }).slug;
       if (validated.isLive && validated.youtubeVideoId) {
-        announceLive(supabase, communityName, validated.title);
+        announceLive(supabase, data.communityId, communityName, validated.title);
       } else {
         const podcastUrl = `${BRAND.url}/fr/tribunes/${communitySlug}/podcasts/${result.data ? (result.data as unknown as { id: number }).id : ''}`;
-        announcePodcast(supabase, username, communityName, validated.title, podcastUrl);
+        announcePodcast(supabase, data.communityId, username, communityName, validated.title, podcastUrl);
       }
     }
   }

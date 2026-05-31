@@ -73,29 +73,15 @@ function pick<T>(arr: T[]): T {
 
 // ── Public API ──
 
-/** Send bot message to ALL active tribunes via SECURITY DEFINER RPC */
-async function broadcastBot(
-  supabase: SupabaseClient<Database>,
-  content: string,
-) {
-  const { data: allCommunities } = await supabase
-    .from('communities')
-    .select('id')
-    .eq('is_active', true);
-
-  if (!allCommunities) return;
-
-  await Promise.all(
-    (allCommunities as { id: number }[]).map((c) =>
-      supabase.rpc('send_bot_message' as never, {
-        p_community_id: c.id,
-        p_content: content,
-      } as never)
-    )
-  );
-}
-
-/** Send bot message to a SINGLE tribune via SECURITY DEFINER RPC */
+/**
+ * Send a bot message into ONE tribune via the SECURITY DEFINER RPC.
+ * All announcements below are scoped to the source community: a join,
+ * article, podcast, live or milestone never leaks into unrelated
+ * tribunes. The original broadcastBot helper that fanned out to every
+ * active community has been removed — quiet tribunes were filling up
+ * with bot messages about events happening elsewhere on the site,
+ * which is exactly what users reported as a dead "bot wall".
+ */
 async function sendBotToTribune(
   supabase: SupabaseClient<Database>,
   communityId: number,
@@ -107,48 +93,52 @@ async function sendBotToTribune(
   } as never);
 }
 
-/** Announce a new member joined (broadcasts to ALL tribunes) */
+/** Announce a new member joined — only in the tribune they joined. */
 export async function announceJoin(
   supabase: SupabaseClient<Database>,
+  communityId: number,
   username: string,
   communityName: string,
 ) {
   const message = pick(JOIN_ANNOUNCEMENTS)(username, communityName);
-  await broadcastBot(supabase, message);
+  await sendBotToTribune(supabase, communityId, message);
 }
 
-/** Announce a new article published (broadcasts to ALL tribunes) */
+/** Announce a new article — only in the tribune it was published to. */
 export async function announceArticle(
   supabase: SupabaseClient<Database>,
+  communityId: number,
   username: string,
   communityName: string,
   articleTitle: string,
   articleUrl: string,
 ) {
   const message = pick(ARTICLE_ANNOUNCEMENTS)(username, communityName, articleTitle, articleUrl);
-  await broadcastBot(supabase, message);
+  await sendBotToTribune(supabase, communityId, message);
 }
 
-/** Announce a new podcast published (broadcasts to ALL tribunes) */
+/** Announce a new podcast — only in the tribune it was published to. */
 export async function announcePodcast(
   supabase: SupabaseClient<Database>,
+  communityId: number,
   username: string,
   communityName: string,
   podcastTitle: string,
   podcastUrl: string,
 ) {
   const message = pick(PODCAST_ANNOUNCEMENTS)(username, communityName, podcastTitle, podcastUrl);
-  await broadcastBot(supabase, message);
+  await sendBotToTribune(supabase, communityId, message);
 }
 
-/** Announce a live started (broadcasts to ALL tribunes) */
+/** Announce a live started — only in the tribune hosting the live. */
 export async function announceLive(
   supabase: SupabaseClient<Database>,
+  communityId: number,
   communityName: string,
   liveTitle: string,
 ) {
   const message = pick(LIVE_ANNOUNCEMENTS)(communityName, liveTitle);
-  await broadcastBot(supabase, message);
+  await sendBotToTribune(supabase, communityId, message);
 }
 
 /** Delete bot announcement messages for a removed article (all tribunes) */
@@ -163,7 +153,7 @@ export async function cleanupArticleBotMessages(
     .like('content', `%/articles/${articleSlug}%`);
 }
 
-/** Check and announce member milestone for a community */
+/** Check and announce member milestone — only in the community that hit it. */
 export async function checkMilestone(
   supabase: SupabaseClient<Database>,
   communityId: number,
@@ -176,9 +166,8 @@ export async function checkMilestone(
 
   if (count === null) return;
 
-  // Check if current count hits a milestone
   if (MILESTONES.includes(count)) {
     const message = pick(MILESTONE_ANNOUNCEMENTS)(communityName, count);
-    await broadcastBot(supabase, message);
+    await sendBotToTribune(supabase, communityId, message);
   }
 }
