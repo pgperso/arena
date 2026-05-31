@@ -107,15 +107,20 @@ export function usePresence(
         }
       });
 
-    // Heartbeat: re-track every 25s. If the websocket dropped and
-    // reconnected silently, the previous track is gone but the channel
-    // subscription auto-restored — the heartbeat re-publishes our
-    // presence so other clients see us within at most 25 seconds. Without
-    // this, a user could chat for hours without anyone seeing them
-    // online.
+    // Heartbeat: re-track every 60s as a safety net for silent
+    // websocket reconnects. Supabase auto-resubscribes the channel on
+    // reconnect but presence track() is a one-shot client-state push —
+    // if the initial track fired before the reconnect, our presence is
+    // gone server-side until we re-publish it. The heartbeat caps that
+    // window at 60s.
+    //
+    // Cost: presence runs over Realtime, NOT the database, so this only
+    // consumes Realtime messages (not DB reads/writes). 60s × visible
+    // users keeps it well under the Pro plan's 5M msgs/month budget
+    // even for a few hundred concurrent users.
     const heartbeat = setInterval(() => {
       void trackStatus();
-    }, 25_000);
+    }, 60_000);
 
     // Listen to visibility changes for idle detection
     document.addEventListener('visibilitychange', trackStatus);
