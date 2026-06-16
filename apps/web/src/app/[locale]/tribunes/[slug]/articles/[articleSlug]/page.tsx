@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
-import { isIndexableArticle, displayCommunityName } from '@arena/shared';
+import { isIndexableArticle, displayCommunityName, ARTICLE_AD_WORD_THRESHOLD } from '@arena/shared';
+import { sanitizeArticleHtml } from '@/lib/sanitizeArticleHtml';
+import { splitHtmlAtParagraph } from '@/lib/articleBody';
 import { BRAND } from '@/lib/brand';
 import { translatedField } from '@/lib/contentTranslation';
 import { ArticleView } from '@/components/article/ArticleView';
@@ -202,6 +204,15 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
   const displayExcerpt = translatedField(article.source_lang, locale, article.excerpt, article.excerpt_translated);
   const displayBody = translatedField(article.source_lang, locale, article.body, article.body_translated);
 
+  // Sanitize + split the body HERE (server component) so the prose is part of
+  // the SSR HTML. This used to happen inside the client ArticleView via
+  // isomorphic-dompurify, but that pulls jsdom into a client component whose
+  // server render isn't traced with jsdom on Vercel — so ArticleView threw
+  // during SSR, React fell back to client-only rendering, and crawlers
+  // (including AdSense's reviewer) received an empty article shell.
+  const sanitizedBody = sanitizeArticleHtml(displayBody);
+  const bodyParts = splitHtmlAtParagraph(sanitizedBody, ARTICLE_AD_WORD_THRESHOLD);
+
   const wordCount = displayBody.replace(/<[^>]*>/g, '').split(/\s+/).length;
   const lang = locale === 'fr' ? 'fr-CA' : 'en-CA';
 
@@ -283,6 +294,8 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
         canModerate={canModerate}
         focusCommentId={focusCommentId}
         showAds={isIndexableArticle(article.published_at, displayBody)}
+        sanitizedBody={sanitizedBody}
+        bodyParts={bodyParts}
         relatedSlot={
           <RelatedArticles
             currentArticleId={article.id}

@@ -1,8 +1,7 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
-import { formatTime, ARTICLE_AD_WORD_THRESHOLD } from '@arena/shared';
-import DOMPurify from 'isomorphic-dompurify';
+import { useCallback } from 'react';
+import { formatTime } from '@arena/shared';
 import { FeedLikeButton } from '@/components/feed/FeedLikeButton';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { AdInArticle } from '@/components/ads/AdInArticle';
@@ -52,57 +51,22 @@ interface ArticleViewProps {
   // Google's AdSense reviewer crawls internal links and treats ads on
   // thin/duplicate pages as "low value content", which causes rejection.
   showAds?: boolean;
+  // Article body, sanitized AND split server-side (in page.tsx) so the prose
+  // is present in the SSR HTML. It used to be sanitized here with
+  // isomorphic-dompurify, but that pulls jsdom into a client component whose
+  // server render isn't traced with jsdom on Vercel — the render threw, React
+  // fell back to client-only rendering, and crawlers (incl. AdSense's) saw an
+  // empty article. Sanitizing upstream keeps this component jsdom-free.
+  sanitizedBody: string;
+  // [before-ad, after-ad] halves, or null when the body is too short to split.
+  bodyParts: [string, string] | null;
   // Server-rendered related-articles block (passed in from page.tsx).
   // Rendered between the article body and the comments so readers see
   // a "what to read next" exit before they hit the comments section.
   relatedSlot?: React.ReactNode;
 }
 
-/**
- * Split sanitized HTML at the closest </p> after a word threshold.
- */
-function splitHtmlAtParagraph(html: string, wordThreshold: number): [string, string] | null {
-  const textOnly = html.replace(/<[^>]*>/g, ' ');
-  const words = textOnly.trim().split(/\s+/);
-  if (words.length < wordThreshold * 1.5) return null; // Not long enough to split
-
-  // Find the Nth word position in the original HTML
-  let wordCount = 0;
-  let inTag = false;
-  let splitSearchStart = 0;
-
-  for (let i = 0; i < html.length; i++) {
-    if (html[i] === '<') {
-      inTag = true;
-      continue;
-    }
-    if (html[i] === '>') {
-      inTag = false;
-      continue;
-    }
-    if (inTag) continue;
-
-    if (/\s/.test(html[i]) && i > 0 && !/\s/.test(html[i - 1])) {
-      wordCount++;
-      if (wordCount >= wordThreshold) {
-        splitSearchStart = i;
-        break;
-      }
-    }
-  }
-
-  if (splitSearchStart === 0) return null;
-
-  // Find the next </p> after the threshold
-  const closingTag = '</p>';
-  const splitIndex = html.indexOf(closingTag, splitSearchStart);
-  if (splitIndex === -1) return null;
-
-  const cutPoint = splitIndex + closingTag.length;
-  return [html.slice(0, cutPoint), html.slice(cutPoint)];
-}
-
-export function ArticleView({ article, communitySlug, communityName, userId, canModerate = false, focusCommentId = null, showAds = true, relatedSlot }: ArticleViewProps) {
+export function ArticleView({ article, communitySlug, communityName, userId, canModerate = false, focusCommentId = null, showAds = true, sanitizedBody, bodyParts, relatedSlot }: ArticleViewProps) {
   const locale = useLocale();
   const router = useRouter();
   const handleBack = useCallback(() => {
@@ -116,27 +80,6 @@ export function ArticleView({ article, communitySlug, communityName, userId, can
       router.push('/');
     }
   }, [router]);
-  const sanitizedBody = useMemo(() => {
-    try {
-      return DOMPurify.sanitize(article.body ?? '', {
-        ALLOWED_TAGS: [
-          'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-          'a', 'strong', 'em', 'b', 'i', 'u', 's',
-          'ul', 'ol', 'li', 'blockquote', 'img', 'br', 'hr',
-          'code', 'pre', 'span', 'div', 'figure', 'figcaption',
-        ],
-        ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target', 'rel', 'id'],
-        ALLOWED_URI_REGEXP: /^(?:https?|mailto):/i,
-        ALLOW_DATA_ATTR: false,
-      });
-    } catch {
-      return article.body ?? '';
-    }
-  }, [article.body]);
-  const bodyParts = useMemo(
-    () => splitHtmlAtParagraph(sanitizedBody, ARTICLE_AD_WORD_THRESHOLD),
-    [sanitizedBody],
-  );
 
   return (
     <div className="flex justify-center gap-8 px-4 py-6">
