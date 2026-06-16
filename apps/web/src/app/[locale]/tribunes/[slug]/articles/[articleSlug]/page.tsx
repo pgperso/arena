@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { setRequestLocale } from 'next-intl/server';
 import { isIndexableArticle, displayCommunityName, ARTICLE_AD_WORD_THRESHOLD } from '@arena/shared';
-import { sanitizeArticleHtml } from '@/lib/sanitizeArticleHtml';
+import { sanitizeArticleBody } from '@/lib/sanitizeBodyServer';
 import { splitHtmlAtParagraph } from '@/lib/articleBody';
 import { BRAND } from '@/lib/brand';
 import { translatedField } from '@/lib/contentTranslation';
@@ -210,7 +210,7 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
   // server render isn't traced with jsdom on Vercel — so ArticleView threw
   // during SSR, React fell back to client-only rendering, and crawlers
   // (including AdSense's reviewer) received an empty article shell.
-  const sanitizedBody = sanitizeArticleHtml(displayBody);
+  const sanitizedBody = sanitizeArticleBody(displayBody);
   const bodyParts = splitHtmlAtParagraph(sanitizedBody, ARTICLE_AD_WORD_THRESHOLD);
 
   const wordCount = displayBody.replace(/<[^>]*>/g, '').split(/\s+/).length;
