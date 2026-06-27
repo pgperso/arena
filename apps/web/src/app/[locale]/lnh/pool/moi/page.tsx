@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import { getActiveSeason, getNhlTeamOptions, type PoolPosition } from '@/services/poolService';
+import { getActiveSeason, type PoolPosition } from '@/services/poolService';
 import { AdSidebar } from '@/components/ads/AdSidebar';
 import { AdAnchor } from '@/components/ads/AdAnchor';
 import { TeamIdentityEditor } from './TeamIdentityEditor';
+import { TeamLogo } from '@/components/pool/TeamLogo';
 import { BRAND } from '@/lib/brand';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -40,8 +41,6 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
   const entry = entryData as { id: number; team_name: string; team_logo: string | null; is_locked: boolean; spent_cents: number } | null;
   if (!entry) redirect('/lnh/pool/composer');
 
-  const teamOptions = await getNhlTeamOptions(supabase);
-
   const { data: slotData } = await db
     .from('pool_roster_slots')
     .select('player_id, slot_position, price_cents, nhl_players!inner(full_name, team_abbrev)')
@@ -70,10 +69,7 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
           <div className="mx-auto w-full max-w-3xl px-4 py-8">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                {entry.team_logo && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={entry.team_logo} alt="" className="h-10 w-10 object-contain" />
-                )}
+                <TeamLogo logo={entry.team_logo} name={entry.team_name} size={40} />
                 <div>
                   <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{entry.team_name}</h1>
                   <p className="text-sm text-gray-500">{season.name}{entry.is_locked ? ' · verrouillé' : ' · brouillon'}</p>
@@ -89,9 +85,9 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
             <div className="mt-3">
               <TeamIdentityEditor
                 entryId={entry.id}
+                memberId={user.id}
                 initialName={entry.team_name}
                 initialLogo={entry.team_logo}
-                teams={teamOptions}
               />
             </div>
 

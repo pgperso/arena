@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getActiveSeason, getStandings } from '@/services/poolService';
 import { AdSidebar } from '@/components/ads/AdSidebar';
 import { AdAnchor } from '@/components/ads/AdAnchor';
+import { TeamLogo } from '@/components/pool/TeamLogo';
 import { BRAND } from '@/lib/brand';
 
 export const revalidate = 300;
@@ -53,10 +54,7 @@ export default async function StandingsPage({ params }: { params: Promise<{ loca
                         <td className="px-4 py-2 tabular-nums text-gray-500">{s.rank ?? '—'}</td>
                         <td className="px-4 py-2">
                           <div className="flex items-center gap-2">
-                            {s.teamLogo && (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={s.teamLogo} alt="" className="h-6 w-6 flex-shrink-0 object-contain" />
-                            )}
+                            <TeamLogo logo={s.teamLogo} name={s.teamName} size={28} />
                             <div className="min-w-0">
                               <div className="truncate font-medium text-gray-900 dark:text-gray-100">{s.teamName}</div>
                               {s.ownerName && (
