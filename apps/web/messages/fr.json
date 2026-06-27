@@ -402,5 +402,13 @@
     "hours": "{count}h",
     "days": "{count}j",
     "weeks": "{count} sem."
+  },
+  "pool": {
+    "menuLink": "Pool LNH",
+    "title": "Pool LNH",
+    "tagline": "Compose ton alignement à plafond salarial et grimpe au classement.",
+    "cta": "Jouer au pool",
+    "myTeam": "Mon équipe",
+    "standings": "Classement"
   }
 }

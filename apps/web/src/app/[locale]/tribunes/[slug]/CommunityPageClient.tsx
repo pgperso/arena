@@ -98,6 +98,15 @@ export function CommunityPageClient({
     <div className="flex flex-1 min-h-0 flex-col">
       {isMember ? (
         <>
+          {/* Pool LNH entry point — only on the LNH tribune. */}
+          {community.slug === 'lnh' && (
+            <Link
+              href="/lnh/pool"
+              className="flex items-center justify-center gap-2 border-t border-gray-200 bg-brand-blue-dark px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-brand-blue dark:border-gray-700"
+            >
+              🏒 {t('pool.tagline')} <span className="underline">{t('pool.cta')}</span>
+            </Link>
+          )}
           {/* 3-column layout: [Ad left] | [Feed] | [Ad right] */}
           <div className="flex flex-1 overflow-hidden border-t border-gray-200 dark:border-gray-700">
             {/* Left ad sidebar - xl+ only */}

@@ -438,6 +438,13 @@ function TribunesMenu({ userTribunes, align }: TribunesMenuProps) {
                 {t('pressGallery.title')}
               </Link>
             )}
+            <Link
+              href="/lnh/pool"
+              onClick={() => setOpen(false)}
+              className="block rounded-lg bg-brand-blue-dark px-3 py-2 text-center text-sm font-bold text-white transition hover:bg-brand-blue"
+            >
+              🏒 {t('pool.menuLink')}
+            </Link>
           </div>
           {userTribunes.length > 0 && (
             <div className="border-t border-gray-100 dark:border-gray-800">

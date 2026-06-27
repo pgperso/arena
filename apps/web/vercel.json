@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/nhl-sync",
+      "schedule": "0 9 * * *"
+    },
+    {
       "path": "/api/polls/generate",
       "schedule": "0 13 1,15 * *"
     },

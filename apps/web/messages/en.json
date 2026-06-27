@@ -396,5 +396,13 @@
     "hours": "{count}h",
     "days": "{count}d",
     "weeks": "{count}w"
+  },
+  "pool": {
+    "menuLink": "NHL Pool",
+    "title": "NHL Pool",
+    "tagline": "Build a salary-cap roster and climb the standings.",
+    "cta": "Play the pool",
+    "myTeam": "My team",
+    "standings": "Standings"
   }
 }

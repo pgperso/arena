@@ -15,6 +15,7 @@ import {
   type PressGalleryItem,
 } from '@/services/pressGalleryService';
 import type { Poll } from '@/services/pollService';
+import { Link } from '@/i18n/navigation';
 
 type FilterType = 'all' | 'articles' | 'podcasts';
 type SortType = 'latest' | 'trending';
@@ -60,6 +61,7 @@ export function PressGalleryClient({
   sidebarSlot,
 }: PressGalleryClientProps) {
   const t = useTranslations('pressGallery');
+  const tPool = useTranslations('pool');
   const supabase = useSupabase();
   const locale = useLocale();
 
@@ -276,6 +278,14 @@ export function PressGalleryClient({
           <aside className="hidden w-[320px] shrink-0 lg:block">
             <div className="sticky top-24 space-y-4">
               <PollBlock poll={poll} />
+              <Link
+                href="/lnh/pool"
+                className="block rounded-xl border border-gray-200 bg-gradient-to-br from-brand-blue to-brand-blue-dark p-4 text-white transition hover:opacity-95 dark:border-gray-700"
+              >
+                <p className="text-xs font-semibold uppercase tracking-wide text-white/80">🏒 {tPool('title')}</p>
+                <p className="mt-1 text-sm font-medium">{tPool('tagline')}</p>
+                <span className="mt-2 inline-block text-sm font-bold underline">{tPool('cta')} →</span>
+              </Link>
               <MetreCards />
               {sidebarSlot}
               <AdSlot slotId="press-sidebar" format="half-page" />
