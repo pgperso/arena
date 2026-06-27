@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
 import { syncDate } from '@/services/nhlService';
+import { announcePoolLeader } from '@/services/botService';
 
 // Boxscore fan-out over a full slate (up to ~16 games), each with retry
 // backoff, can run long; give it headroom (Vercel Pro allows up to 300s).
@@ -77,6 +78,27 @@ async function handleSync(request: Request) {
     const seasonId = (season as { id: number } | null)?.id;
     if (seasonId) {
       await admin.rpc('pool_refresh_standings', { p_season_id: seasonId });
+
+      // Daily-return hook: announce the leader in the LNH tribune, but only on
+      // nights where games were actually scored (no spam on off-days).
+      if (result.statRows > 0) {
+        const { data: top } = await admin
+          .from('pool_standings')
+          .select('fantasy_points, pool_entries!inner(team_name)')
+          .eq('season_id', seasonId)
+          .eq('rank', 1)
+          .limit(1)
+          .maybeSingle();
+        const leader = top as { fantasy_points: number; pool_entries: { team_name: string } } | null;
+        if (leader) {
+          const { data: lnh } = await admin.from('communities').select('id').eq('slug', 'lnh').single();
+          const communityId = (lnh as { id: number } | null)?.id;
+          if (communityId) {
+            const pts = Number(leader.fantasy_points).toLocaleString('fr-CA', { maximumFractionDigits: 1 });
+            await announcePoolLeader(admin, communityId, leader.pool_entries.team_name, pts).catch(() => {});
+          }
+        }
+      }
     }
 
     if (runId) {

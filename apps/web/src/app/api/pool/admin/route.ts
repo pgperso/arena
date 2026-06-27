@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
+import { announcePoolOpen } from '@/services/botService';
 
 export const maxDuration = 30;
 
@@ -79,8 +80,22 @@ export async function POST(request: Request) {
   set('tiebreaker', season.tiebreaker);
   set('is_public', season.isPublic);
 
+  // Detect a draft/locked → open transition so we announce the pool once.
+  const { data: prev } = await admin.from('pool_seasons').select('status').eq('id', seasonId).single();
+  const prevStatus = (prev as { status: string } | null)?.status;
+
   const { error: seasonErr } = await admin.from('pool_seasons').update(patch).eq('id', seasonId);
   if (seasonErr) return NextResponse.json({ error: `Saison : ${seasonErr.message}` }, { status: 500 });
+
+  // Bot announcement in the LNH tribune when the pool first opens.
+  if (season.status === 'open' && prevStatus !== 'open') {
+    const { data: lnh } = await admin.from('communities').select('id').eq('slug', 'lnh').single();
+    const communityId = (lnh as { id: number } | null)?.id;
+    if (communityId) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await announcePoolOpen(admin as any, communityId).catch(() => {});
+    }
+  }
 
   // Replace the barème: drop rules with a 0/blank coefficient, upsert the rest.
   if (Array.isArray(rules)) {

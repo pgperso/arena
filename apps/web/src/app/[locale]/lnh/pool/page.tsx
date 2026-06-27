@@ -65,7 +65,9 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
   const fmtPts = (n: number) => n.toLocaleString('fr-CA', { maximumFractionDigits: 1 });
   const cta = myEntryId
     ? { href: '/lnh/pool/moi', label: 'Mon équipe' }
-    : { href: '/lnh/pool/composer', label: 'Crée ton équipe' };
+    : !user
+      ? { href: '/login?redirect=/lnh/pool/composer', label: 'Crée ton équipe' }
+      : { href: '/lnh/pool/composer', label: 'Crée ton équipe' };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -97,6 +99,9 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
                   Voir le classement complet
                 </Link>
               </div>
+              {season && !user && !myEntryId && (
+                <p className="mt-2 text-xs text-gray-400">Connexion requise pour composer ton équipe.</p>
+              )}
             </div>
 
             {/* Comment ça marche */}

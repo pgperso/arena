@@ -153,6 +153,55 @@ export async function cleanupArticleBotMessages(
     .like('content', `%/articles/${articleSlug}%`);
 }
 
+// ── Pool announcements ──
+//
+// These run from server contexts that use the SERVICE ROLE (the admin save
+// route, the nightly cron), where auth.uid() is null — so send_bot_message
+// (which no-ops without auth.uid()) can't be used. We insert directly into
+// chat_messages as the bot; the service role bypasses RLS.
+
+const POOL_URL = `${BRAND.url}/fr/lnh/pool`;
+
+const POOL_OPEN_ANNOUNCEMENTS = [
+  (url: string) => `🏒 Le Pool LNH est ouvert ! Compose ton équipe à plafond salarial et grimpe au classement : ${url}`,
+  (url: string) => `🚨 Pool LNH ouvert ! Choisis tes 20 joueurs et défie la tribune : ${url}`,
+  (url: string) => `🏒 C'est parti — le Pool LNH est lancé ! À toi de jouer : ${url}`,
+];
+
+const POOL_LEADER_ANNOUNCEMENTS = [
+  (n: string, p: string, url: string) => `🏒 Pool LNH — ${n} mène avec ${p} pts ! Rattrape-le : ${url}`,
+  (n: string, p: string, url: string) => `📊 Au sommet du Pool LNH : ${n} (${p} pts). Et toi, où es-tu rendu ? ${url}`,
+  (n: string, p: string, url: string) => `🔥 ${n} domine le Pool LNH avec ${p} pts. Le classement : ${url}`,
+];
+
+/** Insert a bot message directly (service-role path; no auth.uid() needed). */
+export async function sendBotDirect(
+  admin: SupabaseClient<Database>,
+  communityId: number,
+  content: string,
+) {
+  await admin.from('chat_messages').insert({
+    community_id: communityId,
+    member_id: BOT_MEMBER_ID,
+    content,
+  });
+}
+
+/** Announce that the pool just opened — once, in the LNH tribune. */
+export async function announcePoolOpen(admin: SupabaseClient<Database>, communityId: number) {
+  await sendBotDirect(admin, communityId, pick(POOL_OPEN_ANNOUNCEMENTS)(POOL_URL));
+}
+
+/** Announce the current pool leader — the daily-return hook, in the LNH tribune. */
+export async function announcePoolLeader(
+  admin: SupabaseClient<Database>,
+  communityId: number,
+  leaderName: string,
+  points: string,
+) {
+  await sendBotDirect(admin, communityId, pick(POOL_LEADER_ANNOUNCEMENTS)(leaderName, points, POOL_URL));
+}
+
 /** Check and announce member milestone — only in the community that hit it. */
 export async function checkMilestone(
   supabase: SupabaseClient<Database>,
