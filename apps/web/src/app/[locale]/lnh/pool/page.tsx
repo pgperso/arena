@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import { getActiveSeason, getStandings } from '@/services/poolService';
+import { getActiveSeason, getStandings, getScoringRules, SCORING_CATALOG } from '@/services/poolService';
 import { AdSidebar } from '@/components/ads/AdSidebar';
 import { AdAnchor } from '@/components/ads/AdAnchor';
 import { BRAND } from '@/lib/brand';
@@ -37,6 +37,14 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
 
   const season = await getActiveSeason(supabase);
   const standings = season ? await getStandings(supabase, season.id) : [];
+  const rules = season ? await getScoringRules(supabase, season.id) : [];
+
+  // Barème, joined with the FR labels, only the stats that actually score.
+  const ruleMap = new Map(rules.map((r) => [r.statKey, r.coefficient]));
+  const baremeRows = SCORING_CATALOG.map((c) => ({ ...c, coef: ruleMap.get(c.key) ?? 0 })).filter((c) => c.coef !== 0);
+  const skaterRules = baremeRows.filter((c) => c.appliesTo === 'skater');
+  const goalieRules = baremeRows.filter((c) => c.appliesTo === 'goalie');
+  const fmtCoef = (n: number) => (n > 0 ? '+' : '') + n.toLocaleString('fr-CA', { maximumFractionDigits: 2 });
 
   const {
     data: { user },
@@ -77,17 +85,63 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
                 et accumule des points selon les vraies performances de la LNH.
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <Link
-                  href={cta.href}
-                  className="rounded-md bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900"
-                >
-                  {cta.label}
-                </Link>
+                {season && (
+                  <Link
+                    href={cta.href}
+                    className="rounded-md bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900"
+                  >
+                    {cta.label}
+                  </Link>
+                )}
                 <Link href="/lnh/pool/classement" className="text-sm font-medium text-gray-600 underline dark:text-gray-300">
                   Voir le classement complet
                 </Link>
               </div>
             </div>
+
+            {/* Comment ça marche */}
+            <section className="mt-8">
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">Comment ça marche</h2>
+              <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {[
+                  ['1', 'Compose ton équipe', 'Choisis 12 attaquants, 6 défenseurs et 2 gardiens sans dépasser le plafond salarial.'],
+                  ['2', 'Verrouille-la', 'Quand tu es satisfait, verrouille ton alignement pour la saison.'],
+                  ['3', 'Tes joueurs marquent', 'Chaque soir, tes joueurs accumulent des points selon leurs vrais matchs de la LNH.'],
+                  ['4', 'Grimpe au classement', 'Suis ta position et bats tes amis tout au long de la saison.'],
+                ].map(([n, title, desc]) => (
+                  <li key={n} className="flex gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                    <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white dark:bg-white dark:text-gray-900">{n}</span>
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">{title}</div>
+                      <div className="text-xs text-gray-500">{desc}</div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
+
+            {/* Barème */}
+            {baremeRows.length > 0 && (
+              <section className="mt-8">
+                <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500">Barème de pointage</h2>
+                <p className="mb-3 text-xs text-gray-400">Combien vaut chaque statistique.</p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {[['Patineurs', skaterRules], ['Gardiens', goalieRules]].map(([title, list]) => (
+                    <div key={title as string} className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                      <div className="bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:bg-[#252525] dark:text-gray-200">{title as string}</div>
+                      <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                        {(list as typeof skaterRules).map((c) => (
+                          <li key={c.key} className="flex items-center justify-between px-3 py-1.5 text-sm">
+                            <span className="text-gray-700 dark:text-gray-300">{c.label}</span>
+                            <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtCoef(c.coef)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Standings preview */}
             <section className="mt-8">

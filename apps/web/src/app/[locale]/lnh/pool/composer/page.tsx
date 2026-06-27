@@ -74,6 +74,8 @@ export default async function ComposerPage({ params }: { params: Promise<{ local
       need={{ F: season.rosterF, D: season.rosterD, G: season.rosterG }}
       players={players}
       initialPicks={initialPicks}
+      transactionsEnabled={season.transactionsEnabled}
+      maxTransactions={season.maxTransactions}
     />
   );
 }

@@ -17,7 +17,7 @@ const fmtM = (cents: number) => `${(cents / M).toLocaleString('fr-CA', { maximum
 const POS_LABEL: Record<PoolPosition, string> = { F: 'Att', D: 'Déf', G: 'Gardien' };
 
 export function PoolComposer({
-  entryId, isLocked, budgetCents, need, players, initialPicks,
+  entryId, isLocked, budgetCents, need, players, initialPicks, transactionsEnabled, maxTransactions,
 }: {
   entryId: number;
   isLocked: boolean;
@@ -25,6 +25,8 @@ export function PoolComposer({
   need: { F: number; D: number; G: number };
   players: PoolPlayer[];
   initialPicks: SlotPick[];
+  transactionsEnabled: boolean;
+  maxTransactions: number;
 }) {
   const router = useRouter();
   const [picks, setPicks] = useState<SlotPick[]>(initialPicks);
@@ -33,6 +35,7 @@ export function PoolComposer({
   const [posFilter, setPosFilter] = useState<'ALL' | PoolPosition>('ALL');
   const [sort, setSort] = useState<'value' | 'price' | 'proj'>('value');
   const [busy, setBusy] = useState(false);
+  const [confirmingLock, setConfirmingLock] = useState(false);
 
   const priceOf = useMemo(() => new Map(players.map((p) => [p.playerId, p.priceCents])), [players]);
   const chosen = useMemo(() => new Set(picks.map((p) => p.playerId)), [picks]);
@@ -113,9 +116,9 @@ export function PoolComposer({
             <div className={`h-full ${spent > budgetCents ? 'bg-red-500' : 'bg-gray-900 dark:bg-white'}`}
               style={{ width: `${Math.min(100, (spent / budgetCents) * 100)}%` }} />
           </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {!locked && (
-              <>
+          {!locked && !confirmingLock && (
+            <>
+              <div className="mt-3 flex flex-wrap gap-2">
                 <button onClick={autopick} disabled={busy}
                   className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-[#252525]">
                   ⚡ Équipe instantanée
@@ -124,14 +127,40 @@ export function PoolComposer({
                   className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-[#252525]">
                   Enregistrer
                 </button>
-                <button onClick={handleLock} disabled={busy || !complete}
+                <button onClick={() => (complete ? setConfirmingLock(true) : toast.error('Complète ton alignement avant de verrouiller'))}
+                  disabled={busy || !complete}
                   className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-40 dark:bg-white dark:text-gray-900">
                   Verrouiller ({counts.F + counts.D + counts.G}/{total})
                 </button>
-              </>
-            )}
-            {locked && <span className="text-sm font-medium text-green-700">✓ Alignement verrouillé pour la saison</span>}
-          </div>
+              </div>
+              <p className="mt-2 text-xs text-gray-500">
+                ⚡ <strong>Équipe instantanée</strong> remplit une équipe valide que tu peux ajuster · <strong>Enregistre</strong> pour continuer plus tard · <strong>Verrouille</strong> quand tu es prêt.
+              </p>
+            </>
+          )}
+
+          {!locked && confirmingLock && (
+            <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3 dark:border-amber-700 dark:bg-amber-950/30">
+              <p className="text-sm text-amber-900 dark:text-amber-200">
+                Verrouiller ton alignement?{' '}
+                {transactionsEnabled && maxTransactions > 0
+                  ? `Tu pourras ensuite faire jusqu'à ${maxTransactions} changement${maxTransactions > 1 ? 's' : ''} en cours de saison.`
+                  : 'Il sera final pour toute la saison — tu ne pourras plus le modifier.'}
+              </p>
+              <div className="mt-2 flex gap-2">
+                <button onClick={handleLock} disabled={busy}
+                  className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50 dark:bg-white dark:text-gray-900">
+                  Oui, verrouiller
+                </button>
+                <button onClick={() => setConfirmingLock(false)} disabled={busy}
+                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 dark:border-gray-600">
+                  Annuler
+                </button>
+              </div>
+            </div>
+          )}
+
+          {locked && <p className="mt-3 text-sm font-medium text-green-700">✓ Alignement verrouillé pour la saison</p>}
         </div>
       </div>
 
@@ -150,9 +179,9 @@ export function PoolComposer({
           </div>
           <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}
             className="rounded-md border border-gray-300 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-[#252525]">
-            <option value="value">Tri : Valeur</option>
+            <option value="value">Tri : Aubaines (pts/$)</option>
             <option value="price">Tri : Prix</option>
-            <option value="proj">Tri : Points proj.</option>
+            <option value="proj">Tri : Points projetés</option>
           </select>
         </div>
       </div>
@@ -178,12 +207,16 @@ export function PoolComposer({
                     className="w-20 rounded-md border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-40">
                     Retirer
                   </button>
-                ) : (
-                  <button onClick={() => add(p)} disabled={!addable}
-                    className="w-20 rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-white dark:text-gray-900"
-                    title={!addable ? (counts[p.position] >= need[p.position] ? 'Position complète' : p.priceCents > remaining ? 'Trop cher' : '') : ''}>
+                ) : addable ? (
+                  <button onClick={() => add(p)}
+                    className="w-20 rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900">
                     Ajouter
                   </button>
+                ) : (
+                  // Reason shown inline (a title tooltip is invisible on touch).
+                  <span className="w-20 text-center text-xs font-medium text-gray-400">
+                    {locked ? 'Verrouillé' : counts[p.position] >= need[p.position] ? 'Complet' : p.priceCents > remaining ? 'Trop cher' : '—'}
+                  </span>
                 )}
               </div>
             );

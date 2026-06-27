@@ -90,6 +90,17 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
               ))}
             </div>
 
+            {!entry.is_locked && slots.length > 0 && (
+              <p className="mt-3 rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-[#252525]">
+                <strong>Brouillon</strong> — tu peux modifier ton alignement jusqu&apos;à ce que tu le verrouilles.
+              </p>
+            )}
+            {slots.length > 0 && (!standing || standing.games_counted === 0) && (
+              <p className="mt-2 text-xs text-gray-400">
+                La saison n&apos;a pas commencé — tes points s&apos;accumuleront après chaque match.
+              </p>
+            )}
+
             {slots.length === 0 ? (
               <div className="mt-6 rounded-lg border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700">
                 Ton alignement est vide. <Link href="/lnh/pool/composer" className="underline">Compose-le.</Link>
