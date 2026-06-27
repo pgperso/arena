@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import { getActiveSeason, type PoolPosition } from '@/services/poolService';
+import { getActiveSeason, getNhlTeamOptions, type PoolPosition } from '@/services/poolService';
 import { AdSidebar } from '@/components/ads/AdSidebar';
 import { AdAnchor } from '@/components/ads/AdAnchor';
+import { TeamIdentityEditor } from './TeamIdentityEditor';
 import { BRAND } from '@/lib/brand';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -32,12 +33,14 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
 
   const { data: entryData } = await db
     .from('pool_entries')
-    .select('id, team_name, is_locked, spent_cents')
+    .select('id, team_name, team_logo, is_locked, spent_cents')
     .eq('season_id', season.id)
     .eq('member_id', user.id)
     .maybeSingle();
-  const entry = entryData as { id: number; team_name: string; is_locked: boolean; spent_cents: number } | null;
+  const entry = entryData as { id: number; team_name: string; team_logo: string | null; is_locked: boolean; spent_cents: number } | null;
   if (!entry) redirect('/lnh/pool/composer');
+
+  const teamOptions = await getNhlTeamOptions(supabase);
 
   const { data: slotData } = await db
     .from('pool_roster_slots')
@@ -66,15 +69,30 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
         <main className="flex-1 overflow-y-auto bg-white dark:bg-[#1e1e1e]">
           <div className="mx-auto w-full max-w-3xl px-4 py-8">
             <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{entry.team_name}</h1>
-                <p className="text-sm text-gray-500">{season.name}{entry.is_locked ? ' · verrouillé' : ' · brouillon'}</p>
+              <div className="flex items-center gap-3">
+                {entry.team_logo && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={entry.team_logo} alt="" className="h-10 w-10 object-contain" />
+                )}
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{entry.team_name}</h1>
+                  <p className="text-sm text-gray-500">{season.name}{entry.is_locked ? ' · verrouillé' : ' · brouillon'}</p>
+                </div>
               </div>
               {!entry.is_locked && (
                 <Link href="/lnh/pool/composer" className="rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">
-                  Modifier
+                  Modifier l&apos;alignement
                 </Link>
               )}
+            </div>
+
+            <div className="mt-3">
+              <TeamIdentityEditor
+                entryId={entry.id}
+                initialName={entry.team_name}
+                initialLogo={entry.team_logo}
+                teams={teamOptions}
+              />
             </div>
 
             <div className="mt-4 grid grid-cols-3 gap-3">

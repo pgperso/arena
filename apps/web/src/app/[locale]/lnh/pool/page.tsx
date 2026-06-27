@@ -171,7 +171,15 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
                       {standings.slice(0, 20).map((s) => (
                         <tr key={s.entryId} className="hover:bg-gray-50 dark:hover:bg-[#252525]">
                           <td className="px-4 py-2 tabular-nums text-gray-500">{s.rank ?? '—'}</td>
-                          <td className="px-4 py-2 font-medium text-gray-900 dark:text-gray-100">{s.teamName}</td>
+                          <td className="px-4 py-2 font-medium text-gray-900 dark:text-gray-100">
+                            <span className="flex items-center gap-2">
+                              {s.teamLogo && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={s.teamLogo} alt="" className="h-5 w-5 object-contain" />
+                              )}
+                              {s.teamName}
+                            </span>
+                          </td>
                           <td className="px-4 py-2 text-right font-semibold tabular-nums text-gray-900 dark:text-gray-100">
                             {fmtPts(s.fantasyPoints)}
                           </td>

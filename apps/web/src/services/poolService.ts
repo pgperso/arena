@@ -69,10 +69,17 @@ export interface PoolPlayer {
 export interface StandingRow {
   entryId: number;
   teamName: string;
+  teamLogo: string | null;
   memberId: string;
   fantasyPoints: number;
   rank: number | null;
   gamesCounted: number;
+}
+
+export interface NhlTeamOption {
+  abbrev: string;
+  name: string;
+  logoUrl: string | null;
 }
 
 type SeasonRow = {
@@ -176,31 +183,80 @@ export async function getPlayerPool(client: AnyClient, seasonId: number): Promis
   }));
 }
 
-/** Public standings for a season, ranked. */
+/**
+ * Public standings for a season. Driven by ENTRIES (not the materialized
+ * standings table) so a team appears the moment it's built — points come from
+ * pool_standings when the nightly refresh has run, else 0. Rank is computed
+ * here (ties share a rank) so it's consistent before and after the refresh.
+ * Only teams that have actually built a roster (spent > 0) are listed.
+ */
 export async function getStandings(client: AnyClient, seasonId: number): Promise<StandingRow[]> {
   const db = client as unknown as Db;
   const { data } = await db
-    .from('pool_standings')
-    .select('entry_id, fantasy_points, rank, games_counted, pool_entries!inner(team_name, member_id)')
+    .from('pool_entries')
+    .select('id, team_name, team_logo, member_id, pool_standings(fantasy_points, games_counted)')
     .eq('season_id', seasonId)
-    .order('rank', { ascending: true });
+    .gt('spent_cents', 0);
 
-  const rows = (data ?? []) as unknown as Array<{
-    entry_id: number;
-    fantasy_points: number;
-    rank: number | null;
-    games_counted: number;
-    pool_entries: { team_name: string; member_id: string };
+  const raw = (data ?? []) as unknown as Array<{
+    id: number;
+    team_name: string;
+    team_logo: string | null;
+    member_id: string;
+    pool_standings: Array<{ fantasy_points: number; games_counted: number }> | { fantasy_points: number; games_counted: number } | null;
   }>;
 
-  return rows.map((r) => ({
-    entryId: r.entry_id,
-    teamName: r.pool_entries.team_name,
-    memberId: r.pool_entries.member_id,
-    fantasyPoints: r.fantasy_points,
-    rank: r.rank,
-    gamesCounted: r.games_counted,
-  }));
+  const rows: StandingRow[] = raw.map((e) => {
+    const st = Array.isArray(e.pool_standings) ? e.pool_standings[0] : e.pool_standings;
+    return {
+      entryId: e.id,
+      teamName: e.team_name,
+      teamLogo: e.team_logo,
+      memberId: e.member_id,
+      fantasyPoints: Number(st?.fantasy_points ?? 0),
+      gamesCounted: st?.games_counted ?? 0,
+      rank: null,
+    };
+  });
+
+  rows.sort((a, b) => b.fantasyPoints - a.fantasyPoints || a.teamName.localeCompare(b.teamName));
+  let rank = 0;
+  let seen = 0;
+  let prev: number | null = null;
+  for (const r of rows) {
+    seen++;
+    if (r.fantasyPoints !== prev) {
+      rank = seen;
+      prev = r.fantasyPoints;
+    }
+    r.rank = rank;
+  }
+  return rows;
+}
+
+/** The 32 NHL teams as logo options for a pool team's identity. */
+export async function getNhlTeamOptions(client: AnyClient): Promise<NhlTeamOption[]> {
+  const db = client as unknown as Db;
+  const { data } = await db.from('nhl_teams').select('abbrev, full_name, name, logo_url').order('full_name');
+  return ((data ?? []) as unknown as Array<{ abbrev: string; full_name: string | null; name: string; logo_url: string | null }>).map(
+    (t) => ({ abbrev: t.abbrev, name: t.full_name ?? t.name, logoUrl: t.logo_url }),
+  );
+}
+
+/** Set the caller's team name + logo (allowed any time, even post-lock). */
+export async function setIdentity(
+  client: AnyClient,
+  entryId: number,
+  name: string,
+  logo: string | null,
+): Promise<{ error: string | null }> {
+  const db = client as unknown as Db;
+  const { error } = await db.rpc('pool_set_identity' as never, {
+    p_entry_id: entryId,
+    p_name: name,
+    p_logo: logo,
+  } as never);
+  return { error: error?.message ?? null };
 }
 
 /** Create the caller's entry for a season (one per member, enforced by UNIQUE). */
