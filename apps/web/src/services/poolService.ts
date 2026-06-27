@@ -71,6 +71,8 @@ export interface StandingRow {
   teamName: string;
   teamLogo: string | null;
   memberId: string;
+  ownerName: string | null;
+  ownerAvatar: string | null;
   fantasyPoints: number;
   rank: number | null;
   gamesCounted: number;
@@ -194,25 +196,30 @@ export async function getStandings(client: AnyClient, seasonId: number): Promise
   const db = client as unknown as Db;
   const { data } = await db
     .from('pool_entries')
-    .select('id, team_name, team_logo, member_id, pool_standings(fantasy_points, games_counted)')
+    .select('id, team_name, team_logo, member_id, members(username, avatar_url), pool_standings(fantasy_points, games_counted)')
     .eq('season_id', seasonId)
     .gt('spent_cents', 0);
 
+  type MemberEmbed = { username: string | null; avatar_url: string | null };
   const raw = (data ?? []) as unknown as Array<{
     id: number;
     team_name: string;
     team_logo: string | null;
     member_id: string;
+    members: MemberEmbed | MemberEmbed[] | null;
     pool_standings: Array<{ fantasy_points: number; games_counted: number }> | { fantasy_points: number; games_counted: number } | null;
   }>;
 
   const rows: StandingRow[] = raw.map((e) => {
     const st = Array.isArray(e.pool_standings) ? e.pool_standings[0] : e.pool_standings;
+    const m = Array.isArray(e.members) ? e.members[0] : e.members;
     return {
       entryId: e.id,
       teamName: e.team_name,
       teamLogo: e.team_logo,
       memberId: e.member_id,
+      ownerName: m?.username ?? null,
+      ownerAvatar: m?.avatar_url ?? null,
       fantasyPoints: Number(st?.fantasy_points ?? 0),
       gamesCounted: st?.games_counted ?? 0,
       rank: null,
