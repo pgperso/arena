@@ -407,6 +407,11 @@
     "myTeam": "My team",
     "standings": "Standings",
     "navHome": "Home",
+    "beta": {
+      "badge": "Beta",
+      "message": "The pool is in beta: rules, salaries and some features may still change. Everything will be ready for the season opener.",
+      "dismiss": "Dismiss"
+    },
     "defaultTeamName": "{username}'s team",
     "defaultTeamNameFallback": "My team",
     "positions": { "F": "Forwards", "D": "Defensemen", "G": "Goalies" },

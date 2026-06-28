@@ -413,6 +413,11 @@
     "myTeam": "Mon équipe",
     "standings": "Classement",
     "navHome": "Accueil",
+    "beta": {
+      "badge": "Bêta",
+      "message": "Le pool est en version bêta : les règles, les salaires et certaines fonctionnalités peuvent encore évoluer. Tout sera fin prêt pour le début de la saison.",
+      "dismiss": "Fermer"
+    },
     "defaultTeamName": "Équipe de {username}",
     "defaultTeamNameFallback": "Mon équipe",
     "positions": { "F": "Attaquants", "D": "Défenseurs", "G": "Gardiens" },
