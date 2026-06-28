@@ -64,6 +64,7 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
           .eq('community_id', communityId)
           .eq('is_published', true)
           .eq('is_removed', false)
+          .eq('hidden_from_feed', false)
           .order('published_at', { ascending: false })
           .limit(50),
         supabase
@@ -214,8 +215,13 @@ function ContentRow({
     : `/tribunes/${communitySlug}/podcasts/${item.id}`;
 
   async function handleHideFromFeed() {
-    const table = item.type === 'article' ? 'articles' : 'podcasts';
-    await supabase.from(table).update({ is_published: false }).eq('id', item.id);
+    // Articles: hide the promo from the chat but keep it published in the
+    // gallery. Podcasts have no such flag, so they fall back to unpublishing.
+    if (item.type === 'article') {
+      await supabase.from('articles').update({ hidden_from_feed: true } as never).eq('id', item.id);
+    } else {
+      await supabase.from('podcasts').update({ is_published: false }).eq('id', item.id);
+    }
     onRemoved(item.id, item.type);
   }
 

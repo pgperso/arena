@@ -19,17 +19,18 @@ interface FeedArticleCardProps {
 
 export function FeedArticleCard({ article, communitySlug, userId, canModerate }: FeedArticleCardProps) {
   const t = useTranslations('tribune');
-  const tc = useTranslations('common');
   const supabase = useSupabase();
   const [removed, setRemoved] = useState(false);
 
   const isOwn = !!(userId && article.author.id === userId);
   const canRemove = isOwn || !!canModerate;
 
+  // Hide the promo from the chat feed only — the article stays published in
+  // the press gallery (gallery queries don't filter hidden_from_feed).
   async function handleRemoveFromFeed() {
     await supabase
       .from('articles')
-      .update({ is_published: false })
+      .update({ hidden_from_feed: true } as never)
       .eq('id', article.id);
     setRemoved(true);
   }
@@ -115,7 +116,7 @@ export function FeedArticleCard({ article, communitySlug, userId, canModerate }:
             onClick={handleRemoveFromFeed}
             className="ml-auto rounded-full px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-[#1e1e1e] hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400"
           >
-            {tc('remove')}
+            {t('removeFromChat')}
           </button>
         )}
       </div>

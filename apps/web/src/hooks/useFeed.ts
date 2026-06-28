@@ -399,6 +399,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
           .eq('community_id', communityId)
           .eq('is_published', true)
           .eq('is_removed', false)
+          .eq('hidden_from_feed', false)
           .order('published_at', { ascending: false })
           .limit(FEED_INITIAL_LIMIT),
         supabase
