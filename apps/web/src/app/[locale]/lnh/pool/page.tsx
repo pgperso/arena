@@ -193,7 +193,7 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
                             <div className="flex items-center gap-2">
                               <TeamLogo logo={s.teamLogo} name={s.teamName} size={28} />
                               <div className="min-w-0">
-                                <div className="truncate font-medium text-gray-900 dark:text-gray-100">{s.teamName}</div>
+                                <Link href={`/lnh/pool/equipe/${s.entryId}`} className="block truncate font-medium text-gray-900 hover:underline dark:text-gray-100">{s.teamName}</Link>
                                 {s.ownerName && (
                                   <Link href={`/auteurs/${s.ownerName}`} className="flex items-center gap-1 text-xs text-gray-500 hover:underline">
                                     {s.ownerAvatar && (
