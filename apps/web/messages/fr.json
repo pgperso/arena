@@ -415,8 +415,8 @@
     "navHome": "Accueil",
     "goaliesTitle": "Gardiens officiels (salaire de l'équipe)",
     "beta": {
-      "badge": "Aperçu",
-      "message": "Le pool est en cours de préparation : les règles, les salaires et certaines fonctionnalités seront finalisés pour le début de la saison.",
+      "badge": "En construction",
+      "message": "Le pool est en construction. Tu peux déjà explorer et bâtir ton équipe pour l'essayer, mais c'est uniquement pour tester : toutes les équipes seront remises à zéro avant le lancement officiel de la saison.",
       "dismiss": "Fermer"
     },
     "defaultTeamName": "Équipe de {username}",

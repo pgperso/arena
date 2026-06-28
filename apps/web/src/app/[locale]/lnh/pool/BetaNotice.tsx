@@ -19,7 +19,7 @@ export function BetaNotice() {
 
   return (
     <div className="mb-4 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-[#252525]">
-      <span className="shrink-0 rounded-full bg-brand-blue px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+      <span className="shrink-0 rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
         {t('badge')}
       </span>
       <p className="flex-1 text-gray-600 dark:text-gray-300">{t('message')}</p>
