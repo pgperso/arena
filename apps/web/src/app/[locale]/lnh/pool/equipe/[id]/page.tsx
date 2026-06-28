@@ -2,18 +2,16 @@ import type { Metadata } from 'next';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
+import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveSeason, getStandings, getRosterWithStats } from '@/services/poolService';
 import { PoolShell } from '../../PoolShell';
 import { PoolRosterStats } from '@/components/pool/PoolRosterStats';
 import { TeamLogo } from '@/components/pool/TeamLogo';
+import { fmtMoney, fmtPoints } from '@/components/pool/format';
 import { BRAND } from '@/lib/brand';
 
 export const revalidate = 120;
-
-const M = 100_000_000;
-const fmtM = (c: number) => `${(c / M).toLocaleString('fr-CA', { maximumFractionDigits: 1 })} M$`;
 
 export async function generateMetadata({
   params,
@@ -21,17 +19,19 @@ export async function generateMetadata({
   params: Promise<{ locale: string; id: string }>;
 }): Promise<Metadata> {
   const { locale, id } = await params;
+  const t = await getTranslations({ locale, namespace: 'pool.teamPage' });
   const supabase = await createClient();
   const db = supabase as unknown as SupabaseClient;
   const { data } = await db.from('pool_entries').select('team_name').eq('id', Number(id)).maybeSingle();
-  const name = (data as { team_name: string } | null)?.team_name ?? 'Équipe';
-  const title = `${name} — Pool LNH | ${locale === 'fr' ? BRAND.name : BRAND.nameEn}`;
+  const name = (data as { team_name: string } | null)?.team_name ?? t('fallbackName');
+  const title = `${name} — ${locale === 'fr' ? 'Pool LNH' : 'NHL Pool'} | ${locale === 'fr' ? BRAND.name : BRAND.nameEn}`;
   return { title, alternates: { canonical: `${BRAND.url}/${locale}/lnh/pool/equipe/${id}` } };
 }
 
 export default async function TeamPage({ params }: { params: Promise<{ locale: string; id: string }> }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations('pool.teamPage');
   const entryId = Number(id);
   if (!Number.isFinite(entryId)) notFound();
 
@@ -81,9 +81,9 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
 
       <div className="mt-4 grid grid-cols-3 gap-3">
         {[
-          { l: 'Rang', v: standing?.rank ? `${standing.rank}ᵉ` : '—' },
-          { l: 'Points', v: standing ? standing.fantasyPoints.toLocaleString('fr-CA', { maximumFractionDigits: 1 }) : '0' },
-          { l: 'Masse salariale', v: fmtM(entry.spent_cents) },
+          { l: t('rank'), v: standing?.rank ? (locale === 'fr' ? `${standing.rank}ᵉ` : `#${standing.rank}`) : '—' },
+          { l: t('points'), v: standing ? fmtPoints(standing.fantasyPoints, locale) : '0' },
+          { l: t('capUsed'), v: fmtMoney(entry.spent_cents, locale) },
         ].map((s) => (
           <div key={s.l} className="rounded-lg border border-gray-200 p-4 text-center dark:border-gray-700">
             <div className="text-xs uppercase tracking-wide text-gray-500">{s.l}</div>
@@ -94,7 +94,7 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
 
       {rows.length === 0 ? (
         <div className="mt-6 rounded-lg border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700">
-          Cette équipe n&apos;a pas encore d&apos;alignement.
+          {t('noRoster')}
         </div>
       ) : (
         <PoolRosterStats rows={rows} />

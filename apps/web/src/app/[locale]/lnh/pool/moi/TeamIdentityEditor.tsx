@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import imageCompression from 'browser-image-compression';
 import { createClient } from '@/lib/supabase/client';
@@ -16,6 +17,7 @@ export function TeamIdentityEditor({
   initialName: string;
   initialLogo: string | null;
 }) {
+  const t = useTranslations('pool.identity');
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
@@ -28,7 +30,7 @@ export function TeamIdentityEditor({
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    if (!file.type.startsWith('image/')) { toast.error('Ce fichier n’est pas une image.'); return; }
+    if (!file.type.startsWith('image/')) { toast.error(t('notImage')); return; }
     setUploading(true);
     try {
       const compressed = await imageCompression(file, {
@@ -41,22 +43,22 @@ export function TeamIdentityEditor({
       const { error } = await supabase.storage.from('avatars').upload(path, compressed, {
         contentType: 'image/webp', cacheControl: '31536000',
       });
-      if (error) { toast.error('Échec du téléversement : ' + error.message); return; }
+      if (error) { toast.error(t('uploadFailed', { error: error.message })); return; }
       const { data } = supabase.storage.from('avatars').getPublicUrl(path);
       setLogo(data.publicUrl);
-      toast.success('Logo téléversé');
+      toast.success(t('logoUploaded'));
     } finally {
       setUploading(false);
     }
   }
 
   async function save() {
-    if (!name.trim()) { toast.error("Le nom d'équipe est requis"); return; }
+    if (!name.trim()) { toast.error(t('nameRequired')); return; }
     setBusy(true);
     const { error } = await setIdentity(createClient(), entryId, name.trim(), logo);
     setBusy(false);
     if (error) { toast.error(error); return; }
-    toast.success('Identité enregistrée');
+    toast.success(t('identitySaved'));
     setOpen(false);
     router.refresh();
   }
@@ -69,7 +71,7 @@ export function TeamIdentityEditor({
           {initialName}
         </span>
         <button onClick={() => setOpen(true)} className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-[#252525]">
-          Modifier le nom et le logo
+          {t('editNameLogo')}
         </button>
       </div>
     );
@@ -77,7 +79,7 @@ export function TeamIdentityEditor({
 
   return (
     <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nom de l&apos;équipe</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('teamName')}</label>
       <input
         value={name}
         maxLength={40}
@@ -85,7 +87,7 @@ export function TeamIdentityEditor({
         className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-[#252525]"
       />
 
-      <p className="mt-3 text-sm font-medium text-gray-700 dark:text-gray-300">Logo</p>
+      <p className="mt-3 text-sm font-medium text-gray-700 dark:text-gray-300">{t('logo')}</p>
       <div className="mt-2 flex items-center gap-4">
         {/* Live preview — uploaded image, or the default initial monogram. */}
         <TeamLogo logo={logo} name={name || '?'} size={56} />
@@ -97,7 +99,7 @@ export function TeamIdentityEditor({
             disabled={uploading}
             className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-[#252525]"
           >
-            {uploading ? 'Téléversement…' : logo ? "Remplacer l'image" : 'Téléverser une image'}
+            {uploading ? t('uploading') : logo ? t('replaceImage') : t('uploadImage')}
           </button>
           {logo && (
             <button
@@ -105,7 +107,7 @@ export function TeamIdentityEditor({
               onClick={() => setLogo(null)}
               className="text-left text-xs font-medium text-red-600 underline hover:text-red-700"
             >
-              Supprimer l&apos;image
+              {t('removeImage')}
             </button>
           )}
         </div>
@@ -114,11 +116,11 @@ export function TeamIdentityEditor({
       <div className="mt-4 flex gap-2">
         <button onClick={save} disabled={busy || uploading}
           className="rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50 dark:bg-white dark:text-gray-900">
-          {busy ? 'Enregistrement…' : 'Enregistrer le nom et le logo'}
+          {busy ? t('saving') : t('saveNameLogo')}
         </button>
         <button onClick={() => setOpen(false)} disabled={busy}
           className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:border-gray-600">
-          Annuler
+          {t('cancel')}
         </button>
       </div>
     </div>

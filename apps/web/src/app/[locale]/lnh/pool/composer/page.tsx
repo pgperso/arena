@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { redirect } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
+import { getTranslations } from 'next-intl/server';
 import { getActiveSeason, getPlayerPool, getTeamChoices, type SlotPick, type PoolPosition } from '@/services/poolService';
 import { PoolComposer } from './PoolComposer';
 import { BRAND } from '@/lib/brand';
@@ -45,7 +46,8 @@ export default async function ComposerPage({ params }: { params: Promise<{ local
   if (!entry) {
     const { data: member } = await db.from('members').select('username').eq('id', user.id).single();
     const username = (member as { username: string } | null)?.username;
-    const teamName = username ? `Équipe de ${username}` : 'Mon équipe';
+    const tPool = await getTranslations('pool');
+    const teamName = username ? tPool('defaultTeamName', { username }) : tPool('defaultTeamNameFallback');
     const { data: created } = await db
       .from('pool_entries')
       .insert({ season_id: season.id, member_id: user.id, team_name: teamName })

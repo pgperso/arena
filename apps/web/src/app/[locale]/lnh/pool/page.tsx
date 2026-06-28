@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { setRequestLocale } from 'next-intl/server';
+import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveSeason, getStandings, getScoringRules, SCORING_CATALOG } from '@/services/poolService';
 import { PoolShell } from './PoolShell';
 import { TeamLogo } from '@/components/pool/TeamLogo';
+import { fmtPoints, fmtNum } from '@/components/pool/format';
 import { BRAND } from '@/lib/brand';
 
 // Public, content-rich, indexable — this is monetized inventory (sidebars +
@@ -33,31 +34,34 @@ export async function generateMetadata({
 export default async function PoolHomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations('pool.home');
+  const tPool = await getTranslations('pool');
+  const tScoring = await getTranslations('pool.scoring');
   const supabase = await createClient();
 
   const season = await getActiveSeason(supabase);
   const standings = season ? await getStandings(supabase, season.id) : [];
   const rules = season ? await getScoringRules(supabase, season.id) : [];
 
-  // Barème, joined with the FR labels, only the stats that actually score.
+  // Barème — only the stats that actually score; labels come from i18n by key.
   const ruleMap = new Map(rules.map((r) => [r.statKey, r.coefficient]));
   const baremeRows = SCORING_CATALOG.map((c) => ({ ...c, coef: ruleMap.get(c.key) ?? 0 })).filter((c) => c.coef !== 0);
   const skaterRules = baremeRows.filter((c) => c.appliesTo === 'skater');
   const goalieRules = baremeRows.filter((c) => c.appliesTo === 'goalie');
-  const fmtCoef = (n: number) => (n > 0 ? '+' : '') + n.toLocaleString('fr-CA', { maximumFractionDigits: 2 });
+  const fmtCoef = (n: number) => (n > 0 ? '+' : '') + fmtNum(n, locale, 2);
 
   // Rules shown to players are derived from the season config (set in admin),
   // never hardcoded — so the explainer always matches the real rules.
   const rf = season?.rosterF ?? 12;
   const rd = season?.rosterD ?? 6;
   const rg = season?.rosterG ?? 2;
-  const budgetM = season ? (season.budgetCents / 100_000_000).toLocaleString('fr-CA', { maximumFractionDigits: 1 }) : '100';
+  const budgetM = season ? fmtNum(season.budgetCents / 100_000_000, locale, 1) : '100';
   const lockDateStr = season?.lockAt
-    ? new Date(season.lockAt).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })
+    ? new Date(season.lockAt).toLocaleDateString(locale === 'fr' ? 'fr-CA' : 'en-CA', { day: 'numeric', month: 'long', year: 'numeric' })
     : null;
   const txNote =
     season?.transactionsEnabled && season.maxTransactions > 0
-      ? `Tu pourras faire jusqu'à ${season.maxTransactions} changement${season.maxTransactions > 1 ? 's' : ''} en cours de saison.`
+      ? t('txNote', { count: season.maxTransactions })
       : null;
 
   const {
@@ -76,24 +80,21 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
     myEntryId = (data as { id: number } | null)?.id ?? null;
   }
 
-  const fmtPts = (n: number) => n.toLocaleString('fr-CA', { maximumFractionDigits: 1 });
+  const fmtPts = (n: number) => fmtPoints(n, locale);
   const cta = myEntryId
-    ? { href: '/lnh/pool/moi', label: 'Mon équipe' }
-    : !user
-      ? { href: '/login?redirect=/lnh/pool/composer', label: 'Crée ton équipe' }
-      : { href: '/lnh/pool/composer', label: 'Crée ton équipe' };
+    ? { href: '/lnh/pool/moi', label: tPool('myTeam') }
+    : { href: user ? '/lnh/pool/composer' : '/login?redirect=/lnh/pool/composer', label: t('ctaCreate') };
 
   return (
     <PoolShell>
             {/* Hero / CTA */}
             <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-6 dark:border-gray-700 dark:from-[#252525] dark:to-[#1e1e1e]">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Pool LNH</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t('eyebrow')}</p>
               <h1 className="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {season?.name ?? 'Pool LNH'}
+                {season?.name ?? tPool('title')}
               </h1>
               <p className="mt-2 max-w-prose text-sm text-gray-600 dark:text-gray-300">
-                Compose ton alignement de {rf} attaquants, {rd} défenseurs et {rg} gardiens dans un plafond
-                de {budgetM} M$, et accumule des points selon les vraies performances de la LNH.
+                {t('heroDesc', { f: rf, d: rd, g: rg, budget: budgetM })}
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 {season && (
@@ -105,25 +106,23 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
                   </Link>
                 )}
                 <Link href="/lnh/pool/classement" className="text-sm font-medium text-gray-600 underline dark:text-gray-300">
-                  Voir le classement complet
+                  {t('viewFullStandings')}
                 </Link>
               </div>
               {season && !user && !myEntryId && (
-                <p className="mt-2 text-xs text-gray-400">Connexion requise pour composer ton équipe.</p>
+                <p className="mt-2 text-xs text-gray-400">{t('loginRequired')}</p>
               )}
             </div>
 
             {/* Comment ça marche */}
             <section className="mt-8">
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">Comment ça marche</h2>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">{t('howItWorks')}</h2>
               <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {[
-                  ['1', 'Compose ton équipe', `Choisis ${rf} attaquants, ${rd} défenseurs et ${rg} gardiens sans dépasser le plafond de ${budgetM} M$.`],
-                  ['2', 'Modifie quand tu veux', lockDateStr
-                    ? `Ajuste ton alignement librement jusqu'à la date limite du repêchage (le ${lockDateStr}).`
-                    : "Ajuste ton alignement librement jusqu'à la date limite du repêchage."],
-                  ['3', 'Tes joueurs marquent', 'Chaque soir, tes joueurs accumulent des points selon leurs vrais matchs de la LNH.'],
-                  ['4', 'Grimpe au classement', 'Suis ta position et bats les autres membres tout au long de la saison.'],
+                  ['1', t('step1Title'), t('step1Desc', { f: rf, d: rd, g: rg, budget: budgetM })],
+                  ['2', t('step2Title'), lockDateStr ? t('step2DescDate', { date: lockDateStr }) : t('step2Desc')],
+                  ['3', t('step3Title'), t('step3Desc')],
+                  ['4', t('step4Title'), t('step4Desc')],
                 ].map(([n, title, desc]) => (
                   <li key={n} className="flex gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
                     <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white dark:bg-white dark:text-gray-900">{n}</span>
@@ -140,16 +139,16 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
             {/* Barème */}
             {baremeRows.length > 0 && (
               <section className="mt-8">
-                <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500">Barème de pointage</h2>
-                <p className="mb-3 text-xs text-gray-400">Combien vaut chaque statistique.</p>
+                <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500">{t('bareme')}</h2>
+                <p className="mb-3 text-xs text-gray-400">{t('baremeSub')}</p>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {([['Patineurs', skaterRules], ...(rg > 0 ? [['Gardiens', goalieRules]] : [])] as [string, typeof skaterRules][]).map(([title, list]) => (
+                  {([[t('skaters'), skaterRules], ...(rg > 0 ? [[t('goalies'), goalieRules]] : [])] as [string, typeof skaterRules][]).map(([title, list]) => (
                     <div key={title} className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
                       <div className="bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:bg-[#252525] dark:text-gray-200">{title}</div>
                       <ul className="divide-y divide-gray-100 dark:divide-gray-800">
                         {list.map((c) => (
                           <li key={c.key} className="flex items-center justify-between px-3 py-1.5 text-sm">
-                            <span className="text-gray-700 dark:text-gray-300">{c.label}</span>
+                            <span className="text-gray-700 dark:text-gray-300">{tScoring(c.key)}</span>
                             <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtCoef(c.coef)}</span>
                           </li>
                         ))}
@@ -159,21 +158,21 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
 
                   {season && season.rosterTeams > 0 && (
                     <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-                      <div className="bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:bg-[#252525] dark:text-gray-200">Équipe LNH (par soir)</div>
+                      <div className="bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:bg-[#252525] dark:text-gray-200">{t('teamNightly')}</div>
                       <ul className="divide-y divide-gray-100 dark:divide-gray-800">
                         <li className="flex items-center justify-between px-3 py-1.5 text-sm">
-                          <span className="text-gray-700 dark:text-gray-300">Points de base</span>
-                          <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{season.teamBasePoints.toLocaleString('fr-CA', { maximumFractionDigits: 2 })}</span>
+                          <span className="text-gray-700 dark:text-gray-300">{t('basePoints')}</span>
+                          <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtNum(season.teamBasePoints, locale, 2)}</span>
                         </li>
                         {season.teamGfCoef !== 0 && (
                           <li className="flex items-center justify-between px-3 py-1.5 text-sm">
-                            <span className="text-gray-700 dark:text-gray-300">Par but marqué</span>
+                            <span className="text-gray-700 dark:text-gray-300">{t('perGoalFor')}</span>
                             <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtCoef(season.teamGfCoef)}</span>
                           </li>
                         )}
                         {season.teamGaCoef !== 0 && (
                           <li className="flex items-center justify-between px-3 py-1.5 text-sm">
-                            <span className="text-gray-700 dark:text-gray-300">Par but accordé</span>
+                            <span className="text-gray-700 dark:text-gray-300">{t('perGoalAgainst')}</span>
                             <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtCoef(season.teamGaCoef)}</span>
                           </li>
                         )}
@@ -186,12 +185,10 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
 
             {/* Standings preview */}
             <section className="mt-8">
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">Classement</h2>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">{tPool('standings')}</h2>
               {standings.length === 0 ? (
                 <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700">
-                  {season
-                    ? "Aucune équipe inscrite pour l'instant — sois le premier à composer la tienne."
-                    : 'Le pool ouvre bientôt. Reviens t’inscrire.'}
+                  {season ? t('noTeamsYet') : t('poolOpensSoon')}
                 </div>
               ) : (
                 <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
@@ -199,8 +196,8 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
                     <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500 dark:bg-[#252525]">
                       <tr>
                         <th className="px-4 py-2 font-medium">#</th>
-                        <th className="px-4 py-2 font-medium">Équipe</th>
-                        <th className="px-4 py-2 text-right font-medium">Points</th>
+                        <th className="px-4 py-2 font-medium">{t('colTeam')}</th>
+                        <th className="px-4 py-2 text-right font-medium">{t('colPoints')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-800">

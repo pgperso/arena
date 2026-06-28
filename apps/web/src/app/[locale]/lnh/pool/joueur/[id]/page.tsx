@@ -1,18 +1,14 @@
 import type { Metadata } from 'next';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
+import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveSeason } from '@/services/poolService';
 import { PoolShell } from '../../PoolShell';
+import { fmtMoney, fmtPoints } from '@/components/pool/format';
 import { BRAND } from '@/lib/brand';
 
 export const revalidate = 300;
-
-const M = 100_000_000;
-const fmtM = (c: number) => `${(c / M).toLocaleString('fr-CA', { maximumFractionDigits: 1 })} M$`;
-const fmtPts = (n: number) => n.toLocaleString('fr-CA', { maximumFractionDigits: 1 });
-const POS_FR: Record<string, string> = { C: 'Centre', L: 'Ailier gauche', R: 'Ailier droit', D: 'Défenseur', G: 'Gardien' };
 
 export async function generateMetadata({
   params,
@@ -20,15 +16,17 @@ export async function generateMetadata({
   params: Promise<{ locale: string; id: string }>;
 }): Promise<Metadata> {
   const { locale, id } = await params;
+  const t = await getTranslations({ locale, namespace: 'pool.playerPage' });
   const supabase = await createClient();
   const db = supabase as unknown as SupabaseClient;
   const { data } = await db.from('nhl_players').select('full_name, team_abbrev').eq('player_id', Number(id)).maybeSingle();
   const p = data as { full_name: string; team_abbrev: string | null } | null;
-  const name = p?.full_name ?? 'Joueur';
-  const title = `${name}${p?.team_abbrev ? ` (${p.team_abbrev})` : ''} — Stats Pool LNH | ${locale === 'fr' ? BRAND.name : BRAND.nameEn}`;
+  const name = p?.full_name ?? t('fallbackName');
+  const brand = locale === 'fr' ? BRAND.name : BRAND.nameEn;
+  const title = `${name}${p?.team_abbrev ? ` (${p.team_abbrev})` : ''} — ${t('metaTitle')} | ${brand}`;
   return {
     title,
-    description: `Statistiques et valeur de pool de ${name} dans le Pool LNH de ${BRAND.name}.`,
+    description: t('metaDesc', { name, brand }),
     alternates: { canonical: `${BRAND.url}/${locale}/lnh/pool/joueur/${id}` },
   };
 }
@@ -36,6 +34,7 @@ export async function generateMetadata({
 export default async function PlayerPage({ params }: { params: Promise<{ locale: string; id: string }> }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations('pool.playerPage');
   const playerId = Number(id);
   if (!Number.isFinite(playerId)) notFound();
 
@@ -75,21 +74,21 @@ export default async function PlayerPage({ params }: { params: Promise<{ locale:
   const gaa = isGoalie && n(st?.toi_seconds) > 0 ? (n(st?.goals_against) / (n(st?.toi_seconds) / 3600)).toFixed(2) : '—';
 
   const skaterStats: [string, string | number][] = [
-    ['Parties jouées', gp], ['Buts', n(st?.goals)], ['Aides', n(st?.assists)], ['Points', n(st?.points)],
-    ['Différentiel', n(st?.plus_minus)], ['Punitions (min)', n(st?.pim)], ['Tirs au but', n(st?.shots)],
-    ['Buts en av. num.', n(st?.pp_goals)], ['Mises en échec', n(st?.hits)], ['Tirs bloqués', n(st?.blocked_shots)],
+    [t('gp'), gp], [t('goals'), n(st?.goals)], [t('assists'), n(st?.assists)], [t('points'), n(st?.points)],
+    [t('plusMinus'), n(st?.plus_minus)], [t('pim'), n(st?.pim)], [t('shots'), n(st?.shots)],
+    [t('ppGoals'), n(st?.pp_goals)], [t('hits'), n(st?.hits)], [t('blocked'), n(st?.blocked_shots)],
   ];
   const goalieStats: [string, string | number][] = [
-    ['Parties jouées', gp], ['Victoires', n(st?.wins)], ['Défaites', n(st?.losses)], ['Déf. prolongation', n(st?.ot_losses)],
-    ['Moyenne (MOY)', gaa], ['% arrêts', sv], ['Blanchissages', n(st?.shutouts)],
-    ['Arrêts', n(st?.saves)], ['Buts alloués', n(st?.goals_against)],
+    [t('gp'), gp], [t('wins'), n(st?.wins)], [t('losses'), n(st?.losses)], [t('otLosses'), n(st?.ot_losses)],
+    [t('gaa'), gaa], [t('svPct'), sv], [t('shutouts'), n(st?.shutouts)],
+    [t('saves'), n(st?.saves)], [t('goalsAgainst'), n(st?.goals_against)],
   ];
   const stats = isGoalie ? goalieStats : skaterStats;
 
   const cards = [
-    { l: 'Prix', v: price ? fmtM(price.price_cents) : '—' },
-    { l: 'Points pool', v: st ? fmtPts(n(st.fantasy_points)) : '0' },
-    { l: 'Détenu par', v: `${ownPct}%`, sub: totalTeams > 0 ? `${owned}/${totalTeams} équipes` : undefined },
+    { l: t('price'), v: price ? fmtMoney(price.price_cents, locale) : '—' },
+    { l: t('poolPoints'), v: st ? fmtPoints(n(st.fantasy_points), locale) : '0' },
+    { l: t('ownedBy'), v: `${ownPct}%`, sub: totalTeams > 0 ? t('ownedTeams', { owned, total: totalTeams }) : undefined },
   ];
 
   return (
@@ -106,7 +105,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ locale:
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{player.full_name}</h1>
           <p className="text-sm text-gray-500">
-            {player.team_abbrev ?? '—'} · {POS_FR[player.position] ?? player.position}
+            {player.team_abbrev ?? '—'} · {t.has(`pos.${player.position}`) ? t(`pos.${player.position}`) : player.position}
             {player.sweater_number ? ` · #${player.sweater_number}` : ''}
           </p>
         </div>
@@ -123,10 +122,10 @@ export default async function PlayerPage({ params }: { params: Promise<{ locale:
       </div>
 
       <section className="mt-6">
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">Statistiques de la saison</h2>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">{t('seasonStats')}</h2>
         {gp === 0 ? (
           <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-700">
-            Aucune statistique pour l’instant — la saison n’a pas commencé.
+            {t('noStats')}
           </div>
         ) : (
           <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-gray-200 bg-gray-200 sm:grid-cols-3 dark:border-gray-700 dark:bg-gray-700">

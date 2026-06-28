@@ -4,10 +4,10 @@ import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 
 const LINKS = [
-  { href: '/lnh/pool', label: 'Accueil' },
-  { href: '/lnh/pool/classement', label: 'Classement' },
-  { href: '/lnh/pool/moi', label: 'Mon équipe' },
-];
+  { href: '/lnh/pool', key: 'navHome' },
+  { href: '/lnh/pool/classement', key: 'standings' },
+  { href: '/lnh/pool/moi', key: 'myTeam' },
+] as const;
 
 /** Consistent pool navigation shown at the top of every pool page. */
 // Which top-level tab a (possibly deep) pool path belongs to.
@@ -41,7 +41,7 @@ export function PoolNav() {
                   : 'rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-[#252525]'
               }
             >
-              {l.label}
+              {t(l.key)}
             </Link>
           );
         })}

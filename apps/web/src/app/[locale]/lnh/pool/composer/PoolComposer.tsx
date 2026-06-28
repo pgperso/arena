@@ -4,20 +4,20 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Virtuoso } from 'react-virtuoso';
 import { toast } from 'sonner';
+import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { AdAnchor } from '@/components/ads/AdAnchor';
+import { fmtMoney } from '@/components/pool/format';
 import { PoolNav } from '../PoolNav';
 import {
   saveRoster, setTeam, confirmEntry,
   type PoolPlayer, type SlotPick, type PoolPosition, type NhlTeamChoice,
 } from '@/services/poolService';
 
-const M = 100_000_000;
-const fmtM = (c: number) => `${(c / M).toLocaleString('fr-CA', { maximumFractionDigits: 1 })} M$`;
-const POS_LABEL: Record<PoolPosition, string> = { F: 'Attaquants', D: 'Défenseurs', G: 'Gardiens' };
-
 type Picker = PoolPosition | 'team' | null;
+type ComposerT = ReturnType<typeof useTranslations<'pool.composer'>>;
+type PosT = ReturnType<typeof useTranslations<'pool.positions'>>;
 
 export function PoolComposer({
   entryId, isLocked, isConfirmed, budgetCents, need, rosterTeams, players, teams, initialPicks, initialTeam,
@@ -33,6 +33,9 @@ export function PoolComposer({
   initialPicks: SlotPick[];
   initialTeam: string | null;
 }) {
+  const t = useTranslations('pool.composer');
+  const tPos = useTranslations('pool.positions');
+  const locale = useLocale();
   const router = useRouter();
   const locked = isLocked;
   const [picks, setPicks] = useState<SlotPick[]>(initialPicks);
@@ -79,7 +82,7 @@ export function PoolComposer({
     setBusy(true);
     const ok = await persist();
     setBusy(false);
-    if (ok) { setConfirmed(false); toast.success('Progression enregistrée'); }
+    if (ok) { setConfirmed(false); toast.success(t('progressSaved')); }
   }
 
   async function handleConfirm() {
@@ -89,7 +92,7 @@ export function PoolComposer({
     setBusy(false);
     if (error) { toast.error(error); return; }
     setConfirmed(true);
-    toast.success('Alignement confirmé — ton équipe est active!');
+    toast.success(t('confirmedToast'));
     router.push('/lnh/pool/moi');
   }
 
@@ -101,19 +104,19 @@ export function PoolComposer({
       <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
         <div className="flex items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
-            {POS_LABEL[pos]}
+            {tPos(pos)}
             <span className={`rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${done ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
               {counts[pos]}/{need[pos]}
             </span>
           </h2>
           {!locked && (
             <button onClick={() => setPicker(pos)} className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">
-              Choisir
+              {t('choose')}
             </button>
           )}
         </div>
         {rows.length === 0 ? (
-          <p className="mt-2 text-sm text-gray-400">Aucun joueur choisi.</p>
+          <p className="mt-2 text-sm text-gray-400">{t('noPlayersChosen')}</p>
         ) : (
           <ul className="mt-2 divide-y divide-gray-100 dark:divide-gray-800">
             {rows.map((r) => {
@@ -123,8 +126,8 @@ export function PoolComposer({
                 <li key={r.playerId} className="flex items-center justify-between py-1.5 text-sm">
                   <span className="truncate text-gray-900 dark:text-gray-100">{p.fullName} <span className="text-xs text-gray-400">{p.teamAbbrev}</span></span>
                   <span className="flex items-center gap-3">
-                    <span className="tabular-nums text-gray-600 dark:text-gray-300">{fmtM(p.priceCents)}</span>
-                    {!locked && <button onClick={() => remove(r.playerId)} className="text-xs font-medium text-red-600 hover:underline">Retirer</button>}
+                    <span className="tabular-nums text-gray-600 dark:text-gray-300">{fmtMoney(p.priceCents, locale)}</span>
+                    {!locked && <button onClick={() => remove(r.playerId)} className="text-xs font-medium text-red-600 hover:underline">{t('remove')}</button>}
                   </span>
                 </li>
               );
@@ -139,14 +142,14 @@ export function PoolComposer({
     <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
       <div className="flex items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
-          Équipe LNH
+          {t('teamNhl')}
           <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${teamDone ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
             {teamPick ? '1/1' : '0/1'}
           </span>
         </h2>
         {!locked && (
           <button onClick={() => setPicker('team')} className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">
-            Choisir
+            {t('choose')}
           </button>
         )}
       </div>
@@ -154,12 +157,12 @@ export function PoolComposer({
         <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
           <span className="font-medium text-gray-900 dark:text-gray-100">{teamObj.name}</span>
           <span className="flex items-center gap-3 text-xs tabular-nums text-gray-500">
-            <span>{teamObj.gp} PJ · {teamObj.wins}-{teamObj.losses} · BP {teamObj.gf} / BC {teamObj.ga}</span>
-            <span className="font-semibold text-gray-900 dark:text-gray-100">{fmtM(teamObj.priceCents)}</span>
+            <span>{teamObj.gp} {t('statGp')} · {teamObj.wins}-{teamObj.losses} · {t('statFor')} {teamObj.gf} / {t('statAgainst')} {teamObj.ga}</span>
+            <span className="font-semibold text-gray-900 dark:text-gray-100">{fmtMoney(teamObj.priceCents, locale)}</span>
           </span>
         </div>
       ) : (
-        <p className="mt-2 text-sm text-gray-400">Aucune équipe choisie.</p>
+        <p className="mt-2 text-sm text-gray-400">{t('noTeamChosen')}</p>
       )}
     </section>
   );
@@ -171,14 +174,14 @@ export function PoolComposer({
         <div className="mx-auto w-full max-w-5xl">
           <div className="mb-2"><PoolNav /></div>
           <Link href="/lnh/pool/moi" className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
-            ← Mon équipe
+            ← {t('backToMyTeam')}
           </Link>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className={`text-sm font-medium ${confirmed ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400'}`}>
-              {confirmed ? '✓ Équipe confirmée (active)' : '⚠ À confirmer'}
+              {confirmed ? t('confirmedActive') : t('toConfirm')}
             </span>
             <div className="text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">
-              {fmtM(remaining)} <span className="font-normal text-gray-400">restants / {fmtM(budgetCents)}</span>
+              {fmtMoney(remaining, locale)} <span className="font-normal text-gray-400">{t('left')} / {fmtMoney(budgetCents, locale)}</span>
             </div>
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
@@ -189,22 +192,22 @@ export function PoolComposer({
             <div className="mt-3 flex flex-wrap gap-2">
               <button onClick={handleSave} disabled={busy}
                 className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-[#252525]">
-                Enregistrer
+                {t('save')}
               </button>
               <button onClick={handleConfirm} disabled={busy || !complete}
                 className="rounded-md bg-gray-900 px-4 py-1.5 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-40 dark:bg-white dark:text-gray-900">
-                Confirmer mon alignement
+                {t('confirm')}
               </button>
             </div>
           )}
-          {locked && <p className="mt-3 text-sm font-medium text-amber-700 dark:text-amber-400">🔒 Le repêchage est terminé — ton alignement est figé.</p>}
+          {locked && <p className="mt-3 text-sm font-medium text-amber-700 dark:text-amber-400">{t('draftClosed')}</p>}
         </div>
       </div>
 
       {/* Sections */}
       <div className="mx-auto w-full max-w-5xl flex-1 space-y-4 px-4 py-6">
         <p className="text-sm text-gray-500">
-          Choisis tes joueurs section par section, puis <strong>Confirme</strong> ton alignement complet pour activer ton équipe.
+          {t.rich('intro', { b: (chunks) => <strong>{chunks}</strong> })}
         </p>
         {need.F > 0 && renderPlayerSection('F')}
         {need.D > 0 && renderPlayerSection('D')}
@@ -257,6 +260,9 @@ function PlayerPicker({
   remaining: number;
   onClose: () => void;
 }) {
+  const t = useTranslations('pool.composer');
+  const tPos = useTranslations('pool.positions');
+  const locale = useLocale();
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<'value' | 'price' | 'proj'>('value');
   const list = useMemo(() => {
@@ -273,18 +279,18 @@ function PlayerPicker({
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Choisir : {POS_LABEL[pos]} <span className="text-gray-400">{counts[pos]}/{need[pos]} · {fmtM(remaining)} restants</span>
+            {t('chooseTitle', { pos: tPos(pos) })} <span className="text-gray-400">{counts[pos]}/{need[pos]} · {fmtMoney(remaining, locale)} {t('left')}</span>
           </h3>
-          <button onClick={onClose} className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">Terminé</button>
+          <button onClick={onClose} className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">{t('done')}</button>
         </div>
         <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-2 dark:border-gray-700">
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher…"
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('searchPlaceholder')}
             className="min-w-[120px] flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-[#252525]" />
           <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}
             className="rounded-md border border-gray-300 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-[#252525]">
-            <option value="value">Aubaines (pts/$)</option>
-            <option value="price">Prix</option>
-            <option value="proj">Points proj.</option>
+            <option value="value">{t('sortValue')}</option>
+            <option value="price">{t('sortPrice')}</option>
+            <option value="proj">{t('sortProj')}</option>
           </select>
         </div>
         <div className="min-h-0 flex-1">
@@ -297,16 +303,16 @@ function PlayerPicker({
                 <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-2 dark:border-gray-800">
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{p.fullName}</div>
-                    <div className="text-xs text-gray-500">{p.teamAbbrev ?? '—'} · proj {p.projPoints.toLocaleString('fr-CA', { maximumFractionDigits: 0 })}</div>
+                    <div className="text-xs text-gray-500">{p.teamAbbrev ?? '—'} · {t('proj')} {p.projPoints.toLocaleString(locale === 'fr' ? 'fr-CA' : 'en-CA', { maximumFractionDigits: 0 })}</div>
                   </div>
-                  <div className="w-20 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtM(p.priceCents)}</div>
+                  <div className="w-20 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtMoney(p.priceCents, locale)}</div>
                   {inRoster ? (
-                    <button onClick={() => onRemove(p.playerId)} className="w-20 rounded-md border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50">Retirer</button>
+                    <button onClick={() => onRemove(p.playerId)} className="w-20 rounded-md border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50">{t('remove')}</button>
                   ) : addable ? (
-                    <button onClick={() => onAdd(p)} className="w-20 rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900">Ajouter</button>
+                    <button onClick={() => onAdd(p)} className="w-20 rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900">{t('add')}</button>
                   ) : (
                     <span className="w-20 text-center text-xs font-medium text-gray-400">
-                      {counts[p.position] >= need[p.position] ? 'Complet' : p.priceCents > remaining ? 'Trop cher' : '—'}
+                      {counts[p.position] >= need[p.position] ? t('full') : p.priceCents > remaining ? t('tooExpensive') : '—'}
                     </span>
                   )}
                 </div>
@@ -329,6 +335,8 @@ function TeamPicker({
   onSelect: (abbrev: string | null) => void;
   onClose: () => void;
 }) {
+  const t = useTranslations('pool.composer');
+  const locale = useLocale();
   const [sort, setSort] = useState<'name' | 'price' | 'points'>('name');
   const list = useMemo(() => {
     const key =
@@ -345,37 +353,37 @@ function TeamPicker({
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Choisir une équipe de la LNH <span className="text-gray-400">{fmtM(budgetLeft)} restants</span>
+            {t('chooseTeamTitle')} <span className="text-gray-400">{fmtMoney(budgetLeft, locale)} {t('left')}</span>
           </h3>
-          <button onClick={onClose} className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">Terminé</button>
+          <button onClick={onClose} className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">{t('done')}</button>
         </div>
         <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-2 dark:border-gray-700">
           <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}
             className="rounded-md border border-gray-300 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-[#252525]">
-            <option value="name">Ordre alphabétique</option>
-            <option value="price">Prix</option>
-            <option value="points">Points pool</option>
+            <option value="name">{t('sortName')}</option>
+            <option value="price">{t('sortPrice')}</option>
+            <option value="points">{t('sortPoints')}</option>
           </select>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
-          {list.map((t) => {
-            const isSel = selected === t.abbrev;
-            const affordable = isSel || t.priceCents <= budgetLeft;
+          {list.map((tm) => {
+            const isSel = selected === tm.abbrev;
+            const affordable = isSel || tm.priceCents <= budgetLeft;
             return (
-              <div key={t.abbrev} className="flex items-center gap-3 border-b border-gray-100 px-4 py-2 dark:border-gray-800">
+              <div key={tm.abbrev} className="flex items-center gap-3 border-b border-gray-100 px-4 py-2 dark:border-gray-800">
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{t.name}</div>
+                  <div className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{tm.name}</div>
                   <div className="text-xs tabular-nums text-gray-500">
-                    {t.gp} PJ · {t.wins}-{t.losses} · BP {t.gf} / BC {t.ga} · {t.teamPoints.toLocaleString('fr-CA', { maximumFractionDigits: 0 })} pts
+                    {tm.gp} {t('statGp')} · {tm.wins}-{tm.losses} · {t('statFor')} {tm.gf} / {t('statAgainst')} {tm.ga} · {tm.teamPoints.toLocaleString(locale === 'fr' ? 'fr-CA' : 'en-CA', { maximumFractionDigits: 0 })} {t('ptsShort')}
                   </div>
                 </div>
-                <div className="w-20 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtM(t.priceCents)}</div>
+                <div className="w-20 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtMoney(tm.priceCents, locale)}</div>
                 {isSel ? (
-                  <button onClick={() => onSelect(null)} className="w-20 rounded-md border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50">Retirer</button>
+                  <button onClick={() => onSelect(null)} className="w-20 rounded-md border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50">{t('remove')}</button>
                 ) : affordable ? (
-                  <button onClick={() => onSelect(t.abbrev)} className="w-20 rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900">Choisir</button>
+                  <button onClick={() => onSelect(tm.abbrev)} className="w-20 rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900">{t('choose')}</button>
                 ) : (
-                  <span className="w-20 text-center text-xs font-medium text-gray-400">Trop cher</span>
+                  <span className="w-20 text-center text-xs font-medium text-gray-400">{t('tooExpensive')}</span>
                 )}
               </div>
             );

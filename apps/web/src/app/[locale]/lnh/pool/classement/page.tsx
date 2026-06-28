@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { setRequestLocale } from 'next-intl/server';
+import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveSeason, getStandings } from '@/services/poolService';
 import { PoolShell } from '../PoolShell';
 import { TeamLogo } from '@/components/pool/TeamLogo';
+import { fmtPoints, fmtNum } from '@/components/pool/format';
 import { BRAND } from '@/lib/brand';
 
 export const revalidate = 300;
@@ -22,17 +23,19 @@ export async function generateMetadata({
 export default async function StandingsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations('pool.standingsPage');
+  const tPool = await getTranslations('pool');
   const supabase = await createClient();
   const season = await getActiveSeason(supabase);
   const standings = season ? await getStandings(supabase, season.id) : [];
-  const fmtPts = (n: number) => n.toLocaleString('fr-CA', { maximumFractionDigits: 1 });
+  const fmtPts = (n: number) => fmtPoints(n, locale);
 
   return (
     <PoolShell>
-            <h1 className="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">Classement — {season?.name ?? 'Pool LNH'}</h1>
+            <h1 className="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">{t('title', { season: season?.name ?? tPool('title') })}</h1>
             {standings.length === 0 ? (
               <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700">
-                Aucune équipe au classement pour l’instant.
+                {t('empty')}
               </div>
             ) : (
               <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
@@ -40,11 +43,11 @@ export default async function StandingsPage({ params }: { params: Promise<{ loca
                   <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500 dark:bg-[#252525]">
                     <tr>
                       <th className="px-3 py-2">#</th>
-                      <th className="px-3 py-2">Équipe</th>
-                      <th className="hidden px-3 py-2 text-right sm:table-cell" title="Matchs comptabilisés">MJ</th>
-                      <th className="hidden px-3 py-2 text-right sm:table-cell" title="Moyenne de points par match">Moy.</th>
-                      <th className="px-3 py-2 text-right" title="Points lors de la dernière soirée">Hier</th>
-                      <th className="px-3 py-2 text-right">Points</th>
+                      <th className="px-3 py-2">{t('colTeam')}</th>
+                      <th className="hidden px-3 py-2 text-right sm:table-cell" title={t('ttGames')}>{t('colGames')}</th>
+                      <th className="hidden px-3 py-2 text-right sm:table-cell" title={t('ttAvg')}>{t('colAvg')}</th>
+                      <th className="px-3 py-2 text-right" title={t('ttYesterday')}>{t('colYesterday')}</th>
+                      <th className="px-3 py-2 text-right">{t('colPoints')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -79,7 +82,7 @@ export default async function StandingsPage({ params }: { params: Promise<{ loca
                             </div>
                           </td>
                           <td className="hidden px-3 py-2 text-right tabular-nums text-gray-500 sm:table-cell">{s.gamesCounted}</td>
-                          <td className="hidden px-3 py-2 text-right tabular-nums text-gray-500 sm:table-cell">{avg.toLocaleString('fr-CA', { maximumFractionDigits: 1 })}</td>
+                          <td className="hidden px-3 py-2 text-right tabular-nums text-gray-500 sm:table-cell">{fmtNum(avg, locale, 1)}</td>
                           <td className="px-3 py-2 text-right tabular-nums text-gray-600 dark:text-gray-300">
                             {s.pointsLastDay > 0 ? `+${fmtPts(s.pointsLastDay)}` : '—'}
                           </td>
