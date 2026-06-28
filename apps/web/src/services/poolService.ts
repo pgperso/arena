@@ -76,6 +76,9 @@ export interface StandingRow {
   fantasyPoints: number;
   rank: number | null;
   gamesCounted: number;
+  pointsLastDay: number;
+  /** Rank at the previous nightly refresh — to show ▲/▼ movement (null if new). */
+  previousRank: number | null;
 }
 
 export interface NhlTeamOption {
@@ -196,18 +199,19 @@ export async function getStandings(client: AnyClient, seasonId: number): Promise
   const db = client as unknown as Db;
   const { data } = await db
     .from('pool_entries')
-    .select('id, team_name, team_logo, member_id, members(username, avatar_url), pool_standings(fantasy_points, games_counted)')
+    .select('id, team_name, team_logo, member_id, members(username, avatar_url), pool_standings(fantasy_points, games_counted, points_last_day, previous_rank)')
     .eq('season_id', seasonId)
     .gt('spent_cents', 0);
 
   type MemberEmbed = { username: string | null; avatar_url: string | null };
+  type StandingEmbed = { fantasy_points: number; games_counted: number; points_last_day: number; previous_rank: number | null };
   const raw = (data ?? []) as unknown as Array<{
     id: number;
     team_name: string;
     team_logo: string | null;
     member_id: string;
     members: MemberEmbed | MemberEmbed[] | null;
-    pool_standings: Array<{ fantasy_points: number; games_counted: number }> | { fantasy_points: number; games_counted: number } | null;
+    pool_standings: StandingEmbed[] | StandingEmbed | null;
   }>;
 
   const rows: StandingRow[] = raw.map((e) => {
@@ -222,6 +226,8 @@ export async function getStandings(client: AnyClient, seasonId: number): Promise
       ownerAvatar: m?.avatar_url ?? null,
       fantasyPoints: Number(st?.fantasy_points ?? 0),
       gamesCounted: st?.games_counted ?? 0,
+      pointsLastDay: Number(st?.points_last_day ?? 0),
+      previousRank: st?.previous_rank ?? null,
       rank: null,
     };
   });

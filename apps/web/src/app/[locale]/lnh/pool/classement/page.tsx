@@ -43,36 +43,58 @@ export default async function StandingsPage({ params }: { params: Promise<{ loca
                 Aucune équipe au classement pour l’instant.
               </div>
             ) : (
-              <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+              <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500 dark:bg-[#252525]">
-                    <tr><th className="px-4 py-2">#</th><th className="px-4 py-2">Équipe</th><th className="px-4 py-2 text-right">Matchs</th><th className="px-4 py-2 text-right">Points</th></tr>
+                    <tr>
+                      <th className="px-3 py-2">#</th>
+                      <th className="px-3 py-2">Équipe</th>
+                      <th className="hidden px-3 py-2 text-right sm:table-cell" title="Matchs comptabilisés">MJ</th>
+                      <th className="hidden px-3 py-2 text-right sm:table-cell" title="Moyenne de points par match">Moy.</th>
+                      <th className="px-3 py-2 text-right" title="Points lors de la dernière soirée">Hier</th>
+                      <th className="px-3 py-2 text-right">Points</th>
+                    </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                    {standings.map((s) => (
-                      <tr key={s.entryId} className="hover:bg-gray-50 dark:hover:bg-[#252525]">
-                        <td className="px-4 py-2 tabular-nums text-gray-500">{s.rank ?? '—'}</td>
-                        <td className="px-4 py-2">
-                          <div className="flex items-center gap-2">
-                            <TeamLogo logo={s.teamLogo} name={s.teamName} size={28} />
-                            <div className="min-w-0">
-                              <div className="truncate font-medium text-gray-900 dark:text-gray-100">{s.teamName}</div>
-                              {s.ownerName && (
-                                <Link href={`/auteurs/${s.ownerName}`} className="flex items-center gap-1 text-xs text-gray-500 hover:underline">
-                                  {s.ownerAvatar && (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={s.ownerAvatar} alt="" className="h-3.5 w-3.5 rounded-full object-cover" />
-                                  )}
-                                  @{s.ownerName}
-                                </Link>
-                              )}
+                    {standings.map((s) => {
+                      const move = s.previousRank != null && s.rank != null ? s.previousRank - s.rank : null;
+                      const avg = s.gamesCounted > 0 ? s.fantasyPoints / s.gamesCounted : 0;
+                      return (
+                        <tr key={s.entryId} className="hover:bg-gray-50 dark:hover:bg-[#252525]">
+                          <td className="px-3 py-2 whitespace-nowrap tabular-nums text-gray-500">
+                            {s.rank ?? '—'}
+                            {move != null && move !== 0 && (
+                              <span className={`ml-1 text-xs font-semibold ${move > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                {move > 0 ? `▲${move}` : `▼${-move}`}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2">
+                            <div className="flex items-center gap-2">
+                              <TeamLogo logo={s.teamLogo} name={s.teamName} size={28} />
+                              <div className="min-w-0">
+                                <div className="truncate font-medium text-gray-900 dark:text-gray-100">{s.teamName}</div>
+                                {s.ownerName && (
+                                  <Link href={`/auteurs/${s.ownerName}`} className="flex items-center gap-1 text-xs text-gray-500 hover:underline">
+                                    {s.ownerAvatar && (
+                                      // eslint-disable-next-line @next/next/no-img-element
+                                      <img src={s.ownerAvatar} alt="" className="h-3.5 w-3.5 rounded-full object-cover" />
+                                    )}
+                                    @{s.ownerName}
+                                  </Link>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-2 text-right tabular-nums text-gray-500">{s.gamesCounted}</td>
-                        <td className="px-4 py-2 text-right font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtPts(s.fantasyPoints)}</td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="hidden px-3 py-2 text-right tabular-nums text-gray-500 sm:table-cell">{s.gamesCounted}</td>
+                          <td className="hidden px-3 py-2 text-right tabular-nums text-gray-500 sm:table-cell">{avg.toLocaleString('fr-CA', { maximumFractionDigits: 1 })}</td>
+                          <td className="px-3 py-2 text-right tabular-nums text-gray-600 dark:text-gray-300">
+                            {s.pointsLastDay > 0 ? `+${fmtPts(s.pointsLastDay)}` : '—'}
+                          </td>
+                          <td className="px-3 py-2 text-right font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtPts(s.fantasyPoints)}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
