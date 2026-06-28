@@ -47,6 +47,20 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
   const goalieRules = baremeRows.filter((c) => c.appliesTo === 'goalie');
   const fmtCoef = (n: number) => (n > 0 ? '+' : '') + n.toLocaleString('fr-CA', { maximumFractionDigits: 2 });
 
+  // Rules shown to players are derived from the season config (set in admin),
+  // never hardcoded — so the explainer always matches the real rules.
+  const rf = season?.rosterF ?? 12;
+  const rd = season?.rosterD ?? 6;
+  const rg = season?.rosterG ?? 2;
+  const budgetM = season ? (season.budgetCents / 100_000_000).toLocaleString('fr-CA', { maximumFractionDigits: 1 }) : '100';
+  const lockDateStr = season?.lockAt
+    ? new Date(season.lockAt).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })
+    : null;
+  const txNote =
+    season?.transactionsEnabled && season.maxTransactions > 0
+      ? `Tu pourras faire jusqu'à ${season.maxTransactions} changement${season.maxTransactions > 1 ? 's' : ''} en cours de saison.`
+      : null;
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -84,8 +98,8 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
                 {season?.name ?? 'Pool LNH'}
               </h1>
               <p className="mt-2 max-w-prose text-sm text-gray-600 dark:text-gray-300">
-                Compose ton alignement de 12 attaquants, 6 défenseurs et 2 gardiens dans le plafond salarial,
-                et accumule des points selon les vraies performances de la LNH.
+                Compose ton alignement de {rf} attaquants, {rd} défenseurs et {rg} gardiens dans un plafond
+                de {budgetM} M$, et accumule des points selon les vraies performances de la LNH.
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 {season && (
@@ -110,10 +124,12 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">Comment ça marche</h2>
               <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {[
-                  ['1', 'Compose ton équipe', 'Choisis 12 attaquants, 6 défenseurs et 2 gardiens sans dépasser le plafond salarial.'],
-                  ['2', 'Verrouille-la', 'Quand tu es satisfait, verrouille ton alignement pour la saison.'],
+                  ['1', 'Compose ton équipe', `Choisis ${rf} attaquants, ${rd} défenseurs et ${rg} gardiens sans dépasser le plafond de ${budgetM} M$.`],
+                  ['2', 'Modifie quand tu veux', lockDateStr
+                    ? `Ajuste ton alignement librement jusqu'à la date limite du repêchage (le ${lockDateStr}).`
+                    : "Ajuste ton alignement librement jusqu'à la date limite du repêchage."],
                   ['3', 'Tes joueurs marquent', 'Chaque soir, tes joueurs accumulent des points selon leurs vrais matchs de la LNH.'],
-                  ['4', 'Grimpe au classement', 'Suis ta position et bats tes amis tout au long de la saison.'],
+                  ['4', 'Grimpe au classement', 'Suis ta position et bats les autres membres tout au long de la saison.'],
                 ].map(([n, title, desc]) => (
                   <li key={n} className="flex gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
                     <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white dark:bg-white dark:text-gray-900">{n}</span>
@@ -124,6 +140,7 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
                   </li>
                 ))}
               </ol>
+              {txNote && <p className="mt-3 text-xs text-gray-500">🔄 {txNote}</p>}
             </section>
 
             {/* Barème */}
