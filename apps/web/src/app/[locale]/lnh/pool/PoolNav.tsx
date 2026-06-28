@@ -14,7 +14,7 @@ export function PoolNav() {
   return (
     <nav className="flex flex-wrap items-center gap-x-3 gap-y-2">
       <Link href="/lnh/pool" className="flex items-center gap-1.5 text-base font-bold text-gray-900 dark:text-gray-100">
-        🏒 Pool LNH
+        Pool LNH
       </Link>
       <div className="flex gap-1">
         {LINKS.map((l) => {

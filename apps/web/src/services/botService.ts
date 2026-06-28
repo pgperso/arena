@@ -163,13 +163,13 @@ export async function cleanupArticleBotMessages(
 const POOL_URL = `${BRAND.url}/fr/lnh/pool`;
 
 const POOL_OPEN_ANNOUNCEMENTS = [
-  (url: string) => `🏒 Le Pool LNH est ouvert ! Compose ton équipe à plafond salarial et grimpe au classement : ${url}`,
+  (url: string) => `Le Pool LNH est ouvert ! Compose ton équipe à plafond salarial et grimpe au classement : ${url}`,
   (url: string) => `🚨 Pool LNH ouvert ! Choisis tes 20 joueurs et défie la tribune : ${url}`,
-  (url: string) => `🏒 C'est parti — le Pool LNH est lancé ! À toi de jouer : ${url}`,
+  (url: string) => `C'est parti — le Pool LNH est lancé ! À toi de jouer : ${url}`,
 ];
 
 const POOL_LEADER_ANNOUNCEMENTS = [
-  (n: string, p: string, url: string) => `🏒 Pool LNH — ${n} mène avec ${p} pts ! Rattrape-le : ${url}`,
+  (n: string, p: string, url: string) => `Pool LNH — ${n} mène avec ${p} pts ! Rattrape-le : ${url}`,
   (n: string, p: string, url: string) => `📊 Au sommet du Pool LNH : ${n} (${p} pts). Et toi, où es-tu rendu ? ${url}`,
   (n: string, p: string, url: string) => `🔥 ${n} domine le Pool LNH avec ${p} pts. Le classement : ${url}`,
 ];

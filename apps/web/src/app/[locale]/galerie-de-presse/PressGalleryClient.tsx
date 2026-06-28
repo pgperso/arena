@@ -282,7 +282,7 @@ export function PressGalleryClient({
                 href="/lnh/pool"
                 className="block rounded-xl border border-gray-200 bg-gradient-to-br from-brand-blue to-brand-blue-dark p-4 text-white transition hover:opacity-95 dark:border-gray-700"
               >
-                <p className="text-xs font-semibold uppercase tracking-wide text-white/80">🏒 {tPool('title')}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-white/80">{tPool('title')}</p>
                 <p className="mt-1 text-sm font-medium">{tPool('tagline')}</p>
                 <span className="mt-2 inline-block text-sm font-bold underline">{tPool('cta')} →</span>
               </Link>

@@ -104,7 +104,7 @@ export function CommunityPageClient({
               href="/lnh/pool"
               className="flex items-center justify-center gap-2 border-t border-gray-200 bg-brand-blue-dark px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-brand-blue dark:border-gray-700"
             >
-              🏒 {t('pool.tagline')} <span className="underline">{t('pool.cta')}</span>
+              {t('pool.tagline')} <span className="underline">{t('pool.cta')}</span>
             </Link>
           )}
           {/* 3-column layout: [Ad left] | [Feed] | [Ad right] */}

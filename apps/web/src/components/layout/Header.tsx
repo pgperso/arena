@@ -443,7 +443,7 @@ function TribunesMenu({ userTribunes, align }: TribunesMenuProps) {
               onClick={() => setOpen(false)}
               className="block rounded-lg bg-brand-blue-dark px-3 py-2 text-center text-sm font-bold text-white transition hover:bg-brand-blue"
             >
-              🏒 {t('pool.menuLink')}
+              {t('pool.menuLink')}
             </Link>
           </div>
           {userTribunes.length > 0 && (
