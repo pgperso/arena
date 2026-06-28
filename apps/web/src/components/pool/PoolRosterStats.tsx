@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { RosterPlayerStats, PoolPosition } from '@/services/poolService';
 
 const M = 100_000_000;
@@ -23,7 +24,7 @@ const ptsTd = 'px-3 py-2 text-right font-bold tabular-nums text-gray-900 dark:te
 function PlayerName({ p }: { p: RosterPlayerStats }) {
   return (
     <span className="block">
-      <span className="block truncate">{p.fullName}</span>
+      <Link href={`/lnh/pool/joueur/${p.playerId}`} className="block truncate hover:underline">{p.fullName}</Link>
       <span className="text-xs font-normal text-gray-400">{p.teamAbbrev ?? '—'}</span>
     </span>
   );
