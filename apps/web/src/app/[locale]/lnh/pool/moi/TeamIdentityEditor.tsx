@@ -97,15 +97,15 @@ export function TeamIdentityEditor({
             disabled={uploading}
             className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-[#252525]"
           >
-            {uploading ? 'Téléversement…' : 'Téléverser une image'}
+            {uploading ? 'Téléversement…' : logo ? "Remplacer l'image" : 'Téléverser une image'}
           </button>
           {logo && (
             <button
               type="button"
               onClick={() => setLogo(null)}
-              className="text-left text-xs text-gray-500 underline"
+              className="text-left text-xs font-medium text-red-600 underline hover:text-red-700"
             >
-              Utiliser l&apos;initiale par défaut
+              Supprimer l&apos;image
             </button>
           )}
         </div>
