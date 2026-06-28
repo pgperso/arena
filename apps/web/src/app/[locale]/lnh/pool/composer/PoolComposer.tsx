@@ -38,6 +38,7 @@ export function PoolComposer({
 }) {
   const t = useTranslations('pool.composer');
   const tPos = useTranslations('pool.positions');
+  const tPosS = useTranslations('pool.positionsSingular');
   const tRoster = useTranslations('pool.roster');
   const tRoot = useTranslations('pool');
   const locale = useLocale();
@@ -169,7 +170,7 @@ export function PoolComposer({
           {/* Empty slots, each with its own Choisir button */}
           {!locked && Array.from({ length: emptyCount }).map((_, i) => (
             <li key={`empty-${pos}-${i}`} className="flex items-center justify-between gap-2 py-2 text-sm">
-              <span className="italic text-gray-400">{t('emptySlot')}</span>
+              <span className="italic text-gray-400">{tPosS(pos)}</span>
               <button
                 onClick={() => setPicker(pos)}
                 className="shrink-0 rounded-md bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-white dark:text-gray-900"

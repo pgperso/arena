@@ -422,6 +422,7 @@
     "defaultTeamName": "Équipe de {username}",
     "defaultTeamNameFallback": "Mon équipe",
     "positions": { "F": "Attaquants", "D": "Défenseurs", "G": "Gardiens" },
+    "positionsSingular": { "F": "Attaquant", "D": "Défenseur", "G": "Gardien" },
     "home": {
       "eyebrow": "Pool LNH",
       "heroDesc": "Compose ton alignement de {f} attaquants, {d} défenseurs{g, plural, =0 {} other {, # gardiens}}{teams, plural, =0 {} one { et # équipe de la LNH} other { et # équipes de la LNH}} dans un plafond de {budget} M$, et accumule des points selon les vraies performances de la LNH.",
