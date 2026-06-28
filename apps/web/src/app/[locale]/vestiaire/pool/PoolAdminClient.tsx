@@ -156,7 +156,7 @@ export function PoolAdminClient({ season, rules }: { season: PoolSeason | null; 
             <input type="number" className={inputCls} value={form.rosterG} onChange={(e) => upd('rosterG', Number(e.target.value))} />
           </div>
           <div>
-            <label className={labelCls}>Verrouillage des alignements</label>
+            <label className={labelCls}>Date limite du repêchage (fige les alignements)</label>
             <input type="datetime-local" className={inputCls} value={form.lockAt} onChange={(e) => upd('lockAt', e.target.value)} />
           </div>
           <div>

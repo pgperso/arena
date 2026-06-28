@@ -3,11 +3,10 @@
 import { useMemo, useState } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { AdAnchor } from '@/components/ads/AdAnchor';
 import {
-  buildQuickLineup, saveRoster, lockEntry,
+  buildQuickLineup, saveRoster,
   type PoolPlayer, type SlotPick, type PoolPosition,
 } from '@/services/poolService';
 
@@ -17,25 +16,22 @@ const fmtM = (cents: number) => `${(cents / M).toLocaleString('fr-CA', { maximum
 const POS_LABEL: Record<PoolPosition, string> = { F: 'Att', D: 'Déf', G: 'Gardien' };
 
 export function PoolComposer({
-  entryId, isLocked, budgetCents, need, players, initialPicks, transactionsEnabled, maxTransactions,
+  entryId, isLocked, budgetCents, need, players, initialPicks,
 }: {
   entryId: number;
+  // True once the draft deadline has passed — the roster is frozen, read-only.
   isLocked: boolean;
   budgetCents: number;
   need: { F: number; D: number; G: number };
   players: PoolPlayer[];
   initialPicks: SlotPick[];
-  transactionsEnabled: boolean;
-  maxTransactions: number;
 }) {
-  const router = useRouter();
+  const locked = isLocked;
   const [picks, setPicks] = useState<SlotPick[]>(initialPicks);
-  const [locked, setLocked] = useState(isLocked);
   const [search, setSearch] = useState('');
   const [posFilter, setPosFilter] = useState<'ALL' | PoolPosition>('ALL');
   const [sort, setSort] = useState<'value' | 'price' | 'proj'>('value');
   const [busy, setBusy] = useState(false);
-  const [confirmingLock, setConfirmingLock] = useState(false);
 
   const priceOf = useMemo(() => new Map(players.map((p) => [p.playerId, p.priceCents])), [players]);
   const chosen = useMemo(() => new Set(picks.map((p) => p.playerId)), [picks]);
@@ -46,8 +42,6 @@ export function PoolComposer({
   }, [picks]);
   const spent = useMemo(() => picks.reduce((s, p) => s + (priceOf.get(p.playerId) ?? 0), 0), [picks, priceOf]);
   const remaining = budgetCents - spent;
-  const total = need.F + need.D + need.G;
-  const complete = counts.F === need.F && counts.D === need.D && counts.G === need.G;
 
   const canAdd = (p: PoolPlayer) =>
     !locked && !chosen.has(p.playerId) && counts[p.position] < need[p.position] && p.priceCents <= remaining;
@@ -78,20 +72,6 @@ export function PoolComposer({
     else toast.success('Alignement enregistré');
   }
 
-  async function handleLock() {
-    if (!complete) { toast.error('Complète ton alignement avant de verrouiller'); return; }
-    setBusy(true);
-    const client = createClient();
-    const saveRes = await saveRoster(client, entryId, picks);
-    if (saveRes.error) { setBusy(false); toast.error(saveRes.error); return; }
-    const { error } = await lockEntry(client, entryId);
-    setBusy(false);
-    if (error) { toast.error(error); return; }
-    setLocked(true);
-    toast.success('Alignement verrouillé pour la saison!');
-    router.push('/lnh/pool/moi');
-  }
-
   const slotPill = (pos: PoolPosition) => {
     const done = counts[pos] === need[pos];
     return (
@@ -116,7 +96,7 @@ export function PoolComposer({
             <div className={`h-full ${spent > budgetCents ? 'bg-red-500' : 'bg-gray-900 dark:bg-white'}`}
               style={{ width: `${Math.min(100, (spent / budgetCents) * 100)}%` }} />
           </div>
-          {!locked && !confirmingLock && (
+          {!locked && (
             <>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button onClick={autopick} disabled={busy}
@@ -124,43 +104,21 @@ export function PoolComposer({
                   ⚡ Équipe instantanée
                 </button>
                 <button onClick={handleSave} disabled={busy}
-                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-[#252525]">
+                  className="rounded-md bg-gray-900 px-4 py-1.5 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50 dark:bg-white dark:text-gray-900">
                   Enregistrer
-                </button>
-                <button onClick={() => (complete ? setConfirmingLock(true) : toast.error('Complète ton alignement avant de verrouiller'))}
-                  disabled={busy || !complete}
-                  className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-40 dark:bg-white dark:text-gray-900">
-                  Verrouiller ({counts.F + counts.D + counts.G}/{total})
                 </button>
               </div>
               <p className="mt-2 text-xs text-gray-500">
-                ⚡ <strong>Équipe instantanée</strong> remplit une équipe valide que tu peux ajuster · <strong>Enregistre</strong> pour continuer plus tard · <strong>Verrouille</strong> quand tu es prêt.
+                ⚡ <strong>Équipe instantanée</strong> remplit une équipe valide que tu peux ajuster · <strong>Enregistre</strong> tes choix — tu peux les modifier jusqu&apos;à la date limite du repêchage.
               </p>
             </>
           )}
 
-          {!locked && confirmingLock && (
-            <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3 dark:border-amber-700 dark:bg-amber-950/30">
-              <p className="text-sm text-amber-900 dark:text-amber-200">
-                Verrouiller ton alignement?{' '}
-                {transactionsEnabled && maxTransactions > 0
-                  ? `Tu pourras ensuite faire jusqu'à ${maxTransactions} changement${maxTransactions > 1 ? 's' : ''} en cours de saison.`
-                  : 'Il sera final pour toute la saison — tu ne pourras plus le modifier.'}
-              </p>
-              <div className="mt-2 flex gap-2">
-                <button onClick={handleLock} disabled={busy}
-                  className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50 dark:bg-white dark:text-gray-900">
-                  Oui, verrouiller
-                </button>
-                <button onClick={() => setConfirmingLock(false)} disabled={busy}
-                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 dark:border-gray-600">
-                  Annuler
-                </button>
-              </div>
-            </div>
+          {locked && (
+            <p className="mt-3 text-sm font-medium text-amber-700 dark:text-amber-400">
+              🔒 Le repêchage est terminé — ton alignement est figé pour la saison.
+            </p>
           )}
-
-          {locked && <p className="mt-3 text-sm font-medium text-green-700">✓ Alignement verrouillé pour la saison</p>}
         </div>
       </div>
 

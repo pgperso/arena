@@ -69,13 +69,11 @@ export default async function ComposerPage({ params }: { params: Promise<{ local
   return (
     <PoolComposer
       entryId={entryRow.id}
-      isLocked={entryRow.is_locked}
+      isLocked={Boolean(season.lockAt && new Date(season.lockAt) <= new Date())}
       budgetCents={season.budgetCents}
       need={{ F: season.rosterF, D: season.rosterD, G: season.rosterG }}
       players={players}
       initialPicks={initialPicks}
-      transactionsEnabled={season.transactionsEnabled}
-      maxTransactions={season.maxTransactions}
     />
   );
 }

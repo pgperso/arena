@@ -41,6 +41,10 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
   const entry = entryData as { id: number; team_name: string; team_logo: string | null; is_locked: boolean; spent_cents: number } | null;
   if (!entry) redirect('/lnh/pool/composer');
 
+  // The roster freezes at the season's draft deadline (set in admin), not a
+  // manual lock — so editability is driven by lock_at.
+  const draftClosed = Boolean(season.lockAt && new Date(season.lockAt) <= new Date());
+
   const { data: slotData } = await db
     .from('pool_roster_slots')
     .select('player_id, slot_position, price_cents, nhl_players!inner(full_name, team_abbrev)')
@@ -72,10 +76,10 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
                 <TeamLogo logo={entry.team_logo} name={entry.team_name} size={40} />
                 <div>
                   <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{entry.team_name}</h1>
-                  <p className="text-sm text-gray-500">{season.name}{entry.is_locked ? ' · verrouillé' : ' · brouillon'}</p>
+                  <p className="text-sm text-gray-500">{season.name}{draftClosed ? ' · repêchage terminé' : ' · modifiable'}</p>
                 </div>
               </div>
-              {!entry.is_locked && (
+              {!draftClosed && (
                 <Link href="/lnh/pool/composer" className="rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">
                   Modifier l&apos;alignement
                 </Link>
@@ -104,9 +108,9 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
               ))}
             </div>
 
-            {!entry.is_locked && slots.length > 0 && (
+            {!draftClosed && slots.length > 0 && (
               <p className="mt-3 rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-[#252525]">
-                <strong>Brouillon</strong> — tu peux modifier ton alignement jusqu&apos;à ce que tu le verrouilles.
+                Tu peux modifier ton alignement jusqu&apos;à la date limite du repêchage.
               </p>
             )}
             {slots.length > 0 && (!standing || standing.games_counted === 0) && (
