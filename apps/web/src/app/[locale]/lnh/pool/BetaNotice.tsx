@@ -18,16 +18,16 @@ export function BetaNotice() {
   if (!show) return null;
 
   return (
-    <div className="mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-900/40 dark:bg-amber-900/10">
-      <span className="mt-0.5 shrink-0 rounded bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+    <div className="mb-4 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-[#252525]">
+      <span className="shrink-0 rounded-full bg-brand-blue px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
         {t('badge')}
       </span>
-      <p className="flex-1 text-amber-900 dark:text-amber-200">{t('message')}</p>
+      <p className="flex-1 text-gray-600 dark:text-gray-300">{t('message')}</p>
       <button
         type="button"
         onClick={() => { localStorage.setItem(STORAGE_KEY, '1'); setShow(false); }}
         aria-label={t('dismiss')}
-        className="shrink-0 rounded px-1 text-amber-700 hover:text-amber-900 dark:text-amber-300 dark:hover:text-amber-100"
+        className="shrink-0 rounded px-1 text-gray-400 transition-colors hover:text-gray-700 dark:hover:text-gray-200"
       >
         ✕
       </button>

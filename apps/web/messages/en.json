@@ -403,13 +403,13 @@
     "title": "NHL Pool",
     "tagline": "Build a salary-cap roster and climb the standings.",
     "cta": "Join",
-    "bannerTitle": "La Tribune hockey pool",
+    "bannerTitle": "<b>La Tribune</b> hockey pool",
     "myTeam": "My team",
     "standings": "Standings",
     "navHome": "Home",
     "beta": {
-      "badge": "Beta",
-      "message": "The pool is in beta: rules, salaries and some features may still change. Everything will be ready for the season opener.",
+      "badge": "Preview",
+      "message": "The pool is being finalized: rules, salaries and some features will be set before the season opener.",
       "dismiss": "Dismiss"
     },
     "defaultTeamName": "{username}'s team",

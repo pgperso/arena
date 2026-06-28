@@ -409,13 +409,13 @@
     "title": "Pool LNH",
     "tagline": "Compose ton alignement à plafond salarial et grimpe au classement.",
     "cta": "Participer",
-    "bannerTitle": "Pool de hockey la tribune",
+    "bannerTitle": "Pool de hockey <b>la tribune</b>",
     "myTeam": "Mon équipe",
     "standings": "Classement",
     "navHome": "Accueil",
     "beta": {
-      "badge": "Bêta",
-      "message": "Le pool est en version bêta : les règles, les salaires et certaines fonctionnalités peuvent encore évoluer. Tout sera fin prêt pour le début de la saison.",
+      "badge": "Aperçu",
+      "message": "Le pool est en cours de préparation : les règles, les salaires et certaines fonctionnalités seront finalisés pour le début de la saison.",
       "dismiss": "Fermer"
     },
     "defaultTeamName": "Équipe de {username}",
