@@ -81,18 +81,19 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          {[
-            { l: 'Rang', v: standing?.rank ? `${standing.rank}ᵉ` : '—' },
-            { l: 'Points', v: standing ? standing.fantasyPoints.toLocaleString('fr-CA', { maximumFractionDigits: 1 }) : '0' },
-            { l: 'Masse salariale', v: fmtM(entry.spent_cents) },
-          ].map((s) => (
-            <div key={s.l} className="rounded-lg border border-gray-200 p-3 text-center dark:border-gray-700">
-              <div className="text-xs uppercase tracking-wide text-gray-500">{s.l}</div>
-              <div className="mt-1 text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100">{s.v}</div>
-            </div>
-          ))}
-        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        {[
+          { l: 'Rang', v: standing?.rank ? `${standing.rank}ᵉ` : '—' },
+          { l: 'Points', v: standing ? standing.fantasyPoints.toLocaleString('fr-CA', { maximumFractionDigits: 1 }) : '0' },
+          { l: 'Masse salariale', v: fmtM(entry.spent_cents) },
+        ].map((s) => (
+          <div key={s.l} className="rounded-lg border border-gray-200 p-4 text-center dark:border-gray-700">
+            <div className="text-xs uppercase tracking-wide text-gray-500">{s.l}</div>
+            <div className="mt-1 text-xl font-bold tabular-nums text-gray-900 dark:text-gray-100">{s.v}</div>
+          </div>
+        ))}
       </div>
 
       {rows.length === 0 ? (

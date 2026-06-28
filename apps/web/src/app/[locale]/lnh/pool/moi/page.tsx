@@ -33,11 +33,11 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
 
   const { data: entryData } = await db
     .from('pool_entries')
-    .select('id, team_name, team_logo, is_locked, spent_cents')
+    .select('id, team_name, team_logo, is_locked, spent_cents, transactions_used')
     .eq('season_id', season.id)
     .eq('member_id', user.id)
     .maybeSingle();
-  const entry = entryData as { id: number; team_name: string; team_logo: string | null; is_locked: boolean; spent_cents: number } | null;
+  const entry = entryData as { id: number; team_name: string; team_logo: string | null; is_locked: boolean; spent_cents: number; transactions_used: number } | null;
   if (!entry) redirect('/lnh/pool/composer');
 
   const draftClosed = Boolean(season.lockAt && new Date(season.lockAt) <= new Date());
@@ -69,23 +69,28 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
           <TeamIdentityEditor entryId={entry.id} memberId={user.id} initialName={entry.team_name} initialLogo={entry.team_logo} />
         </section>
 
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          {[
-            { l: 'Rang', v: standing?.rank ? `${standing.rank}ᵉ` : '—' },
-            { l: 'Points', v: standing ? standing.fantasyPoints.toLocaleString('fr-CA', { maximumFractionDigits: 1 }) : '0' },
-            { l: 'Masse salariale', v: fmtM(entry.spent_cents) },
-          ].map((s) => (
-            <div key={s.l} className="rounded-lg border border-gray-200 p-3 text-center dark:border-gray-700">
-              <div className="text-xs uppercase tracking-wide text-gray-500">{s.l}</div>
-              <div className="mt-1 text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100">{s.v}</div>
-            </div>
-          ))}
-        </div>
-
-        {(!standing || standing.gamesCounted === 0) && (
-          <p className="mt-2 text-xs text-gray-400">La saison n&apos;a pas commencé — tes points s&apos;accumuleront après chaque match.</p>
-        )}
       </div>
+
+      {/* Stat cards — span the full width of the wide track */}
+      <div className={`mt-4 grid grid-cols-2 gap-3 ${season.transactionsEnabled ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
+        {[
+          { l: 'Rang', v: standing?.rank ? `${standing.rank}ᵉ` : '—' },
+          { l: 'Points', v: standing ? standing.fantasyPoints.toLocaleString('fr-CA', { maximumFractionDigits: 1 }) : '0' },
+          { l: 'Masse salariale', v: fmtM(entry.spent_cents) },
+          ...(season.transactionsEnabled
+            ? [{ l: 'Échanges restants', v: String(Math.max(0, season.maxTransactions - entry.transactions_used)) }]
+            : []),
+        ].map((s) => (
+          <div key={s.l} className="rounded-lg border border-gray-200 p-4 text-center dark:border-gray-700">
+            <div className="text-xs uppercase tracking-wide text-gray-500">{s.l}</div>
+            <div className="mt-1 text-xl font-bold tabular-nums text-gray-900 dark:text-gray-100">{s.v}</div>
+          </div>
+        ))}
+      </div>
+
+      {(!standing || standing.gamesCounted === 0) && (
+        <p className="mt-2 text-xs text-gray-400">La saison n&apos;a pas commencé — tes points s&apos;accumuleront après chaque match.</p>
+      )}
 
       {/* Wide track: header row + rich stat tables */}
       <div className="mt-6 flex items-center justify-between">

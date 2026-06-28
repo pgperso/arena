@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { AdSidebar } from '@/components/ads/AdSidebar';
 import { AdAnchor } from '@/components/ads/AdAnchor';
+import { AdBanner } from '@/components/ads/AdBanner';
 
 type Width = 'prose' | 'standings' | 'wide';
 
@@ -21,17 +22,23 @@ export function PoolShell({
   children,
   width = 'prose',
   leftAd = true,
+  bottomAd = true,
 }: {
   children: ReactNode;
   width?: Width;
   leftAd?: boolean;
+  /** Horizontal leaderboard at the bottom of the content (content pages only). */
+  bottomAd?: boolean;
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex flex-1 overflow-hidden border-t border-gray-200 dark:border-gray-700">
         {leftAd && <AdSidebar position="left" />}
         <main className="flex-1 overflow-y-auto bg-white dark:bg-[#1e1e1e]">
-          <div className={`mx-auto w-full ${MAX_W[width]} px-4 py-8`}>{children}</div>
+          <div className={`mx-auto w-full ${MAX_W[width]} px-4 py-8`}>
+            {children}
+            {bottomAd && <AdBanner className="mt-8" />}
+          </div>
         </main>
         <AdSidebar position="right" />
       </div>

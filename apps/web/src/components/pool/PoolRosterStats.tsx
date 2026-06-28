@@ -21,16 +21,26 @@ const stickyTd =
   'sticky left-0 z-10 bg-white px-3 py-2 text-left font-medium text-gray-900 group-hover:bg-gray-50 dark:bg-[#1e1e1e] dark:text-gray-100 dark:group-hover:bg-[#252525]';
 const ptsTd = 'px-3 py-2 text-right font-bold tabular-nums text-gray-900 dark:text-gray-100';
 
-function PlayerName({ p }: { p: RosterPlayerStats }) {
+type Badge = 'best' | 'worst' | null;
+
+function PlayerName({ p, badge }: { p: RosterPlayerStats; badge: Badge }) {
   return (
     <span className="block">
-      <Link href={`/lnh/pool/joueur/${p.playerId}`} className="block truncate hover:underline">{p.fullName}</Link>
+      <span className="flex items-center gap-1.5">
+        <Link href={`/lnh/pool/joueur/${p.playerId}`} className="truncate hover:underline">{p.fullName}</Link>
+        {badge === 'best' && (
+          <span className="whitespace-nowrap rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700 dark:bg-green-900/40 dark:text-green-300">🔥 Aubaine</span>
+        )}
+        {badge === 'worst' && (
+          <span className="whitespace-nowrap rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700 dark:bg-red-900/40 dark:text-red-300">🧊 Flop</span>
+        )}
+      </span>
       <span className="text-xs font-normal text-gray-400">{p.teamAbbrev ?? '—'}</span>
     </span>
   );
 }
 
-function SkaterTable({ rows }: { rows: RosterPlayerStats[] }) {
+function SkaterTable({ rows, badgeOf }: { rows: RosterPlayerStats[]; badgeOf: (id: number) => Badge }) {
   const sum = (k: keyof RosterPlayerStats) => rows.reduce((a, r) => a + (r[k] as number), 0);
   return (
     <div className={wrap}>
@@ -53,7 +63,7 @@ function SkaterTable({ rows }: { rows: RosterPlayerStats[] }) {
         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
           {rows.map((p) => (
             <tr key={p.playerId} className="group hover:bg-gray-50 dark:hover:bg-[#252525]">
-              <td className={stickyTd}><PlayerName p={p} /></td>
+              <td className={stickyTd}><PlayerName p={p} badge={badgeOf(p.playerId)} /></td>
               <td className={ptsTd}>{fmtPts(p.fantasyPoints)}</td>
               <td className={`${tdNum} hidden md:table-cell`}>{p.gp}</td>
               <td className={`${tdNum} hidden sm:table-cell`}>{p.goals}</td>
@@ -87,7 +97,7 @@ function SkaterTable({ rows }: { rows: RosterPlayerStats[] }) {
   );
 }
 
-function GoalieTable({ rows }: { rows: RosterPlayerStats[] }) {
+function GoalieTable({ rows, badgeOf }: { rows: RosterPlayerStats[]; badgeOf: (id: number) => Badge }) {
   return (
     <div className={wrap}>
       <table className="w-full min-w-[560px] text-sm">
@@ -108,7 +118,7 @@ function GoalieTable({ rows }: { rows: RosterPlayerStats[] }) {
         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
           {rows.map((p) => (
             <tr key={p.playerId} className="group hover:bg-gray-50 dark:hover:bg-[#252525]">
-              <td className={stickyTd}><PlayerName p={p} /></td>
+              <td className={stickyTd}><PlayerName p={p} badge={badgeOf(p.playerId)} /></td>
               <td className={ptsTd}>{fmtPts(p.fantasyPoints)}</td>
               <td className={`${tdNum} hidden md:table-cell`}>{p.gp}</td>
               <td className={`${tdNum} hidden sm:table-cell`}>{p.wins}</td>
@@ -133,11 +143,24 @@ export function PoolRosterStats({ rows }: { rows: RosterPlayerStats[] }) {
   const f = rows.filter((r) => r.slotPosition === 'F');
   const d = rows.filter((r) => r.slotPosition === 'D');
   const g = rows.filter((r) => r.slotPosition === 'G');
+
+  // Best/worst pick = highest/lowest value (pool points per $). Only once some
+  // points exist — pre-season everyone is 0 and a badge would be meaningless.
+  let bestId: number | null = null;
+  let worstId: number | null = null;
+  if (rows.some((r) => r.fantasyPoints > 0)) {
+    const val = (r: RosterPlayerStats) => (r.priceCents > 0 ? r.fantasyPoints / (r.priceCents / M) : 0);
+    const sorted = [...rows].sort((a, b) => val(b) - val(a));
+    bestId = sorted[0].playerId;
+    worstId = sorted[sorted.length - 1].playerId;
+  }
+  const badgeOf = (id: number): Badge => (id === bestId ? 'best' : id === worstId ? 'worst' : null);
+
   const section = (pos: PoolPosition, list: RosterPlayerStats[]) =>
     list.length === 0 ? null : (
       <section key={pos} className="mt-6">
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">{POS_LABEL[pos]}</h2>
-        {pos === 'G' ? <GoalieTable rows={list} /> : <SkaterTable rows={list} />}
+        {pos === 'G' ? <GoalieTable rows={list} badgeOf={badgeOf} /> : <SkaterTable rows={list} badgeOf={badgeOf} />}
       </section>
     );
   return (
