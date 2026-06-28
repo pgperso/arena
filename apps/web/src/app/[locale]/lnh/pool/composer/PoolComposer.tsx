@@ -110,8 +110,23 @@ export function PoolComposer({
     if (error) { toast.error(error); return; }
     setPicks((cur) => cur.map((sp) => (sp.playerId === dropId ? { playerId: p.playerId, slotPosition: tradeFor.pos } : sp)));
     setTradesUsed((u) => u + 1);
+    // Trading away a star frees that slot — the pooler re-decides who's the star.
+    setStarFwd((s) => (s === dropId ? null : s));
+    setStarDef((s) => (s === dropId ? null : s));
     toast.success(t('tradeDone'));
     setTradeFor(null);
+  }
+
+  // Post-lock: pick a new star for a position whose slot a trade just emptied.
+  async function chooseStarLocked(pos: PoolPosition, id: number) {
+    const newFwd = pos === 'F' ? id : starFwd;
+    const newDef = pos === 'D' ? id : starDef;
+    setBusy(true);
+    const { error } = await setStars(createClient(), entryId, newFwd, newDef);
+    setBusy(false);
+    if (error) { toast.error(error); return; }
+    if (pos === 'F') setStarFwd(id); else setStarDef(id);
+    toast.success(t('starChosen'));
   }
 
   async function persist(): Promise<boolean> {
@@ -183,6 +198,15 @@ export function PoolComposer({
                           ? 'rounded-md bg-amber-500 px-2 py-1 text-xs font-semibold text-white'
                           : 'rounded-md border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-[#252525]'
                       }
+                    >
+                      ★ {t('star')}
+                    </button>
+                  )}
+                  {starrable && locked && starId === null && (
+                    <button
+                      onClick={() => chooseStarLocked(pos, r.playerId)}
+                      disabled={busy}
+                      className="rounded-md border border-amber-400 px-2 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-50 disabled:opacity-50 dark:text-amber-300"
                     >
                       ★ {t('star')}
                     </button>
