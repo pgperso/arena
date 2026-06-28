@@ -246,19 +246,24 @@ export function PoolAdminClient({ season, rules }: { season: PoolSeason | null; 
               ))}
             </div>
           </div>
-          <div>
-            <h3 className="mb-2 text-sm font-semibold text-gray-900">Gardiens</h3>
-            <div className="flex flex-col gap-2">
-              {goalies.map((c) => (
-                <div key={c.key} className="flex items-center justify-between gap-3">
-                  <label className="text-sm text-gray-700">{c.label}</label>
-                  <input type="number" step="0.1" className="w-24 rounded-md border border-gray-300 px-2 py-1 text-right text-sm"
-                    value={coeffs[c.key]} onChange={(e) => setCoeffs((p) => ({ ...p, [c.key]: e.target.value }))} />
-                </div>
-              ))}
+          {form.rosterG > 0 && (
+            <div>
+              <h3 className="mb-2 text-sm font-semibold text-gray-900">Gardiens</h3>
+              <div className="flex flex-col gap-2">
+                {goalies.map((c) => (
+                  <div key={c.key} className="flex items-center justify-between gap-3">
+                    <label className="text-sm text-gray-700">{c.label}</label>
+                    <input type="number" step="0.1" className="w-24 rounded-md border border-gray-300 px-2 py-1 text-right text-sm"
+                      value={coeffs[c.key]} onChange={(e) => setCoeffs((p) => ({ ...p, [c.key]: e.target.value }))} />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
+        {form.rosterG === 0 && (
+          <p className="mt-2 text-xs text-gray-400">Aucun gardien dans cette saison — le barème des gardiens est masqué. Le pointage d&apos;équipe se règle dans la section « Section équipe LNH » ci-dessus.</p>
+        )}
       </section>
     </div>
   );

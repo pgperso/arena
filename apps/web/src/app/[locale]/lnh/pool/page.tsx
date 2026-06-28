@@ -143,11 +143,11 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
                 <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500">Barème de pointage</h2>
                 <p className="mb-3 text-xs text-gray-400">Combien vaut chaque statistique.</p>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {[['Patineurs', skaterRules], ['Gardiens', goalieRules]].map(([title, list]) => (
-                    <div key={title as string} className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-                      <div className="bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:bg-[#252525] dark:text-gray-200">{title as string}</div>
+                  {([['Patineurs', skaterRules], ...(rg > 0 ? [['Gardiens', goalieRules]] : [])] as [string, typeof skaterRules][]).map(([title, list]) => (
+                    <div key={title} className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                      <div className="bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:bg-[#252525] dark:text-gray-200">{title}</div>
                       <ul className="divide-y divide-gray-100 dark:divide-gray-800">
-                        {(list as typeof skaterRules).map((c) => (
+                        {list.map((c) => (
                           <li key={c.key} className="flex items-center justify-between px-3 py-1.5 text-sm">
                             <span className="text-gray-700 dark:text-gray-300">{c.label}</span>
                             <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtCoef(c.coef)}</span>
@@ -156,6 +156,30 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
                       </ul>
                     </div>
                   ))}
+
+                  {season && season.rosterTeams > 0 && (
+                    <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                      <div className="bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:bg-[#252525] dark:text-gray-200">Équipe LNH (par soir)</div>
+                      <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                        <li className="flex items-center justify-between px-3 py-1.5 text-sm">
+                          <span className="text-gray-700 dark:text-gray-300">Points de base</span>
+                          <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{season.teamBasePoints.toLocaleString('fr-CA', { maximumFractionDigits: 2 })}</span>
+                        </li>
+                        {season.teamGfCoef !== 0 && (
+                          <li className="flex items-center justify-between px-3 py-1.5 text-sm">
+                            <span className="text-gray-700 dark:text-gray-300">Par but marqué</span>
+                            <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtCoef(season.teamGfCoef)}</span>
+                          </li>
+                        )}
+                        {season.teamGaCoef !== 0 && (
+                          <li className="flex items-center justify-between px-3 py-1.5 text-sm">
+                            <span className="text-gray-700 dark:text-gray-300">Par but accordé</span>
+                            <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtCoef(season.teamGaCoef)}</span>
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </section>
             )}
