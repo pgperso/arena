@@ -63,9 +63,15 @@ export function TeamIdentityEditor({
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="text-sm font-medium text-gray-600 underline dark:text-gray-300">
-        Modifier le nom / logo
-      </button>
+      <div className="flex items-center justify-between gap-3">
+        <span className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+          <TeamLogo logo={initialLogo} name={initialName} size={28} />
+          {initialName}
+        </span>
+        <button onClick={() => setOpen(true)} className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-[#252525]">
+          Modifier le nom et le logo
+        </button>
+      </div>
     );
   }
 
@@ -108,7 +114,7 @@ export function TeamIdentityEditor({
       <div className="mt-4 flex gap-2">
         <button onClick={save} disabled={busy || uploading}
           className="rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50 dark:bg-white dark:text-gray-900">
-          {busy ? 'Enregistrement…' : 'Enregistrer'}
+          {busy ? 'Enregistrement…' : 'Enregistrer le nom et le logo'}
         </button>
         <button onClick={() => setOpen(false)} disabled={busy}
           className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:border-gray-600">

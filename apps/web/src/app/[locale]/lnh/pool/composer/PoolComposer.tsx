@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Virtuoso } from 'react-virtuoso';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
@@ -86,6 +87,9 @@ export function PoolComposer({
       {/* Sticky budget + actions */}
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-gray-700 dark:bg-[#1e1e1e]/95">
         <div className="mx-auto w-full max-w-3xl">
+          <Link href="/lnh/pool/moi" className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
+            ← Retour à mon équipe
+          </Link>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">{slotPill('F')}{slotPill('D')}{slotPill('G')}</div>
             <div className="text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">

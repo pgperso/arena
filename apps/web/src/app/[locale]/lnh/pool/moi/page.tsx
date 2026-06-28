@@ -71,29 +71,28 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
         <AdSidebar position="left" />
         <main className="flex-1 overflow-y-auto bg-white dark:bg-[#1e1e1e]">
           <div className="mx-auto w-full max-w-3xl px-4 py-8">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <TeamLogo logo={entry.team_logo} name={entry.team_name} size={40} />
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{entry.team_name}</h1>
-                  <p className="text-sm text-gray-500">{season.name}{draftClosed ? ' · repêchage terminé' : ' · modifiable'}</p>
-                </div>
+            <Link href="/lnh/pool" className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
+              ← Retour au pool
+            </Link>
+
+            <div className="mt-3 flex items-center gap-3">
+              <TeamLogo logo={entry.team_logo} name={entry.team_name} size={44} />
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{entry.team_name}</h1>
+                <p className="text-sm text-gray-500">{season.name}{draftClosed ? ' · repêchage terminé' : ' · modifiable'}</p>
               </div>
-              {!draftClosed && (
-                <Link href="/lnh/pool/composer" className="rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">
-                  Modifier l&apos;alignement
-                </Link>
-              )}
             </div>
 
-            <div className="mt-3">
+            {/* Identity (name + logo) — clearly its own card, separate from the roster. */}
+            <section className="mt-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">Identité de l&apos;équipe</h2>
               <TeamIdentityEditor
                 entryId={entry.id}
                 memberId={user.id}
                 initialName={entry.team_name}
                 initialLogo={entry.team_logo}
               />
-            </div>
+            </section>
 
             <div className="mt-4 grid grid-cols-3 gap-3">
               {[
@@ -124,8 +123,17 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
                 Ton alignement est vide. <Link href="/lnh/pool/composer" className="underline">Compose-le.</Link>
               </div>
             ) : (
-              (['F', 'D', 'G'] as PoolPosition[]).map((pos) => (
-                <section key={pos} className="mt-6">
+              <>
+                <div className="mt-6 flex items-center justify-between">
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Mon alignement</h2>
+                  {!draftClosed && (
+                    <Link href="/lnh/pool/composer" className="rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">
+                      Modifier mon alignement
+                    </Link>
+                  )}
+                </div>
+                {(['F', 'D', 'G'] as PoolPosition[]).map((pos) => (
+                <section key={pos} className="mt-4">
                   <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">{POS_LABEL[pos]}</h2>
                   <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
                     {byPos(pos).map((s) => (
@@ -139,7 +147,8 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
                     ))}
                   </div>
                 </section>
-              ))
+                ))}
+              </>
             )}
           </div>
         </main>
