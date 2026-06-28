@@ -593,6 +593,8 @@
       "emptySlot": "Empty slot",
       "star": "Star",
       "starChosen": "Star chosen",
+      "starsRequired": "Choose your star forward and star defenseman to save.",
+      "starsRequiredTrade": "You must pick a new star for the position your trade freed.",
       "starsHint": "Designate a star forward and a star defenseman — their points count double. Once the season starts they're locked (unless you trade a star).",
       "trade": "Trade",
       "tradesRemaining": "Trades left",

@@ -599,6 +599,8 @@
       "emptySlot": "Emplacement vide",
       "star": "Vedette",
       "starChosen": "Vedette choisie",
+      "starsRequired": "Choisis ton attaquant vedette et ton défenseur vedette pour enregistrer.",
+      "starsRequiredTrade": "Tu dois choisir une nouvelle vedette pour le poste libéré par ton échange.",
       "starsHint": "Désigne un attaquant vedette et un défenseur vedette — leurs points comptent en double. Une fois la saison commencée, ils sont figés (sauf si tu échanges une vedette).",
       "trade": "Échanger",
       "tradesRemaining": "Échanges restants",

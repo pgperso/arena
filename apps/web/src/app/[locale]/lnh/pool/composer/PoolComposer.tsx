@@ -75,7 +75,11 @@ export function PoolComposer({
 
   const sectionDone = (pos: PoolPosition) => counts[pos] === need[pos];
   const teamDone = rosterTeams === 0 || !!teamPick;
-  const starsDone = !starsEnabled || (starFwd !== null && starDef !== null);
+  // A star must be chosen for any position that exists this season.
+  const starsDone = !starsEnabled || ((need.F === 0 || starFwd !== null) && (need.D === 0 || starDef !== null));
+  // As soon as a position has players, leaving its star slot empty is not allowed.
+  const starsMissing = starsEnabled &&
+    ((need.F > 0 && counts.F > 0 && starFwd === null) || (need.D > 0 && counts.D > 0 && starDef === null));
   const complete =
     (['F', 'D', 'G'] as PoolPosition[]).every((p) => need[p] === 0 || sectionDone(p)) && teamDone && starsDone;
 
@@ -307,18 +311,30 @@ export function PoolComposer({
             </p>
           )}
           {!locked && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button onClick={handleSave} disabled={busy}
-                className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-[#252525]">
-                {t('save')}
-              </button>
-              <button onClick={handleConfirm} disabled={busy || !complete}
-                className="rounded-md bg-gray-900 px-4 py-1.5 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-40 dark:bg-white dark:text-gray-900">
-                {t('confirm')}
-              </button>
-            </div>
+            <>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button onClick={handleSave} disabled={busy || starsMissing}
+                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-[#252525]">
+                  {t('save')}
+                </button>
+                <button onClick={handleConfirm} disabled={busy || !complete}
+                  className="rounded-md bg-gray-900 px-4 py-1.5 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-40 dark:bg-white dark:text-gray-900">
+                  {t('confirm')}
+                </button>
+              </div>
+              {starsMissing && (
+                <p className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-400">★ {t('starsRequired')}</p>
+              )}
+            </>
           )}
-          {locked && <p className="mt-3 text-sm font-medium text-amber-700 dark:text-amber-400">{t('draftClosed')}</p>}
+          {locked && (
+            <>
+              <p className="mt-3 text-sm font-medium text-amber-700 dark:text-amber-400">{t('draftClosed')}</p>
+              {starsMissing && (
+                <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800 dark:bg-amber-900/10 dark:text-amber-300">★ {t('starsRequiredTrade')}</p>
+              )}
+            </>
+          )}
         </div>
       </div>
 
