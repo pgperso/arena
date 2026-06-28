@@ -30,6 +30,7 @@ export interface PoolSeason {
   teamBasePoints: number;
   teamGfCoef: number;
   teamGaCoef: number;
+  starsEnabled: boolean;
 }
 
 /** A single barème line: how many points a stat is worth this season. */
@@ -137,12 +138,13 @@ type SeasonRow = {
   team_base_points: number;
   team_gf_coef: number;
   team_ga_coef: number;
+  stars_enabled: boolean;
 };
 
 const SEASON_COLS =
   'id, nhl_season, name, budget_cents, roster_f, roster_d, roster_g, roster_teams, lock_at, status, ' +
   'transactions_enabled, max_transactions, transaction_deadline, tiebreaker, is_public, timezone, ' +
-  'team_base_points, team_gf_coef, team_ga_coef';
+  'team_base_points, team_gf_coef, team_ga_coef, stars_enabled';
 
 function mapSeason(r: SeasonRow): PoolSeason {
   return {
@@ -165,6 +167,7 @@ function mapSeason(r: SeasonRow): PoolSeason {
     teamBasePoints: Number(r.team_base_points),
     teamGfCoef: Number(r.team_gf_coef),
     teamGaCoef: Number(r.team_ga_coef),
+    starsEnabled: Boolean(r.stars_enabled),
   };
 }
 
@@ -462,6 +465,8 @@ export interface RosterPlayerStats {
   shotsAgainst: number;
   goalsAgainst: number;
   fantasyPoints: number;
+  /** True if the pooler designated this player as their star (points count double). */
+  isStar: boolean;
 }
 
 /** An entry's active roster with each player's season stats, for the stat tables. */
@@ -471,6 +476,14 @@ export async function getRosterWithStats(
   entryId: number,
 ): Promise<RosterPlayerStats[]> {
   const db = client as unknown as Db;
+
+  const { data: starData } = await db
+    .from('pool_entries')
+    .select('star_forward_id, star_defense_id')
+    .eq('id', entryId)
+    .maybeSingle();
+  const stars = starData as { star_forward_id: number | null; star_defense_id: number | null } | null;
+  const starIds = new Set([stars?.star_forward_id, stars?.star_defense_id].filter((v): v is number => v != null));
 
   const { data: slotData } = await db
     .from('pool_roster_slots')
@@ -523,6 +536,7 @@ export async function getRosterWithStats(
       shotsAgainst: n(st?.shots_against),
       goalsAgainst: n(st?.goals_against),
       fantasyPoints: n(st?.fantasy_points),
+      isStar: starIds.has(s.player_id),
     };
   });
 }
@@ -562,6 +576,22 @@ export async function setTeam(
   const { error } = await db.rpc('pool_set_team' as never, {
     p_entry_id: entryId,
     p_team: teamAbbrev,
+  } as never);
+  return { error: error?.message ?? null };
+}
+
+/** Set the entry's star forward + defenseman (points count double). Un-confirms. */
+export async function setStars(
+  client: AnyClient,
+  entryId: number,
+  forwardId: number | null,
+  defenseId: number | null,
+): Promise<{ error: string | null }> {
+  const db = client as unknown as Db;
+  const { error } = await db.rpc('pool_set_stars' as never, {
+    p_entry_id: entryId,
+    p_forward: forwardId,
+    p_defense: defenseId,
   } as never);
   return { error: error?.message ?? null };
 }

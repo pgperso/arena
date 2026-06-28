@@ -4,6 +4,8 @@ import type { RosterPlayerStats, PoolPosition } from '@/services/poolService';
 import { fmtMoney, fmtPoints } from './format';
 
 const M = 100_000_000;
+// A star player's pool points count double.
+const starPts = (p: RosterPlayerStats) => p.fantasyPoints * (p.isStar ? 2 : 1);
 const svPct = (saves: number, sa: number) => (sa > 0 ? (saves / sa).toFixed(3).replace(/^0/, '') : '—');
 const gaa = (ga: number, sec: number) => (sec > 0 ? (ga / (sec / 3600)).toFixed(2) : '—');
 
@@ -24,6 +26,9 @@ function PlayerName({ p, badge, t }: { p: RosterPlayerStats; badge: Badge; t: T 
     <span className="block">
       <span className="flex items-center gap-1.5">
         <Link href={`/lnh/pool/joueur/${p.playerId}`} className="truncate hover:underline">{p.fullName}</Link>
+        {p.isStar && (
+          <span className="whitespace-nowrap rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">{t('star')}</span>
+        )}
         {badge === 'best' && (
           <span className="whitespace-nowrap rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700 dark:bg-green-900/40 dark:text-green-300">{t('bargain')}</span>
         )}
@@ -38,6 +43,7 @@ function PlayerName({ p, badge, t }: { p: RosterPlayerStats; badge: Badge; t: T 
 
 function SkaterTable({ rows, badgeOf, t, locale }: { rows: RosterPlayerStats[]; badgeOf: (id: number) => Badge; t: T; locale: string }) {
   const sum = (k: keyof RosterPlayerStats) => rows.reduce((a, r) => a + (r[k] as number), 0);
+  const totalPts = rows.reduce((a, r) => a + starPts(r), 0);
   return (
     <div className={wrap}>
       <table className="w-full min-w-[680px] text-sm">
@@ -60,7 +66,7 @@ function SkaterTable({ rows, badgeOf, t, locale }: { rows: RosterPlayerStats[]; 
           {rows.map((p) => (
             <tr key={p.playerId} className="group hover:bg-gray-50 dark:hover:bg-[#252525]">
               <td className={stickyTd}><PlayerName p={p} badge={badgeOf(p.playerId)} t={t} /></td>
-              <td className={ptsTd}>{fmtPoints(p.fantasyPoints, locale)}</td>
+              <td className={ptsTd}>{fmtPoints(starPts(p), locale)}</td>
               <td className={`${tdNum} hidden md:table-cell`}>{p.gp}</td>
               <td className={`${tdNum} hidden sm:table-cell`}>{p.goals}</td>
               <td className={`${tdNum} hidden sm:table-cell`}>{p.assists}</td>
@@ -76,7 +82,7 @@ function SkaterTable({ rows, badgeOf, t, locale }: { rows: RosterPlayerStats[]; 
         <tfoot className="border-t border-gray-200 bg-gray-50 text-xs dark:border-gray-700 dark:bg-[#252525]">
           <tr>
             <td className="sticky left-0 z-10 bg-gray-50 px-3 py-2 font-semibold text-gray-700 dark:bg-[#252525] dark:text-gray-200">{t('total')}</td>
-            <td className="px-3 py-2 text-right font-bold tabular-nums text-gray-900 dark:text-gray-100">{fmtPoints(sum('fantasyPoints'), locale)}</td>
+            <td className="px-3 py-2 text-right font-bold tabular-nums text-gray-900 dark:text-gray-100">{fmtPoints(totalPts, locale)}</td>
             <td className="hidden px-3 py-2 md:table-cell"></td>
             <td className="hidden px-3 py-2 text-right tabular-nums text-gray-500 sm:table-cell">{sum('goals')}</td>
             <td className="hidden px-3 py-2 text-right tabular-nums text-gray-500 sm:table-cell">{sum('assists')}</td>
@@ -115,7 +121,7 @@ function GoalieTable({ rows, badgeOf, t, locale }: { rows: RosterPlayerStats[]; 
           {rows.map((p) => (
             <tr key={p.playerId} className="group hover:bg-gray-50 dark:hover:bg-[#252525]">
               <td className={stickyTd}><PlayerName p={p} badge={badgeOf(p.playerId)} t={t} /></td>
-              <td className={ptsTd}>{fmtPoints(p.fantasyPoints, locale)}</td>
+              <td className={ptsTd}>{fmtPoints(starPts(p), locale)}</td>
               <td className={`${tdNum} hidden md:table-cell`}>{p.gp}</td>
               <td className={`${tdNum} hidden sm:table-cell`}>{p.wins}</td>
               <td className={`${tdNum} hidden sm:table-cell`}>{p.losses}</td>

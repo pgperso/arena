@@ -199,6 +199,9 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
               <section className="mt-8">
                 <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500">{t('bareme')}</h2>
                 <p className="mb-3 text-xs text-gray-400">{t('baremeSub')}</p>
+                {season?.starsEnabled && (
+                  <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-900/10 dark:text-amber-300">{t('starsNote')}</p>
+                )}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {([[t('skaters'), skaterRules], ...(rg > 0 ? [[t('goalies'), goalieRules]] : [])] as [string, typeof skaterRules][]).map(([title, list]) => (
                     <div key={title} className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">

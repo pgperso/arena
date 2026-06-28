@@ -12,7 +12,7 @@ import { fmtMoney } from '@/components/pool/format';
 import { TeamGoalies } from '@/components/pool/TeamGoalies';
 import { PoolNav } from '../PoolNav';
 import {
-  saveRoster, setTeam, confirmEntry, makeTransaction,
+  saveRoster, setTeam, setStars, confirmEntry, makeTransaction,
   type PoolPlayer, type SlotPick, type PoolPosition, type NhlTeamChoice,
 } from '@/services/poolService';
 
@@ -21,6 +21,7 @@ type Picker = PoolPosition | 'team' | null;
 export function PoolComposer({
   entryId, isLocked, isConfirmed, budgetCents, need, rosterTeams, players, teams, initialPicks, initialTeam,
   transactionsEnabled, maxTransactions, transactionsUsed,
+  starsEnabled, initialStarForward, initialStarDefense,
 }: {
   entryId: number;
   isLocked: boolean; // draft deadline passed → trade-only
@@ -35,6 +36,9 @@ export function PoolComposer({
   transactionsEnabled: boolean;
   maxTransactions: number;
   transactionsUsed: number;
+  starsEnabled: boolean;
+  initialStarForward: number | null;
+  initialStarDefense: number | null;
 }) {
   const t = useTranslations('pool.composer');
   const tPos = useTranslations('pool.positions');
@@ -46,6 +50,8 @@ export function PoolComposer({
   const locked = isLocked;
   const [picks, setPicks] = useState<SlotPick[]>(initialPicks);
   const [teamPick, setTeamPick] = useState<string | null>(initialTeam);
+  const [starFwd, setStarFwd] = useState<number | null>(initialStarForward);
+  const [starDef, setStarDef] = useState<number | null>(initialStarDefense);
   const [confirmed, setConfirmed] = useState(isConfirmed);
   const [picker, setPicker] = useState<Picker>(null);
   const [tradeFor, setTradeFor] = useState<{ playerId: number; pos: PoolPosition } | null>(null);
@@ -69,13 +75,25 @@ export function PoolComposer({
 
   const sectionDone = (pos: PoolPosition) => counts[pos] === need[pos];
   const teamDone = rosterTeams === 0 || !!teamPick;
+  const starsDone = !starsEnabled || (starFwd !== null && starDef !== null);
   const complete =
-    (['F', 'D', 'G'] as PoolPosition[]).every((p) => need[p] === 0 || sectionDone(p)) && teamDone;
+    (['F', 'D', 'G'] as PoolPosition[]).every((p) => need[p] === 0 || sectionDone(p)) && teamDone && starsDone;
 
   const canAdd = (p: PoolPlayer) =>
     !locked && !chosen.has(p.playerId) && counts[p.position] < need[p.position] && p.priceCents <= remaining;
   const add = (p: PoolPlayer) => { if (canAdd(p)) setPicks((cur) => [...cur, { playerId: p.playerId, slotPosition: p.position }]); };
-  const remove = (id: number) => { if (!locked) setPicks((cur) => cur.filter((p) => p.playerId !== id)); };
+  const remove = (id: number) => {
+    if (locked) return;
+    setPicks((cur) => cur.filter((p) => p.playerId !== id));
+    setStarFwd((s) => (s === id ? null : s));
+    setStarDef((s) => (s === id ? null : s));
+  };
+  const toggleStar = (pos: PoolPosition, id: number) => {
+    if (pos === 'F') setStarFwd((s) => (s === id ? null : id));
+    else if (pos === 'D') setStarDef((s) => (s === id ? null : id));
+    setConfirmed(false);
+  };
+  const starIdFor = (pos: PoolPosition) => (pos === 'F' ? starFwd : pos === 'D' ? starDef : null);
 
   // Trade (post-lock): drop `tradeFor`, add the candidate, if affordable.
   const canTrade = (p: PoolPlayer) => {
@@ -104,6 +122,10 @@ export function PoolComposer({
       const r2 = await setTeam(c, entryId, teamPick);
       if (r2.error) { toast.error(r2.error); return false; }
     }
+    if (starsEnabled) {
+      const r3 = await setStars(c, entryId, starFwd, starDef);
+      if (r3.error) { toast.error(r3.error); return false; }
+    }
     return true;
   }
 
@@ -131,6 +153,8 @@ export function PoolComposer({
     const done = sectionDone(pos);
     const emptyCount = Math.max(0, need[pos] - rows.length);
     const canTradeNow = locked && transactionsEnabled && remainingTrades > 0;
+    const starrable = starsEnabled && (pos === 'F' || pos === 'D');
+    const starId = starIdFor(pos);
     return (
       <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
@@ -145,10 +169,24 @@ export function PoolComposer({
             if (!p) return null;
             return (
               <li key={r.playerId} className="flex items-center justify-between gap-2 py-2 text-sm">
-                <span className="min-w-0 truncate text-gray-900 dark:text-gray-100">
+                <span className="flex min-w-0 items-center gap-1.5 truncate text-gray-900 dark:text-gray-100">
+                  {starId === r.playerId && <span className="text-amber-500" aria-hidden>★</span>}
                   {p.fullName} <span className="text-xs text-gray-400">{p.teamAbbrev}</span>
                 </span>
                 <span className="flex shrink-0 items-center gap-3">
+                  {starrable && !locked && (
+                    <button
+                      onClick={() => toggleStar(pos, r.playerId)}
+                      aria-pressed={starId === r.playerId}
+                      className={
+                        starId === r.playerId
+                          ? 'rounded-md bg-amber-500 px-2 py-1 text-xs font-semibold text-white'
+                          : 'rounded-md border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-[#252525]'
+                      }
+                    >
+                      ★ {t('star')}
+                    </button>
+                  )}
                   <span className="tabular-nums text-gray-600 dark:text-gray-300">{fmtMoney(p.priceCents, locale)}</span>
                   {!locked && (
                     <button onClick={() => remove(r.playerId)} className="text-xs font-medium text-red-600 hover:underline">
@@ -267,6 +305,11 @@ export function PoolComposer({
           <p className="text-sm text-gray-500">
             {t.rich('intro', { b: (chunks) => <strong>{chunks}</strong> })}
           </p>
+          {starsEnabled && (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-900/10 dark:text-amber-300">
+              ★ {t('starsHint')}
+            </p>
+          )}
           {need.F > 0 && renderPlayerSection('F')}
           {need.D > 0 && renderPlayerSection('D')}
           {need.G > 0 && renderPlayerSection('G')}

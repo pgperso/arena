@@ -36,9 +36,10 @@ export default async function ComposerPage({ params }: { params: Promise<{ local
   const db = supabase as unknown as SupabaseClient;
 
   // Ensure the member has an entry (create one with a sensible default name).
+  const ENTRY_COLS = 'id, is_locked, team_pick, is_confirmed, transactions_used, star_forward_id, star_defense_id';
   let { data: entry } = await db
     .from('pool_entries')
-    .select('id, is_locked, team_pick, is_confirmed, transactions_used')
+    .select(ENTRY_COLS)
     .eq('season_id', season.id)
     .eq('member_id', user.id)
     .maybeSingle();
@@ -51,11 +52,11 @@ export default async function ComposerPage({ params }: { params: Promise<{ local
     const { data: created } = await db
       .from('pool_entries')
       .insert({ season_id: season.id, member_id: user.id, team_name: teamName })
-      .select('id, is_locked, team_pick, is_confirmed, transactions_used')
+      .select(ENTRY_COLS)
       .single();
     entry = created;
   }
-  const entryRow = entry as unknown as { id: number; is_locked: boolean; team_pick: string | null; is_confirmed: boolean; transactions_used: number };
+  const entryRow = entry as unknown as { id: number; is_locked: boolean; team_pick: string | null; is_confirmed: boolean; transactions_used: number; star_forward_id: number | null; star_defense_id: number | null };
 
   const [players, teams] = await Promise.all([
     getPlayerPool(supabase, season.id),
@@ -86,6 +87,9 @@ export default async function ComposerPage({ params }: { params: Promise<{ local
       transactionsEnabled={season.transactionsEnabled}
       maxTransactions={season.maxTransactions}
       transactionsUsed={entryRow.transactions_used}
+      starsEnabled={season.starsEnabled}
+      initialStarForward={entryRow.star_forward_id}
+      initialStarDefense={entryRow.star_defense_id}
     />
   );
 }

@@ -42,6 +42,7 @@ export function PoolAdminClient({ season, rules }: { season: PoolSeason | null; 
     teamBasePoints: season?.teamBasePoints ?? 5,
     teamGfCoef: season?.teamGfCoef ?? 0,
     teamGaCoef: season?.teamGaCoef ?? -1,
+    starsEnabled: season?.starsEnabled ?? false,
   }));
   const [saving, setSaving] = useState(false);
 
@@ -81,6 +82,7 @@ export function PoolAdminClient({ season, rules }: { season: PoolSeason | null; 
           teamBasePoints: Number(form.teamBasePoints),
           teamGfCoef: Number(form.teamGfCoef),
           teamGaCoef: Number(form.teamGaCoef),
+          starsEnabled: form.starsEnabled,
         },
         rules: SCORING_CATALOG.map((c) => ({
           statKey: c.key,
@@ -227,6 +229,16 @@ export function PoolAdminClient({ season, rules }: { season: PoolSeason | null; 
             <p className="mt-1 text-xs text-gray-400">Ex. −1 : une équipe qui accorde 3 buts perd 3 pts ce soir-là.</p>
           </div>
         </div>
+      </section>
+
+      {/* Joueurs vedettes */}
+      <section className={cardCls}>
+        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500">Joueurs vedettes</h2>
+        <p className="mb-4 text-xs text-gray-400">Si activé, chaque membre désigne 1 attaquant vedette et 1 défenseur vedette : leurs points comptent en double.</p>
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input type="checkbox" checked={form.starsEnabled} onChange={(e) => upd('starsEnabled', e.target.checked)} />
+          Activer les joueurs vedettes (points ×2)
+        </label>
       </section>
 
       {/* Barème */}
