@@ -190,9 +190,17 @@ export function PressGalleryClient({
         {/* Full-width pool banner, above the headline */}
         <Link
           href="/lnh/pool"
-          className="group mb-6 block overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-r from-brand-blue to-brand-blue-dark p-5 text-white transition hover:opacity-95 dark:border-gray-700 sm:p-6"
+          className="group relative mb-6 block overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-r from-brand-blue to-brand-blue-dark p-5 text-white transition hover:opacity-95 dark:border-gray-700 sm:p-6"
         >
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          {/* Decorative background — subtle, behind the content */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/bg_pool.png"
+            alt=""
+            aria-hidden
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20"
+          />
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-white/80">{tPool('menuLink')}</p>
               <p className="mt-0.5 text-xl font-extrabold tracking-tight sm:text-2xl">{tPool('bannerTitle')}</p>
