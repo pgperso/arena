@@ -425,7 +425,7 @@ function PlayerPicker({
   const tPos = useTranslations('pool.positions');
   const locale = useLocale();
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<'value' | 'priceAsc' | 'priceDesc' | 'proj'>('value');
+  const [sort, setSort] = useState<'priceDesc' | 'priceAsc' | 'proj'>('priceDesc');
   const [affordableOnly, setAffordableOnly] = useState(false);
   const list = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -435,9 +435,8 @@ function PlayerPicker({
     if (q) l = l.filter((p) => p.fullName.toLowerCase().includes(q));
     const key =
       sort === 'priceAsc' ? (p: PoolPlayer) => -p.priceCents
-      : sort === 'priceDesc' ? (p: PoolPlayer) => p.priceCents
       : sort === 'proj' ? (p: PoolPlayer) => p.projPoints
-      : (p: PoolPlayer) => p.value;
+      : (p: PoolPlayer) => p.priceCents; // priceDesc (default)
     return [...l].sort((a, b) => key(b) - key(a));
   }, [players, pos, search, sort, chosen, affordableOnly, canPick]);
 
@@ -457,9 +456,8 @@ function PlayerPicker({
             className="min-w-[120px] flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-[#252525]" />
           <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}
             className="rounded-md border border-gray-300 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-[#252525]">
-            <option value="value">{t('sortValue')}</option>
-            <option value="priceAsc">{t('sortPriceAsc')}</option>
             <option value="priceDesc">{t('sortPriceDesc')}</option>
+            <option value="priceAsc">{t('sortPriceAsc')}</option>
             <option value="proj">{t('sortProj')}</option>
           </select>
           <label className="flex cursor-pointer items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
@@ -477,7 +475,7 @@ function PlayerPicker({
                 <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-2 dark:border-gray-800">
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{p.fullName}</div>
-                    <div className="text-xs text-gray-500">{p.teamAbbrev ?? '—'} · {t('proj')} {p.projPoints.toLocaleString(locale === 'fr' ? 'fr-CA' : 'en-CA', { maximumFractionDigits: 0 })}</div>
+                    <div className="text-xs text-gray-500" title={t('lastSeasonHint')}>{p.teamAbbrev ?? '—'} · {p.projPoints.toLocaleString(locale === 'fr' ? 'fr-CA' : 'en-CA', { maximumFractionDigits: 0 })} {t('ptsShort')}</div>
                   </div>
                   <div className="w-20 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtMoney(p.priceCents, locale)}</div>
                   {pickable ? (
