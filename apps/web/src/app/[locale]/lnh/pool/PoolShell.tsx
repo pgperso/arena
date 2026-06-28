@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { AdSidebar } from '@/components/ads/AdSidebar';
 import { AdAnchor } from '@/components/ads/AdAnchor';
 import { AdBanner } from '@/components/ads/AdBanner';
+import { PoolNav } from './PoolNav';
 
 type Width = 'prose' | 'standings' | 'wide';
 
@@ -35,7 +36,10 @@ export function PoolShell({
       <div className="flex flex-1 overflow-hidden border-t border-gray-200 dark:border-gray-700">
         {leftAd && <AdSidebar position="left" />}
         <main className="flex-1 overflow-y-auto bg-white dark:bg-[#1e1e1e]">
-          <div className={`mx-auto w-full ${MAX_W[width]} px-4 py-8`}>
+          <div className={`mx-auto w-full ${MAX_W[width]} px-4 py-6`}>
+            <div className="mb-6 border-b border-gray-200 pb-3 dark:border-gray-700">
+              <PoolNav />
+            </div>
             {children}
             {bottomAd && <AdBanner className="mt-8" />}
           </div>

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
@@ -95,11 +94,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ locale:
 
   return (
     <PoolShell width="standings">
-      <Link href="/lnh/pool/classement" className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
-        ← Retour au pool
-      </Link>
-
-      <div className="mt-3 flex items-center gap-4">
+      <div className="flex items-center gap-4">
         {player.headshot_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={player.headshot_url} alt="" className="h-16 w-16 rounded-full bg-gray-100 object-cover dark:bg-[#252525]" />

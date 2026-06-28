@@ -61,11 +61,7 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
   return (
     <PoolShell width="wide" leftAd={false}>
       <div className="max-w-3xl">
-        <Link href="/lnh/pool/classement" className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
-          ← Retour au classement
-        </Link>
-
-        <div className="mt-3 flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <TeamLogo logo={entry.team_logo} name={entry.team_name} size={44} />
           <div className="min-w-0">
             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{entry.team_name}</h1>

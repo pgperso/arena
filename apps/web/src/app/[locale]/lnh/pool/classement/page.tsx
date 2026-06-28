@@ -29,10 +29,7 @@ export default async function StandingsPage({ params }: { params: Promise<{ loca
 
   return (
     <PoolShell width="standings">
-            <div className="mb-4 flex items-center justify-between">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Classement — {season?.name ?? 'Pool LNH'}</h1>
-              <Link href="/lnh/pool" className="text-sm text-gray-600 underline dark:text-gray-300">Retour</Link>
-            </div>
+            <h1 className="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">Classement — {season?.name ?? 'Pool LNH'}</h1>
             {standings.length === 0 ? (
               <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700">
                 Aucune équipe au classement pour l’instant.
