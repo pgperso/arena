@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Virtuoso } from 'react-virtuoso';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -165,6 +166,9 @@ export function PoolComposer({
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-gray-700 dark:bg-[#1e1e1e]/95">
         <div className="mx-auto w-full max-w-5xl">
           <div className="mb-2"><PoolNav /></div>
+          <Link href="/lnh/pool/moi" className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
+            ← Mon équipe
+          </Link>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className={`text-sm font-medium ${confirmed ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400'}`}>
               {confirmed ? '✓ Équipe confirmée (active)' : '⚠ À confirmer'}

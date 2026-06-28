@@ -9,6 +9,15 @@ const LINKS = [
 ];
 
 /** Consistent pool navigation shown at the top of every pool page. */
+// Which top-level tab a (possibly deep) pool path belongs to.
+function isActive(href: string, path: string): boolean {
+  if (href === '/lnh/pool') return path === '/lnh/pool';
+  if (href === '/lnh/pool/moi') return path.startsWith('/lnh/pool/moi') || path.startsWith('/lnh/pool/composer');
+  if (href === '/lnh/pool/classement')
+    return path.startsWith('/lnh/pool/classement') || path.startsWith('/lnh/pool/equipe') || path.startsWith('/lnh/pool/joueur');
+  return path.startsWith(href);
+}
+
 export function PoolNav() {
   const path = usePathname();
   return (
@@ -18,7 +27,7 @@ export function PoolNav() {
       </Link>
       <div className="flex gap-1">
         {LINKS.map((l) => {
-          const active = l.href === '/lnh/pool' ? path === '/lnh/pool' : path.startsWith(l.href);
+          const active = isActive(l.href, path);
           return (
             <Link
               key={l.href}
