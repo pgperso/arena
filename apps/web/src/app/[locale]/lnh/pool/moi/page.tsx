@@ -49,9 +49,9 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
   const standing = standings.find((s) => s.entryId === entry.id);
 
   return (
-    <PoolShell width="wide" leftAd={false}>
+    <PoolShell>
       {/* Narrow track for text/header/cards */}
-      <div className="max-w-3xl">
+      <div>
         <div className="flex items-center gap-3">
           <TeamLogo logo={entry.team_logo} name={entry.team_name} size={44} />
           <div>

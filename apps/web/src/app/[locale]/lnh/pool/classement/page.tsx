@@ -28,7 +28,7 @@ export default async function StandingsPage({ params }: { params: Promise<{ loca
   const fmtPts = (n: number) => n.toLocaleString('fr-CA', { maximumFractionDigits: 1 });
 
   return (
-    <PoolShell width="standings">
+    <PoolShell>
             <h1 className="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">Classement — {season?.name ?? 'Pool LNH'}</h1>
             {standings.length === 0 ? (
               <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700">

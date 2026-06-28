@@ -84,7 +84,7 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
       : { href: '/lnh/pool/composer', label: 'Crée ton équipe' };
 
   return (
-    <PoolShell width="prose">
+    <PoolShell>
             {/* Hero / CTA */}
             <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-6 dark:border-gray-700 dark:from-[#252525] dark:to-[#1e1e1e]">
               <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Pool LNH</p>

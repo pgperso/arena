@@ -4,39 +4,27 @@ import { AdAnchor } from '@/components/ads/AdAnchor';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { PoolNav } from './PoolNav';
 
-type Width = 'prose' | 'standings' | 'wide';
-
-// Text wants ~65ch; tables want room. Wide-table pages widen the track and
-// keep prose narrow inside (see usage).
-const MAX_W: Record<Width, string> = {
-  prose: 'max-w-3xl',
-  standings: 'max-w-4xl',
-  wide: 'max-w-5xl 2xl:max-w-6xl',
-};
+/** One single content width for ALL pool pages — same chrome everywhere. */
+export const POOL_MAX_W = 'max-w-5xl';
 
 /**
- * Shared 3-column shell for all pool pages: [ad left] | content | [ad right]
- * + mobile anchor. Wide-table pages pass leftAd={false} to reclaim ~190px at
- * xl (the left skyscraper is the lowest-value unit).
+ * Shared shell for every pool page: [ad left] | content | [ad right] + mobile
+ * anchor + a bottom leaderboard. Every page gets the exact same width and ad
+ * layout so navigation feels consistent.
  */
 export function PoolShell({
   children,
-  width = 'prose',
-  leftAd = true,
   bottomAd = true,
 }: {
   children: ReactNode;
-  width?: Width;
-  leftAd?: boolean;
-  /** Horizontal leaderboard at the bottom of the content (content pages only). */
   bottomAd?: boolean;
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex flex-1 overflow-hidden border-t border-gray-200 dark:border-gray-700">
-        {leftAd && <AdSidebar position="left" />}
+        <AdSidebar position="left" />
         <main className="flex-1 overflow-y-auto bg-white dark:bg-[#1e1e1e]">
-          <div className={`mx-auto w-full ${MAX_W[width]} px-4 py-6`}>
+          <div className={`mx-auto w-full ${POOL_MAX_W} px-4 py-6`}>
             <div className="mb-6 border-b border-gray-200 pb-3 dark:border-gray-700">
               <PoolNav />
             </div>

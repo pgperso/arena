@@ -93,7 +93,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ locale:
   ];
 
   return (
-    <PoolShell width="standings">
+    <PoolShell>
       <div className="flex items-center gap-4">
         {player.headshot_url ? (
           // eslint-disable-next-line @next/next/no-img-element
