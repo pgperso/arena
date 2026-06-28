@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getActiveSeason, getStandings, getRosterWithStats, getTeamChoices, type NhlTeamChoice } from '@/services/poolService';
 import { PoolShell } from '../PoolShell';
 import { PoolRosterStats } from '@/components/pool/PoolRosterStats';
+import { TeamGoalies } from '@/components/pool/TeamGoalies';
 import { TeamIdentityEditor } from './TeamIdentityEditor';
 import { fmtMoney, fmtPoints, fmtNum } from '@/components/pool/format';
 import { TeamLogo } from '@/components/pool/TeamLogo';
@@ -22,6 +23,8 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('pool.myTeamPage');
+  const tRoster = await getTranslations('pool.roster');
+  const tPool = await getTranslations('pool');
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login?redirect=/lnh/pool/moi');
@@ -136,6 +139,7 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
                   </div>
                 ))}
               </div>
+              <TeamGoalies goalies={teamPickInfo.goalies} locale={locale} t={(k) => tRoster(k)} title={tPool('goaliesTitle')} />
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700">

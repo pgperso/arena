@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getActiveSeason, getStandings, getRosterWithStats, getTeamChoices, type NhlTeamChoice } from '@/services/poolService';
 import { PoolShell } from '../../PoolShell';
 import { PoolRosterStats } from '@/components/pool/PoolRosterStats';
+import { TeamGoalies } from '@/components/pool/TeamGoalies';
 import { TeamLogo } from '@/components/pool/TeamLogo';
 import { fmtMoney, fmtPoints } from '@/components/pool/format';
 import { BRAND } from '@/lib/brand';
@@ -34,6 +35,7 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
   const t = await getTranslations('pool.teamPage');
   const tMy = await getTranslations('pool.myTeamPage');
   const tPool = await getTranslations('pool');
+  const tRoster = await getTranslations('pool.roster');
   const entryId = Number(id);
   if (!Number.isFinite(entryId)) notFound();
 
@@ -132,6 +134,7 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
                 </div>
               ))}
             </div>
+            <TeamGoalies goalies={teamPickInfo.goalies} locale={locale} t={(k) => tRoster(k)} title={tPool('goaliesTitle')} />
           </div>
         </section>
       )}

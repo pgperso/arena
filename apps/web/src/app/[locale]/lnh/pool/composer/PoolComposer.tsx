@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { AdAnchor } from '@/components/ads/AdAnchor';
 import { fmtMoney } from '@/components/pool/format';
+import { TeamGoalies } from '@/components/pool/TeamGoalies';
 import { PoolNav } from '../PoolNav';
 import {
   saveRoster, setTeam, confirmEntry,
@@ -35,6 +36,8 @@ export function PoolComposer({
 }) {
   const t = useTranslations('pool.composer');
   const tPos = useTranslations('pool.positions');
+  const tRoster = useTranslations('pool.roster');
+  const tRoot = useTranslations('pool');
   const locale = useLocale();
   const router = useRouter();
   const locked = isLocked;
@@ -154,13 +157,16 @@ export function PoolComposer({
         )}
       </div>
       {teamObj ? (
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
-          <span className="font-medium text-gray-900 dark:text-gray-100">{teamObj.name}</span>
-          <span className="flex items-center gap-3 text-xs tabular-nums text-gray-500">
-            <span>{teamObj.gp} {t('statGp')} · {teamObj.wins}-{teamObj.losses} · {t('statFor')} {teamObj.gf} / {t('statAgainst')} {teamObj.ga}</span>
-            <span className="font-semibold text-gray-900 dark:text-gray-100">{fmtMoney(teamObj.priceCents, locale)}</span>
-          </span>
-        </div>
+        <>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
+            <span className="font-medium text-gray-900 dark:text-gray-100">{teamObj.name}</span>
+            <span className="flex items-center gap-3 text-xs tabular-nums text-gray-500">
+              <span>{teamObj.gp} {t('statGp')} · {teamObj.wins}-{teamObj.losses} · {t('statFor')} {teamObj.gf} / {t('statAgainst')} {teamObj.ga}</span>
+              <span className="font-semibold text-gray-900 dark:text-gray-100">{fmtMoney(teamObj.priceCents, locale)}</span>
+            </span>
+          </div>
+          <TeamGoalies goalies={teamObj.goalies} locale={locale} t={(k) => tRoster(k)} title={tRoot('goaliesTitle')} />
+        </>
       ) : (
         <p className="mt-2 text-sm text-gray-400">{t('noTeamChosen')}</p>
       )}

@@ -54,6 +54,7 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
   const rf = season?.rosterF ?? 12;
   const rd = season?.rosterD ?? 6;
   const rg = season?.rosterG ?? 2;
+  const rt = season?.rosterTeams ?? 0;
   const budgetM = season ? fmtNum(season.budgetCents / 100_000_000, locale, 1) : '100';
   const lockDateStr = season?.lockAt
     ? new Date(season.lockAt).toLocaleDateString(locale === 'fr' ? 'fr-CA' : 'en-CA', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -124,7 +125,7 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
                 {season?.name ?? tPool('title')}
               </h1>
               <p className="mt-2 max-w-prose text-sm text-gray-600 dark:text-gray-300">
-                {t('heroDesc', { f: rf, d: rd, g: rg, budget: budgetM })}
+                {t('heroDesc', { f: rf, d: rd, g: rg, teams: rt, budget: budgetM })}
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 {season && (
@@ -176,7 +177,7 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">{t('howItWorks')}</h2>
               <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {[
-                  ['1', t('step1Title'), t('step1Desc', { f: rf, d: rd, g: rg, budget: budgetM })],
+                  ['1', t('step1Title'), t('step1Desc', { f: rf, d: rd, g: rg, teams: rt, budget: budgetM })],
                   ['2', t('step2Title'), lockDateStr ? t('step2DescDate', { date: lockDateStr }) : t('step2Desc')],
                   ['3', t('step3Title'), t('step3Desc')],
                   ['4', t('step4Title'), t('step4Desc')],

@@ -85,7 +85,24 @@ export interface StandingRow {
   previousRank: number | null;
 }
 
-/** An NHL team as a draftable pool "slot": its price (top goalie cap hit) + season stats. */
+/** One of a team's two official goalies — salary + season stats. */
+export interface TeamGoalie {
+  playerId: number;
+  fullName: string;
+  priceCents: number;
+  gp: number;
+  wins: number;
+  losses: number;
+  otLosses: number;
+  saves: number;
+  shotsAgainst: number;
+  goalsAgainst: number;
+  toiSeconds: number;
+  shutouts: number;
+  fantasyPoints: number;
+}
+
+/** An NHL team as a draftable pool "slot": its price (= its two goalies' cap hits) + season stats. */
 export interface NhlTeamChoice {
   abbrev: string;
   name: string;
@@ -96,6 +113,8 @@ export interface NhlTeamChoice {
   wins: number;
   losses: number;
   teamPoints: number;
+  /** The two official goalies (top-2 cap hits) whose salaries make the team price. */
+  goalies: TeamGoalie[];
 }
 
 type SeasonRow = {
@@ -268,18 +287,24 @@ export async function getStandings(client: AnyClient, seasonId: number): Promise
 }
 
 /**
- * The 32 NHL teams as draftable "slots" for a season: price (= top goalie cap
- * hit, counted in the budget) plus season stats (GP/GF/GA/W/L) and the pool
- * points the team has produced. Shipped to the composer like the player pool.
+ * The 32 NHL teams as draftable "slots" for a season: price (= the two
+ * official goalies' cap hits, counted in the budget) plus season stats
+ * (GP/GF/GA/W/L), the pool points the team has produced, and the two goalies
+ * (top-2 cap hits) with their stats. Shipped to the composer like the player pool.
  */
 export async function getTeamChoices(client: AnyClient, seasonId: number): Promise<NhlTeamChoice[]> {
   const db = client as unknown as Db;
-  const { data } = await db
-    .from('pool_team_season')
-    .select('team_abbrev, name, price_cents, gp, gf, ga, wins, losses, team_points')
-    .eq('pool_season_id', seasonId)
-    .order('name');
-  return ((data ?? []) as unknown as Array<{
+
+  const [{ data: teamData }, goaliesByTeam] = await Promise.all([
+    db
+      .from('pool_team_season')
+      .select('team_abbrev, name, price_cents, gp, gf, ga, wins, losses, team_points')
+      .eq('pool_season_id', seasonId)
+      .order('name'),
+    getTeamGoaliesByTeam(db, seasonId),
+  ]);
+
+  return ((teamData ?? []) as unknown as Array<{
     team_abbrev: string;
     name: string;
     price_cents: number;
@@ -299,7 +324,78 @@ export async function getTeamChoices(client: AnyClient, seasonId: number): Promi
     wins: Number(t.wins),
     losses: Number(t.losses),
     teamPoints: Number(t.team_points),
+    goalies: goaliesByTeam.get(t.team_abbrev) ?? [],
   }));
+}
+
+/**
+ * The two official goalies per team (top-2 cap hits) with their season stats,
+ * keyed by team abbrev. Their salaries are what make up the team price, so the
+ * "top 2 by cap hit" rule here must match pool_team_price() in SQL.
+ */
+async function getTeamGoaliesByTeam(db: Db, seasonId: number): Promise<Map<string, TeamGoalie[]>> {
+  const { data: priceData } = await db
+    .from('pool_player_prices')
+    .select('player_id, price_cents, nhl_players!inner(full_name, team_abbrev)')
+    .eq('season_id', seasonId)
+    .eq('position', 'G');
+  const rows = (priceData ?? []) as unknown as Array<{
+    player_id: number;
+    price_cents: number;
+    nhl_players: { full_name: string; team_abbrev: string | null };
+  }>;
+
+  // Group by team, keep the two highest cap hits.
+  const byTeam = new Map<string, Array<{ playerId: number; fullName: string; priceCents: number }>>();
+  for (const r of rows) {
+    const team = r.nhl_players.team_abbrev;
+    if (!team) continue;
+    const arr = byTeam.get(team) ?? [];
+    arr.push({ playerId: r.player_id, fullName: r.nhl_players.full_name, priceCents: Number(r.price_cents) });
+    byTeam.set(team, arr);
+  }
+  for (const [team, arr] of byTeam) {
+    byTeam.set(team, arr.sort((a, b) => b.priceCents - a.priceCents).slice(0, 2));
+  }
+
+  // Fetch season stats for just those goalies.
+  const ids = [...byTeam.values()].flat().map((g) => g.playerId);
+  const statMap = new Map<number, Record<string, number>>();
+  if (ids.length > 0) {
+    const { data: statData } = await db
+      .from('pool_player_season_stats')
+      .select('*')
+      .eq('pool_season_id', seasonId)
+      .in('player_id', ids);
+    for (const r of (statData ?? []) as Array<Record<string, number>>) statMap.set(r.player_id as number, r);
+  }
+
+  const n = (v: unknown) => Number(v ?? 0);
+  const result = new Map<string, TeamGoalie[]>();
+  for (const [team, arr] of byTeam) {
+    result.set(
+      team,
+      arr.map((g) => {
+        const st = statMap.get(g.playerId);
+        return {
+          playerId: g.playerId,
+          fullName: g.fullName,
+          priceCents: g.priceCents,
+          gp: n(st?.gp),
+          wins: n(st?.wins),
+          losses: n(st?.losses),
+          otLosses: n(st?.ot_losses),
+          saves: n(st?.saves),
+          shotsAgainst: n(st?.shots_against),
+          goalsAgainst: n(st?.goals_against),
+          toiSeconds: n(st?.toi_seconds),
+          shutouts: n(st?.shutouts),
+          fantasyPoints: n(st?.fantasy_points),
+        };
+      }),
+    );
+  }
+  return result;
 }
 
 /** Set the caller's team name + logo (allowed any time, even post-lock). */
