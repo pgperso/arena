@@ -71,22 +71,6 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">Identité de l&apos;équipe</h2>
           <TeamIdentityEditor entryId={entry.id} memberId={user.id} initialName={entry.team_name} initialLogo={entry.team_logo} />
         </section>
-
-        {season.rosterTeams > 0 && (
-          <section className="mt-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">Équipe LNH</h2>
-            {teamPickInfo ? (
-              <div className="flex items-center gap-2 text-sm">
-                <TeamLogo logo={teamPickInfo.logoUrl} name={teamPickInfo.name} size={28} />
-                <span className="text-gray-900 dark:text-gray-100">{teamPickInfo.name}</span>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-400">
-                Aucune équipe choisie. <Link href="/lnh/pool/composer" className="underline">Choisis-en une.</Link>
-              </p>
-            )}
-          </section>
-        )}
       </div>
 
       {/* Stat cards — span the full width of the wide track */}
@@ -126,6 +110,22 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
         </div>
       ) : (
         <PoolRosterStats rows={rows} />
+      )}
+
+      {season.rosterTeams > 0 && (
+        <section className="mt-6">
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">Équipe LNH</h2>
+          {teamPickInfo ? (
+            <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <TeamLogo logo={teamPickInfo.logoUrl} name={teamPickInfo.name} size={28} />
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{teamPickInfo.name}</span>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700">
+              Aucune équipe choisie. <Link href="/lnh/pool/composer" className="underline">Choisis-en une.</Link>
+            </div>
+          )}
+        </section>
       )}
     </PoolShell>
   );
