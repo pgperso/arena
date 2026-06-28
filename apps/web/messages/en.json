@@ -398,6 +398,7 @@
     "weeks": "{count}w"
   },
   "pool": {
+    "navTitle": "TRIBUNE POOL",
     "menuLink": "NHL Pool",
     "title": "NHL Pool",
     "tagline": "Build a salary-cap roster and climb the standings.",

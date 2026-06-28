@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 
 const LINKS = [
@@ -20,10 +21,11 @@ function isActive(href: string, path: string): boolean {
 
 export function PoolNav() {
   const path = usePathname();
+  const t = useTranslations('pool');
   return (
-    <nav className="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <Link href="/lnh/pool" className="flex items-center gap-1.5 text-base font-bold text-gray-900 dark:text-gray-100">
-        Pool LNH
+    <nav className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <Link href="/lnh/pool" className="flex items-center gap-1.5 text-xl font-extrabold uppercase tracking-tight text-gray-900 sm:text-2xl dark:text-gray-100">
+        {t('navTitle')}
       </Link>
       <div className="flex gap-1">
         {LINKS.map((l) => {
