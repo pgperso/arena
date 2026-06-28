@@ -2,10 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import { getActiveSeason, getStandings, getScoringRules, SCORING_CATALOG } from '@/services/poolService';
+import { getActiveSeason, getScoringRules, SCORING_CATALOG } from '@/services/poolService';
 import { PoolShell } from './PoolShell';
-import { TeamLogo } from '@/components/pool/TeamLogo';
-import { fmtPoints, fmtNum } from '@/components/pool/format';
+import { fmtNum } from '@/components/pool/format';
 import { BRAND } from '@/lib/brand';
 
 // Public, content-rich, indexable — this is monetized inventory (sidebars +
@@ -40,7 +39,6 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
   const supabase = await createClient();
 
   const season = await getActiveSeason(supabase);
-  const standings = season ? await getStandings(supabase, season.id) : [];
   const rules = season ? await getScoringRules(supabase, season.id) : [];
 
   // Barème — only the stats that actually score; labels come from i18n by key.
@@ -80,7 +78,6 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
     myEntryId = (data as { id: number } | null)?.id ?? null;
   }
 
-  const fmtPts = (n: number) => fmtPoints(n, locale);
   const cta = myEntryId
     ? { href: '/lnh/pool/moi', label: tPool('myTeam') }
     : { href: user ? '/lnh/pool/composer' : '/login?redirect=/lnh/pool/composer', label: t('ctaCreate') };
@@ -182,55 +179,6 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
                 </div>
               </section>
             )}
-
-            {/* Standings preview */}
-            <section className="mt-8">
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">{tPool('standings')}</h2>
-              {standings.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700">
-                  {season ? t('noTeamsYet') : t('poolOpensSoon')}
-                </div>
-              ) : (
-                <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500 dark:bg-[#252525]">
-                      <tr>
-                        <th className="px-4 py-2 font-medium">#</th>
-                        <th className="px-4 py-2 font-medium">{t('colTeam')}</th>
-                        <th className="px-4 py-2 text-right font-medium">{t('colPoints')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                      {standings.slice(0, 20).map((s) => (
-                        <tr key={s.entryId} className="hover:bg-gray-50 dark:hover:bg-[#252525]">
-                          <td className="px-4 py-2 tabular-nums text-gray-500">{s.rank ?? '—'}</td>
-                          <td className="px-4 py-2">
-                            <div className="flex items-center gap-2">
-                              <TeamLogo logo={s.teamLogo} name={s.teamName} size={28} />
-                              <div className="min-w-0">
-                                <Link href={`/lnh/pool/equipe/${s.entryId}`} className="block truncate font-medium text-gray-900 hover:underline dark:text-gray-100">{s.teamName}</Link>
-                                {s.ownerName && (
-                                  <Link href={`/auteurs/${s.ownerName}`} className="flex items-center gap-1 text-xs text-gray-500 hover:underline">
-                                    {s.ownerAvatar && (
-                                      // eslint-disable-next-line @next/next/no-img-element
-                                      <img src={s.ownerAvatar} alt="" className="h-3.5 w-3.5 rounded-full object-cover" />
-                                    )}
-                                    @{s.ownerName}
-                                  </Link>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-2 text-right font-semibold tabular-nums text-gray-900 dark:text-gray-100">
-                            {fmtPts(s.fantasyPoints)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </section>
     </PoolShell>
   );
 }
