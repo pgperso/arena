@@ -9,7 +9,7 @@ import { AdAnchor } from '@/components/ads/AdAnchor';
 import { TeamLogo } from '@/components/pool/TeamLogo';
 import { PoolNav } from '../PoolNav';
 import {
-  buildQuickLineup, saveRoster, setTeam, confirmEntry,
+  saveRoster, setTeam, confirmEntry,
   type PoolPlayer, type SlotPick, type PoolPosition, type NhlTeamOption,
 } from '@/services/poolService';
 
@@ -61,12 +61,6 @@ export function PoolComposer({
     !locked && !chosen.has(p.playerId) && counts[p.position] < need[p.position] && p.priceCents <= remaining;
   const add = (p: PoolPlayer) => { if (canAdd(p)) setPicks((cur) => [...cur, { playerId: p.playerId, slotPosition: p.position }]); };
   const remove = (id: number) => { if (!locked) setPicks((cur) => cur.filter((p) => p.playerId !== id)); };
-
-  const autopick = () => {
-    if (locked) return;
-    setPicks(buildQuickLineup(players, need, budgetCents, entryId));
-    toast.success('Équipe instantanée générée — ajuste-la à ton goût');
-  };
 
   async function persist(): Promise<boolean> {
     const c = createClient();
@@ -185,10 +179,6 @@ export function PoolComposer({
           </div>
           {!locked && (
             <div className="mt-3 flex flex-wrap gap-2">
-              <button onClick={autopick} disabled={busy}
-                className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-[#252525]">
-                ⚡ Équipe instantanée
-              </button>
               <button onClick={handleSave} disabled={busy}
                 className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-[#252525]">
                 Enregistrer
