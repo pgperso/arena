@@ -283,7 +283,6 @@ export function PoolComposer({
           chosen={chosen}
           canPick={canAdd}
           onPick={add}
-          onRemove={remove}
           counts={counts}
           need={need}
           remaining={remaining}
@@ -300,7 +299,6 @@ export function PoolComposer({
           chosen={chosen}
           canPick={canTrade}
           onPick={doTrade}
-          onRemove={() => {}}
           counts={counts}
           need={need}
           remaining={remaining}
@@ -324,7 +322,7 @@ export function PoolComposer({
 
 // ── Player picker modal (one position, add or trade mode) ───────────────────
 function PlayerPicker({
-  mode, pos, players, chosen, canPick, onPick, onRemove, counts, need, remaining, dropName, busy, onClose,
+  mode, pos, players, chosen, canPick, onPick, counts, need, remaining, dropName, busy, onClose,
 }: {
   mode: 'add' | 'trade';
   pos: PoolPosition;
@@ -332,7 +330,6 @@ function PlayerPicker({
   chosen: Set<number>;
   canPick: (p: PoolPlayer) => boolean;
   onPick: (p: PoolPlayer) => void;
-  onRemove: (id: number) => void;
   counts: Record<PoolPosition, number>;
   need: { F: number; D: number; G: number };
   remaining: number;
@@ -344,16 +341,21 @@ function PlayerPicker({
   const tPos = useTranslations('pool.positions');
   const locale = useLocale();
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<'value' | 'price' | 'proj'>('value');
+  const [sort, setSort] = useState<'value' | 'priceAsc' | 'priceDesc' | 'proj'>('value');
+  const [affordableOnly, setAffordableOnly] = useState(false);
   const list = useMemo(() => {
     const q = search.trim().toLowerCase();
-    let l = players.filter((p) => p.position === pos);
-    // In trade mode, hide players already on the roster (you can't trade for them).
-    if (mode === 'trade') l = l.filter((p) => !chosen.has(p.playerId));
+    // Always hide players already on the roster — you can't pick them again.
+    let l = players.filter((p) => p.position === pos && !chosen.has(p.playerId));
+    if (affordableOnly) l = l.filter((p) => canPick(p));
     if (q) l = l.filter((p) => p.fullName.toLowerCase().includes(q));
-    const key = sort === 'price' ? (p: PoolPlayer) => -p.priceCents : sort === 'proj' ? (p: PoolPlayer) => p.projPoints : (p: PoolPlayer) => p.value;
+    const key =
+      sort === 'priceAsc' ? (p: PoolPlayer) => -p.priceCents
+      : sort === 'priceDesc' ? (p: PoolPlayer) => p.priceCents
+      : sort === 'proj' ? (p: PoolPlayer) => p.projPoints
+      : (p: PoolPlayer) => p.value;
     return [...l].sort((a, b) => key(b) - key(a));
-  }, [players, pos, search, sort, mode, chosen]);
+  }, [players, pos, search, sort, chosen, affordableOnly, canPick]);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black/40" onClick={onClose}>
@@ -366,21 +368,25 @@ function PlayerPicker({
           </h3>
           <button onClick={onClose} className="ml-2 shrink-0 rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">{t('done')}</button>
         </div>
-        <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-2 dark:border-gray-700">
+        <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 px-4 py-2 dark:border-gray-700">
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('searchPlaceholder')}
             className="min-w-[120px] flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-[#252525]" />
           <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}
             className="rounded-md border border-gray-300 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-[#252525]">
             <option value="value">{t('sortValue')}</option>
-            <option value="price">{t('sortPrice')}</option>
+            <option value="priceAsc">{t('sortPriceAsc')}</option>
+            <option value="priceDesc">{t('sortPriceDesc')}</option>
             <option value="proj">{t('sortProj')}</option>
           </select>
+          <label className="flex cursor-pointer items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
+            <input type="checkbox" checked={affordableOnly} onChange={(e) => setAffordableOnly(e.target.checked)} className="rounded border-gray-300" />
+            {t('affordableOnly')}
+          </label>
         </div>
         <div className="min-h-0 flex-1">
           <Virtuoso
             data={list}
             itemContent={(_i, p) => {
-              const inRoster = chosen.has(p.playerId);
               const pickable = canPick(p) && !busy;
               const actionLabel = mode === 'trade' ? t('trade') : t('add');
               return (
@@ -390,9 +396,7 @@ function PlayerPicker({
                     <div className="text-xs text-gray-500">{p.teamAbbrev ?? '—'} · {t('proj')} {p.projPoints.toLocaleString(locale === 'fr' ? 'fr-CA' : 'en-CA', { maximumFractionDigits: 0 })}</div>
                   </div>
                   <div className="w-20 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtMoney(p.priceCents, locale)}</div>
-                  {mode === 'add' && inRoster ? (
-                    <button onClick={() => onRemove(p.playerId)} className="w-20 rounded-md border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50">{t('remove')}</button>
-                  ) : pickable ? (
+                  {pickable ? (
                     <button onClick={() => onPick(p)} className="w-20 rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white hover:bg-gray-800 disabled:opacity-50 dark:bg-white dark:text-gray-900">{actionLabel}</button>
                   ) : (
                     <span className="w-20 text-center text-xs font-medium text-gray-400">
