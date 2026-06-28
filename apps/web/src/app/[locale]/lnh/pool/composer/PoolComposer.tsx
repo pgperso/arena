@@ -259,18 +259,20 @@ export function PoolComposer({
         </div>
       </div>
 
-      {/* Sections */}
-      <div className="mx-auto w-full max-w-5xl flex-1 space-y-4 px-4 py-6">
-        <p className="text-sm text-gray-500">
-          {t.rich('intro', { b: (chunks) => <strong>{chunks}</strong> })}
-        </p>
-        {need.F > 0 && renderPlayerSection('F')}
-        {need.D > 0 && renderPlayerSection('D')}
-        {need.G > 0 && renderPlayerSection('G')}
-        {rosterTeams > 0 && renderTeamSection()}
+      {/* Scrollable body — the app <main> is overflow-hidden, so the page must
+          provide its own scroll container or the content gets clipped. */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-6">
+          <p className="text-sm text-gray-500">
+            {t.rich('intro', { b: (chunks) => <strong>{chunks}</strong> })}
+          </p>
+          {need.F > 0 && renderPlayerSection('F')}
+          {need.D > 0 && renderPlayerSection('D')}
+          {need.G > 0 && renderPlayerSection('G')}
+          {rosterTeams > 0 && renderTeamSection()}
+        </div>
+        <AdAnchor />
       </div>
-
-      <AdAnchor />
 
       {/* Add picker */}
       {picker && picker !== 'team' && (
