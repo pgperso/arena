@@ -187,6 +187,23 @@ export function PressGalleryClient({
           </div>
         )}
 
+        {/* Full-width pool banner, above the headline */}
+        <Link
+          href="/lnh/pool"
+          className="group mb-6 block overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-r from-brand-blue to-brand-blue-dark p-5 text-white transition hover:opacity-95 dark:border-gray-700 sm:p-6"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-white/80">{tPool('menuLink')}</p>
+              <p className="mt-0.5 text-xl font-extrabold uppercase tracking-tight sm:text-2xl">{tPool('navTitle')}</p>
+              <p className="mt-1 max-w-2xl text-sm text-white/90">{tPool('tagline')}</p>
+            </div>
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-sm font-bold text-brand-blue-dark transition group-hover:gap-2.5">
+              {tPool('cta')} →
+            </span>
+          </div>
+        </Link>
+
         {/* Hero section */}
         {heroMode !== 'hidden' && (
           <HeroSection featuredItems={visibleFeatured} mode={heroMode} />
@@ -278,14 +295,6 @@ export function PressGalleryClient({
           <aside className="hidden w-[320px] shrink-0 lg:block">
             <div className="sticky top-24 space-y-4">
               <PollBlock poll={poll} />
-              <Link
-                href="/lnh/pool"
-                className="block rounded-xl border border-gray-200 bg-gradient-to-br from-brand-blue to-brand-blue-dark p-4 text-white transition hover:opacity-95 dark:border-gray-700"
-              >
-                <p className="text-xs font-semibold uppercase tracking-wide text-white/80">{tPool('title')}</p>
-                <p className="mt-1 text-sm font-medium">{tPool('tagline')}</p>
-                <span className="mt-2 inline-block text-sm font-bold underline">{tPool('cta')} →</span>
-              </Link>
               <MetreCards />
               {sidebarSlot}
               <AdSlot slotId="press-sidebar" format="half-page" />
