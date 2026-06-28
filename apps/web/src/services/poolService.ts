@@ -85,10 +85,17 @@ export interface StandingRow {
   previousRank: number | null;
 }
 
-export interface NhlTeamOption {
+/** An NHL team as a draftable pool "slot": its price (top goalie cap hit) + season stats. */
+export interface NhlTeamChoice {
   abbrev: string;
   name: string;
-  logoUrl: string | null;
+  priceCents: number;
+  gp: number;
+  gf: number;
+  ga: number;
+  wins: number;
+  losses: number;
+  teamPoints: number;
 }
 
 type SeasonRow = {
@@ -260,13 +267,39 @@ export async function getStandings(client: AnyClient, seasonId: number): Promise
   return rows;
 }
 
-/** The 32 NHL teams as logo options for a pool team's identity. */
-export async function getNhlTeamOptions(client: AnyClient): Promise<NhlTeamOption[]> {
+/**
+ * The 32 NHL teams as draftable "slots" for a season: price (= top goalie cap
+ * hit, counted in the budget) plus season stats (GP/GF/GA/W/L) and the pool
+ * points the team has produced. Shipped to the composer like the player pool.
+ */
+export async function getTeamChoices(client: AnyClient, seasonId: number): Promise<NhlTeamChoice[]> {
   const db = client as unknown as Db;
-  const { data } = await db.from('nhl_teams').select('abbrev, full_name, name, logo_url').order('full_name');
-  return ((data ?? []) as unknown as Array<{ abbrev: string; full_name: string | null; name: string; logo_url: string | null }>).map(
-    (t) => ({ abbrev: t.abbrev, name: t.full_name ?? t.name, logoUrl: t.logo_url }),
-  );
+  const { data } = await db
+    .from('pool_team_season')
+    .select('team_abbrev, name, price_cents, gp, gf, ga, wins, losses, team_points')
+    .eq('pool_season_id', seasonId)
+    .order('name');
+  return ((data ?? []) as unknown as Array<{
+    team_abbrev: string;
+    name: string;
+    price_cents: number;
+    gp: number;
+    gf: number;
+    ga: number;
+    wins: number;
+    losses: number;
+    team_points: number;
+  }>).map((t) => ({
+    abbrev: t.team_abbrev,
+    name: t.name,
+    priceCents: Number(t.price_cents),
+    gp: Number(t.gp),
+    gf: Number(t.gf),
+    ga: Number(t.ga),
+    wins: Number(t.wins),
+    losses: Number(t.losses),
+    teamPoints: Number(t.team_points),
+  }));
 }
 
 /** Set the caller's team name + logo (allowed any time, even post-lock). */

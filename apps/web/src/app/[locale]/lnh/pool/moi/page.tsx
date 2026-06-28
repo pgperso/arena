@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import { getActiveSeason, getStandings, getRosterWithStats } from '@/services/poolService';
+import { getActiveSeason, getStandings, getRosterWithStats, getTeamChoices, type NhlTeamChoice } from '@/services/poolService';
 import { PoolShell } from '../PoolShell';
 import { PoolRosterStats } from '@/components/pool/PoolRosterStats';
 import { TeamIdentityEditor } from './TeamIdentityEditor';
@@ -40,11 +40,10 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
   const entry = entryData as { id: number; team_name: string; team_logo: string | null; is_locked: boolean; spent_cents: number; transactions_used: number; team_pick: string | null } | null;
   if (!entry) redirect('/lnh/pool/composer');
 
-  let teamPickInfo: { name: string; logoUrl: string | null } | null = null;
-  if (entry.team_pick) {
-    const { data: tp } = await db.from('nhl_teams').select('full_name, name, logo_url').eq('abbrev', entry.team_pick).maybeSingle();
-    const t = tp as { full_name: string | null; name: string; logo_url: string | null } | null;
-    if (t) teamPickInfo = { name: t.full_name ?? t.name, logoUrl: t.logo_url };
+  let teamPickInfo: NhlTeamChoice | null = null;
+  if (entry.team_pick && season.rosterTeams > 0) {
+    const teams = await getTeamChoices(supabase, season.id);
+    teamPickInfo = teams.find((t) => t.abbrev === entry.team_pick) ?? null;
   }
 
   const draftClosed = Boolean(season.lockAt && new Date(season.lockAt) <= new Date());
@@ -116,9 +115,28 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
         <section className="mt-6">
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">Équipe LNH</h2>
           {teamPickInfo ? (
-            <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-              <TeamLogo logo={teamPickInfo.logoUrl} name={teamPickInfo.name} size={28} />
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{teamPickInfo.name}</span>
+            <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{teamPickInfo.name}</span>
+                <span className="text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtM(teamPickInfo.priceCents)}</span>
+              </div>
+              <div className="mt-2 grid grid-cols-3 gap-2 text-center sm:grid-cols-6">
+                {[
+                  { l: 'PJ', v: teamPickInfo.gp },
+                  { l: 'V', v: teamPickInfo.wins },
+                  { l: 'D', v: teamPickInfo.losses },
+                  { l: 'BP', v: teamPickInfo.gf },
+                  { l: 'BC', v: teamPickInfo.ga },
+                  { l: 'Pts pool', v: teamPickInfo.teamPoints },
+                ].map((s) => (
+                  <div key={s.l}>
+                    <div className="text-xs uppercase tracking-wide text-gray-500">{s.l}</div>
+                    <div className="text-sm font-bold tabular-nums text-gray-900 dark:text-gray-100">
+                      {s.v.toLocaleString('fr-CA', { maximumFractionDigits: 0 })}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700">

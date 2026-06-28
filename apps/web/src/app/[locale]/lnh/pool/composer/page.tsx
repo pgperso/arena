@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { redirect } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import { getActiveSeason, getPlayerPool, getNhlTeamOptions, type SlotPick, type PoolPosition } from '@/services/poolService';
+import { getActiveSeason, getPlayerPool, getTeamChoices, type SlotPick, type PoolPosition } from '@/services/poolService';
 import { PoolComposer } from './PoolComposer';
 import { BRAND } from '@/lib/brand';
 
@@ -57,7 +57,7 @@ export default async function ComposerPage({ params }: { params: Promise<{ local
 
   const [players, teams] = await Promise.all([
     getPlayerPool(supabase, season.id),
-    getNhlTeamOptions(supabase),
+    getTeamChoices(supabase, season.id),
   ]);
 
   const { data: slots } = await db

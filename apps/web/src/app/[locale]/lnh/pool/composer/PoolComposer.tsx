@@ -7,11 +7,10 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { AdAnchor } from '@/components/ads/AdAnchor';
-import { TeamLogo } from '@/components/pool/TeamLogo';
 import { PoolNav } from '../PoolNav';
 import {
   saveRoster, setTeam, confirmEntry,
-  type PoolPlayer, type SlotPick, type PoolPosition, type NhlTeamOption,
+  type PoolPlayer, type SlotPick, type PoolPosition, type NhlTeamChoice,
 } from '@/services/poolService';
 
 const M = 100_000_000;
@@ -30,7 +29,7 @@ export function PoolComposer({
   need: { F: number; D: number; G: number };
   rosterTeams: number;
   players: PoolPlayer[];
-  teams: NhlTeamOption[];
+  teams: NhlTeamChoice[];
   initialPicks: SlotPick[];
   initialTeam: string | null;
 }) {
@@ -49,9 +48,11 @@ export function PoolComposer({
     for (const p of picks) c[p.slotPosition]++;
     return c;
   }, [picks]);
-  const spent = useMemo(() => picks.reduce((s, p) => s + (playerById.get(p.playerId)?.priceCents ?? 0), 0), [picks, playerById]);
+  const teamObj = useMemo(() => teams.find((t) => t.abbrev === teamPick) ?? null, [teams, teamPick]);
+  const playersSpent = useMemo(() => picks.reduce((s, p) => s + (playerById.get(p.playerId)?.priceCents ?? 0), 0), [picks, playerById]);
+  // The chosen NHL team costs its top goalie's cap hit and counts in the cap.
+  const spent = playersSpent + (teamObj?.priceCents ?? 0);
   const remaining = budgetCents - spent;
-  const teamObj = teams.find((t) => t.logoUrl && teamPick === t.abbrev) ?? teams.find((t) => teamPick === t.abbrev) ?? null;
 
   const sectionDone = (pos: PoolPosition) => counts[pos] === need[pos];
   const teamDone = rosterTeams === 0 || !!teamPick;
@@ -150,9 +151,12 @@ export function PoolComposer({
         )}
       </div>
       {teamObj ? (
-        <div className="mt-2 flex items-center gap-2 text-sm">
-          <TeamLogo logo={teamObj.logoUrl} name={teamObj.name} size={24} />
-          <span className="text-gray-900 dark:text-gray-100">{teamObj.name}</span>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
+          <span className="font-medium text-gray-900 dark:text-gray-100">{teamObj.name}</span>
+          <span className="flex items-center gap-3 text-xs tabular-nums text-gray-500">
+            <span>{teamObj.gp} PJ · {teamObj.wins}-{teamObj.losses} · BP {teamObj.gf} / BC {teamObj.ga}</span>
+            <span className="font-semibold text-gray-900 dark:text-gray-100">{fmtM(teamObj.priceCents)}</span>
+          </span>
         </div>
       ) : (
         <p className="mt-2 text-sm text-gray-400">Aucune équipe choisie.</p>
@@ -229,6 +233,7 @@ export function PoolComposer({
         <TeamPicker
           teams={teams}
           selected={teamPick}
+          budgetLeft={budgetCents - playersSpent}
           onSelect={(abbrev) => { setTeamPick(abbrev); setConfirmed(false); setPicker(null); }}
           onClose={() => setPicker(null)}
         />
@@ -314,34 +319,67 @@ function PlayerPicker({
   );
 }
 
-// ── Team picker modal ───────────────────────────────────────────────────────
+// ── Team picker modal (price + season stats, no logo) ───────────────────────
 function TeamPicker({
-  teams, selected, onSelect, onClose,
+  teams, selected, budgetLeft, onSelect, onClose,
 }: {
-  teams: NhlTeamOption[];
+  teams: NhlTeamChoice[];
   selected: string | null;
+  budgetLeft: number; // budget minus players already drafted
   onSelect: (abbrev: string | null) => void;
   onClose: () => void;
 }) {
+  const [sort, setSort] = useState<'name' | 'price' | 'points'>('name');
+  const list = useMemo(() => {
+    const key =
+      sort === 'price' ? (t: NhlTeamChoice) => -t.priceCents
+      : sort === 'points' ? (t: NhlTeamChoice) => t.teamPoints
+      : null;
+    const l = [...teams];
+    return key ? l.sort((a, b) => key(b) - key(a)) : l.sort((a, b) => a.name.localeCompare(b.name));
+  }, [teams, sort]);
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black/40" onClick={onClose}>
       <div className="mt-auto flex max-h-[88vh] flex-col rounded-t-2xl bg-white dark:bg-[#1e1e1e] sm:mx-auto sm:mt-16 sm:mb-auto sm:max-h-[80vh] sm:w-full sm:max-w-2xl sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Choisir une équipe de la LNH</h3>
-          <button onClick={onClose} className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium dark:border-gray-600">Fermer</button>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            Choisir une équipe de la LNH <span className="text-gray-400">{fmtM(budgetLeft)} restants</span>
+          </h3>
+          <button onClick={onClose} className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">Terminé</button>
         </div>
-        <div className="grid grid-cols-2 gap-2 overflow-y-auto p-4 sm:grid-cols-3">
-          {teams.map((t) => (
-            <button
-              key={t.abbrev}
-              onClick={() => onSelect(t.abbrev)}
-              className={`flex items-center gap-2 rounded-lg border p-2 text-left text-sm ${selected === t.abbrev ? 'border-gray-900 ring-2 ring-gray-900 dark:border-white dark:ring-white' : 'border-gray-200 hover:border-gray-400 dark:border-gray-700'}`}
-            >
-              <TeamLogo logo={t.logoUrl} name={t.name} size={28} />
-              <span className="truncate text-gray-900 dark:text-gray-100">{t.name}</span>
-            </button>
-          ))}
+        <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-2 dark:border-gray-700">
+          <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}
+            className="rounded-md border border-gray-300 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-[#252525]">
+            <option value="name">Ordre alphabétique</option>
+            <option value="price">Prix</option>
+            <option value="points">Points pool</option>
+          </select>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {list.map((t) => {
+            const isSel = selected === t.abbrev;
+            const affordable = isSel || t.priceCents <= budgetLeft;
+            return (
+              <div key={t.abbrev} className="flex items-center gap-3 border-b border-gray-100 px-4 py-2 dark:border-gray-800">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{t.name}</div>
+                  <div className="text-xs tabular-nums text-gray-500">
+                    {t.gp} PJ · {t.wins}-{t.losses} · BP {t.gf} / BC {t.ga} · {t.teamPoints.toLocaleString('fr-CA', { maximumFractionDigits: 0 })} pts
+                  </div>
+                </div>
+                <div className="w-20 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtM(t.priceCents)}</div>
+                {isSel ? (
+                  <button onClick={() => onSelect(null)} className="w-20 rounded-md border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50">Retirer</button>
+                ) : affordable ? (
+                  <button onClick={() => onSelect(t.abbrev)} className="w-20 rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900">Choisir</button>
+                ) : (
+                  <span className="w-20 text-center text-xs font-medium text-gray-400">Trop cher</span>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
