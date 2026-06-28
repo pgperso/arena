@@ -68,15 +68,46 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
 
   // Tailor the CTA: existing entry → "Mon équipe", else "Crée ton équipe".
   let myEntryId: number | null = null;
+  let myConfirmed = false;
   if (user && season) {
     const { data } = await supabase
       .from('pool_entries')
-      .select('id')
+      .select('id, is_confirmed')
       .eq('season_id', season.id)
       .eq('member_id', user.id)
       .maybeSingle();
-    myEntryId = (data as { id: number } | null)?.id ?? null;
+    const e = data as { id: number; is_confirmed: boolean } | null;
+    myEntryId = e?.id ?? null;
+    myConfirmed = e?.is_confirmed ?? false;
   }
+
+  // Registration snapshot: how many teams are in, and how long until lock.
+  let registeredCount = 0;
+  if (season) {
+    const { count } = await supabase
+      .from('pool_entries')
+      .select('id', { count: 'exact', head: true })
+      .eq('season_id', season.id)
+      .eq('is_confirmed', true);
+    registeredCount = count ?? 0;
+  }
+  const lockMs = season?.lockAt ? new Date(season.lockAt).getTime() - Date.now() : null;
+  const registrationClosed = lockMs != null && lockMs <= 0;
+  let timeLeft: string | null = null;
+  if (lockMs != null && lockMs > 0) {
+    const days = Math.floor(lockMs / 86_400_000);
+    const hours = Math.floor((lockMs % 86_400_000) / 3_600_000);
+    timeLeft = days >= 1 ? t('timeDaysHours', { days, hours }) : hours >= 1 ? t('timeHours', { hours }) : t('timeSoon');
+  }
+
+  // Registration status for the current viewer.
+  const reg = !user
+    ? { label: t('statusLoginPrompt'), tone: 'muted' as const, href: '/login?redirect=/lnh/pool/composer', cta: t('registerNow') }
+    : !myEntryId
+      ? { label: t('statusNotRegistered'), tone: 'warn' as const, href: '/lnh/pool/composer', cta: t('registerNow') }
+      : !myConfirmed
+        ? { label: t('statusToConfirm'), tone: 'warn' as const, href: '/lnh/pool/composer', cta: t('finishRegistration') }
+        : { label: t('statusRegistered'), tone: 'ok' as const, href: null, cta: null };
 
   const cta = myEntryId
     ? { href: '/lnh/pool/moi', label: tPool('myTeam') }
@@ -110,6 +141,33 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
                 <p className="mt-2 text-xs text-gray-400">{t('loginRequired')}</p>
               )}
             </div>
+
+            {/* Registration status: am I in, how many teams, time left */}
+            {season && (
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                  <div className="text-xs uppercase tracking-wide text-gray-500">{t('statusLabel')}</div>
+                  <div className={`mt-1 text-lg font-bold ${reg.tone === 'ok' ? 'text-green-600 dark:text-green-400' : reg.tone === 'warn' ? 'text-amber-600 dark:text-amber-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                    {reg.label}
+                  </div>
+                  {reg.href && reg.cta && !registrationClosed && (
+                    <Link href={reg.href} className="mt-1 inline-block text-xs font-medium text-gray-600 underline hover:text-gray-900 dark:text-gray-300">
+                      {reg.cta}
+                    </Link>
+                  )}
+                </div>
+                <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                  <div className="text-xs uppercase tracking-wide text-gray-500">{t('teamsLabel')}</div>
+                  <div className="mt-1 text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100">{t('teamsRegistered', { count: registeredCount })}</div>
+                </div>
+                <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                  <div className="text-xs uppercase tracking-wide text-gray-500">{t('deadlineLabel')}</div>
+                  <div className={`mt-1 text-lg font-bold tabular-nums ${registrationClosed ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                    {registrationClosed ? t('registrationClosed') : timeLeft ?? t('noDeadline')}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Comment ça marche */}
             <section className="mt-8">
