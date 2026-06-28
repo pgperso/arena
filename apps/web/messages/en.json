@@ -583,7 +583,12 @@
       "statGp": "GP",
       "statFor": "GF",
       "statAgainst": "GA",
-      "ptsShort": "pts"
+      "ptsShort": "pts",
+      "emptySlot": "Empty slot",
+      "trade": "Trade",
+      "tradesRemaining": "Trades left",
+      "replace": "Replace {name}",
+      "tradeDone": "Trade completed"
     },
     "myTeamPage": {
       "draftClosedSuffix": "draft closed",

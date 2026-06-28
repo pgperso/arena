@@ -589,7 +589,12 @@
       "statGp": "PJ",
       "statFor": "BP",
       "statAgainst": "BC",
-      "ptsShort": "pts"
+      "ptsShort": "pts",
+      "emptySlot": "Emplacement vide",
+      "trade": "Échanger",
+      "tradesRemaining": "Échanges restants",
+      "replace": "Remplacer {name}",
+      "tradeDone": "Échange effectué"
     },
     "myTeamPage": {
       "draftClosedSuffix": "repêchage terminé",

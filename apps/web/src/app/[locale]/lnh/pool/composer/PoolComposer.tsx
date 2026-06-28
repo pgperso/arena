@@ -12,19 +12,18 @@ import { fmtMoney } from '@/components/pool/format';
 import { TeamGoalies } from '@/components/pool/TeamGoalies';
 import { PoolNav } from '../PoolNav';
 import {
-  saveRoster, setTeam, confirmEntry,
+  saveRoster, setTeam, confirmEntry, makeTransaction,
   type PoolPlayer, type SlotPick, type PoolPosition, type NhlTeamChoice,
 } from '@/services/poolService';
 
 type Picker = PoolPosition | 'team' | null;
-type ComposerT = ReturnType<typeof useTranslations<'pool.composer'>>;
-type PosT = ReturnType<typeof useTranslations<'pool.positions'>>;
 
 export function PoolComposer({
   entryId, isLocked, isConfirmed, budgetCents, need, rosterTeams, players, teams, initialPicks, initialTeam,
+  transactionsEnabled, maxTransactions, transactionsUsed,
 }: {
   entryId: number;
-  isLocked: boolean; // draft deadline passed → read-only
+  isLocked: boolean; // draft deadline passed → trade-only
   isConfirmed: boolean;
   budgetCents: number;
   need: { F: number; D: number; G: number };
@@ -33,6 +32,9 @@ export function PoolComposer({
   teams: NhlTeamChoice[];
   initialPicks: SlotPick[];
   initialTeam: string | null;
+  transactionsEnabled: boolean;
+  maxTransactions: number;
+  transactionsUsed: number;
 }) {
   const t = useTranslations('pool.composer');
   const tPos = useTranslations('pool.positions');
@@ -45,7 +47,11 @@ export function PoolComposer({
   const [teamPick, setTeamPick] = useState<string | null>(initialTeam);
   const [confirmed, setConfirmed] = useState(isConfirmed);
   const [picker, setPicker] = useState<Picker>(null);
+  const [tradeFor, setTradeFor] = useState<{ playerId: number; pos: PoolPosition } | null>(null);
+  const [tradesUsed, setTradesUsed] = useState(transactionsUsed);
   const [busy, setBusy] = useState(false);
+
+  const remainingTrades = transactionsEnabled ? Math.max(0, maxTransactions - tradesUsed) : 0;
 
   const playerById = useMemo(() => new Map(players.map((p) => [p.playerId, p])), [players]);
   const chosen = useMemo(() => new Set(picks.map((p) => p.playerId)), [picks]);
@@ -54,9 +60,9 @@ export function PoolComposer({
     for (const p of picks) c[p.slotPosition]++;
     return c;
   }, [picks]);
-  const teamObj = useMemo(() => teams.find((t) => t.abbrev === teamPick) ?? null, [teams, teamPick]);
+  const teamObj = useMemo(() => teams.find((tm) => tm.abbrev === teamPick) ?? null, [teams, teamPick]);
   const playersSpent = useMemo(() => picks.reduce((s, p) => s + (playerById.get(p.playerId)?.priceCents ?? 0), 0), [picks, playerById]);
-  // The chosen NHL team costs its top goalie's cap hit and counts in the cap.
+  // The chosen NHL team costs its two goalies' cap hits and counts in the cap.
   const spent = playersSpent + (teamObj?.priceCents ?? 0);
   const remaining = budgetCents - spent;
 
@@ -69,6 +75,25 @@ export function PoolComposer({
     !locked && !chosen.has(p.playerId) && counts[p.position] < need[p.position] && p.priceCents <= remaining;
   const add = (p: PoolPlayer) => { if (canAdd(p)) setPicks((cur) => [...cur, { playerId: p.playerId, slotPosition: p.position }]); };
   const remove = (id: number) => { if (!locked) setPicks((cur) => cur.filter((p) => p.playerId !== id)); };
+
+  // Trade (post-lock): drop `tradeFor`, add the candidate, if affordable.
+  const canTrade = (p: PoolPlayer) => {
+    if (!tradeFor || chosen.has(p.playerId)) return false;
+    const dropPrice = playerById.get(tradeFor.playerId)?.priceCents ?? 0;
+    return spent - dropPrice + p.priceCents <= budgetCents;
+  };
+  async function doTrade(p: PoolPlayer) {
+    if (!tradeFor) return;
+    const dropId = tradeFor.playerId;
+    setBusy(true);
+    const { error } = await makeTransaction(createClient(), entryId, dropId, p.playerId);
+    setBusy(false);
+    if (error) { toast.error(error); return; }
+    setPicks((cur) => cur.map((sp) => (sp.playerId === dropId ? { playerId: p.playerId, slotPosition: tradeFor.pos } : sp)));
+    setTradesUsed((u) => u + 1);
+    toast.success(t('tradeDone'));
+    setTradeFor(null);
+  }
 
   async function persist(): Promise<boolean> {
     const c = createClient();
@@ -103,40 +128,57 @@ export function PoolComposer({
   const renderPlayerSection = (pos: PoolPosition) => {
     const rows = picks.filter((p) => p.slotPosition === pos);
     const done = sectionDone(pos);
+    const emptyCount = Math.max(0, need[pos] - rows.length);
+    const canTradeNow = locked && transactionsEnabled && remainingTrades > 0;
     return (
       <section className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
-            {tPos(pos)}
-            <span className={`rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${done ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
-              {counts[pos]}/{need[pos]}
-            </span>
-          </h2>
-          {!locked && (
-            <button onClick={() => setPicker(pos)} className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">
-              {t('choose')}
-            </button>
-          )}
-        </div>
-        {rows.length === 0 ? (
-          <p className="mt-2 text-sm text-gray-400">{t('noPlayersChosen')}</p>
-        ) : (
-          <ul className="mt-2 divide-y divide-gray-100 dark:divide-gray-800">
-            {rows.map((r) => {
-              const p = playerById.get(r.playerId);
-              if (!p) return null;
-              return (
-                <li key={r.playerId} className="flex items-center justify-between py-1.5 text-sm">
-                  <span className="truncate text-gray-900 dark:text-gray-100">{p.fullName} <span className="text-xs text-gray-400">{p.teamAbbrev}</span></span>
-                  <span className="flex items-center gap-3">
-                    <span className="tabular-nums text-gray-600 dark:text-gray-300">{fmtMoney(p.priceCents, locale)}</span>
-                    {!locked && <button onClick={() => remove(r.playerId)} className="text-xs font-medium text-red-600 hover:underline">{t('remove')}</button>}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
+          {tPos(pos)}
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${done ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
+            {counts[pos]}/{need[pos]}
+          </span>
+        </h2>
+        <ul className="mt-2 divide-y divide-gray-100 dark:divide-gray-800">
+          {rows.map((r) => {
+            const p = playerById.get(r.playerId);
+            if (!p) return null;
+            return (
+              <li key={r.playerId} className="flex items-center justify-between gap-2 py-2 text-sm">
+                <span className="min-w-0 truncate text-gray-900 dark:text-gray-100">
+                  {p.fullName} <span className="text-xs text-gray-400">{p.teamAbbrev}</span>
+                </span>
+                <span className="flex shrink-0 items-center gap-3">
+                  <span className="tabular-nums text-gray-600 dark:text-gray-300">{fmtMoney(p.priceCents, locale)}</span>
+                  {!locked && (
+                    <button onClick={() => remove(r.playerId)} className="text-xs font-medium text-red-600 hover:underline">
+                      {t('remove')}
+                    </button>
+                  )}
+                  {canTradeNow && (
+                    <button
+                      onClick={() => setTradeFor({ playerId: r.playerId, pos })}
+                      className="rounded-md border border-gray-300 px-2 py-1 text-xs font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-[#252525]"
+                    >
+                      {t('trade')}
+                    </button>
+                  )}
+                </span>
+              </li>
+            );
+          })}
+          {/* Empty slots, each with its own Choisir button */}
+          {!locked && Array.from({ length: emptyCount }).map((_, i) => (
+            <li key={`empty-${pos}-${i}`} className="flex items-center justify-between gap-2 py-2 text-sm">
+              <span className="italic text-gray-400">{t('emptySlot')}</span>
+              <button
+                onClick={() => setPicker(pos)}
+                className="shrink-0 rounded-md bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-white dark:text-gray-900"
+              >
+                {t('choose')}
+              </button>
+            </li>
+          ))}
+        </ul>
       </section>
     );
   };
@@ -173,6 +215,8 @@ export function PoolComposer({
     </section>
   );
 
+  const dropName = tradeFor ? (playerById.get(tradeFor.playerId)?.fullName ?? '') : '';
+
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-[#1e1e1e]">
       {/* Sticky header */}
@@ -194,6 +238,11 @@ export function PoolComposer({
             <div className={`h-full ${spent > budgetCents ? 'bg-red-500' : 'bg-gray-900 dark:bg-white'}`}
               style={{ width: `${Math.min(100, (spent / budgetCents) * 100)}%` }} />
           </div>
+          {transactionsEnabled && (
+            <p className="mt-2 text-xs text-gray-500">
+              {t('tradesRemaining')} : <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{remainingTrades}/{maxTransactions}</span>
+            </p>
+          )}
           {!locked && (
             <div className="mt-3 flex flex-wrap gap-2">
               <button onClick={handleSave} disabled={busy}
@@ -223,19 +272,39 @@ export function PoolComposer({
 
       <AdAnchor />
 
-      {/* Pickers */}
+      {/* Add picker */}
       {picker && picker !== 'team' && (
         <PlayerPicker
+          mode="add"
           pos={picker}
           players={players}
           chosen={chosen}
-          canAdd={canAdd}
-          onAdd={add}
+          canPick={canAdd}
+          onPick={add}
           onRemove={remove}
           counts={counts}
           need={need}
           remaining={remaining}
+          busy={busy}
           onClose={() => setPicker(null)}
+        />
+      )}
+      {/* Trade picker */}
+      {tradeFor && (
+        <PlayerPicker
+          mode="trade"
+          pos={tradeFor.pos}
+          players={players}
+          chosen={chosen}
+          canPick={canTrade}
+          onPick={doTrade}
+          onRemove={() => {}}
+          counts={counts}
+          need={need}
+          remaining={remaining}
+          dropName={dropName}
+          busy={busy}
+          onClose={() => setTradeFor(null)}
         />
       )}
       {picker === 'team' && (
@@ -251,19 +320,22 @@ export function PoolComposer({
   );
 }
 
-// ── Player picker modal (filtered to one position) ──────────────────────────
+// ── Player picker modal (one position, add or trade mode) ───────────────────
 function PlayerPicker({
-  pos, players, chosen, canAdd, onAdd, onRemove, counts, need, remaining, onClose,
+  mode, pos, players, chosen, canPick, onPick, onRemove, counts, need, remaining, dropName, busy, onClose,
 }: {
+  mode: 'add' | 'trade';
   pos: PoolPosition;
   players: PoolPlayer[];
   chosen: Set<number>;
-  canAdd: (p: PoolPlayer) => boolean;
-  onAdd: (p: PoolPlayer) => void;
+  canPick: (p: PoolPlayer) => boolean;
+  onPick: (p: PoolPlayer) => void;
   onRemove: (id: number) => void;
   counts: Record<PoolPosition, number>;
   need: { F: number; D: number; G: number };
   remaining: number;
+  dropName?: string;
+  busy?: boolean;
   onClose: () => void;
 }) {
   const t = useTranslations('pool.composer');
@@ -274,20 +346,23 @@ function PlayerPicker({
   const list = useMemo(() => {
     const q = search.trim().toLowerCase();
     let l = players.filter((p) => p.position === pos);
+    // In trade mode, hide players already on the roster (you can't trade for them).
+    if (mode === 'trade') l = l.filter((p) => !chosen.has(p.playerId));
     if (q) l = l.filter((p) => p.fullName.toLowerCase().includes(q));
     const key = sort === 'price' ? (p: PoolPlayer) => -p.priceCents : sort === 'proj' ? (p: PoolPlayer) => p.projPoints : (p: PoolPlayer) => p.value;
     return [...l].sort((a, b) => key(b) - key(a));
-  }, [players, pos, search, sort]);
+  }, [players, pos, search, sort, mode, chosen]);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black/40" onClick={onClose}>
-      <div className="mt-auto flex max-h-[88vh] flex-col rounded-t-2xl bg-white dark:bg-[#1e1e1e] sm:mx-auto sm:mt-16 sm:mb-auto sm:max-h-[80vh] sm:w-full sm:max-w-2xl sm:rounded-2xl"
+      <div className="mt-auto flex h-[88vh] flex-col rounded-t-2xl bg-white dark:bg-[#1e1e1e] sm:mx-auto sm:mt-16 sm:mb-auto sm:h-[80vh] sm:w-full sm:max-w-2xl sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            {t('chooseTitle', { pos: tPos(pos) })} <span className="text-gray-400">{counts[pos]}/{need[pos]} · {fmtMoney(remaining, locale)} {t('left')}</span>
+          <h3 className="min-w-0 truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {mode === 'trade' ? t('replace', { name: dropName ?? '' }) : t('chooseTitle', { pos: tPos(pos) })}{' '}
+            <span className="text-gray-400">{counts[pos]}/{need[pos]} · {fmtMoney(remaining, locale)} {t('left')}</span>
           </h3>
-          <button onClick={onClose} className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">{t('done')}</button>
+          <button onClick={onClose} className="ml-2 shrink-0 rounded-md bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-gray-900">{t('done')}</button>
         </div>
         <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-2 dark:border-gray-700">
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('searchPlaceholder')}
@@ -304,7 +379,8 @@ function PlayerPicker({
             data={list}
             itemContent={(_i, p) => {
               const inRoster = chosen.has(p.playerId);
-              const addable = canAdd(p);
+              const pickable = canPick(p) && !busy;
+              const actionLabel = mode === 'trade' ? t('trade') : t('add');
               return (
                 <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-2 dark:border-gray-800">
                   <div className="min-w-0 flex-1">
@@ -312,13 +388,13 @@ function PlayerPicker({
                     <div className="text-xs text-gray-500">{p.teamAbbrev ?? '—'} · {t('proj')} {p.projPoints.toLocaleString(locale === 'fr' ? 'fr-CA' : 'en-CA', { maximumFractionDigits: 0 })}</div>
                   </div>
                   <div className="w-20 text-right text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtMoney(p.priceCents, locale)}</div>
-                  {inRoster ? (
+                  {mode === 'add' && inRoster ? (
                     <button onClick={() => onRemove(p.playerId)} className="w-20 rounded-md border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50">{t('remove')}</button>
-                  ) : addable ? (
-                    <button onClick={() => onAdd(p)} className="w-20 rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900">{t('add')}</button>
+                  ) : pickable ? (
+                    <button onClick={() => onPick(p)} className="w-20 rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white hover:bg-gray-800 disabled:opacity-50 dark:bg-white dark:text-gray-900">{actionLabel}</button>
                   ) : (
                     <span className="w-20 text-center text-xs font-medium text-gray-400">
-                      {counts[p.position] >= need[p.position] ? t('full') : p.priceCents > remaining ? t('tooExpensive') : '—'}
+                      {mode === 'add' && counts[p.position] >= need[p.position] ? t('full') : p.priceCents > remaining ? t('tooExpensive') : '—'}
                     </span>
                   )}
                 </div>
@@ -346,8 +422,8 @@ function TeamPicker({
   const [sort, setSort] = useState<'name' | 'price' | 'points'>('name');
   const list = useMemo(() => {
     const key =
-      sort === 'price' ? (t: NhlTeamChoice) => -t.priceCents
-      : sort === 'points' ? (t: NhlTeamChoice) => t.teamPoints
+      sort === 'price' ? (tm: NhlTeamChoice) => -tm.priceCents
+      : sort === 'points' ? (tm: NhlTeamChoice) => tm.teamPoints
       : null;
     const l = [...teams];
     return key ? l.sort((a, b) => key(b) - key(a)) : l.sort((a, b) => a.name.localeCompare(b.name));
@@ -355,7 +431,7 @@ function TeamPicker({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black/40" onClick={onClose}>
-      <div className="mt-auto flex max-h-[88vh] flex-col rounded-t-2xl bg-white dark:bg-[#1e1e1e] sm:mx-auto sm:mt-16 sm:mb-auto sm:max-h-[80vh] sm:w-full sm:max-w-2xl sm:rounded-2xl"
+      <div className="mt-auto flex h-[88vh] flex-col rounded-t-2xl bg-white dark:bg-[#1e1e1e] sm:mx-auto sm:mt-16 sm:mb-auto sm:h-[80vh] sm:w-full sm:max-w-2xl sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
