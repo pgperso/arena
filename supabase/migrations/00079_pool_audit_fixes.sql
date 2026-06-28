@@ -97,7 +97,13 @@ BEGIN
 END $$;
 
 -- 3. Recompute stored spent_cents to match current rules -------------------
-UPDATE public.pool_entries e SET spent_cents =
-  COALESCE((SELECT SUM(price_cents) FROM public.pool_roster_slots
-            WHERE entry_id = e.id AND effective_to IS NULL), 0)
-  + public.pool_team_price(e.season_id, e.team_pick);
+-- spent_cents is a guarded column, so this maintenance UPDATE must run with the
+-- privileged flag set (same bypass the RPCs use), inside one transaction.
+DO $$
+BEGIN
+  PERFORM set_config('pool.privileged', '1', true);
+  UPDATE public.pool_entries e SET spent_cents =
+    COALESCE((SELECT SUM(price_cents) FROM public.pool_roster_slots
+              WHERE entry_id = e.id AND effective_to IS NULL), 0)
+    + public.pool_team_price(e.season_id, e.team_pick);
+END $$;
