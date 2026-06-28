@@ -303,7 +303,7 @@ export function PoolComposer({
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
             <div className={`h-full ${spent > budgetCents ? 'bg-red-500' : 'bg-gray-900 dark:bg-white'}`}
-              style={{ width: `${Math.min(100, (spent / budgetCents) * 100)}%` }} />
+              style={{ width: `${budgetCents > 0 ? Math.min(100, (spent / budgetCents) * 100) : 0}%` }} />
           </div>
           {transactionsEnabled && (
             <p className="mt-2 text-xs text-gray-500">

@@ -54,8 +54,21 @@ export default async function ComposerPage({ params }: { params: Promise<{ local
       .insert({ season_id: season.id, member_id: user.id, team_name: teamName })
       .select(ENTRY_COLS)
       .single();
-    entry = created;
+    // If the insert lost a race on the UNIQUE(season_id, member_id) constraint
+    // (e.g. two tabs), fall back to reading the row that won.
+    if (created) {
+      entry = created;
+    } else {
+      const { data: existing } = await db
+        .from('pool_entries')
+        .select(ENTRY_COLS)
+        .eq('season_id', season.id)
+        .eq('member_id', user.id)
+        .maybeSingle();
+      entry = existing;
+    }
   }
+  if (!entry) redirect('/lnh/pool');
   const entryRow = entry as unknown as { id: number; is_locked: boolean; team_pick: string | null; is_confirmed: boolean; transactions_used: number; star_forward_id: number | null; star_defense_id: number | null };
 
   const [players, teams] = await Promise.all([

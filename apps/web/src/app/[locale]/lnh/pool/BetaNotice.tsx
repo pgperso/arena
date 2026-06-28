@@ -27,7 +27,7 @@ export function BetaNotice() {
         type="button"
         onClick={() => { localStorage.setItem(STORAGE_KEY, '1'); setShow(false); }}
         aria-label={t('dismiss')}
-        className="shrink-0 rounded px-1 text-gray-400 transition-colors hover:text-gray-700 dark:hover:text-gray-200"
+        className="shrink-0 rounded px-1 text-gray-500 transition-colors hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
       >
         ✕
       </button>
