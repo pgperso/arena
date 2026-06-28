@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { redirect } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import { getActiveSeason, getPlayerPool, type SlotPick, type PoolPosition } from '@/services/poolService';
+import { getActiveSeason, getPlayerPool, getNhlTeamOptions, type SlotPick, type PoolPosition } from '@/services/poolService';
 import { PoolComposer } from './PoolComposer';
 import { BRAND } from '@/lib/brand';
 
@@ -37,7 +37,7 @@ export default async function ComposerPage({ params }: { params: Promise<{ local
   // Ensure the member has an entry (create one with a sensible default name).
   let { data: entry } = await db
     .from('pool_entries')
-    .select('id, is_locked')
+    .select('id, is_locked, team_pick, is_confirmed')
     .eq('season_id', season.id)
     .eq('member_id', user.id)
     .maybeSingle();
@@ -49,13 +49,16 @@ export default async function ComposerPage({ params }: { params: Promise<{ local
     const { data: created } = await db
       .from('pool_entries')
       .insert({ season_id: season.id, member_id: user.id, team_name: teamName })
-      .select('id, is_locked')
+      .select('id, is_locked, team_pick, is_confirmed')
       .single();
     entry = created;
   }
-  const entryRow = entry as unknown as { id: number; is_locked: boolean };
+  const entryRow = entry as unknown as { id: number; is_locked: boolean; team_pick: string | null; is_confirmed: boolean };
 
-  const players = await getPlayerPool(supabase, season.id);
+  const [players, teams] = await Promise.all([
+    getPlayerPool(supabase, season.id),
+    getNhlTeamOptions(supabase),
+  ]);
 
   const { data: slots } = await db
     .from('pool_roster_slots')
@@ -70,10 +73,14 @@ export default async function ComposerPage({ params }: { params: Promise<{ local
     <PoolComposer
       entryId={entryRow.id}
       isLocked={Boolean(season.lockAt && new Date(season.lockAt) <= new Date())}
+      isConfirmed={entryRow.is_confirmed}
       budgetCents={season.budgetCents}
       need={{ F: season.rosterF, D: season.rosterD, G: season.rosterG }}
+      rosterTeams={season.rosterTeams}
       players={players}
+      teams={teams}
       initialPicks={initialPicks}
+      initialTeam={entryRow.team_pick}
     />
   );
 }

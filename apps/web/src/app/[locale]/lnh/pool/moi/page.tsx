@@ -33,12 +33,19 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
 
   const { data: entryData } = await db
     .from('pool_entries')
-    .select('id, team_name, team_logo, is_locked, spent_cents, transactions_used')
+    .select('id, team_name, team_logo, is_locked, spent_cents, transactions_used, team_pick')
     .eq('season_id', season.id)
     .eq('member_id', user.id)
     .maybeSingle();
-  const entry = entryData as { id: number; team_name: string; team_logo: string | null; is_locked: boolean; spent_cents: number; transactions_used: number } | null;
+  const entry = entryData as { id: number; team_name: string; team_logo: string | null; is_locked: boolean; spent_cents: number; transactions_used: number; team_pick: string | null } | null;
   if (!entry) redirect('/lnh/pool/composer');
+
+  let teamPickInfo: { name: string; logoUrl: string | null } | null = null;
+  if (entry.team_pick) {
+    const { data: tp } = await db.from('nhl_teams').select('full_name, name, logo_url').eq('abbrev', entry.team_pick).maybeSingle();
+    const t = tp as { full_name: string | null; name: string; logo_url: string | null } | null;
+    if (t) teamPickInfo = { name: t.full_name ?? t.name, logoUrl: t.logo_url };
+  }
 
   const draftClosed = Boolean(season.lockAt && new Date(season.lockAt) <= new Date());
 
@@ -65,6 +72,21 @@ export default async function MyTeamPage({ params }: { params: Promise<{ locale:
           <TeamIdentityEditor entryId={entry.id} memberId={user.id} initialName={entry.team_name} initialLogo={entry.team_logo} />
         </section>
 
+        {season.rosterTeams > 0 && (
+          <section className="mt-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">Équipe LNH</h2>
+            {teamPickInfo ? (
+              <div className="flex items-center gap-2 text-sm">
+                <TeamLogo logo={teamPickInfo.logoUrl} name={teamPickInfo.name} size={28} />
+                <span className="text-gray-900 dark:text-gray-100">{teamPickInfo.name}</span>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">
+                Aucune équipe choisie. <Link href="/lnh/pool/composer" className="underline">Choisis-en une.</Link>
+              </p>
+            )}
+          </section>
+        )}
       </div>
 
       {/* Stat cards — span the full width of the wide track */}

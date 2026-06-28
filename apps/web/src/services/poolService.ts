@@ -18,6 +18,7 @@ export interface PoolSeason {
   rosterF: number;
   rosterD: number;
   rosterG: number;
+  rosterTeams: number;
   lockAt: string | null;
   status: 'draft' | 'open' | 'locked' | 'final';
   transactionsEnabled: boolean;
@@ -26,6 +27,9 @@ export interface PoolSeason {
   tiebreaker: 'fewest_games' | 'none';
   isPublic: boolean;
   timezone: string;
+  teamBasePoints: number;
+  teamGfCoef: number;
+  teamGaCoef: number;
 }
 
 /** A single barème line: how many points a stat is worth this season. */
@@ -95,6 +99,7 @@ type SeasonRow = {
   roster_f: number;
   roster_d: number;
   roster_g: number;
+  roster_teams: number;
   lock_at: string | null;
   status: PoolSeason['status'];
   transactions_enabled: boolean;
@@ -103,11 +108,15 @@ type SeasonRow = {
   tiebreaker: PoolSeason['tiebreaker'];
   is_public: boolean;
   timezone: string;
+  team_base_points: number;
+  team_gf_coef: number;
+  team_ga_coef: number;
 };
 
 const SEASON_COLS =
-  'id, nhl_season, name, budget_cents, roster_f, roster_d, roster_g, lock_at, status, ' +
-  'transactions_enabled, max_transactions, transaction_deadline, tiebreaker, is_public, timezone';
+  'id, nhl_season, name, budget_cents, roster_f, roster_d, roster_g, roster_teams, lock_at, status, ' +
+  'transactions_enabled, max_transactions, transaction_deadline, tiebreaker, is_public, timezone, ' +
+  'team_base_points, team_gf_coef, team_ga_coef';
 
 function mapSeason(r: SeasonRow): PoolSeason {
   return {
@@ -118,6 +127,7 @@ function mapSeason(r: SeasonRow): PoolSeason {
     rosterF: r.roster_f,
     rosterD: r.roster_d,
     rosterG: r.roster_g,
+    rosterTeams: r.roster_teams,
     lockAt: r.lock_at,
     status: r.status,
     transactionsEnabled: r.transactions_enabled,
@@ -126,6 +136,9 @@ function mapSeason(r: SeasonRow): PoolSeason {
     tiebreaker: r.tiebreaker,
     isPublic: r.is_public,
     timezone: r.timezone,
+    teamBasePoints: Number(r.team_base_points),
+    teamGfCoef: Number(r.team_gf_coef),
+    teamGaCoef: Number(r.team_ga_coef),
   };
 }
 
@@ -201,7 +214,7 @@ export async function getStandings(client: AnyClient, seasonId: number): Promise
     .from('pool_entries')
     .select('id, team_name, team_logo, member_id, members(username, avatar_url), pool_standings(fantasy_points, games_counted, points_last_day, previous_rank)')
     .eq('season_id', seasonId)
-    .gt('spent_cents', 0);
+    .eq('is_confirmed', true);
 
   type MemberEmbed = { username: string | null; avatar_url: string | null };
   type StandingEmbed = { fantasy_points: number; games_counted: number; points_last_day: number; previous_rank: number | null };
@@ -407,6 +420,27 @@ export async function saveRoster(
 export async function lockEntry(client: AnyClient, entryId: number): Promise<{ error: string | null }> {
   const db = client as unknown as Db;
   const { error } = await db.rpc('pool_lock_entry' as never, { p_entry_id: entryId } as never);
+  return { error: error?.message ?? null };
+}
+
+/** Set the entry's NHL team pick (the slot replacing goalies). Un-confirms. */
+export async function setTeam(
+  client: AnyClient,
+  entryId: number,
+  teamAbbrev: string | null,
+): Promise<{ error: string | null }> {
+  const db = client as unknown as Db;
+  const { error } = await db.rpc('pool_set_team' as never, {
+    p_entry_id: entryId,
+    p_team: teamAbbrev,
+  } as never);
+  return { error: error?.message ?? null };
+}
+
+/** Confirm (activate) the entry — requires the exact roster + team + budget. */
+export async function confirmEntry(client: AnyClient, entryId: number): Promise<{ error: string | null }> {
+  const db = client as unknown as Db;
+  const { error } = await db.rpc('pool_confirm_entry' as never, { p_entry_id: entryId } as never);
   return { error: error?.message ?? null };
 }
 

@@ -38,6 +38,10 @@ export function PoolAdminClient({ season, rules }: { season: PoolSeason | null; 
     transactionDeadline: isoToLocal(season?.transactionDeadline ?? null),
     tiebreaker: season?.tiebreaker ?? 'fewest_games',
     isPublic: season?.isPublic ?? true,
+    rosterTeams: season?.rosterTeams ?? 0,
+    teamBasePoints: season?.teamBasePoints ?? 5,
+    teamGfCoef: season?.teamGfCoef ?? 0,
+    teamGaCoef: season?.teamGaCoef ?? -1,
   }));
   const [saving, setSaving] = useState(false);
 
@@ -73,6 +77,10 @@ export function PoolAdminClient({ season, rules }: { season: PoolSeason | null; 
           transactionDeadline: localToIso(form.transactionDeadline),
           tiebreaker: form.tiebreaker,
           isPublic: form.isPublic,
+          rosterTeams: Number(form.rosterTeams),
+          teamBasePoints: Number(form.teamBasePoints),
+          teamGfCoef: Number(form.teamGfCoef),
+          teamGaCoef: Number(form.teamGaCoef),
         },
         rules: SCORING_CATALOG.map((c) => ({
           statKey: c.key,
@@ -191,6 +199,32 @@ export function PoolAdminClient({ season, rules }: { season: PoolSeason | null; 
             <label className={labelCls}>Date limite des échanges</label>
             <input type="datetime-local" className={inputCls} value={form.transactionDeadline}
               onChange={(e) => upd('transactionDeadline', e.target.value)} />
+          </div>
+        </div>
+      </section>
+
+      {/* Pointage d'équipe (LNH) */}
+      <section className={cardCls}>
+        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500">Section équipe LNH</h2>
+        <p className="mb-4 text-xs text-gray-400">Chaque soir, l&apos;équipe choisie part des points de base, ajustés selon les buts du match.</p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className={labelCls}>Nombre d&apos;équipes à choisir</label>
+            <input type="number" className={inputCls} value={form.rosterTeams} onChange={(e) => upd('rosterTeams', Number(e.target.value))} />
+            <p className="mt-1 text-xs text-gray-400">0 = section désactivée · 1 = le membre choisit 1 équipe (remplace les gardiens)</p>
+          </div>
+          <div>
+            <label className={labelCls}>Points de base par soir</label>
+            <input type="number" step="0.5" className={inputCls} value={form.teamBasePoints} onChange={(e) => upd('teamBasePoints', Number(e.target.value))} />
+          </div>
+          <div>
+            <label className={labelCls}>Points par but marqué</label>
+            <input type="number" step="0.5" className={inputCls} value={form.teamGfCoef} onChange={(e) => upd('teamGfCoef', Number(e.target.value))} />
+          </div>
+          <div>
+            <label className={labelCls}>Points par but accordé</label>
+            <input type="number" step="0.5" className={inputCls} value={form.teamGaCoef} onChange={(e) => upd('teamGaCoef', Number(e.target.value))} />
+            <p className="mt-1 text-xs text-gray-400">Ex. −1 : une équipe qui accorde 3 buts perd 3 pts ce soir-là.</p>
           </div>
         </div>
       </section>

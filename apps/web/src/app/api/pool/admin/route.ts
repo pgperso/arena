@@ -34,6 +34,10 @@ interface SeasonPatch {
   transactionDeadline?: string | null;
   tiebreaker?: 'fewest_games' | 'none';
   isPublic?: boolean;
+  rosterTeams?: number;
+  teamBasePoints?: number;
+  teamGfCoef?: number;
+  teamGaCoef?: number;
 }
 interface SaveBody {
   seasonId: number;
@@ -79,6 +83,10 @@ export async function POST(request: Request) {
   set('transaction_deadline', season.transactionDeadline);
   set('tiebreaker', season.tiebreaker);
   set('is_public', season.isPublic);
+  set('roster_teams', season.rosterTeams);
+  set('team_base_points', season.teamBasePoints);
+  set('team_gf_coef', season.teamGfCoef);
+  set('team_ga_coef', season.teamGaCoef);
 
   // Detect a draft/locked → open transition so we announce the pool once.
   const { data: prev } = await admin.from('pool_seasons').select('status').eq('id', seasonId).single();
