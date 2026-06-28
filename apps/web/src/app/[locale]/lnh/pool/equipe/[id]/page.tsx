@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import { getActiveSeason, getStandings, getRosterWithStats } from '@/services/poolService';
+import { getActiveSeason, getStandings, getRosterWithStats, getTeamChoices, type NhlTeamChoice } from '@/services/poolService';
 import { PoolShell } from '../../PoolShell';
 import { PoolRosterStats } from '@/components/pool/PoolRosterStats';
 import { TeamLogo } from '@/components/pool/TeamLogo';
@@ -32,6 +32,8 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
   const { locale, id } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('pool.teamPage');
+  const tMy = await getTranslations('pool.myTeamPage');
+  const tPool = await getTranslations('pool');
   const entryId = Number(id);
   if (!Number.isFinite(entryId)) notFound();
 
@@ -40,26 +42,31 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
 
   const { data: entryData } = await db
     .from('pool_entries')
-    .select('id, season_id, team_name, team_logo, member_id, spent_cents, members(username, avatar_url)')
+    .select('id, season_id, team_name, team_logo, member_id, spent_cents, team_pick, members(username, avatar_url)')
     .eq('id', entryId)
     .maybeSingle();
   if (!entryData) notFound();
   type MemberEmbed = { username: string | null; avatar_url: string | null };
   const entry = entryData as unknown as {
     id: number; season_id: number; team_name: string; team_logo: string | null;
-    spent_cents: number; members: MemberEmbed | MemberEmbed[] | null;
+    spent_cents: number; team_pick: string | null; members: MemberEmbed | MemberEmbed[] | null;
   };
   const owner = Array.isArray(entry.members) ? entry.members[0] : entry.members;
 
   const season = await getActiveSeason(supabase);
-  const [rows, standings] = await Promise.all([
+  const [rows, standings, teamChoices] = await Promise.all([
     season ? getRosterWithStats(supabase, season.id, entryId) : Promise.resolve([]),
     season ? getStandings(supabase, season.id) : Promise.resolve([]),
+    season && season.rosterTeams > 0 && entry.team_pick ? getTeamChoices(supabase, season.id) : Promise.resolve([] as NhlTeamChoice[]),
   ]);
   const standing = standings.find((s) => s.entryId === entryId);
+  const teamPickInfo = entry.team_pick ? teamChoices.find((c) => c.abbrev === entry.team_pick) ?? null : null;
 
   return (
     <PoolShell>
+      <Link href="/lnh/pool/classement" className="mb-3 inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
+        ← {tPool('standings')}
+      </Link>
       <div>
         <div className="flex items-center gap-3">
           <TeamLogo logo={entry.team_logo} name={entry.team_name} size={44} />
@@ -98,6 +105,35 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
         </div>
       ) : (
         <PoolRosterStats rows={rows} />
+      )}
+
+      {teamPickInfo && (
+        <section className="mt-6">
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">{tMy('teamNhl')}</h2>
+          <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{teamPickInfo.name}</span>
+              <span className="text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtMoney(teamPickInfo.priceCents, locale)}</span>
+            </div>
+            <div className="mt-2 grid grid-cols-3 gap-2 text-center sm:grid-cols-6">
+              {[
+                { l: tMy('statGp'), v: teamPickInfo.gp },
+                { l: tMy('statW'), v: teamPickInfo.wins },
+                { l: tMy('statL'), v: teamPickInfo.losses },
+                { l: tMy('statFor'), v: teamPickInfo.gf },
+                { l: tMy('statAgainst'), v: teamPickInfo.ga },
+                { l: tMy('statPoolPts'), v: teamPickInfo.teamPoints },
+              ].map((s) => (
+                <div key={s.l}>
+                  <div className="text-xs uppercase tracking-wide text-gray-500">{s.l}</div>
+                  <div className="text-sm font-bold tabular-nums text-gray-900 dark:text-gray-100">
+                    {s.v.toLocaleString(locale === 'fr' ? 'fr-CA' : 'en-CA', { maximumFractionDigits: 0 })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       )}
     </PoolShell>
   );
