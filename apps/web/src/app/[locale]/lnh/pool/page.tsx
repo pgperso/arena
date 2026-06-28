@@ -3,8 +3,7 @@ import Link from 'next/link';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveSeason, getStandings, getScoringRules, SCORING_CATALOG } from '@/services/poolService';
-import { AdSidebar } from '@/components/ads/AdSidebar';
-import { AdAnchor } from '@/components/ads/AdAnchor';
+import { PoolShell } from './PoolShell';
 import { TeamLogo } from '@/components/pool/TeamLogo';
 import { BRAND } from '@/lib/brand';
 
@@ -85,12 +84,7 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
       : { href: '/lnh/pool/composer', label: 'Crée ton équipe' };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex flex-1 overflow-hidden border-t border-gray-200 dark:border-gray-700">
-        <AdSidebar position="left" />
-
-        <main className="flex-1 overflow-y-auto bg-white dark:bg-[#1e1e1e]">
-          <div className="mx-auto w-full max-w-3xl px-4 py-8">
+    <PoolShell width="prose">
             {/* Hero / CTA */}
             <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-6 dark:border-gray-700 dark:from-[#252525] dark:to-[#1e1e1e]">
               <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Pool LNH</p>
@@ -216,13 +210,6 @@ export default async function PoolHomePage({ params }: { params: Promise<{ local
                 </div>
               )}
             </section>
-          </div>
-        </main>
-
-        <AdSidebar position="right" />
-      </div>
-
-      <AdAnchor />
-    </div>
+    </PoolShell>
   );
 }

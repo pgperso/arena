@@ -86,7 +86,7 @@ export function PoolComposer({
     <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-[#1e1e1e]">
       {/* Sticky budget + actions */}
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-gray-700 dark:bg-[#1e1e1e]/95">
-        <div className="mx-auto w-full max-w-3xl">
+        <div className="mx-auto w-full max-w-5xl">
           <Link href="/lnh/pool/moi" className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
             ← Retour à mon équipe
           </Link>
@@ -128,7 +128,7 @@ export function PoolComposer({
 
       {/* Filters */}
       <div className="border-b border-gray-200 px-4 py-2 dark:border-gray-700">
-        <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center gap-2">
+        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-2">
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un joueur…"
             className="min-w-[160px] flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-[#252525]" />
           <div className="flex gap-1">
@@ -149,7 +149,7 @@ export function PoolComposer({
       </div>
 
       {/* Player list */}
-      <div className="mx-auto w-full max-w-3xl flex-1">
+      <div className="mx-auto w-full max-w-5xl flex-1">
         <Virtuoso
           data={visible}
           itemContent={(_i, p) => {

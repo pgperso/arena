@@ -3,8 +3,7 @@ import Link from 'next/link';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveSeason, getStandings } from '@/services/poolService';
-import { AdSidebar } from '@/components/ads/AdSidebar';
-import { AdAnchor } from '@/components/ads/AdAnchor';
+import { PoolShell } from '../PoolShell';
 import { TeamLogo } from '@/components/pool/TeamLogo';
 import { BRAND } from '@/lib/brand';
 
@@ -29,11 +28,7 @@ export default async function StandingsPage({ params }: { params: Promise<{ loca
   const fmtPts = (n: number) => n.toLocaleString('fr-CA', { maximumFractionDigits: 1 });
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex flex-1 overflow-hidden border-t border-gray-200 dark:border-gray-700">
-        <AdSidebar position="left" />
-        <main className="flex-1 overflow-y-auto bg-white dark:bg-[#1e1e1e]">
-          <div className="mx-auto w-full max-w-3xl px-4 py-8">
+    <PoolShell width="standings">
             <div className="mb-4 flex items-center justify-between">
               <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Classement — {season?.name ?? 'Pool LNH'}</h1>
               <Link href="/lnh/pool" className="text-sm text-gray-600 underline dark:text-gray-300">Retour</Link>
@@ -99,11 +94,6 @@ export default async function StandingsPage({ params }: { params: Promise<{ loca
                 </table>
               </div>
             )}
-          </div>
-        </main>
-        <AdSidebar position="right" />
-      </div>
-      <AdAnchor />
-    </div>
+    </PoolShell>
   );
 }

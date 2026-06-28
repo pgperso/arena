@@ -294,6 +294,97 @@ export interface SlotPick {
   slotPosition: PoolPosition;
 }
 
+/** A roster player with their season stat totals + fantasy points (0 pre-season). */
+export interface RosterPlayerStats {
+  playerId: number;
+  fullName: string;
+  teamAbbrev: string | null;
+  slotPosition: PoolPosition;
+  priceCents: number;
+  gp: number;
+  goals: number;
+  assists: number;
+  points: number;
+  plusMinus: number;
+  pim: number;
+  shots: number;
+  ppGoals: number;
+  hits: number;
+  blockedShots: number;
+  toiSeconds: number;
+  wins: number;
+  losses: number;
+  otLosses: number;
+  shutouts: number;
+  saves: number;
+  shotsAgainst: number;
+  goalsAgainst: number;
+  fantasyPoints: number;
+}
+
+/** An entry's active roster with each player's season stats, for the stat tables. */
+export async function getRosterWithStats(
+  client: AnyClient,
+  seasonId: number,
+  entryId: number,
+): Promise<RosterPlayerStats[]> {
+  const db = client as unknown as Db;
+
+  const { data: slotData } = await db
+    .from('pool_roster_slots')
+    .select('player_id, slot_position, price_cents, nhl_players!inner(full_name, team_abbrev)')
+    .eq('entry_id', entryId)
+    .is('effective_to', null);
+  const slots = (slotData ?? []) as unknown as Array<{
+    player_id: number;
+    slot_position: PoolPosition;
+    price_cents: number;
+    nhl_players: { full_name: string; team_abbrev: string | null };
+  }>;
+  if (slots.length === 0) return [];
+
+  const ids = slots.map((s) => s.player_id);
+  const { data: statData } = await db
+    .from('pool_player_season_stats')
+    .select('*')
+    .eq('pool_season_id', seasonId)
+    .in('player_id', ids);
+  const statMap = new Map<number, Record<string, number>>(
+    ((statData ?? []) as Array<Record<string, number>>).map((r) => [r.player_id as number, r]),
+  );
+
+  const n = (v: unknown) => Number(v ?? 0);
+  return slots.map((s) => {
+    const st = statMap.get(s.player_id);
+    return {
+      playerId: s.player_id,
+      fullName: s.nhl_players.full_name,
+      teamAbbrev: s.nhl_players.team_abbrev,
+      slotPosition: s.slot_position,
+      priceCents: s.price_cents,
+      gp: n(st?.gp),
+      goals: n(st?.goals),
+      assists: n(st?.assists),
+      points: n(st?.points),
+      plusMinus: n(st?.plus_minus),
+      pim: n(st?.pim),
+      shots: n(st?.shots),
+      ppGoals: n(st?.pp_goals),
+      hits: n(st?.hits),
+      blockedShots: n(st?.blocked_shots),
+      toiSeconds: n(st?.toi_seconds),
+      wins: n(st?.wins),
+      losses: n(st?.losses),
+      otLosses: n(st?.ot_losses),
+      shutouts: n(st?.shutouts),
+      saves: n(st?.saves),
+      shotsAgainst: n(st?.shots_against),
+      goalsAgainst: n(st?.goals_against),
+      fantasyPoints: n(st?.fantasy_points),
+    };
+  });
+}
+
 /**
  * Replace the entry's roster (pre-lock). Goes through the pool_save_roster
  * RPC so the whole replace is one atomic transaction with budget/cap checks

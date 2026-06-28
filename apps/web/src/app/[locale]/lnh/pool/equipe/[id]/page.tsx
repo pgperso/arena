@@ -4,15 +4,14 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import { getActiveSeason, getStandings, type PoolPosition } from '@/services/poolService';
-import { AdSidebar } from '@/components/ads/AdSidebar';
-import { AdAnchor } from '@/components/ads/AdAnchor';
+import { getActiveSeason, getStandings, getRosterWithStats } from '@/services/poolService';
+import { PoolShell } from '../../PoolShell';
+import { PoolRosterStats } from '@/components/pool/PoolRosterStats';
 import { TeamLogo } from '@/components/pool/TeamLogo';
 import { BRAND } from '@/lib/brand';
 
 export const revalidate = 120;
 
-const POS_LABEL: Record<PoolPosition, string> = { F: 'Attaquants', D: 'Défenseurs', G: 'Gardiens' };
 const M = 100_000_000;
 const fmtM = (c: number) => `${(c / M).toLocaleString('fr-CA', { maximumFractionDigits: 1 })} M$`;
 
@@ -53,88 +52,56 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
   const owner = Array.isArray(entry.members) ? entry.members[0] : entry.members;
 
   const season = await getActiveSeason(supabase);
-
-  // Rank + points from the shared standings (consistent with the standings page).
-  const standings = season ? await getStandings(supabase, season.id) : [];
+  const [rows, standings] = await Promise.all([
+    season ? getRosterWithStats(supabase, season.id, entryId) : Promise.resolve([]),
+    season ? getStandings(supabase, season.id) : Promise.resolve([]),
+  ]);
   const standing = standings.find((s) => s.entryId === entryId);
 
-  const { data: slotData } = await db
-    .from('pool_roster_slots')
-    .select('player_id, slot_position, price_cents, nhl_players!inner(full_name, team_abbrev)')
-    .eq('entry_id', entryId)
-    .is('effective_to', null);
-  const slots = (slotData ?? []) as unknown as Array<{
-    player_id: number; slot_position: PoolPosition; price_cents: number;
-    nhl_players: { full_name: string; team_abbrev: string | null };
-  }>;
-  const byPos = (pos: PoolPosition) => slots.filter((s) => s.slot_position === pos);
-
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex flex-1 overflow-hidden border-t border-gray-200 dark:border-gray-700">
-        <AdSidebar position="left" />
-        <main className="flex-1 overflow-y-auto bg-white dark:bg-[#1e1e1e]">
-          <div className="mx-auto w-full max-w-3xl px-4 py-8">
-            <Link href="/lnh/pool/classement" className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
-              ← Retour au classement
-            </Link>
+    <PoolShell width="wide" leftAd={false}>
+      <div className="max-w-3xl">
+        <Link href="/lnh/pool/classement" className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
+          ← Retour au classement
+        </Link>
 
-            <div className="mt-3 flex items-center gap-3">
-              <TeamLogo logo={entry.team_logo} name={entry.team_name} size={44} />
-              <div className="min-w-0">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{entry.team_name}</h1>
-                {owner?.username && (
-                  <Link href={`/auteurs/${owner.username}`} className="flex items-center gap-1.5 text-sm text-gray-500 hover:underline">
-                    {owner.avatar_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={owner.avatar_url} alt="" className="h-4 w-4 rounded-full object-cover" />
-                    )}
-                    @{owner.username}
-                  </Link>
+        <div className="mt-3 flex items-center gap-3">
+          <TeamLogo logo={entry.team_logo} name={entry.team_name} size={44} />
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{entry.team_name}</h1>
+            {owner?.username && (
+              <Link href={`/auteurs/${owner.username}`} className="flex items-center gap-1.5 text-sm text-gray-500 hover:underline">
+                {owner.avatar_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={owner.avatar_url} alt="" className="h-4 w-4 rounded-full object-cover" />
                 )}
-              </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-3 gap-3">
-              {[
-                { l: 'Rang', v: standing?.rank ? `${standing.rank}ᵉ` : '—' },
-                { l: 'Points', v: standing ? standing.fantasyPoints.toLocaleString('fr-CA', { maximumFractionDigits: 1 }) : '0' },
-                { l: 'Masse salariale', v: fmtM(entry.spent_cents) },
-              ].map((s) => (
-                <div key={s.l} className="rounded-lg border border-gray-200 p-3 text-center dark:border-gray-700">
-                  <div className="text-xs uppercase tracking-wide text-gray-500">{s.l}</div>
-                  <div className="mt-1 text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100">{s.v}</div>
-                </div>
-              ))}
-            </div>
-
-            {slots.length === 0 ? (
-              <div className="mt-6 rounded-lg border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700">
-                Cette équipe n&apos;a pas encore d&apos;alignement.
-              </div>
-            ) : (
-              (['F', 'D', 'G'] as PoolPosition[]).map((pos) => (
-                <section key={pos} className="mt-6">
-                  <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">{POS_LABEL[pos]}</h2>
-                  <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-                    {byPos(pos).map((s) => (
-                      <div key={s.player_id} className="flex items-center justify-between border-b border-gray-100 px-4 py-2 last:border-0 dark:border-gray-800">
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{s.nhl_players.full_name}</span>
-                        <span className="flex items-center gap-3 text-sm text-gray-500">
-                          <span>{s.nhl_players.team_abbrev ?? '—'}</span>
-                          <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{fmtM(s.price_cents)}</span>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              ))
+                @{owner.username}
+              </Link>
             )}
           </div>
-        </main>
-        <AdSidebar position="right" />
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          {[
+            { l: 'Rang', v: standing?.rank ? `${standing.rank}ᵉ` : '—' },
+            { l: 'Points', v: standing ? standing.fantasyPoints.toLocaleString('fr-CA', { maximumFractionDigits: 1 }) : '0' },
+            { l: 'Masse salariale', v: fmtM(entry.spent_cents) },
+          ].map((s) => (
+            <div key={s.l} className="rounded-lg border border-gray-200 p-3 text-center dark:border-gray-700">
+              <div className="text-xs uppercase tracking-wide text-gray-500">{s.l}</div>
+              <div className="mt-1 text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100">{s.v}</div>
+            </div>
+          ))}
+        </div>
       </div>
-      <AdAnchor />
-    </div>
+
+      {rows.length === 0 ? (
+        <div className="mt-6 rounded-lg border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700">
+          Cette équipe n&apos;a pas encore d&apos;alignement.
+        </div>
+      ) : (
+        <PoolRosterStats rows={rows} />
+      )}
+    </PoolShell>
   );
 }
