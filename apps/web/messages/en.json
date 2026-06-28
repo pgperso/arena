@@ -417,7 +417,7 @@
     "positions": { "F": "Forwards", "D": "Defensemen", "G": "Goalies" },
     "home": {
       "eyebrow": "NHL Pool",
-      "heroDesc": "Build a roster of {f} forwards, {d} defensemen and {g} goalies under a {budget}M cap, and rack up points from real NHL performances.",
+      "heroDesc": "Build a roster of {f} forwards, {d} defensemen{g, plural, =0 {} other { and # goalies}} under a {budget}M cap, and rack up points from real NHL performances.",
       "ctaCreate": "Create your team",
       "viewFullStandings": "View full standings",
       "loginRequired": "Sign in to build your team.",
@@ -438,7 +438,7 @@
       "timeSoon": "< 1h",
       "howItWorks": "How it works",
       "step1Title": "Build your team",
-      "step1Desc": "Pick {f} forwards, {d} defensemen and {g} goalies without exceeding the {budget}M cap.",
+      "step1Desc": "Pick {f} forwards, {d} defensemen{g, plural, =0 {} other { and # goalies}} without exceeding the {budget}M cap.",
       "step2Title": "Edit anytime",
       "step2DescDate": "Adjust your lineup freely until the draft deadline (on {date}).",
       "step2Desc": "Adjust your lineup freely until the draft deadline.",

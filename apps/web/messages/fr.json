@@ -423,7 +423,7 @@
     "positions": { "F": "Attaquants", "D": "Défenseurs", "G": "Gardiens" },
     "home": {
       "eyebrow": "Pool LNH",
-      "heroDesc": "Compose ton alignement de {f} attaquants, {d} défenseurs et {g} gardiens dans un plafond de {budget} M$, et accumule des points selon les vraies performances de la LNH.",
+      "heroDesc": "Compose ton alignement de {f} attaquants, {d} défenseurs{g, plural, =0 {} other { et # gardiens}} dans un plafond de {budget} M$, et accumule des points selon les vraies performances de la LNH.",
       "ctaCreate": "Crée ton équipe",
       "viewFullStandings": "Voir le classement complet",
       "loginRequired": "Connexion requise pour composer ton équipe.",
@@ -444,7 +444,7 @@
       "timeSoon": "< 1 h",
       "howItWorks": "Comment ça marche",
       "step1Title": "Compose ton équipe",
-      "step1Desc": "Choisis {f} attaquants, {d} défenseurs et {g} gardiens sans dépasser le plafond de {budget} M$.",
+      "step1Desc": "Choisis {f} attaquants, {d} défenseurs{g, plural, =0 {} other { et # gardiens}} sans dépasser le plafond de {budget} M$.",
       "step2Title": "Modifie quand tu veux",
       "step2DescDate": "Ajuste ton alignement librement jusqu'à la date limite du repêchage (le {date}).",
       "step2Desc": "Ajuste ton alignement librement jusqu'à la date limite du repêchage.",
