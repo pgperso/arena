@@ -148,7 +148,16 @@ interface FeedState {
   loading: boolean;
   sending: boolean;
   hasMoreMessages: boolean;
+  // react-virtuoso reverse-infinite-scroll anchor: the computed index of the
+  // first feed item. Starts high and DECREASES by the number of older messages
+  // prepended, so Virtuoso keeps the scroll position and keeps firing
+  // startReached (otherwise it only loads one older page). See the Virtuoso
+  // "prepending items" guide.
+  firstItemIndex: number;
 }
+
+// Large enough to never go negative (the community has far fewer messages).
+const FIRST_ITEM_START = 1_000_000;
 
 type FeedAction =
   | { type: 'INITIAL_LOAD'; messages: FeedMessage[]; articles: FeedArticle[]; podcasts: FeedPodcast[]; hasMore: boolean }
@@ -179,6 +188,7 @@ function feedReducer(state: FeedState, action: FeedAction): FeedState {
         podcasts: action.podcasts,
         loading: false,
         hasMoreMessages: action.hasMore,
+        firstItemIndex: FIRST_ITEM_START,
       };
 
     case 'RELOAD_MESSAGES':
@@ -186,6 +196,7 @@ function feedReducer(state: FeedState, action: FeedAction): FeedState {
         ...state,
         messages: action.messages,
         hasMoreMessages: action.hasMore,
+        firstItemIndex: FIRST_ITEM_START,
       };
 
     case 'ADD_MESSAGE': {
@@ -223,6 +234,7 @@ function feedReducer(state: FeedState, action: FeedAction): FeedState {
         ...state,
         messages: [...action.messages, ...state.messages],
         hasMoreMessages: action.hasMore,
+        firstItemIndex: state.firstItemIndex - action.messages.length,
       };
 
     case 'ADD_ARTICLE':
@@ -303,6 +315,7 @@ const initialState: FeedState = {
   loading: true,
   sending: false,
   hasMoreMessages: true,
+  firstItemIndex: FIRST_ITEM_START,
 };
 
 // --- Send options ---
@@ -321,6 +334,8 @@ export interface UseFeedReturn {
   loading: boolean;
   sending: boolean;
   hasMore: boolean;
+  /** Virtuoso firstItemIndex for stable reverse-infinite-scroll. */
+  firstItemIndex: number;
   sendMessage: (content: string, imageUrls?: string[]) => Promise<void>;
   sendReply: (parentId: number, content: string, imageUrls?: string[]) => Promise<void>;
   editMessage: (messageId: number, content: string) => Promise<void>;
@@ -765,6 +780,7 @@ export function useFeed(communityId: number, userId: string | null): UseFeedRetu
     loading: state.loading,
     sending: state.sending,
     hasMore: state.hasMoreMessages,
+    firstItemIndex: state.firstItemIndex,
     sendMessage,
     sendReply,
     editMessage,

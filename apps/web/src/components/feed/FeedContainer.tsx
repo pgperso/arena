@@ -59,6 +59,7 @@ export function FeedContainer({
     items,
     loading,
     hasMore,
+    firstItemIndex,
     sendMessage,
     sendReply,
     editMessage,
@@ -223,6 +224,7 @@ export function FeedContainer({
                 <Virtuoso
                   ref={virtuosoRef}
                   data={displayItems}
+                  firstItemIndex={firstItemIndex}
                   initialTopMostItemIndex={displayItems.length - 1}
                   // Anchor to the bottom (chat layout): late measurements
                   // push the OLDER items up instead of bouncing the latest
