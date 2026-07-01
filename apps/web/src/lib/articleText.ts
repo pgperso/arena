@@ -47,7 +47,19 @@ export function cleanArticleTitle(
 ): string {
   const t = decodeEntities(title).trim();
   if (t && t.toUpperCase() !== 'NULL') return t;
-  const text = decodeEntities(body).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-  if (text.length >= 3) return text.length > 70 ? `${text.slice(0, 70).trimEnd()}…` : text;
+  // Derive from the body: decode, drop HTML tags and pasted URLs (a lot of
+  // imported posts start with a raw link), then take the first real sentence.
+  const text = decodeEntities(body)
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/https?:\/\/\S+/gi, ' ')
+    .replace(/www\.\S+/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (text.length >= 3) {
+    const firstSentence = (text.match(/^.*?[.!?](?:\s|$)/)?.[0] ?? text).trim();
+    const base = firstSentence.length >= 12 ? firstSentence : text;
+    const clipped = base.length > 70 ? `${base.slice(0, 70).trimEnd()}…` : base;
+    return clipped.replace(/[.!?]+$/, '');
+  }
   return fallback;
 }
