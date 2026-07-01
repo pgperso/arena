@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Link } from '@/i18n/navigation';
 import { formatTime, ORIGINAL_CONTENT_CUTOFF, displayCommunityName } from '@arena/shared';
 import { translatedField } from '@/lib/contentTranslation';
+import { cleanArticleTitle } from '@/lib/articleText';
 
 interface RelatedArticlesProps {
   // The article we're currently viewing — exclude it from the list.
@@ -113,7 +114,7 @@ export async function RelatedArticles({
               : null) ||
             a.members?.username ||
             'Inconnu';
-          const title = translatedField(a.source_lang, locale, a.title, a.title_translated);
+          const title = cleanArticleTitle(translatedField(a.source_lang, locale, a.title, a.title_translated), null, 'Article');
           const href = `/tribunes/${a.communities.slug}/articles/${a.slug}`;
           const isOtherTribune = a.communities.slug !== communitySlug;
           const communityName = displayCommunityName(

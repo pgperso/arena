@@ -6,6 +6,7 @@ import { sanitizeArticleBody } from '@/lib/sanitizeBodyServer';
 import { splitHtmlAtParagraph } from '@/lib/articleBody';
 import { BRAND } from '@/lib/brand';
 import { translatedField } from '@/lib/contentTranslation';
+import { cleanArticleTitle, decodeEntities } from '@/lib/articleText';
 import { ArticleView } from '@/components/article/ArticleView';
 import { RelatedArticles } from '@/components/article/RelatedArticles';
 import { getContentAuthor } from '@/lib/contentAuthors';
@@ -45,9 +46,9 @@ export async function generateMetadata({ params }: ArticlePageProps) {
     published_at: string | null; body: string; source_lang: string | null;
     title_translated: string | null; excerpt_translated: string | null; body_translated: string | null;
   };
-  const title = translatedField(raw.source_lang, loc, raw.title, raw.title_translated);
-  const excerpt = translatedField(raw.source_lang, loc, raw.excerpt, raw.excerpt_translated);
   const body = translatedField(raw.source_lang, loc, raw.body, raw.body_translated);
+  const title = cleanArticleTitle(translatedField(raw.source_lang, loc, raw.title, raw.title_translated), body, 'Article');
+  const excerpt = decodeEntities(translatedField(raw.source_lang, loc, raw.excerpt, raw.excerpt_translated)) || null;
   const cover_image_url = raw.cover_image_url;
   const published_at = raw.published_at;
   const desc = excerpt ?? `${title} — Article sportif sur ${BRAND.name}. Opinions, analyses et débats.`;
@@ -200,9 +201,9 @@ export default async function ArticlePage({ params, searchParams }: ArticlePageP
 
   // Show the machine translation when the reader's locale differs from the
   // language the article was written in (see /api/translate-pending).
-  const displayTitle = translatedField(article.source_lang, locale, article.title, article.title_translated);
-  const displayExcerpt = translatedField(article.source_lang, locale, article.excerpt, article.excerpt_translated);
   const displayBody = translatedField(article.source_lang, locale, article.body, article.body_translated);
+  const displayTitle = cleanArticleTitle(translatedField(article.source_lang, locale, article.title, article.title_translated), displayBody, 'Article');
+  const displayExcerpt = decodeEntities(translatedField(article.source_lang, locale, article.excerpt, article.excerpt_translated)) || null;
 
   // Sanitize + split the body HERE (server component) so the prose is part of
   // the SSR HTML. This used to happen inside the client ArticleView via

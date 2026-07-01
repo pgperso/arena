@@ -2,6 +2,7 @@
 
 import { useEffect, useReducer, useCallback, useRef, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { cleanArticleTitle, decodeEntities } from '@/lib/articleText';
 import { FEED_INITIAL_LIMIT, FEED_LOAD_MORE_LIMIT, messageSchema } from '@arena/shared';
 import type {
   FeedItem,
@@ -88,9 +89,9 @@ function articleToFeedItem(row: ArticleWithJoin & { author_name_override?: strin
     feedTimestamp: row.published_at ?? row.created_at,
     communityId: row.community_id,
     id: row.id,
-    title: row.title,
+    title: cleanArticleTitle(row.title, null, 'Article'),
     slug: row.slug,
-    excerpt: row.excerpt,
+    excerpt: decodeEntities(row.excerpt) || null,
     coverImageUrl: row.cover_image_url,
     likeCount: row.like_count,
     viewCount: row.view_count,

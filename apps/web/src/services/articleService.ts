@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@arena/supabase-client';
 import { articleSchema } from '@arena/shared';
+import { cleanArticleTitle, decodeEntities } from '@/lib/articleText';
 import { announceArticle, cleanupArticleBotMessages } from './botService';
 import { BRAND } from '@/lib/brand';
 
@@ -76,9 +77,9 @@ export async function createArticle(
   const result = await supabase.from('articles').insert({
     community_id: data.communityId,
     author_id: data.authorId,
-    title: validated.title,
+    title: cleanArticleTitle(validated.title, validated.body, 'Article'),
     slug: validated.slug,
-    excerpt: validated.excerpt ?? null,
+    excerpt: decodeEntities(validated.excerpt) || null,
     body: validated.body,
     cover_image_url: validated.coverImageUrl ?? null,
     cover_position_y: Math.round(data.coverPositionY ?? 50),

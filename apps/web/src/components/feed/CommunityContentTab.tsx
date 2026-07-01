@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSupabase } from '@/hooks/useSupabase';
+import { cleanArticleTitle, decodeEntities } from '@/lib/articleText';
 import { formatTime, formatDuration } from '@arena/shared';
 import { Avatar } from '@/components/ui/Avatar';
 import Image from 'next/image';
@@ -85,9 +86,9 @@ export function CommunityContentTab({ communityId, communitySlug, userId, canMod
         mapped.push({
           type: 'article',
           id: a.id,
-          title: a.title,
+          title: cleanArticleTitle(a.title, null, 'Article'),
           slug: a.slug,
-          excerpt: a.excerpt,
+          excerpt: decodeEntities(a.excerpt) || null,
           coverImageUrl: a.cover_image_url,
           likeCount: a.like_count,
           viewCount: a.view_count,

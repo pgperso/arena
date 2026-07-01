@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { Link } from '@/i18n/navigation';
+import { cleanArticleTitle } from '@/lib/articleText';
 import { ORIGINAL_CONTENT_CUTOFF, displayCommunityName } from '@arena/shared';
 
 interface TopOfWeekProps {
@@ -96,7 +97,7 @@ export async function TopOfWeek({ locale }: TopOfWeekProps) {
                   href={`/tribunes/${a.communities.slug}/articles/${a.slug}`}
                   className="block text-sm font-semibold leading-snug text-gray-900 hover:text-brand-blue dark:text-gray-100"
                 >
-                  <span className="line-clamp-3">{a.title}</span>
+                  <span className="line-clamp-3">{cleanArticleTitle(a.title, null, 'Article')}</span>
                 </Link>
                 <p className="mt-1 text-[10px] uppercase tracking-wider text-gray-400">
                   {communityName}
